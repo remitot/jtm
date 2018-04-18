@@ -90,7 +90,7 @@ function createRowCreate() {
   
   // active
   cell = createCell(row, "column-active");
-  addFieldActive(cell, connection.active);
+  addFieldActive(cell, true);
   // disable checkbox
   cell.querySelectorAll("input")[0].disabled = true; 
   
@@ -124,7 +124,7 @@ function addFieldActive(cell, active) {
   wrapper = document.createElement("div");
   wrapper.classList.add("fieldWrapper");
   
-  checkboxActive = createCheckboxActive(connection.active);
+  checkboxActive = createCheckboxActive(active);
   checkboxActive.onclick = function(){onCheckboxActiveInput(event)};
   checkboxActive.classList.add("deletable");
   wrapper.appendChild(checkboxActive);

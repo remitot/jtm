@@ -26,7 +26,8 @@
 
 
 #connections div.cell.column-active {
-  width: 5%;
+  width: 0.0001%;
+  min-width: 42px; /* empirical value */
 }
 #connections div.cell.column-name {
   width: 17%;
