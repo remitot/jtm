@@ -23,6 +23,7 @@ function uiGridReloadEnd(responseText) {
   var jsonConnections = JSON.parse(responseText);
 
   document.getElementById("abc").innerHTML = "";
+  document.getElementById("connections").innerHTML = "";
   
   if (jsonConnections.length > 0) {
     fillGrid(jsonConnections);
@@ -33,7 +34,6 @@ function uiGridReloadEnd(responseText) {
 
 function fillGrid(jsonConnections) {
   var table = document.getElementById("connections");
-  table.innerHTML = "";
   
   for (var i = 0; i < jsonConnections.length; i++) {
     connection = jsonConnections[i];
@@ -125,7 +125,7 @@ function addFieldActive(cell, active) {
   wrapper.classList.add("fieldWrapper");
   
   checkboxActive = createCheckboxActive(active);
-  checkboxActive.onclick = function(){onCheckboxActiveInput(event)};
+  checkboxActive.onclick = function(event){onCheckboxActiveInput(event)};
   checkboxActive.classList.add("deletable");
   wrapper.appendChild(checkboxActive);
   
@@ -148,7 +148,7 @@ function addField(cell, name, value, placeholder) {
     field.placeholder = placeholder;
   }
   field.setAttribute("value0", value);
-  field.oninput = function(){onFieldInput(event)};
+  field.oninput = function(event){onFieldInput(event)};
   field.classList.add("field-text");
   field.classList.add("inactivatible");
   field.classList.add("deletable");
@@ -165,16 +165,18 @@ function addFieldDelete(cell) {
   wrapper = document.createElement("div");
   wrapper.classList.add("fieldWrapper");
   
-  field = document.createElement("button");
-  field.innerHTML = "Delete";
+  field = document.createElement("input");
+  field.type = "image";
+  field.src = "img/trash_in.png";
   field.classList.add("button-delete");
-  field.onclick = function() {onDeleteButtonClick(event);};
+  field.onclick = function(event){onDeleteButtonClick(event);};
   wrapper.appendChild(field);
   
-  field = document.createElement("button");
-  field.innerHTML = "Restore";
+  field = document.createElement("input");
+  field.type = "image";
+  field.src = "img/trash_out.png";
   field.classList.add("button-undelete");
-  field.onclick = function() {onUndeleteButtonClick(event);};
+  field.onclick = function(event){onUndeleteButtonClick(event);};
   wrapper.appendChild(field);
   
   cell.appendChild(wrapper);

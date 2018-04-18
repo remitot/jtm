@@ -18,6 +18,8 @@
   position: absolute;
   
   width: inherit;
+  min-width: inherit;
+  
   box-sizing: border-box;
   
   padding-left: 12px;
@@ -53,6 +55,7 @@
 }
 
 #connections .field-text {
+  background-color: transparent;
   outline: 0;
   
   border-width: 0 0 2px 0;
@@ -121,7 +124,8 @@
 }
 
 
-#connections .row .column-delete button {
+#connections .row .column-delete input {
+  width: 28px;
   height: 28px;
 }
 
