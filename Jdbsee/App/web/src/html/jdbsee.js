@@ -168,6 +168,7 @@ function addFieldDelete(cell) {
   field = document.createElement("input");
   field.type = "image";
   field.src = "img/trash_in.png";
+  field.title = "Delete";
   field.classList.add("button-delete");
   field.onclick = function(event){onDeleteButtonClick(event);};
   wrapper.appendChild(field);
@@ -175,6 +176,7 @@ function addFieldDelete(cell) {
   field = document.createElement("input");
   field.type = "image";
   field.src = "img/trash_out.png";
+  field.title = "Do not delete";
   field.classList.add("button-undelete");
   field.onclick = function(event){onUndeleteButtonClick(event);};
   wrapper.appendChild(field);
@@ -205,7 +207,7 @@ function onDeleteButtonClick(event) {
   row = button.parentElement.parentElement.parentElement;
   row.classList.add("deleted");
   
-  rowInputs = row.querySelectorAll("input");
+  rowInputs = row.querySelectorAll("input.deletable, .deletable input");
   for (var i = 0; i < rowInputs.length; i++) {
     if (!row.classList.contains("created")) {// no affect for new rows
       rowInputs[i].disabled = true;
@@ -219,7 +221,7 @@ function onUndeleteButtonClick(event) {
   row = button.parentElement.parentElement.parentElement;
   row.classList.remove("deleted");
   
-  rowInputs = row.querySelectorAll("input");
+  rowInputs = row.querySelectorAll("input.deletable, .deletable input");
   for (var i = 0; i < rowInputs.length; i++) {
     if (!row.classList.contains("created")) {// no affect for new rows
       rowInputs[i].disabled = false;
