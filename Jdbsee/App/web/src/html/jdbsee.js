@@ -93,21 +93,9 @@ function createRow(connection) {
   cell.appendChild(field);
   appendStrike(cell);
   
-  // delete
-  wrapper = document.createElement("div");
-  wrapper.classList.add("fieldWrapper");
-  field = document.createElement("button");
-  field.innerHTML = "Delete";
-  field.classList.add("button-delete");
-  field.onclick = function() {onDeleteButtonClick(event);};
-  wrapper.appendChild(field);
-  field = document.createElement("button");
-  field.innerHTML = "Restore";
-  field.classList.add("button-undelete");
-  field.onclick = function() {onUndeleteButtonClick(event);};
-  wrapper.appendChild(field);
   cell = createCell(row, "column-delete");
-  cell.appendChild(wrapper);
+  field = createFieldDelete();
+  cell.appendChild(field);
   
   return row;
 }
@@ -188,24 +176,31 @@ function createRowCreate() {
   cell.appendChild(field);
   appendStrike(cell);
   
-  // delete
+  cell = createCell(row, "column-delete");
+  cell.classList.add("onCreated");
+  field = createFieldDelete();
+  cell.appendChild(field);
+  
+  return row;
+}
+
+function createFieldDelete() {
   wrapper = document.createElement("div");
   wrapper.classList.add("fieldWrapper");
+  
   field = document.createElement("button");
   field.innerHTML = "Delete";
   field.classList.add("button-delete");
   field.onclick = function() {onDeleteButtonClick(event);};
   wrapper.appendChild(field);
+  
   field = document.createElement("button");
   field.innerHTML = "Restore";
   field.classList.add("button-undelete");
   field.onclick = function() {onUndeleteButtonClick(event);};
   wrapper.appendChild(field);
-  cell = createCell(row, "column-delete");
-  cell.appendChild(wrapper);
-  cell.classList.add("onCreated");
   
-  return row;
+  return wrapper;
 }
 
 function createCell(row, columnClass) {
