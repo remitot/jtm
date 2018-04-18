@@ -67,29 +67,24 @@ function createRow(connection) {
   
   
   cell = createCell(row, "column-name");
-  field = createField("name", connection.name);
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "name", connection.name, null);
+  
   
   cell = createCell(row, "column-server");
-  field = createField("server", connection.server);
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "server", connection.server, null);
+  
   
   cell = createCell(row, "column-db");
-  field = createField("db", connection.db);
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "db", connection.db, null);
+  
   
   cell = createCell(row, "column-user");
-  field = createField("user", connection.user);
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "user", connection.user, null);
+  
   
   cell = createCell(row, "column-password");
-  field = createField("password", connection.password);
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "password", connection.password, null);
+  
   
   cell = createCell(row, "column-delete");
   field = createFieldDelete();
@@ -98,7 +93,7 @@ function createRow(connection) {
   return row;
 }
 
-function createField(name, value) {
+function addField(cell, name, value, placeholder) {
   wrapper = document.createElement("div");
   wrapper.classList.add("fieldWrapper");
   
@@ -106,6 +101,9 @@ function createField(name, value) {
   field.type = "text";
   field.name = name;
   field.value = value;
+  if (placeholder != null) {
+    field.placeholder = placeholder;
+  }
   field.setAttribute("value0", value);
   field.oninput = function(){onFieldInput(event)};
   field.classList.add("field-text");
@@ -113,10 +111,8 @@ function createField(name, value) {
   field.classList.add("deletable");
   wrapper.appendChild(field);
   
-  return wrapper;
-}
-
-function appendStrike(cell) {
+  cell.appendChild(wrapper);
+  
   strike = document.createElement("div");
   strike.classList.add("strike");
   cell.appendChild(strike);
@@ -131,30 +127,26 @@ function createRowCreate() {
   // TODO add unmodifiable checkbox
   cell = createCell(row, "column-active");
   
+  
   cell = createCell(row, "column-name");
-  field = createField("name", "");
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "name", "", "jdbc/MyDataSource");
+ 
   
   cell = createCell(row, "column-server");
-  field = createField("server", "");
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "server", "", "mydbserver.com:1521");
+  
   
   cell = createCell(row, "column-db");
-  field = createField("db", "");
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "db", "", "MYDATABASE");
+  
   
   cell = createCell(row, "column-user");
-  field = createField("user", "");
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "user", "", "me");
+  
   
   cell = createCell(row, "column-password");
-  field = createField("password", "");
-  cell.appendChild(field);
-  appendStrike(cell);
+  addField(cell, "password", "", "mysecret");
+  
   
   cell = createCell(row, "column-delete");
   field = createFieldDelete();
@@ -229,9 +221,11 @@ function onCreateButtonClick() {
 }
 
 function onSaveButtonClick() {
+  
   rowsModified = getRowsModified();
   rowsDeleted = getRowsDeleted();
   rowsCreated = getRowsCreated();
+  
   
   uiSaveBegin();
   
