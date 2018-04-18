@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="war-and-tomcat.deploy" name="Module Building">
+  
+  <!-- Значения property - immutable, если BIN_HOME не был задан ранее, то берется из переменной окружения -->
+  <property environment="env" />
+  <property name="BIN_HOME" value="${env.BIN_HOME}" />
+
+  <!-- Проверка, что BIN_HOME определен, иначе - ошибка -->
+  <fail unless="BIN_HOME" message="Binary repository path not specified. Specify it either in environment variable %BIN_HOME% or use -DBIN_HOME=... command line argument." />
+
+  <property file="dependency.properties" />
+  <property file="deploy.properties" />
+  
+  <taskdef resource="net/sf/antcontrib/antlib.xml">
+    <classpath>
+      <pathelement location="${ANT-CONTRIB_LIB}"/>
+    </classpath>
+  </taskdef>
+  
+  <property name="DISTR_DIR" location="lib"/>
+  <property name="DISTR_NAME" value="jdbsee"/>
+  <property name="CONTEXT_PATH" value="/jdbsee"/>
+  
+  <property name="JAR_TEMP" value="build-lib"/>
+
+  <!-- Общие наборы файлов -->
+  <path id="libs">
+  	<pathelement location="${JDBSEE-CORE_LIB}" />
+    <pathelement location="${SERVLET-API_LIB}" />
+    <pathelement location="${GSON_LIB}" />
+  </path>
+  
+  <path id="tomcat-libs">
+    <pathelement location="${TOMCAT-CATALINA-ANT_LIB}" />
+    <pathelement location="${TOMCAT-COYOTE_LIB}" />
+    <pathelement location="${TOMCAT-UTIL_LIB}" />
+  </path>
+
+  <fileset dir="build" id="class-web-jar"/>
+
+  <!-- Java-компиляция -->
+  <target name="java-compile">
+    <mkdir dir="build" />
+    <javac debug="on" destdir="build" encoding="utf-8" includeantruntime="false" srcdir="src/java">
+      <classpath refid="libs" />
+    </javac>
+  </target>
+
+  <target name="web-jar" depends="java-compile">
+    <outofdate>
+      <sourcefiles>
+        <fileset refid="class-web-jar" />
+      </sourcefiles>
+      <targetfiles path="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
+      <sequential>
+        <jar destfile="${JAR_TEMP}/${DISTR_NAME}-web.jar">
+          <fileset refid="class-web-jar" />
+        </jar>
+      </sequential>
+    </outofdate>
+  </target>
+  
+  <!-- Создание приложения war -->
+  <target name="war" depends="web-jar">
+    <outofdate>
+      <sourcefiles>
+        <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
+      	<fileset file="src/html/**/" />
+        <fileset file="src/resources/**/" />
+      </sourcefiles>
+      <targetfiles path="${JAR_TEMP}/${DISTR_NAME}.war" />
+      
+      <sequential>
+        <mkdir dir="temp-war" />
+        
+        <copy todir="temp-war/WEB-INF/security">
+          <fileset dir="src/resources/security"/>
+        </copy>
+        
+        <copy todir="temp-war/WEB-INF/lib">
+        	<fileset file="${JDBSEE-CORE_LIB}" />
+          <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
+          <fileset file="${GSON_LIB}" />
+        </copy>
+        
+        <copy todir="temp-war">
+          <fileset file="src/html/**/" />
+        </copy>
+        
+        <copy todir="temp-war/WEB-INF">
+          <fileset file="src/resources/web/web.xml"/>
+      	</copy>
+        
+        <copy todir="temp-war/META-INF">
+          <fileset file="src/resources/tomcat/context.xml" />
+        </copy>
+
+        <jar basedir="temp-war" destfile="${DISTR_DIR}/${DISTR_NAME}.war" />
+        <delete failonerror="false" dir="temp-war" />
+      </sequential>
+    </outofdate>
+  </target>
+
+  <target name="war-and-tomcat.deploy" depends="war">
+    <!-- Во время разработки не нужно сохранять в базу информацию об установке. -->
+    <!-- Для теста установки модуля СОВМЕСТНО С СОХРАНЕНИЕМ, необходимо использовать цель tomcat.deploy --> 
+    <antcall target="tomcat.deploy">
+      <param name="SKIP_SAVE_INSTALL_INFO" value="1" />
+    </antcall>
+  </target>
+  
+  <!-- получаем домен и порт из DEPLOYMENT_PATH и PORT, если не задан localhost:80 -->
+  <target name="get-server-domain">
+    <fail unless="DEPLOYMENT_PATH" message="DEPLOYMENT_PATH not specified. Use -DEPLOYMENT_PATH=... command line argument." />
+    <propertyregex property="DOMAIN"
+              input="${DEPLOYMENT_PATH}"           
+              regexp="^(?:https?:\/\/)?([^:\/]+)"
+              select="\0" 
+              casesensitive="false" />
+    <propertyregex property="PORT"
+              input="${DEPLOYMENT_PATH}"           
+              regexp="(?&lt;=:)[0-9]{2,5}"
+              select="\0" 
+              casesensitive="false" />      
+    <condition property="DEPLOYMENT_PATH" value="http://localhost">
+        <not>  
+            <isset property="DEPLOYMENT_PATH"/>
+        </not>
+    </condition>
+    <condition property="PORT" value="80">
+        <not>  
+            <isset property="PORT"/>
+        </not>
+    </condition>
+    <echo message="${DOMAIN}:${PORT}" />
+  </target>
+
+  <target name="define-tomcat">
+    <taskdef name="tomcat.deploy" classname="org.apache.catalina.ant.DeployTask" classpathref="tomcat-libs" />
+    <taskdef name="tomcat.undeploy" classname="org.apache.catalina.ant.UndeployTask" classpathref="tomcat-libs" />
+  </target>
+  
+  <target name="tomcat.undeploy" description="Undeploy from Tomcat" depends="define-tomcat, available-tomcat">
+    <tomcat.undeploy 
+      failonerror="no"
+      url="${DEPLOYMENT_PATH}"
+      username="${LOGIN}"
+      password="${PASSWORD}"
+      path="${CONTEXT_PATH}"
+    />
+  </target>
+
+  <target name="available-tomcat">
+    <!-- проверяем соединение с Tomcat + проверка логин пароль--> 
+    <trycatch property="errorMessage">
+        <try>
+          <get src="${DOMAIN}:${PORT}/manager/html" 
+              dest="NUL"
+              maxtime="3"
+              username="${LOGIN}"
+              password="${PASSWORD}"/>
+        </try>
+        <catch>
+            <fail>
+                [ERROR]: Tomcat is not available on ${DOMAIN}:${PORT} OR incorrect LOGIN/PASSWORD!
+                ${errorMessage}
+            </fail>
+        </catch>
+    </trycatch>   
+    <echo message="OK" />
+  </target>
+  
+  <target name="tomcat.deploy" description="Deploy to Tomcat" depends="get-server-domain, tomcat.undeploy, define-tomcat, available-tomcat">
+    <echo message="Deploying ${DISTR_DIR}/${DISTR_NAME}.war to:${DEPLOYMENT_PATH}"/>
+    <echo message="Deploy to Tomcat..." />
+    <echo message="LOGIN: ${LOGIN}" />
+  
+    <trycatch property="errorMessage">
+      <try>
+        <tomcat.deploy 
+          url="${DEPLOYMENT_PATH}"
+          username="${LOGIN}"
+          password="${PASSWORD}"
+          path="${CONTEXT_PATH}"
+          war="file:${DISTR_DIR}/${DISTR_NAME}.war"
+          update="true" />
+          
+        <property name="StatusCode" value="0" />
+        <property name="errorMessage" value="" />
+      </try>
+      <catch>
+        <property name="StatusCode" value="1" />
+        <fail message="[ERROR]: ${errorMessage}" />
+      </catch>
+    </trycatch>
+  </target>
+
+  <target name="clean">
+    <delete includeemptydirs="true" quiet="true">
+      <fileset dir="build" />
+      <fileset dir="${JAR_TEMP}" />
+      <fileset dir="build-lib" />
+      <fileset dir="temp-war" />
+    </delete>
+  </target>
+  
+  <target name="clean-all" depends="clean">
+    <delete file="${DISTR_DIR}/${DISTR_NAME}.war"/>
+  </target>
+  
+</project>

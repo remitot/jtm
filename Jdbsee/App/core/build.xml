@@ -1,0 +1,39 @@
+<project name="Module Building" default="build">
+
+  <property name="DISTR_DIR" location="lib" />
+  <property name="DISTR_NAME" value="jdbsee-core" />
+
+	
+	<!-- java compile -->
+	<path id="classpath">
+    <pathelement location="build" />
+  </path>
+	
+  <fileset id="class-jar" dir="build">
+    <include name="**/*.class" />
+  </fileset>
+
+  <target name="java-compile">
+    <mkdir dir="build" />
+    <javac srcdir="src/java" destdir="build" encoding="utf-8"
+      includeantruntime="false">
+    </javac>
+  </target>
+	
+	
+  <target name="jar" depends="java-compile">
+    <jar destfile="${DISTR_DIR}/${DISTR_NAME}.jar">
+      <fileset refid="class-jar" />
+    </jar>
+  </target>
+
+
+  <target name="build" depends="jar" />
+
+  <target name="clean">
+    <delete includeemptydirs="true" quiet="true">
+    	<fileset dir="build" />
+    </delete>
+  </target>
+
+</project>

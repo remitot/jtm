@@ -1,0 +1,161 @@
+#connections {
+  display: table;
+}
+
+#connections div.row {
+  display: table-row;
+  height: 40px;
+}
+
+#connections div.cell {
+  display: table-cell;
+  
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+#connections div.cell > * {
+  position: absolute;
+  
+  width: inherit;
+  box-sizing: border-box;
+  
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+
+#connections div.cell.column-active {
+  width: 5%;
+}
+#connections div.cell.column-name {
+  width: 17%;
+}
+#connections div.cell.column-server {
+  width: 25%;
+}
+#connections div.cell.column-db {
+  width: 12%;
+}
+#connections div.cell.column-user {
+  width: 12%;
+}
+#connections div.cell.column-password {
+  width: 20%;
+}
+#connections div.cell.column-delete {
+  width: 9%;
+}
+
+#connections .fieldWrapper > * {
+  width: 100%;
+}
+
+#connections .field-text {
+  outline: 0;
+  
+  border-width: 0 0 2px 0;
+  border-color: #ddd;
+  
+  font-family: monospace;
+  font-size: 120%;
+  color: #000; 
+  
+  padding-top: 6px;
+  padding-bottom: 2px;
+}
+
+#connections .checkbox-active {
+  border-width: 0 0 0 0;
+  border-bottom: 2px solid;
+  border-color: #0000;
+
+  width: 24px;
+  height: 24px;
+  
+  padding-top: 0;
+  padding-bottom: 2px;
+}
+
+#connections input:focus {
+  border-color: #0089bd;
+}
+
+/* elements that go opaque when inactive */
+#connections .row.inactive input.inactivatible {
+  color: #888;
+}
+
+
+#connections div.strike {
+  display: none;
+  
+  border-bottom: 2px solid;
+  height: 16px;
+  
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}
+
+
+#connections .modified, #connections .row.created .field-text /* new fields always look modified */ {
+  border-color: #fb8f40;
+}
+#connections .row.deleted .modified  {/* but do not show border for deleted modified */
+  border-color: #0000;
+}
+
+#connections div.strike {
+  border-color: #fb8f40;
+}
+
+#connections .row.deleted div.strike {
+  display: block;
+}
+
+/* elements that go opaque when deleted */
+#connections .row.deleted .deletable {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+
+#connections .row .column-delete button {
+  height: 28px;
+}
+
+
+#connections .row .column-delete .button-delete {
+  display: block;
+}
+#connections .row .column-delete .button-undelete {
+  display: none;
+}
+#connections .row.deleted .column-delete .button-delete {
+  display: none;
+}
+#connections .row.deleted .column-delete .button-undelete {
+  display: block;
+}
+
+
+#connections .button-create {
+  width: 24px;
+  height: 24px;
+}
+
+#connections .row.creatible .button-create {
+  display: block;
+}
+#connections .row.creatible.created .button-create {
+  display: none;
+}
+
+
+#connections .row.creatible div.cell.onCreated {
+  display: none;
+}
+#connections .row.creatible.created div.cell.onCreated {
+  display: table-cell;
+}
+

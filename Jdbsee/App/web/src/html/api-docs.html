@@ -1,0 +1,49 @@
+Get list of connections:
+
+method: GET
+url: /api/list
+request body: not required
+response body: list of connections (application/json; charset=UTF-8)
+example: 
+[
+  {
+    "location": "Context.Resource-0",
+    "active": true,
+    "name": "jdbc/ActiveDataSource",
+    "server": "databaseserver1.domain.com:1521",
+    "db": "DATABASE1",
+    "user": "user",
+    "password": "password"
+  },
+  {
+    "location": "Context.ResourceLink-0__Server.Resource-0",
+    "active": false,
+    "name": "jdbc/InactiveDataSource",
+    "server": "databaseserver2.domain.com:1521",
+    "db": "DATABASE2",
+    "user": "user",
+    "password": "password"
+  }
+]
+
+
+Update list of connections:
+
+method: POST
+url: /api/mod
+request body: list of connection modification requests (application/json; charset=UTF-8)
+example:
+[
+  {
+    "action": "update",
+    "location": "Context.Resource-0",
+    "data": {
+      "active": false,
+      "name": "jdbc/ActiveDataSource_modified",
+      "user": "user_modified",
+      "password": "password_modified"
+    }
+  }
+]
+response body: list of integer statuses corresponding to the elements from the request list (application/json; charset=UTF-8)
+example:
