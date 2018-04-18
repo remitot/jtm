@@ -29,8 +29,6 @@ function uiGridReloadEnd(responseText) {
   } else {
     document.getElementById("abc").innerHTML = "no data";
   }
-  
-  addRowCreate();
 }
 
 function fillGrid(jsonConnections) {
@@ -124,60 +122,41 @@ function appendStrike(cell) {
   cell.appendChild(strike);
 }
 
-
-function addRowCreate() {
-  row = createRowCreate();
-  document.getElementById("connections").appendChild(row);
-}
-
 function createRowCreate() {
   row = document.createElement("div");
   row.classList.add("row");
-  row.classList.add("creatible");
+  row.classList.add("created");
   
-  // create
-  wrapper = document.createElement("div");
-  wrapper.classList.add("fieldWrapper");
-  create = document.createElement("button");
-  create.classList.add("button-create");
-  create.onclick = function(){onCreateButtonClick(event)};
-  wrapper.appendChild(create);
+  //empty cell for column-active
+  // TODO add unmodifiable checkbox
   cell = createCell(row, "column-active");
-  cell.appendChild(wrapper);
-  
   
   cell = createCell(row, "column-name");
-  cell.classList.add("onCreated");
   field = createField("name", "");
   cell.appendChild(field);
   appendStrike(cell);
   
   cell = createCell(row, "column-server");
-  cell.classList.add("onCreated");
   field = createField("server", "");
   cell.appendChild(field);
   appendStrike(cell);
   
   cell = createCell(row, "column-db");
-  cell.classList.add("onCreated");
   field = createField("db", "");
   cell.appendChild(field);
   appendStrike(cell);
   
   cell = createCell(row, "column-user");
-  cell.classList.add("onCreated");
   field = createField("user", "");
   cell.appendChild(field);
   appendStrike(cell);
   
   cell = createCell(row, "column-password");
-  cell.classList.add("onCreated");
   field = createField("password", "");
   cell.appendChild(field);
   appendStrike(cell);
   
   cell = createCell(row, "column-delete");
-  cell.classList.add("onCreated");
   field = createFieldDelete();
   cell.appendChild(field);
   
@@ -244,15 +223,12 @@ function onUndeleteButtonClick(event) {
   }
 }
 
-function onCreateButtonClick(event) {
-  button = event.target;
-  //TODO make abstract
-  button.parentElement.parentElement.parentElement.classList.add("created");
-  
-  addRowCreate();
+function onCreateButtonClick() {
+  row = createRowCreate();
+  document.getElementById("connections").appendChild(row);
 }
 
-function save() {
+function onSaveButtonClick() {
   rowsModified = getRowsModified();
   rowsDeleted = getRowsDeleted();
   rowsCreated = getRowsCreated();

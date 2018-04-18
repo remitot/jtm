@@ -144,18 +144,3 @@
   height: 24px;
 }
 
-#connections .row.creatible .button-create {
-  display: block;
-}
-#connections .row.creatible.created .button-create {
-  display: none;
-}
-
-
-#connections .row.creatible div.cell.onCreated {
-  display: none;
-}
-#connections .row.creatible.created div.cell.onCreated {
-  display: table-cell;
-}
-
