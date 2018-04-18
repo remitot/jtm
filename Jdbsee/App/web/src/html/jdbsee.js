@@ -50,20 +50,11 @@ function createRow(connection) {
   row.setAttribute("connection-location", connection.location);
   
   // active
-  wrapper = document.createElement("div");
-  wrapper.classList.add("fieldWrapper");
-  checkboxActive = createCheckboxActive(connection.active);
-  checkboxActive.onclick = function(){onCheckboxActiveInput(event)};
-  checkboxActive.classList.add("deletable");
-  wrapper.appendChild(checkboxActive);
   cell = createCell(row, "column-active");
-  cell.appendChild(wrapper);
+  addFieldActive(cell, connection.active);
   if (!connection.active) {
     row.classList.add("inactive");
   }
-  strike = document.createElement("div");
-  strike.classList.add("strike");
-  cell.appendChild(strike);
   
   
   cell = createCell(row, "column-name");
@@ -87,10 +78,62 @@ function createRow(connection) {
   
   
   cell = createCell(row, "column-delete");
-  field = createFieldDelete();
-  cell.appendChild(field);
+  addFieldDelete(cell);
   
   return row;
+}
+
+function createRowCreate() {
+  row = document.createElement("div");
+  row.classList.add("row");
+  row.classList.add("created");
+  
+  // active
+  cell = createCell(row, "column-active");
+  addFieldActive(cell, connection.active);
+  // disable checkbox
+  cell.querySelectorAll("input")[0].disabled = true; 
+  
+  cell = createCell(row, "column-name");
+  addField(cell, "name", "", "jdbc/MyDataSource");
+ 
+  
+  cell = createCell(row, "column-server");
+  addField(cell, "server", "", "mydbserver.com:1521");
+  
+  
+  cell = createCell(row, "column-db");
+  addField(cell, "db", "", "MYDATABASE");
+  
+  
+  cell = createCell(row, "column-user");
+  addField(cell, "user", "", "me");
+  
+  
+  cell = createCell(row, "column-password");
+  addField(cell, "password", "", "mysecret");
+  
+  
+  cell = createCell(row, "column-delete");
+  addFieldDelete(cell);
+  
+  return row;
+}
+
+function addFieldActive(cell, active) {
+  wrapper = document.createElement("div");
+  wrapper.classList.add("fieldWrapper");
+  
+  checkboxActive = createCheckboxActive(connection.active);
+  checkboxActive.onclick = function(){onCheckboxActiveInput(event)};
+  checkboxActive.classList.add("deletable");
+  wrapper.appendChild(checkboxActive);
+  
+  cell.appendChild(wrapper);
+  
+  strike = document.createElement("div");
+  strike.classList.add("strike");
+  cell.appendChild(strike);
 }
 
 function addField(cell, name, value, placeholder) {
@@ -118,44 +161,7 @@ function addField(cell, name, value, placeholder) {
   cell.appendChild(strike);
 }
 
-function createRowCreate() {
-  row = document.createElement("div");
-  row.classList.add("row");
-  row.classList.add("created");
-  
-  //empty cell for column-active
-  // TODO add unmodifiable checkbox
-  cell = createCell(row, "column-active");
-  
-  
-  cell = createCell(row, "column-name");
-  addField(cell, "name", "", "jdbc/MyDataSource");
- 
-  
-  cell = createCell(row, "column-server");
-  addField(cell, "server", "", "mydbserver.com:1521");
-  
-  
-  cell = createCell(row, "column-db");
-  addField(cell, "db", "", "MYDATABASE");
-  
-  
-  cell = createCell(row, "column-user");
-  addField(cell, "user", "", "me");
-  
-  
-  cell = createCell(row, "column-password");
-  addField(cell, "password", "", "mysecret");
-  
-  
-  cell = createCell(row, "column-delete");
-  field = createFieldDelete();
-  cell.appendChild(field);
-  
-  return row;
-}
-
-function createFieldDelete() {
+function addFieldDelete(cell) {
   wrapper = document.createElement("div");
   wrapper.classList.add("fieldWrapper");
   
@@ -171,7 +177,7 @@ function createFieldDelete() {
   field.onclick = function() {onUndeleteButtonClick(event);};
   wrapper.appendChild(field);
   
-  return wrapper;
+  cell.appendChild(wrapper);
 }
 
 function createCell(row, columnClass) {
@@ -199,7 +205,9 @@ function onDeleteButtonClick(event) {
   
   rowInputs = row.querySelectorAll("input");
   for (var i = 0; i < rowInputs.length; i++) {
-    rowInputs[i].disabled = true;
+    if (!row.classList.contains("created")) {// no affect for new rows
+      rowInputs[i].disabled = true;
+    }
   }
 }
 
@@ -211,7 +219,9 @@ function onUndeleteButtonClick(event) {
   
   rowInputs = row.querySelectorAll("input");
   for (var i = 0; i < rowInputs.length; i++) {
-    rowInputs[i].disabled = false;
+    if (!row.classList.contains("created")) {// no affect for new rows
+      rowInputs[i].disabled = false;
+    }
   }
 }
 

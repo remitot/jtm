@@ -30,7 +30,7 @@
 
 /* When the checkbox is checked */
 .checkbox-active input:checked ~ .checkmark {
-  background-color: #000;
+  background-color: black;
 }
   
 .checkmark.hovered {
@@ -57,8 +57,9 @@
   top: 4px;
   width: 6px;
   height: 10px;
-  border: solid white;
+  border: solid;
   border-width: 0 3px 3px 0;
+  border-color: white;
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);

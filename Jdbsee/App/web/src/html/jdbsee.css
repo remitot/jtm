@@ -59,7 +59,7 @@
   
   font-family: monospace;
   font-size: 120%;
-  color: #000; 
+  color: black; 
   
   padding-top: 6px;
   padding-bottom: 2px;
@@ -68,7 +68,7 @@
 #connections .checkbox-active {
   border-width: 0 0 0 0;
   border-bottom: 2px solid;
-  border-color: #0000;
+  border-color: transparent;
 
   width: 24px;
   height: 24px;
@@ -102,7 +102,7 @@
   border-color: #fb8f40;
 }
 #connections .row.deleted .modified  {/* but do not show border for deleted modified */
-  border-color: #0000;
+  border-color: transparent;
 }
 
 #connections div.strike {
@@ -144,3 +144,13 @@
   height: 24px;
 }
 
+
+#connections .row.created .column-active .checkbox-active {
+  pointer-events: none;
+}
+#connections .row.created .column-active .checkbox-active .checkmark {
+  background-color: transparent;
+}
+#connections .row.created .column-active .checkbox-active .checkmark:after {
+  border-color: black;
+}
