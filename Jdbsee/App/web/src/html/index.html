@@ -12,8 +12,16 @@
     <div id="connections" style="width:100%"></div>
     
     <div>
-      <button onclick="onCreateButtonClick()">Create new connection</button>
-      <button onclick="onSaveButtonClick()">Save everything</button>
+      <button 
+          onclick="onCreateButtonClick()" 
+          class="big-black-button"
+          >NEW CONNECTION</button>
+      <button 
+          id="buttonSave" 
+          onclick="onSaveButtonClick()" 
+          class="big-black-button" 
+          disabled
+          >SAVE EVERYTHING</button>
     </div>
   </body>
 </html>

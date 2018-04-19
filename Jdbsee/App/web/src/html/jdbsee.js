@@ -15,6 +15,7 @@ function reload() {
 }
 
 function uiGridReloadBegin() {
+  setButtonSaveEnabled(false);
   document.getElementById("abc").innerHTML = "loading...";
 }
 
@@ -30,6 +31,8 @@ function uiGridReloadEnd(responseText) {
   } else {
     document.getElementById("abc").innerHTML = "no data";
   }
+  
+  checkModifications();
 }
 
 function fillGrid(jsonConnections) {
@@ -135,7 +138,10 @@ function createRowCreate() {
 
 function addFieldActive(cell, active) {
   checkboxActive = createCheckboxActive(active);
-  checkboxActive.onclick = function(event){onCheckboxActiveInput(event)};
+  checkboxActive.onclick = function(event){
+    onCheckboxActiveInput(event.target);
+    checkModifications();
+  };
   checkboxActive.classList.add("deletable");
 
   wrapper = wrapCellPad(checkboxActive);  
@@ -201,7 +207,7 @@ function addFieldDelete(cell) {
   field.src = "img/delete.png";
   field.title = "Delete";
   field.classList.add("button-delete");
-  field.onclick = function(event){onDeleteButtonClick(event);};
+  field.onclick = function(event){onDeleteButtonClick(event.target);};
   container.appendChild(field);
   
   field = document.createElement("input");
@@ -209,7 +215,7 @@ function addFieldDelete(cell) {
   field.src = "img/undelete.png";
   field.title = "Do not delete";
   field.classList.add("button-undelete");
-  field.onclick = function(event){onUndeleteButtonClick(event);};
+  field.onclick = function(event){onUndeleteButtonClick(event.target);};
   container.appendChild(field);
 
   wrapper = wrapCellPad(container);  
@@ -236,40 +242,71 @@ function onFieldInput(field) {
       field.classList.remove("modified");
     }
   }
+  
+  checkModifications();
 }
 
-function onDeleteButtonClick(event) {
-  button = event.target;
+function checkModifications() {
+  totalModifications = 
+      document.querySelectorAll(".modified").length
+      - document.querySelectorAll(".row.created.deleted .modified").length
+      + document.querySelectorAll(".row.deleted").length
+      - document.querySelectorAll(".row.created.deleted").length;
+  
+  setButtonSaveEnabled(totalModifications > 0);
+}
+
+function setButtonSaveEnabled(enabled) {
+  buttonSave = document.getElementById("buttonSave");
+  if (enabled) {
+    buttonSave.disabled = false;  
+    buttonSave.title = "Save all highlighted modifications";
+  } else {
+    buttonSave.disabled = true;
+    buttonSave.title = "No modifications performed";
+  }
+}
+
+function onDeleteButtonClick(button) {
   //TODO resolve the relative path!
   row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.add("deleted");
   
+  isCreated = row.classList.contains("created");
+  
   rowInputs = row.querySelectorAll("input.deletable, .deletable input");
   for (var i = 0; i < rowInputs.length; i++) {
-    if (!row.classList.contains("created")) {// no affect for new rows
+    if (!isCreated) {// no affect for new rows
       rowInputs[i].disabled = true;
     }
   }
+  
+  checkModifications();
 }
 
-function onUndeleteButtonClick(event) {
-  button = event.target;
+function onUndeleteButtonClick(button) {
   //TODO resolve the relative path!
   row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.remove("deleted");
   
+  isCreated = row.classList.contains("created");
+  
   rowInputs = row.querySelectorAll("input.deletable, .deletable input");
   for (var i = 0; i < rowInputs.length; i++) {
-    if (!row.classList.contains("created")) {// no affect for new rows
+    if (!isCreated) {// no affect for new rows
       rowInputs[i].disabled = false;
     }
   }
+  
+  checkModifications();
 }
 
 function onCreateButtonClick() {
   row = createRowCreate();
   document.getElementById("connections").appendChild(row);
+  
   row.querySelectorAll(".cell.column-name input")[0].focus();
+  checkModifications();
 }
 
 function onSaveButtonClick() {

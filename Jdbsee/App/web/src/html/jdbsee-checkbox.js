@@ -1,6 +1,6 @@
 
-function onCheckboxActiveInput(event) {
-  var checkbox = event.target;// this will be SPAN, then INPUT on a single click
+function onCheckboxActiveInput(checkbox) {
+  // this will be SPAN, then INPUT on a single click
   if (checkbox.tagName.toLowerCase() == "input") {
     if (checkbox.checked && checkbox.getAttribute("value0") == "true" || !checkbox.checked && checkbox.getAttribute("value0") == "false") {
       checkbox.parentElement.classList.remove("modified");

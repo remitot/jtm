@@ -171,11 +171,6 @@ div.strike {
 }
 
 
-.button-create {
-  width: 24px;
-  height: 24px;
-}
-
 
 .row.created .column-active .checkbox-active {
   pointer-events: none;
@@ -185,4 +180,26 @@ div.strike {
 }
 .row.created .column-active .checkbox-active .checkmark:after {
   border-color: black;
+}
+
+.big-black-button {
+  width: 200px;
+  height: 44px;
+  
+  background-color: black;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  
+  margin-right: 6px;
+  margin-left: 6px;
+}
+
+.big-black-button:disabled {
+  
+  background-color: #888;
+  color: #ddd;
+  cursor: default;
 }
