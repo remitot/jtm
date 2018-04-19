@@ -1,4 +1,4 @@
-package org.jepria.jdbsee.web;
+package org.jepria.tomcat.manager.web.jdbc;
 
 public class ConnectionModificationResponseStatus {
   public static final int SUCCESS = 0;

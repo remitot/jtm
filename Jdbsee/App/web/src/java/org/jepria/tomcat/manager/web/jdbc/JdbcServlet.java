@@ -1,4 +1,4 @@
-package org.jepria.jdbsee.web;
+package org.jepria.tomcat.manager.web.jdbc;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,16 +24,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.jdbsee.core.Configuration;
-import org.jepria.jdbsee.core.Configuration.TransactionException;
-import org.jepria.jdbsee.core.ConfigurationContext;
-import org.jepria.jdbsee.core.Connection;
+import org.jepria.tomcat.manager.core.jdbc.Configuration;
+import org.jepria.tomcat.manager.core.jdbc.Configuration.TransactionException;
+import org.jepria.tomcat.manager.core.jdbc.ConfigurationContext;
+import org.jepria.tomcat.manager.core.jdbc.Connection;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-public class ApiServlet extends HttpServlet {
+public class JdbcServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7724868882541481749L;
 
@@ -82,8 +82,6 @@ public class ApiServlet extends HttpServlet {
     
     if ("/list".equals(path)) {
       list(req, resp);
-    } else {
-      req.getRequestDispatcher("api-docs.html").forward(req, resp);
     }
   }
   

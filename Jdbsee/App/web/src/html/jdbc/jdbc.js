@@ -10,7 +10,7 @@ function reload() {
         
       }
   };
-  xhttp.open("GET", "api/list", true);
+  xhttp.open("GET", "jdbc/api/list", true);
   xhttp.send();
 }
 
@@ -204,7 +204,7 @@ function addFieldDelete(cell) {
   
   field = document.createElement("input");
   field.type = "image";
-  field.src = "img/delete.png";
+  field.src = "jdbc/img/delete.png";
   field.title = "Delete";
   field.classList.add("button-delete");
   field.onclick = function(event){onDeleteButtonClick(event.target);};
@@ -212,7 +212,7 @@ function addFieldDelete(cell) {
   
   field = document.createElement("input");
   field.type = "image";
-  field.src = "img/undelete.png";
+  field.src = "jdbc/img/undelete.png";
   field.title = "Do not delete";
   field.classList.add("button-undelete");
   field.onclick = function(event){onUndeleteButtonClick(event.target);};
@@ -363,7 +363,7 @@ function onSaveButtonClick() {
           uiSaveEnd();
         }
     };
-    xhttp.open("POST", "api/mod", true);
+    xhttp.open("POST", "jdbc/api/mod", true);
     xhttp.send(JSON.stringify(connectionModificationRequests));
     
   } else {

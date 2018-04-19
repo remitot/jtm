@@ -1,0 +1,1 @@
+<% request.getRequestDispatcher("/jdbc").forward(request, response); %>

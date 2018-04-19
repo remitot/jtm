@@ -1,4 +1,4 @@
-package org.jepria.jdbsee.core;
+package org.jepria.tomcat.manager.core.jdbc;
 
 public interface Connection {
   

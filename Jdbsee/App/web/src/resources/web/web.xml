@@ -5,17 +5,35 @@
   </session-config>
 
   <servlet>
-    <servlet-name>ApiServlet</servlet-name>
-    <servlet-class>org.jepria.jdbsee.web.ApiServlet
+    <servlet-name>JdbcServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>ApiServlet</servlet-name>
-    <url-pattern>/api/*</url-pattern>
+    <servlet-name>JdbcServlet</servlet-name>
+    <url-pattern>/jdbc/api/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>JdbcGui</servlet-name>
+    <jsp-file>/jdbc/gui.html</jsp-file>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>JdbcGui</servlet-name>
+    <url-pattern>/jdbc</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>ApiDocs</servlet-name>
+    <jsp-file>/api-docs.html</jsp-file>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ApiDocs</servlet-name>
+    <url-pattern>/api</url-pattern>
   </servlet-mapping>
 
   <welcome-file-list>
-    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
 
   <security-role>
@@ -25,8 +43,7 @@
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
-      <url-pattern>/2api/*</url-pattern>
-      <url-pattern>/2index.html</url-pattern>
+      <url-pattern>/jdbc/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>
