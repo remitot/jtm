@@ -1,5 +1,5 @@
 /* Customize the label (the container) */
-.checkbox-active {
+.checkbox-ca {
   display: block;
   cursor: pointer;
   font-size: 22px;
@@ -11,7 +11,7 @@
 }
 
 /* Hide the browser's default checkbox */
-.checkbox-active input {
+.checkbox-ca input {
   position: absolute;
   opacity: 0;
   cursor: pointer;
@@ -30,7 +30,7 @@
 }
 
 /* When the checkbox is checked */
-.checkbox-active input:checked ~ .checkmark {
+.checkbox-ca input:checked ~ .checkmark {
   background-color: black;
 }
   
@@ -48,12 +48,12 @@
 }
 
 /* Show the checkmark when checked */
-.checkbox-active input:checked ~ .checkmark:after {
+.checkbox-ca input:checked ~ .checkmark:after {
   display: block;
 }
 
 /* Style the checkmark/indicator */
-.checkbox-active .checkmark:after {
+.checkbox-ca .checkmark:after {
   left: 8px;
   top: 4px;
   width: 6px;

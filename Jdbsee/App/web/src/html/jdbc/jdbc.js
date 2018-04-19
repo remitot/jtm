@@ -54,7 +54,7 @@ function createRow(connection) {
   
   // active
   cell = createCell(row, "column-active");
-  addFieldActive(cell, connection.active);
+  addCheckboxCa(cell, connection.active);
   if (!connection.active) {
     row.classList.add("inactive");
   }
@@ -100,7 +100,7 @@ function createRowCreate() {
   
   // active
   cell = createCell(row, "column-active");
-  addFieldActive(cell, true);
+  addCheckboxCa(cell, true);
   // disable checkbox
   cell.querySelectorAll("input")[0].disabled = true; 
   
@@ -136,21 +136,74 @@ function createRowCreate() {
   return row;
 }
 
-function addFieldActive(cell, active) {
-  checkboxActive = createCheckboxActive(active);
-  checkboxActive.onclick = function(event){
-    onCheckboxActiveInput(event.target);
+function addCheckboxCa(cell, active) {
+  checkboxCa = createCheckboxCa(active);
+  checkboxCa.onclick = function(event){
+    onCheckboxCaInput(event.target);
     checkModifications();
   };
-  checkboxActive.classList.add("deletable");
+  checkboxCa.classList.add("deletable");
 
-  wrapper = wrapCellPad(checkboxActive);  
+  wrapper = wrapCellPad(checkboxCa);  
   
   cell.appendChild(wrapper);
   
   strike = document.createElement("div");
   strike.classList.add("strike");
   cell.appendChild(strike);
+}
+
+function createCheckboxCa(active) {
+  var field = document.createElement("label");
+  field.classList.add("checkbox-ca");
+  
+  var input = document.createElement("input");
+  input.type = "checkbox";
+  input.name = "active";
+  input.checked = active;
+  input.setAttribute("value0", active);
+  input.onfocus = function(event){
+    var input = event.target;
+    input.parentElement.querySelector(".checkmark").classList.add("hovered");
+  }
+  input.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
+    var input = event.target;
+    input.parentElement.querySelector(".checkmark").classList.remove("hovered");
+  });
+  field.appendChild(input);
+  
+  var span = document.createElement("span");
+  span.classList.add("checkmark");
+  span.onmouseover = function(event) {
+    var checkmark = event.target;
+    checkmark.classList.add("hovered");
+  }
+  span.addEventListener("mouseout", function(event) { // .onmouseout not working in some browsers
+    var checkmark = event.target;
+    checkmark.classList.remove("hovered");
+  });
+  field.appendChild(span);
+  
+  return field;
+}
+
+function onCheckboxCaInput(input) {
+  // this will be SPAN, then INPUT on a single click
+  if (input.tagName.toLowerCase() == "input") {
+    if (input.checked && input.getAttribute("value0") == "true" || !input.checked && input.getAttribute("value0") == "false") {
+      input.parentElement.classList.remove("modified");
+    } else {
+      input.parentElement.classList.add("modified");
+    }
+    
+    if (!input.checked) {
+      //TODO resolve the relative path!
+      input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
+    } else {
+      //TODO resolve the relative path!
+      input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
+    }
+  }
 }
 
 function addField(cell, name, value, placeholder) {
@@ -425,7 +478,7 @@ function rowToJson(row) {
   for (var j = 0; j < fields.length; j++) {
     field = fields[j];
     if (field.name === "active") {
-      // TODO workaround. If checkboxActive becomes a class, make its own property 'value'
+      // TODO workaround. If checkboxCa becomes a class, make its own property 'value'
       rowJson[field.name] = field.checked;
     } else {
       rowJson[field.name] = field.value;

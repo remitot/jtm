@@ -93,7 +93,7 @@ div.cell.column-password {
   padding-bottom: 2px;
 }
 
-.checkbox-active {
+.checkbox-ca {
   border-width: 0 0 0 0;
   border-bottom: 2px solid;
   border-color: transparent;
@@ -172,13 +172,13 @@ div.strike {
 
 
 
-.row.created .column-active .checkbox-active {
+.row.created .column-active .checkbox-ca {
   pointer-events: none;
 }
-.row.created .column-active .checkbox-active .checkmark {
+.row.created .column-active .checkbox-ca .checkmark {
   background-color: transparent;
 }
-.row.created .column-active .checkbox-active .checkmark:after {
+.row.created .column-active .checkbox-ca .checkmark:after {
   border-color: black;
 }
 
