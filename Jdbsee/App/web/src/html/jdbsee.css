@@ -105,7 +105,10 @@ div.cell.column-password {
   padding-bottom: 2px;
 }
 
-input:focus {
+input.field-text:focus {
+  border-color: #0089bd;
+}
+.row.created input.field-text:focus {
   border-color: #0089bd;
 }
 

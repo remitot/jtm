@@ -259,6 +259,7 @@ function onUndeleteButtonClick(event) {
 function onCreateButtonClick() {
   row = createRowCreate();
   document.getElementById("connections").appendChild(row);
+  row.querySelectorAll(".cell.column-name input")[0].focus();
 }
 
 function onSaveButtonClick() {
