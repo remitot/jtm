@@ -1,4 +1,5 @@
 #connections {
+  margin-top: 15px;
   display: table;
 }
 
@@ -57,7 +58,7 @@ div.cell.column-delete {
 }
 
 div.cell.column-name {
-  width: 15%;
+  width: 20%;
   display: inline-block;
 }
 div.cell.column-server {
@@ -73,7 +74,7 @@ div.cell.column-user {
   display: inline-block;
 }
 div.cell.column-password {
-  width: 25%;
+  width: 20%;
   display: inline-block;
 }
 
@@ -185,17 +186,17 @@ div.strike {
 
 
 
-.row.created .column-active .checkbox-ca {
-  cursor: default;
+.checkbox-ca-disabled {
+  cursor: default !important;
 }
-.row.created .column-active .checkbox-ca .checkmark {
-  background-color: transparent;
-}
-.row.created .column-active .checkbox-ca .checkmark.hovered {
+.checkbox-ca-disabled .checkmark {
   background-color: transparent !important;
 }
-.row.created .column-active .checkbox-ca .checkmark:after {
-  border-color: black;
+.checkbox-ca-disabled .checkmark.hovered {
+  background-color: transparent !important;
+}
+.checkbox-ca-disabled .checkmark:after {
+  border-color: black !important;
 }
 
 .big-black-button {

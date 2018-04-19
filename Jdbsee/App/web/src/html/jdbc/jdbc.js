@@ -5,9 +5,10 @@ function reload() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        
-        uiGridReloadEnd(this.responseText);
-        
+        uiGridReloadEnd();
+        jsonResponse = JSON.parse(this.responseText);
+        jsonConnections = jsonResponse.connections; 
+        refillGrid(jsonConnections);
       }
   };
   xhttp.open("GET", "jdbc/api/list", true);
@@ -19,33 +20,26 @@ function uiGridReloadBegin() {
   document.getElementById("abc").innerHTML = "loading...";
 }
 
-function uiGridReloadEnd(responseText) {
-  
-  var jsonConnections = JSON.parse(responseText);
-
+function uiGridReloadEnd() {
   document.getElementById("abc").innerHTML = "";
-  document.getElementById("connections").innerHTML = "";
-  
-  if (jsonConnections.length > 0) {
-    fillGrid(jsonConnections);
-  } else {
-    document.getElementById("abc").innerHTML = "no data";
-  }
-  
-  checkModifications();
 }
 
-function fillGrid(jsonConnections) {
-  var table = document.getElementById("connections");
+function refillGrid(jsonConnections) {
+  table = document.getElementById("connections");
+  table.innerHTML = "";
   
-  table.appendChild(createHeader());
-  
-  for (var i = 0; i < jsonConnections.length; i++) {
-    connection = jsonConnections[i];
+  if (jsonConnections.length > 0) {
+    table.appendChild(createHeader());
     
-    row = createRow(connection);
+    for (var i = 0; i < jsonConnections.length; i++) {
+      connection = jsonConnections[i];
+      
+      row = createRow(connection);
+      
+      table.appendChild(row);
+    }
     
-    table.appendChild(row);
+    checkModifications();
   }
 }
 
@@ -98,7 +92,7 @@ function createRow(connection) {
   
   // active
   cell = createCell(row, "column-active");
-  addCheckboxCa(cell, connection.active);
+  addCheckboxCa(cell, connection.active, true);
   if (!connection.active) {
     row.classList.add("inactive");
   }
@@ -138,15 +132,21 @@ function createRow(connection) {
 }
 
 function createRowCreate() {
+
+  // add header row if the table is empty
+  table = document.getElementById("connections");
+  if (table.querySelectorAll(".row.header").length == 0) {
+    table.appendChild(createHeader());
+  }
+  
+
   row = document.createElement("div");
   row.classList.add("row");
   row.classList.add("created");
   
   // active
   cell = createCell(row, "column-active");
-  addCheckboxCa(cell, true);
-  // disable checkbox
-  cell.querySelectorAll("input")[0].disabled = true; 
+  addCheckboxCa(cell, true, false);
   
   cell = createCell(row, "column-delete");
   addFieldDelete(cell);
@@ -180,8 +180,13 @@ function createRowCreate() {
   return row;
 }
 
-function addCheckboxCa(cell, active) {
+function addCheckboxCa(cell, active, enabled) {
   checkboxCa = createCheckboxCa(active);
+  
+  if (!enabled) {
+    checkboxCa.classList.add("checkbox-ca-disabled");
+    checkboxCa.querySelectorAll("input")[0].disabled = true;
+  }
   
   checkboxCa.onclick = function(event){
     onCheckboxCaInput(event.target);
@@ -237,7 +242,8 @@ function createCheckboxCa(active) {
 function onCheckboxCaInput(input) {
   // this will be SPAN, then INPUT on a single click
   if (input.tagName.toLowerCase() == "input") {
-    if (input.checked && input.getAttribute("value0") == "true" || !input.checked && input.getAttribute("value0") == "false") {
+    if (input.checked && input.getAttribute("value0") == "true" 
+        || !input.checked && input.getAttribute("value0") == "false") {
       input.parentElement.classList.remove("modified");
     } else {
       input.parentElement.classList.add("modified");
@@ -246,11 +252,11 @@ function onCheckboxCaInput(input) {
     if (!input.checked) {
       //TODO resolve the relative path!
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
-      input.parentElement.title = "Connection is inactive";
+      input.parentElement.title = "Inactive connection";
     } else {
       //TODO resolve the relative path!
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
-      input.parentElement.title = "Connection is active";
+      input.parentElement.title = "Active connection";
     }
   }
 }
@@ -463,6 +469,7 @@ function onSaveButtonClick() {
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
           uiSaveEnd();
+          reload();
         }
     };
     xhttp.open("POST", "jdbc/api/mod", true);
@@ -476,7 +483,6 @@ function onSaveButtonClick() {
 
 function uiSaveEnd() {
   document.getElementById("abc").innerHTML = "";
-  reload();
 }
 
 function uiSaveBegin() {

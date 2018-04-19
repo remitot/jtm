@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,37 +46,40 @@ public class JdbcServlet extends HttpServlet {
     String path = req.getPathInfo();
     
     if ("/list".equals(path)) {
-      list(req, resp);
+      resp.setContentType("application/json; charset=UTF-8");
+      
+      try {
+        List<ConnectionDto> connectionDtos = list(req);
+        
+        Map<String, Object> responseJsonMap = new HashMap<>();
+        responseJsonMap.put("connections", connectionDtos);
+        
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
+        
+      } catch (Throwable e) {
+        e.printStackTrace();
+
+        resp.getOutputStream().println("Oops! Something went wrong.");
+        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        resp.flushBuffer();
+        return;
+      }
+
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
     }
   }
   
-  private void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    resp.setContentType("application/json; charset=UTF-8");
+  private List<ConnectionDto> list(HttpServletRequest req) throws TransactionException {
+    Configuration conf = newConfiguration(req);
 
-    try {
-      Configuration conf = newConfiguration(req);
+    Map<String, Connection> connections = conf.getConnections();
 
-      Map<String, Connection> connections = conf.getConnections();
-
-      // list all connections
-      List<ConnectionDto> connectionDtos = connections.entrySet().stream().map(
-          entry -> connectionToDto(entry.getKey(), entry.getValue()))
-          .sorted(connectionSorter()).collect(Collectors.toList());
-
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      gson.toJson(connectionDtos, new PrintStream(resp.getOutputStream()));
-
-    } catch (Throwable e) {
-      e.printStackTrace();
-
-      resp.getOutputStream().println("Oops! Something went wrong.");
-      resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      resp.flushBuffer();
-      return;
-    }
-
-    resp.setStatus(HttpServletResponse.SC_OK);
-    resp.flushBuffer();
+    // list all connections
+    return connections.entrySet().stream().map(
+        entry -> connectionToDto(entry.getKey(), entry.getValue()))
+        .sorted(connectionSorter()).collect(Collectors.toList());
   }
   
   private static Comparator<ConnectionDto> connectionSorter() {
@@ -147,7 +151,7 @@ public class JdbcServlet extends HttpServlet {
       final Map<String, Connection> connections = conf.getConnections();
 
       // responses correspond to requests
-      int[] connectionModificationResponses = new int[connectionModificationRequests.size()];
+      int[] connectionModificationResponseStatuses = new int[connectionModificationRequests.size()];
       Set<Integer> processedRequestIndexes = new HashSet<>();
 
       // 1) updates
@@ -204,7 +208,7 @@ public class JdbcServlet extends HttpServlet {
             cmResponse = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
           }
 
-          connectionModificationResponses[i] = cmResponse;
+          connectionModificationResponseStatuses[i] = cmResponse;
         }
       }
 
@@ -244,7 +248,7 @@ public class JdbcServlet extends HttpServlet {
             cmResponse = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
           }
 
-          connectionModificationResponses[i] = cmResponse;
+          connectionModificationResponseStatuses[i] = cmResponse;
         }
       }
 
@@ -285,7 +289,7 @@ public class JdbcServlet extends HttpServlet {
             cmResponse = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
           }
 
-          connectionModificationResponses[i] = cmResponse;
+          connectionModificationResponseStatuses[i] = cmResponse;
         }
       }
 
@@ -298,14 +302,32 @@ public class JdbcServlet extends HttpServlet {
       for (int i = 0; i < connectionModificationRequests.size(); i++) {
         if (!processedRequestIndexes.contains(i)) {
           int cmResponse = ConnectionModificationResponseStatus.ERR__ILLEGAL_ACTION;
-          connectionModificationResponses[i] = cmResponse;
+          connectionModificationResponseStatuses[i] = cmResponse;
         }
       }
 
 
       // 6) write response
+      Map<String, Object> responseJsonMap = new HashMap<>();
+      responseJsonMap.put("modStatuses", connectionModificationResponseStatuses);
+      
+      //TODO 
+      /*
+        try {
+          // save to temp strings, but not to real files
+          conf.save(tempContextString, tempServerString);
+          List<ConnectionDto> connectionDtos = list(new Configuration(tempContextString, tempServerString));
+          writeResponse(connectionDtos);
+        } finally {
+          // after response sent, save to real files
+          conf.save();
+        }
+      */
+      List<ConnectionDto> connectionDtos = list(req);
+      responseJsonMap.put("connections", connectionDtos);
+      
       try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
-        new Gson().toJson(connectionModificationResponses, osw);
+        new Gson().toJson(connectionModificationResponseStatuses, osw);
       }
       
       resp.setStatus(HttpServletResponse.SC_OK);
