@@ -38,6 +38,8 @@ function uiGridReloadEnd(responseText) {
 function fillGrid(jsonConnections) {
   var table = document.getElementById("connections");
   
+  table.appendChild(createHeader());
+  
   for (var i = 0; i < jsonConnections.length; i++) {
     connection = jsonConnections[i];
     
@@ -45,6 +47,48 @@ function fillGrid(jsonConnections) {
     
     table.appendChild(row);
   }
+}
+
+function createHeader() {
+  row = document.createElement("div");
+  row.classList.add("row");
+  row.classList.add("header");
+  // active
+  cell = createCell(row, "column-active");// empty cell
+  
+  cell = createCell(row, "column-delete");// empty cell
+  
+  div = document.createElement("div");
+  div.classList.add("flexColumns");
+  
+  cell = createCell(div, "column-name");
+  label = document.createElement("label");
+  label.innerHTML = "Name";
+  cell.appendChild(label);
+  
+  cell = createCell(div, "column-server");
+  label = document.createElement("label");
+  label.innerHTML = "Server";
+  cell.appendChild(label);
+  
+  cell = createCell(div, "column-db");
+  label = document.createElement("label");
+  label.innerHTML = "Database";
+  cell.appendChild(label);
+  
+  cell = createCell(div, "column-user");
+  label = document.createElement("label");
+  label.innerHTML = "User";
+  cell.appendChild(label);
+  
+  cell = createCell(div, "column-password");
+  label = document.createElement("label");
+  label.innerHTML = "Password";
+  cell.appendChild(label);
+  
+  row.appendChild(div);
+  
+  return row;
 }
 
 function createRow(connection) {
@@ -113,23 +157,23 @@ function createRowCreate() {
   
   cell = createCell(flexColumns, "column-name");
   field = addField(cell, "name", "", "jdbc/MyDataSource");
-  onFieldInput(field);
+  onFieldInput(field);// trigger initial event
  
   cell = createCell(flexColumns, "column-server");
   field = addField(cell, "server", "", "mydbserver.com:1521");
-  onFieldInput(field);
+  onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-db");
   field = addField(cell, "db", "", "MYDATABASE");
-  onFieldInput(field);
+  onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-user");
   field = addField(cell, "user", "", "me");
-  onFieldInput(field);
+  onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-password");
   field = addField(cell, "password", "", "mysecret");
-  onFieldInput(field);
+  onFieldInput(field);// trigger initial event
   
   row.appendChild(flexColumns);
   
@@ -138,6 +182,7 @@ function createRowCreate() {
 
 function addCheckboxCa(cell, active) {
   checkboxCa = createCheckboxCa(active);
+  
   checkboxCa.onclick = function(event){
     onCheckboxCaInput(event.target);
     checkModifications();
@@ -147,6 +192,8 @@ function addCheckboxCa(cell, active) {
   wrapper = wrapCellPad(checkboxCa);  
   
   cell.appendChild(wrapper);
+  
+  onCheckboxCaInput(checkboxCa.querySelectorAll("input")[0]);// trigger initial event
   
   strike = document.createElement("div");
   strike.classList.add("strike");
@@ -199,9 +246,11 @@ function onCheckboxCaInput(input) {
     if (!input.checked) {
       //TODO resolve the relative path!
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
+      input.parentElement.title = "Connection is inactive";
     } else {
       //TODO resolve the relative path!
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
+      input.parentElement.title = "Connection is active";
     }
   }
 }
@@ -313,7 +362,7 @@ function setButtonSaveEnabled(enabled) {
   buttonSave = document.getElementById("buttonSave");
   if (enabled) {
     buttonSave.disabled = false;  
-    buttonSave.title = "Save all highlighted modifications";
+    buttonSave.title = "Save all modifications (highlighted)";
   } else {
     buttonSave.disabled = true;
     buttonSave.title = "No modifications performed";

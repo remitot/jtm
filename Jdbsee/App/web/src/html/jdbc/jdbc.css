@@ -77,6 +77,19 @@ div.cell.column-password {
   display: inline-block;
 }
 
+.header label {
+  background-color: transparent;
+  
+  font-family: monospace;
+  font-size: 120%;
+  color: black;
+  
+  padding-left: 6px;
+}
+
+.header div.cell {
+  height: 20px;
+}
 
 .field-text {
   background-color: transparent;
@@ -173,10 +186,13 @@ div.strike {
 
 
 .row.created .column-active .checkbox-ca {
-  pointer-events: none;
+  cursor: default;
 }
 .row.created .column-active .checkbox-ca .checkmark {
   background-color: transparent;
+}
+.row.created .column-active .checkbox-ca .checkmark.hovered {
+  background-color: transparent !important;
 }
 .row.created .column-active .checkbox-ca .checkmark:after {
   border-color: black;
