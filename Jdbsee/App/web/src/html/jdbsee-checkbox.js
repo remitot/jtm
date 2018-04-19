@@ -9,11 +9,11 @@ function onCheckboxActiveInput(event) {
     }
     
     if (!checkbox.checked) {
-      //TODO make abstract
-      checkbox.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
+      //TODO resolve the relative path!
+      checkbox.parentElement.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
     } else {
-    //TODO make abstract
-      checkbox.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
+      //TODO resolve the relative path!
+      checkbox.parentElement.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
     }
   }
 }

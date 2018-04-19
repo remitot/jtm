@@ -56,29 +56,34 @@ function createRow(connection) {
     row.classList.add("inactive");
   }
   
+  cell = createCell(row, "column-delete");
+  addFieldDelete(cell);
   
-  cell = createCell(row, "column-name");
+  
+  div = document.createElement("div");
+  div.classList.add("flexColumns");
+  
+  cell = createCell(div, "column-name");
   addField(cell, "name", connection.name, null);
   
   
-  cell = createCell(row, "column-server");
+  cell = createCell(div, "column-server");
   addField(cell, "server", connection.server, null);
   
   
-  cell = createCell(row, "column-db");
+  cell = createCell(div, "column-db");
   addField(cell, "db", connection.db, null);
   
   
-  cell = createCell(row, "column-user");
+  cell = createCell(div, "column-user");
   addField(cell, "user", connection.user, null);
   
   
-  cell = createCell(row, "column-password");
+  cell = createCell(div, "column-password");
   addField(cell, "password", connection.password, null);
   
+  row.appendChild(div);
   
-  cell = createCell(row, "column-delete");
-  addFieldDelete(cell);
   
   return row;
 }
@@ -94,40 +99,43 @@ function createRowCreate() {
   // disable checkbox
   cell.querySelectorAll("input")[0].disabled = true; 
   
-  cell = createCell(row, "column-name");
+  cell = createCell(row, "column-delete");
+  addFieldDelete(cell);
+  
+  
+  flexColumns = document.createElement("div");
+  flexColumns.classList.add("flexColumns");
+  
+  cell = createCell(flexColumns, "column-name");
   addField(cell, "name", "", "jdbc/MyDataSource");
  
   
-  cell = createCell(row, "column-server");
+  cell = createCell(flexColumns, "column-server");
   addField(cell, "server", "", "mydbserver.com:1521");
   
   
-  cell = createCell(row, "column-db");
+  cell = createCell(flexColumns, "column-db");
   addField(cell, "db", "", "MYDATABASE");
   
   
-  cell = createCell(row, "column-user");
+  cell = createCell(flexColumns, "column-user");
   addField(cell, "user", "", "me");
   
   
-  cell = createCell(row, "column-password");
+  cell = createCell(flexColumns, "column-password");
   addField(cell, "password", "", "mysecret");
   
-  
-  cell = createCell(row, "column-delete");
-  addFieldDelete(cell);
+  row.appendChild(flexColumns);
   
   return row;
 }
 
 function addFieldActive(cell, active) {
-  wrapper = document.createElement("div");
-  wrapper.classList.add("fieldWrapper");
-  
   checkboxActive = createCheckboxActive(active);
   checkboxActive.onclick = function(event){onCheckboxActiveInput(event)};
   checkboxActive.classList.add("deletable");
-  wrapper.appendChild(checkboxActive);
+
+  wrapper = wrapCellPad(checkboxActive);  
   
   cell.appendChild(wrapper);
   
@@ -137,9 +145,6 @@ function addFieldActive(cell, active) {
 }
 
 function addField(cell, name, value, placeholder) {
-  wrapper = document.createElement("div");
-  wrapper.classList.add("fieldWrapper");
-  
   field = document.createElement("input");
   field.type = "text";
   field.name = name;
@@ -152,7 +157,8 @@ function addField(cell, name, value, placeholder) {
   field.classList.add("field-text");
   field.classList.add("inactivatible");
   field.classList.add("deletable");
-  wrapper.appendChild(field);
+  
+  wrapper = wrapCellPad(field);
   
   cell.appendChild(wrapper);
   
@@ -161,26 +167,47 @@ function addField(cell, name, value, placeholder) {
   cell.appendChild(strike);
 }
 
-function addFieldDelete(cell) {
+function wrapCellPad(element) {
   wrapper = document.createElement("div");
-  wrapper.classList.add("fieldWrapper");
+  
+  leftDiv = document.createElement("div");
+  leftDiv.classList.add("cell-pad-left");
+  wrapper.appendChild(leftDiv);
+  
+  leftDiv = document.createElement("div");
+  leftDiv.classList.add("cell-pad-right");
+  wrapper.appendChild(leftDiv);
+  
+  midDiv = document.createElement("div");
+  midDiv.classList.add("cell-pad-mid");
+  wrapper.appendChild(midDiv);
+  
+  midDiv.appendChild(element);
+  
+  return wrapper;
+}
+
+function addFieldDelete(cell) {
+
+  container = document.createElement("div");
   
   field = document.createElement("input");
   field.type = "image";
-  field.src = "img/trash_in.png";
+  field.src = "img/delete.png";
   field.title = "Delete";
   field.classList.add("button-delete");
   field.onclick = function(event){onDeleteButtonClick(event);};
-  wrapper.appendChild(field);
+  container.appendChild(field);
   
   field = document.createElement("input");
   field.type = "image";
-  field.src = "img/trash_out.png";
+  field.src = "img/undelete.png";
   field.title = "Do not delete";
   field.classList.add("button-undelete");
   field.onclick = function(event){onUndeleteButtonClick(event);};
-  wrapper.appendChild(field);
-  
+  container.appendChild(field);
+
+  wrapper = wrapCellPad(container);  
   cell.appendChild(wrapper);
 }
 
@@ -203,8 +230,8 @@ function onFieldInput(event) {
 
 function onDeleteButtonClick(event) {
   button = event.target;
-  //TODO make abstract
-  row = button.parentElement.parentElement.parentElement;
+  //TODO resolve the relative path!
+  row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.add("deleted");
   
   rowInputs = row.querySelectorAll("input.deletable, .deletable input");
@@ -217,8 +244,8 @@ function onDeleteButtonClick(event) {
 
 function onUndeleteButtonClick(event) {
   button = event.target;
-  //TODO make abstract
-  row = button.parentElement.parentElement.parentElement;
+  //TODO resolve the relative path!
+  row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.remove("deleted");
   
   rowInputs = row.querySelectorAll("input.deletable, .deletable input");

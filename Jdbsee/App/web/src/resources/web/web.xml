@@ -25,8 +25,8 @@
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
-      <url-pattern>/api/*</url-pattern>
-      <url-pattern>/index.html</url-pattern>
+      <url-pattern>/2api/*</url-pattern>
+      <url-pattern>/2index.html</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>

@@ -20,8 +20,9 @@
 /* Create a custom checkbox */
 .checkmark {
   position: absolute;
-  height: 24px;
+  
   width: 24px;
+  height: 24px;
 }
 
 .checkmark {

@@ -2,59 +2,83 @@
   display: table;
 }
 
-#connections div.row {
+div.row {
   display: table-row;
-  height: 40px;
 }
 
-#connections div.cell {
+div.cell {
   display: table-cell;
   
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
-#connections div.cell > * {
-  position: absolute;
+  position: relative;
+  height: 32px;
   
-  width: inherit;
-  min-width: inherit;
-  
-  box-sizing: border-box;
-  
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-bottom: 12px;
 }
 
-
-#connections div.cell.column-active {
-  width: 0.0001%;
-  min-width: 42px; /* empirical value */
-}
-#connections div.cell.column-name {
-  width: 17%;
-}
-#connections div.cell.column-server {
-  width: 25%;
-}
-#connections div.cell.column-db {
-  width: 12%;
-}
-#connections div.cell.column-user {
-  width: 12%;
-}
-#connections div.cell.column-password {
-  width: 20%;
-}
-#connections div.cell.column-delete {
-  width: 4%;
-}
-
-#connections .fieldWrapper > * {
+.flexColumns div.cell > *, .strike {
   width: 100%;
 }
 
-#connections .field-text {
+div.cell > .deletable, div.cell > .strike {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.flexColumns {
+  overflow: hidden;
+} 
+
+div.cell.column-active {
+  width: 36px;
+  float: left;
+}
+div.cell.column-delete {
+  width: 36px;
+  float: right;
+}
+
+.cell-pad-left {
+  width: 6px;
+  height: 6px;
+  float: left;
+}
+.cell-pad-right {
+  width: 6px;
+  height: 6px;
+  float: right;
+}
+.cell-pad-mid {
+  overflow: hidden;
+}
+
+.cell-pad-mid > * {
+  width: 100%;
+}
+
+div.cell.column-name {
+  width: 15%;
+  display: inline-block;
+}
+div.cell.column-server {
+  width: 25%;
+  display: inline-block;
+}
+div.cell.column-db {
+  width: 20%;
+  display: inline-block;
+}
+div.cell.column-user {
+  width: 15%;
+  display: inline-block;
+}
+div.cell.column-password {
+  width: 25%;
+  display: inline-block;
+}
+
+
+.field-text {
   background-color: transparent;
   outline: 0;
   
@@ -69,7 +93,7 @@
   padding-bottom: 2px;
 }
 
-#connections .checkbox-active {
+.checkbox-active {
   border-width: 0 0 0 0;
   border-bottom: 2px solid;
   border-color: transparent;
@@ -81,80 +105,80 @@
   padding-bottom: 2px;
 }
 
-#connections input:focus {
+input:focus {
   border-color: #0089bd;
 }
 
 /* elements that go opaque when inactive */
-#connections .row.inactive input.inactivatible {
+.row.inactive input.inactivatible {
   color: #888;
 }
 
 
-#connections div.strike {
+div.strike {
   display: none;
   
   border-bottom: 2px solid;
-  height: 16px;
+  height: 15px;
   
   padding-left: 0px !important;
   padding-right: 0px !important;
 }
 
 
-#connections .modified, #connections .row.created .field-text /* new fields always look modified */ {
+.modified, .row.created .field-text /* new fields always look modified */ {
   border-color: #fb8f40;
 }
-#connections .row.deleted .modified  {/* but do not show border for deleted modified */
-  border-color: transparent;
+.row.deleted .modified  {/* but do not show border for deleted modified */
+  border-color: #ddd;
 }
 
-#connections div.strike {
+div.strike {
   border-color: #fb8f40;
 }
 
-#connections .row.deleted div.strike {
+.row.deleted div.strike {
   display: block;
 }
 
-#connections .row.deleted .deletable {
+.row.deleted .deletable {
   pointer-events: none;
   opacity: 0.3;
 }
 
 
-#connections .row .column-delete input {
-  width: 28px;
-  height: 28px;
-}
-
-
-#connections .row .column-delete .button-delete {
-  display: block;
-}
-#connections .row .column-delete .button-undelete {
-  display: none;
-}
-#connections .row.deleted .column-delete .button-delete {
-  display: none;
-}
-#connections .row.deleted .column-delete .button-undelete {
-  display: block;
-}
-
-
-#connections .button-create {
+.row .column-delete input {
   width: 24px;
   height: 24px;
 }
 
 
-#connections .row.created .column-active .checkbox-active {
+.row .column-delete .button-delete {
+  display: block;
+}
+.row .column-delete .button-undelete {
+  display: none;
+}
+.row.deleted .column-delete .button-delete {
+  display: none;
+}
+.row.deleted .column-delete .button-undelete {
+  display: block;
+}
+
+
+.button-create {
+  width: 24px;
+  height: 24px;
+}
+
+
+.row.created .column-active .checkbox-active {
   pointer-events: none;
 }
-#connections .row.created .column-active .checkbox-active .checkmark {
+.row.created .column-active .checkbox-active .checkmark {
   background-color: transparent;
 }
-#connections .row.created .column-active .checkbox-active .checkmark:after {
+.row.created .column-active .checkbox-active .checkmark:after {
   border-color: black;
 }
