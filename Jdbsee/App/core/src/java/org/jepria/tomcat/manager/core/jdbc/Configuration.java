@@ -33,28 +33,16 @@ public class Configuration {
   private final Document contextDoc;
   private final Document serverDoc;
   
-  private final ConfigurationContext confContext;
-  
   private final Map<String, BaseConnection> baseConnections;
   
-  /**
-   * 
-   * @param confContext not null
-   * @throws TransactionException
-   * @throws NullPointerException if confContext is null
-   */
-  public Configuration(ConfigurationContext confContext) throws TransactionException, NullPointerException {
-    if (confContext == null) {
-      throw new NullPointerException();
-    }
+  public Configuration(InputStream contextXmlInputStream,
+      InputStream serverXmlInputStream) throws TransactionException {
     
-    this.confContext = confContext;
-    
-    try (InputStream contextXmlInputStream = confContext.getContextXmlInputStream();
-        InputStream serverXmlInputStream = confContext.getServerXmlInputStream()) {
+    try (InputStream contextXmlInputStream0 = contextXmlInputStream;
+        InputStream serverXmlInputStream0 = serverXmlInputStream) {
       
-      contextDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(contextXmlInputStream);
-      serverDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(serverXmlInputStream);
+      contextDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(contextXmlInputStream0);
+      serverDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(serverXmlInputStream0);
       
     } catch (Throwable e) {
       throw new TransactionException(e);
@@ -346,12 +334,19 @@ public class Configuration {
     }
   }
   
+  protected boolean deleteDuplicatesOnSave = true;
   
-  public void save() throws TransactionException {
-    try (OutputStream contextXmlOutputStream = confContext.getContextXmlOutputStream();
-        OutputStream serverXmlOutputStream = confContext.getServerXmlOutputStream()) {
+  public void setDeleteDuplicatesOnSave(boolean deleteDuplicatesOnSave) {
+    this.deleteDuplicatesOnSave = deleteDuplicatesOnSave;
+  }
+  
+  public void save(OutputStream contextXmlOutputStream,
+      OutputStream serverXmlOutputStream) throws TransactionException {
+    
+    try (OutputStream contextXmlOutputStream0 = contextXmlOutputStream;
+        OutputStream serverXmlOutputStream0 = serverXmlOutputStream) {
 
-      if (confContext.deleteDuplicatesOnSave()) {
+      if (deleteDuplicatesOnSave) {
         deleteDuplicates();
       }
       
@@ -365,8 +360,8 @@ public class Configuration {
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");//TODO obtain existing indent amount
   
-      transformer.transform(new DOMSource(contextDoc), new StreamResult(contextXmlOutputStream));
-      transformer.transform(new DOMSource(serverDoc), new StreamResult(serverXmlOutputStream));
+      transformer.transform(new DOMSource(contextDoc), new StreamResult(contextXmlOutputStream0));
+      transformer.transform(new DOMSource(serverDoc), new StreamResult(serverXmlOutputStream0));
       
     } catch (Throwable e) {
       handleThrowable(e);
@@ -499,6 +494,17 @@ public class Configuration {
     
   }
   
+  protected boolean useResourceLinkOnCreateConnection = true;
+  
+  /**
+   * 
+   * @param useResourceLinkOnCreateConnection {@code true} if to create new connections using {@code Context/ResourceLink+Server/Resource},
+   * otherwise {@code false} to create new connections using {@code Context/Resource}
+   */
+  public void setUseResourceLinkOnCreateConnection(boolean useResourceLinkOnCreateConnection) {
+    this.useResourceLinkOnCreateConnection = useResourceLinkOnCreateConnection;
+  }
+  
   /**
    * Creates a new active connection and adds it to the document(s).
    * @return
@@ -506,7 +512,7 @@ public class Configuration {
    */
   public Connection create() throws TransactionException {
     try {
-      if (confContext.useResourceLinkOnCreateConnection()) {
+      if (useResourceLinkOnCreateConnection) {
         return createContextResourceLinkConnection();
       } else {
         return createContextResourceConnection();

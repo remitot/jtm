@@ -469,7 +469,21 @@ function onSaveButtonClick() {
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
           uiSaveEnd();
-          reload();
+          jsonResponse = JSON.parse(this.responseText);
+          
+          jsonModStatuses = jsonResponse.modStatuses;
+          // if everything is OK, all statuses are 0
+          sum = jsonModStatuses.reduce(function(a, b) {return a + b;});
+          if (sum > 0) {
+            console.log("ERRORS");
+            //TODO log about something went wrong
+          } else {
+            console.log("OK");
+            //TODO log about everything OK
+          }
+          
+          jsonConnections = jsonResponse.connections; 
+          refillGrid(jsonConnections);
         }
     };
     xhttp.open("POST", "jdbc/api/mod", true);

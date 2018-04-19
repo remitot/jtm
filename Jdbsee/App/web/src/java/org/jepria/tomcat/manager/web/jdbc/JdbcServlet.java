@@ -1,5 +1,7 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -22,8 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.core.jdbc.Configuration;
-import org.jepria.tomcat.manager.core.jdbc.Configuration.TransactionException;
-import org.jepria.tomcat.manager.core.jdbc.ConfigurationContext;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
 
 import com.google.gson.Gson;
@@ -34,9 +34,9 @@ public class JdbcServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7724868882541481749L;
 
-  private Configuration newConfiguration(HttpServletRequest req) throws TransactionException {
+  private ConfigurationEnvironment newConfigurationEnvironment(HttpServletRequest req) {
     Path confPath = Paths.get(req.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
-    return new Configuration(new ConfigurationContext.Default(confPath)); 
+    return new ConfigurationEnvironment(confPath); 
   }
 
 
@@ -49,7 +49,13 @@ public class JdbcServlet extends HttpServlet {
       resp.setContentType("application/json; charset=UTF-8");
       
       try {
-        List<ConnectionDto> connectionDtos = list(req);
+        
+        ConfigurationEnvironment environment = newConfigurationEnvironment(req);
+        
+        Configuration conf = new Configuration(environment.getContextXmlInputStream(), 
+            environment.getServerXmlInputStream());
+        
+        List<ConnectionDto> connectionDtos = getConnections(conf);
         
         Map<String, Object> responseJsonMap = new HashMap<>();
         responseJsonMap.put("connections", connectionDtos);
@@ -71,10 +77,8 @@ public class JdbcServlet extends HttpServlet {
     }
   }
   
-  private List<ConnectionDto> list(HttpServletRequest req) throws TransactionException {
-    Configuration conf = newConfiguration(req);
-
-    Map<String, Connection> connections = conf.getConnections();
+  private List<ConnectionDto> getConnections(Configuration configuration) {
+    Map<String, Connection> connections = configuration.getConnections();
 
     // list all connections
     return connections.entrySet().stream().map(
@@ -130,6 +134,10 @@ public class JdbcServlet extends HttpServlet {
     
     resp.setContentType("application/json; charset=UTF-8");
 
+    ConfigurationEnvironment environment = newConfigurationEnvironment(req);
+    
+    Configuration conf = null;
+    
     try {
 
       List<ConnectionModificationRequestDto> connectionModificationRequests;
@@ -146,7 +154,8 @@ public class JdbcServlet extends HttpServlet {
         return;
       }
 
-      Configuration conf = newConfiguration(req);
+      conf = new Configuration(environment.getContextXmlInputStream(), 
+          environment.getServerXmlInputStream());
 
       final Map<String, Connection> connections = conf.getConnections();
 
@@ -294,11 +303,8 @@ public class JdbcServlet extends HttpServlet {
       }
 
 
-      // 4) save results
-      conf.save();
 
-
-      // 5) process illegal actions
+      // 4) process illegal actions
       for (int i = 0; i < connectionModificationRequests.size(); i++) {
         if (!processedRequestIndexes.contains(i)) {
           int cmResponse = ConnectionModificationResponseStatus.ERR__ILLEGAL_ACTION;
@@ -307,27 +313,26 @@ public class JdbcServlet extends HttpServlet {
       }
 
 
+      // 5) save configuration to temporary storage and get connections after save
+      ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
+      ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
+      
+      conf.save(contextXmlBaos, serverXmlBaos);
+      
+      Configuration conf2 = new Configuration(
+          new ByteArrayInputStream(contextXmlBaos.toByteArray()),
+          new ByteArrayInputStream(serverXmlBaos.toByteArray()));
+      
+      List<ConnectionDto> connectionDtos = getConnections(conf2);
+      
+      
       // 6) write response
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("modStatuses", connectionModificationResponseStatuses);
-      
-      //TODO 
-      /*
-        try {
-          // save to temp strings, but not to real files
-          conf.save(tempContextString, tempServerString);
-          List<ConnectionDto> connectionDtos = list(new Configuration(tempContextString, tempServerString));
-          writeResponse(connectionDtos);
-        } finally {
-          // after response sent, save to real files
-          conf.save();
-        }
-      */
-      List<ConnectionDto> connectionDtos = list(req);
       responseJsonMap.put("connections", connectionDtos);
       
       try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
-        new Gson().toJson(connectionModificationResponseStatuses, osw);
+        new Gson().toJson(responseJsonMap, osw);
       }
       
       resp.setStatus(HttpServletResponse.SC_OK);
@@ -341,6 +346,19 @@ public class JdbcServlet extends HttpServlet {
       resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.flushBuffer();
       return;
+      
+    } finally {
+      
+      if (conf != null) {
+        // save configuration to real files
+        try {
+          conf.save(environment.getContextXmlOutputStream(), 
+              environment.getServerXmlOutputStream());
+        } catch (Throwable e) {
+          // no throw
+          e.printStackTrace();
+        }
+      }
     }
 
   }
