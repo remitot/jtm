@@ -35,6 +35,8 @@ public class Configuration {
   
   private final ConfigurationContext confContext;
   
+  private final Map<String, BaseConnection> baseConnections;
+  
   /**
    * 
    * @param confContext not null
@@ -56,7 +58,9 @@ public class Configuration {
       
     } catch (Throwable e) {
       throw new TransactionException(e);
-    } 
+    }
+    
+    this.baseConnections = getBaseConnections();
   }
 
   /**
@@ -65,7 +69,7 @@ public class Configuration {
    */
   @SuppressWarnings("unchecked")
   public Map<String, Connection> getConnections() {
-    return Collections.unmodifiableMap((Map<String, Connection>)(Map<String, ?>)getBaseConnections());
+    return Collections.unmodifiableMap((Map<String, Connection>)(Map<String, ?>)baseConnections);
   }
   
   private Map<String, BaseConnection> getBaseConnections() {
@@ -559,7 +563,7 @@ public class Configuration {
   
   public void delete(String location) throws TransactionException, LocationNotExistException {
     try {
-      BaseConnection connection = getBaseConnections().get(location);
+      BaseConnection connection = baseConnections.get(location);
       
       if (connection == null) {
         throw new LocationNotExistException(location);
