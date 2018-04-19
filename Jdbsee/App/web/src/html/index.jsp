@@ -1,1 +1,3 @@
-<% request.getRequestDispatcher("/jdbc").forward(request, response); %>
+<% 
+  response.sendRedirect("jdbc");
+%>

@@ -1,11 +1,7 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
@@ -38,40 +34,8 @@ public class JdbcServlet extends HttpServlet {
   private static final long serialVersionUID = -7724868882541481749L;
 
   private Configuration newConfiguration(HttpServletRequest req) throws TransactionException {
-    Path confPath = Paths.get(req.getServletContext().getRealPath("")).getParent().getParent().resolve("conf2");
-
-    ConfigurationContext confContext = new ConfigurationContext.Default(confPath) {
-
-      @Override
-      public OutputStream getContextXmlOutputStream() {
-        // backup original file before saving modifications
-        saveBackup(getContextXmlInputStream(), confPath.resolve("context.backup.xml").toFile());
-        return super.getContextXmlOutputStream();
-      }
-
-      @Override
-      public OutputStream getServerXmlOutputStream() {
-        // backup original file before saving modifications
-        saveBackup(getServerXmlInputStream(), confPath.resolve("server.backup.xml").toFile());
-        return super.getServerXmlOutputStream();
-      }
-
-      private void saveBackup(InputStream in, File outFile) {
-        try (InputStream contextXmlInputStream = in;
-            OutputStream contextXmlOutputStreamBackup = new FileOutputStream(outFile)) {
-
-          byte[] buffer = new byte[8 * 1024];
-          int bytesRead;
-          while ((bytesRead = contextXmlInputStream.read(buffer)) != -1) {
-            contextXmlOutputStreamBackup.write(buffer, 0, bytesRead);
-          }
-        } catch (Throwable e) {
-          throw new RuntimeException(e);
-        }
-      }
-    };
-
-    return new Configuration(confContext); 
+    Path confPath = Paths.get(req.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
+    return new Configuration(new ConfigurationContext.Default(confPath)); 
   }
 
 

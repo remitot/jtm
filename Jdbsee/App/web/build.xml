@@ -18,14 +18,14 @@
   </taskdef>
   
   <property name="DISTR_DIR" location="lib"/>
-  <property name="DISTR_NAME" value="jdbsee"/>
-  <property name="CONTEXT_PATH" value="/jdbsee"/>
+  <property name="DISTR_NAME" value="jtm"/>
+  <property name="CONTEXT_PATH" value="/jtm"/>
   
   <property name="JAR_TEMP" value="build-lib"/>
 
   <!-- Общие наборы файлов -->
   <path id="libs">
-  	<pathelement location="${JDBSEE-CORE_LIB}" />
+  	<pathelement location="${JEPRIA-TOMCAT-MANAGER-CORE_LIB}" />
     <pathelement location="${SERVLET-API_LIB}" />
     <pathelement location="${GSON_LIB}" />
   </path>
@@ -78,7 +78,7 @@
         </copy>
         
         <copy todir="temp-war/WEB-INF/lib">
-        	<fileset file="${JDBSEE-CORE_LIB}" />
+        	<fileset file="${JEPRIA-TOMCAT-MANAGER-CORE_LIB}" />
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
           <fileset file="${GSON_LIB}" />
         </copy>

@@ -53,9 +53,8 @@
   <login-config>
     <auth-method>FORM</auth-method>
     <form-login-config>
-      <form-login-page>/WEB-INF/security/login.html</form-login-page>
-      <form-error-page>/WEB-INF/security/login-error.html
-      </form-error-page>
+      <form-login-page>/WEB-INF/security/login.jsp</form-login-page>
+      <form-error-page>/WEB-INF/security/login-error.jsp</form-error-page>
     </form-login-config>
   </login-config>
 
