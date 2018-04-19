@@ -64,23 +64,25 @@ function createRow(connection) {
   div.classList.add("flexColumns");
   
   cell = createCell(div, "column-name");
-  addField(cell, "name", connection.name, null);
+  field = addField(cell, "name", connection.name, null);
+  field.setAttribute("value0", connection.name);
   
   
   cell = createCell(div, "column-server");
-  addField(cell, "server", connection.server, null);
-  
+  field = addField(cell, "server", connection.server, null);
+  field.setAttribute("value0", connection.server);
   
   cell = createCell(div, "column-db");
-  addField(cell, "db", connection.db, null);
-  
+  field = addField(cell, "db", connection.db, null);
+  field.setAttribute("value0", connection.db);
   
   cell = createCell(div, "column-user");
-  addField(cell, "user", connection.user, null);
-  
+  field = addField(cell, "user", connection.user, null);
+  field.setAttribute("value0", connection.user);
   
   cell = createCell(div, "column-password");
-  addField(cell, "password", connection.password, null);
+  field = addField(cell, "password", connection.password, null);
+  field.setAttribute("value0", connection.password);
   
   row.appendChild(div);
   
@@ -107,23 +109,24 @@ function createRowCreate() {
   flexColumns.classList.add("flexColumns");
   
   cell = createCell(flexColumns, "column-name");
-  addField(cell, "name", "", "jdbc/MyDataSource");
+  field = addField(cell, "name", "", "jdbc/MyDataSource");
+  onFieldInput(field);
  
-  
   cell = createCell(flexColumns, "column-server");
-  addField(cell, "server", "", "mydbserver.com:1521");
-  
+  field = addField(cell, "server", "", "mydbserver.com:1521");
+  onFieldInput(field);
   
   cell = createCell(flexColumns, "column-db");
-  addField(cell, "db", "", "MYDATABASE");
-  
+  field = addField(cell, "db", "", "MYDATABASE");
+  onFieldInput(field);
   
   cell = createCell(flexColumns, "column-user");
-  addField(cell, "user", "", "me");
-  
+  field = addField(cell, "user", "", "me");
+  onFieldInput(field);
   
   cell = createCell(flexColumns, "column-password");
-  addField(cell, "password", "", "mysecret");
+  field = addField(cell, "password", "", "mysecret");
+  onFieldInput(field);
   
   row.appendChild(flexColumns);
   
@@ -152,8 +155,8 @@ function addField(cell, name, value, placeholder) {
   if (placeholder != null) {
     field.placeholder = placeholder;
   }
-  field.setAttribute("value0", value);
-  field.oninput = function(event){onFieldInput(event)};
+  
+  field.oninput = function(event){onFieldInput(event.target)};
   field.classList.add("field-text");
   field.classList.add("inactivatible");
   field.classList.add("deletable");
@@ -165,6 +168,8 @@ function addField(cell, name, value, placeholder) {
   strike = document.createElement("div");
   strike.classList.add("strike");
   cell.appendChild(strike);
+  
+  return field;
 }
 
 function wrapCellPad(element) {
@@ -219,12 +224,17 @@ function createCell(row, columnClass) {
   return cell;
 }
 
-function onFieldInput(event) {
-  var field = event.target;
-  if (field.getAttribute("value0") !== field.value) {
+function onFieldInput(field) {
+  value0 = field.getAttribute("value0");
+  if (typeof value0 === 'undefined') {
+    // treat as modified
     field.classList.add("modified");
   } else {
-    field.classList.remove("modified");
+    if (value0 !== field.value) {
+      field.classList.add("modified");
+    } else {
+      field.classList.remove("modified");
+    }
   }
 }
 

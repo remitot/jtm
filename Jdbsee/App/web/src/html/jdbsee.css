@@ -129,10 +129,11 @@ div.strike {
 }
 
 
-.modified, .row.created .field-text /* new fields always look modified */ {
+.modified {
   border-color: #fb8f40;
 }
-.row.deleted .modified  {/* but do not show border for deleted modified */
+/* do not show borders in deleted rows */
+.row.deleted .modified  {
   border-color: #ddd;
 }
 
