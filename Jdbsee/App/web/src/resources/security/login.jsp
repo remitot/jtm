@@ -6,42 +6,53 @@
   <title>Login Page</title>
 </head>
 <body>
-
-<% if (request.getParameter("error") != null) { %>
-  <h2>Error!</h2>
-<% } %>
-
-  <h2>Hello, please log in:</h2>
-  <br><br>
+  <div id="statusBar" class="statusBar-none"></div>
   <form id="login-form" action="j_security_check" method=post>
     <div class="row">
-      <div class="column-center">
-        <input type="text" class="field-text" name="j_username" size="25">
-      </div>
-      <div class="column-left">
-        <span class="field-label">Username</span>
-      </div>
-      <div class="column-right"></div>
-    </div>
-    <br/>
-    <div class="row">
-      <div class="column-center">
-        <input type="password" class="field-text" size="15" name="j_password">
-      </div>
-      <div class="column-left">
-        <span class="field-label">Password</span>
-      </div>
-      <div class="column-right"></div>
-    </div>
-    <br/>
-    <div class="row">
-      <div class="column-center">
-        <input type="submit" class="big-black-button"  value="Submit">
-      </div>
       <div class="column-left"></div>
+      <div class="column-center">
+        <input id="username" type="text" class="field-text" name="j_username"
+             placeholder="username">
+      </div>
+      <div class="column-right"></div>
+    </div>
+    <br/>
+    <div class="row">
+      <div class="column-left"></div>
+      <div class="column-center">
+        <input type="password" class="field-text" name="j_password"
+             placeholder="password">
+      </div>
+      <div class="column-right"></div>
+    </div>
+    <br/>
+    <div class="row">
+      <div class="column-left"></div>
+      <div class="column-center">
+        <input type="submit" class="big-black-button" value="LOGIN">
+      </div>
       <div class="column-right"></div>
     </div>
   </form>
+  
+  <script type="text/javascript">
+    document.getElementById("username").focus();
+  </script>
+  
+<% if (request.getParameter("error") != null) { %>
+  <script type="text/javascript">
+    statusBar = document.getElementById("statusBar"); 
+    statusBar.className = "statusBar-error";
+    statusBar.innerHTML = "Incorrect credentials, try again";
+  </script>
+<% } else { %>
+  <script type="text/javascript">
+    statusBar = document.getElementById("statusBar"); 
+    statusBar.className = "statusBar-info";
+    statusBar.innerHTML = "Log in to proceed";
+  </script>
+<% } %>
+
 </body>
 </html>
 

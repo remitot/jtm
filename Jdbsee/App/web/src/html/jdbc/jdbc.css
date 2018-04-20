@@ -141,6 +141,9 @@ input.field-text:disabled {
 div.strike {
   border-color: #fb8f40;
 }
+.row.created div.strike {
+  border-color: #000;
+}
 
 .row.deleted div.strike {
   display: block;

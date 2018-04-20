@@ -17,8 +17,10 @@ function reload() {
 
 function uiGridReloadBegin() {
   setButtonSaveEnabled(false);
-  document.getElementById("statusBar").className = "statusBar-info";
-  document.getElementById("statusBar").innerHTML = "loading...";
+  
+  statusBar = document.getElementById("statusBar"); 
+  statusBar.className = "statusBar-info";
+  statusBar.innerHTML = "loading...";
 }
 
 function uiGridReloadEnd() {
@@ -376,7 +378,7 @@ function setButtonSaveEnabled(enabled) {
   buttonSave = document.getElementById("buttonSave");
   if (enabled) {
     buttonSave.disabled = false;  
-    buttonSave.title = "Save all modifications (highlighted)";
+    buttonSave.title = "Save all modifications (orange)";
   } else {
     buttonSave.disabled = true;
     buttonSave.title = "No modifications performed";
@@ -392,9 +394,12 @@ function onDeleteButtonClick(button) {
   for (var i = 0; i < rowInputs.length; i++) {
     rowInputs[i].disabled = true;
   }
-  checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
-  for (var i = 0; i < checkboxCas.length; i++) {
-    setCheckboxCaEnabled(checkboxCas[i], false);
+  
+  if (!row.classList.contains("created")) {// no change checkboxes for created rows
+    checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
+    for (var i = 0; i < checkboxCas.length; i++) {
+      setCheckboxCaEnabled(checkboxCas[i], false);
+    }
   }
   
   checkModifications();
@@ -409,9 +414,12 @@ function onUndeleteButtonClick(button) {
   for (var i = 0; i < rowInputs.length; i++) {
     rowInputs[i].disabled = false;
   }
-  checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
-  for (var i = 0; i < checkboxCas.length; i++) {
-    setCheckboxCaEnabled(checkboxCas[i], true);
+  
+  if (!row.classList.contains("created")) {// no change checkboxes for created rows
+    checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
+    for (var i = 0; i < checkboxCas.length; i++) {
+      setCheckboxCaEnabled(checkboxCas[i], true);
+    }
   }
   
   checkModifications();
@@ -483,11 +491,13 @@ function onSaveButtonClick() {
           // if everything is OK, all statuses are 0
           sum = jsonModStates.reduce(function(a, b) {return a + b;});
           if (sum > 0) {
-            document.getElementById("statusBar").className = "statusBar-error";
-            document.getElementById("statusBar").innerHTML = "<h4>Modifications saved, but some of them produced errors.</h4> The server might be restaring now...";
+            statusBar = document.getElementById("statusBar");
+            statusBar.className = "statusBar-error";
+            statusBar.innerHTML = "<h4>Modifications saved, but some of them produced errors.</h4> The server might be restaring now...";
           } else {
-            document.getElementById("statusBar").className = "statusBar-success";
-            document.getElementById("statusBar").innerHTML = "<h4>Modifications successfully saved.</h4> The server might be restaring now...";
+            statusBar = document.getElementById("statusBar");
+            statusBar.className = "statusBar-success";
+            statusBar.innerHTML = "<h4>Modifications successfully saved.</h4> The server might be restaring now...";
           }
           
           jsonConnections = jsonResponse.connections; 
@@ -531,8 +541,9 @@ function uiSaveEnd() {
 }
 
 function uiSaveBegin() {
-  document.getElementById("statusBar").className = "statusBar-info";
-  document.getElementById("statusBar").innerHTML = "saving...";
+  statusBar = document.getElementById("statusBar");
+  statusBar.className = "statusBar-info";
+  statusBar.innerHTML = "saving...";
 }
 
 function getRowsModified() {
@@ -540,7 +551,7 @@ function getRowsModified() {
   rowsModifiedJson = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
-    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.querySelector(".modified") != null) {
+    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.querySelectorAll(".modified") != null) {
       rowJson = rowToJson(row);
       rowsModifiedJson.push({connectionLocation: row.getAttribute("connection-location"), connection: rowJson});
     }
