@@ -146,9 +146,9 @@ div.strike {
 .modified {
   border-color: #fb8f40;
 }
-/* do not show borders in deleted rows */
-.row.deleted .modified  {
-  border-color: #ddd;
+
+input.field-text:disabled {
+  border-color: transparent;
 }
 
 div.strike {
@@ -210,8 +210,7 @@ div.strike {
   color: white;
   cursor: pointer;
   
-  margin-right: 6px;
-  margin-left: 6px;
+  margin: 10px;
 }
 
 .big-black-button:disabled {
@@ -219,4 +218,34 @@ div.strike {
   background-color: #888;
   color: #ddd;
   cursor: default;
+}
+
+#statusBar {
+  width: 100%;
+  text-align: center;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+#statusBar h4 {
+  margin-top: 0px;
+}
+
+.statusBar-none {
+  display: none;
+}
+
+.statusBar-success {
+  display: block;
+  background-color: #CFFFC1;
+}
+
+.statusBar-error {
+  display: block;
+  background-color: #FFE6C1;
+}
+
+.statusBar-info {
+  display: block;
+  background-color: #F4F5CF;
 }

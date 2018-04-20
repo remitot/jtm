@@ -317,7 +317,7 @@ public class JdbcServlet extends HttpServlet {
       }
 
 
-      // 5) do a fake save (to temporary storage) and get after-save connections 
+      // 5) do a fake save (to a temporary storage) and get after-save connections from there
       ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
       ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
       
@@ -340,16 +340,17 @@ public class JdbcServlet extends HttpServlet {
         new Gson().toJson(responseJsonMap, osw);
       }
       
-      // do a real save
+      // 6) do a real save
       conf.save(environment.getContextXmlOutputStream(), 
           environment.getServerXmlOutputStream());
       
-      // XXX potential vulnerability here! 
+      // XXX potential vulnerability here!
+      // If tomcat configuration has autodeploy=true option,
+      // then it will reload the server by context.xml change event. 
       // Although we try to write response as fast as possible further,
-      // the tomcat server may have already reloaded the context 
-      // (triggered by context.xml change, with autodeploy option).
+      // the server may have already started reloading. 
       // In this case, the servlet may behave unexpectedly:
-      // respond 500, or wait to respond after the server reloads, whatever.
+      // respond 500, or wait to respond after the server reloading finishes, whatever.
       
       // write response as fast as possible
       OutputStream os = resp.getOutputStream();

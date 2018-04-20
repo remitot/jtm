@@ -17,11 +17,12 @@ function reload() {
 
 function uiGridReloadBegin() {
   setButtonSaveEnabled(false);
-  document.getElementById("abc").innerHTML = "loading...";
+  document.getElementById("statusBar").className = "statusBar-info";
+  document.getElementById("statusBar").innerHTML = "loading...";
 }
 
 function uiGridReloadEnd() {
-  document.getElementById("abc").innerHTML = "";
+  document.getElementById("statusBar").className = "statusBar-none";
 }
 
 function refillGrid(jsonConnections) {
@@ -180,13 +181,20 @@ function createRowCreate() {
   return row;
 }
 
-function addCheckboxCa(cell, active, enabled) {
-  checkboxCa = createCheckboxCa(active);
-  
-  if (!enabled) {
+function setCheckboxCaEnabled(checkboxCa, enabled) {
+  if (enabled) {
+    checkboxCa.classList.remove("checkbox-ca-disabled");
+    checkboxCa.querySelectorAll("input")[0].disabled = false;
+  } else {
     checkboxCa.classList.add("checkbox-ca-disabled");
     checkboxCa.querySelectorAll("input")[0].disabled = true;
   }
+}
+
+function addCheckboxCa(cell, active, enabled) {
+  checkboxCa = createCheckboxCa(active);
+  
+  setCheckboxCaEnabled(checkboxCa, enabled);
   
   checkboxCa.onclick = function(event){
     onCheckboxCaInput(event.target);
@@ -380,13 +388,9 @@ function onDeleteButtonClick(button) {
   row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.add("deleted");
   
-  isCreated = row.classList.contains("created");
-  
   rowInputs = row.querySelectorAll("input.deletable, .deletable input");
   for (var i = 0; i < rowInputs.length; i++) {
-    if (!isCreated) {// no affect for new rows
-      rowInputs[i].disabled = true;
-    }
+    rowInputs[i].disabled = true;
   }
   
   checkModifications();
@@ -397,13 +401,9 @@ function onUndeleteButtonClick(button) {
   row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.remove("deleted");
   
-  isCreated = row.classList.contains("created");
-  
   rowInputs = row.querySelectorAll("input.deletable, .deletable input");
   for (var i = 0; i < rowInputs.length; i++) {
-    if (!isCreated) {// no affect for new rows
-      rowInputs[i].disabled = false;
-    }
+    rowInputs[i].disabled = false;
   }
   
   checkModifications();
@@ -475,15 +475,36 @@ function onSaveButtonClick() {
           // if everything is OK, all statuses are 0
           sum = jsonModStates.reduce(function(a, b) {return a + b;});
           if (sum > 0) {
-            console.log("ERRORS");
-            //TODO log about something went wrong
+            document.getElementById("statusBar").className = "statusBar-error";
+            document.getElementById("statusBar").innerHTML = "<h4>Modifications saved, but some of them produced errors.</h4> The server might be restaring now...";
           } else {
-            console.log("OK");
-            //TODO log about everything OK
+            document.getElementById("statusBar").className = "statusBar-success";
+            document.getElementById("statusBar").innerHTML = "<h4>Modifications successfully saved.</h4> The server might be restaring now...";
           }
           
           jsonConnections = jsonResponse.connections; 
           refillGrid(jsonConnections);
+          
+          // disable whole grid
+          table = document.getElementById("connections");
+          // remove column-delete contents
+          columnDeletes = table.querySelectorAll(".column-delete");
+          for (var i = 0; i < columnDeletes.length; i++) {
+            columnDelete = columnDeletes[i];
+            columnDelete.innerHTML = "";
+          }
+          
+          inputs = table.querySelectorAll("input");
+          for (var i = 0; i < inputs.length; i++) {
+            input = inputs[i];
+            input.disabled = true;
+          }
+          checkboxCas = table.querySelectorAll(".checkbox-ca");
+          for (var i = 0; i < checkboxCas.length; i++) {
+            checkboxCa = checkboxCas[i];
+            setCheckboxCaEnabled(checkboxCa, false);
+          }
+          document.getElementById("controlButtons").style.display = "none";
         }
     };
     xhttp.open("POST", "jdbc/api/mod", true);
@@ -498,11 +519,12 @@ function onSaveButtonClick() {
 }
 
 function uiSaveEnd() {
-  document.getElementById("abc").innerHTML = "";
+  document.getElementById("statusBar").className = "statusBar-none";
 }
 
 function uiSaveBegin() {
-  document.getElementById("abc").innerHTML = "saving...";
+  document.getElementById("statusBar").className = "statusBar-info";
+  document.getElementById("statusBar").innerHTML = "saving...";
 }
 
 function getRowsModified() {
