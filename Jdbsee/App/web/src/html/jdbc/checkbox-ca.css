@@ -53,7 +53,7 @@
 }
 
 /* Style the checkmark/indicator */
-.checkbox-ca .checkmark:after {
+.checkmark:after {
   left: 8px;
   top: 4px;
   width: 6px;

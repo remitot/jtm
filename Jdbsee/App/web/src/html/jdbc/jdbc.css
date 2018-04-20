@@ -147,6 +147,10 @@ div.strike {
   border-color: #fb8f40;
 }
 
+.checkbox-ca-disabled.modified {
+  border-color: transparent !important; /* overrides .modified */
+}
+
 input.field-text:disabled {
   border-color: transparent;
 }
@@ -187,65 +191,15 @@ div.strike {
 
 
 .checkbox-ca-disabled {
-  cursor: default !important;
+  cursor: default !important; /* overrides .checkbox-ca */
 }
 .checkbox-ca-disabled .checkmark {
-  background-color: transparent !important;
+  background-color: transparent !important; /* overrides .checkmark */
 }
 .checkbox-ca-disabled .checkmark.hovered {
-  background-color: transparent !important;
+  background-color: transparent !important; /* overrides .checkmark.hovered */
 }
 .checkbox-ca-disabled .checkmark:after {
-  border-color: black !important;
+  border-color: black !important; /* overrides .checkmark:after */
 }
 
-.big-black-button {
-  width: 200px;
-  height: 44px;
-  
-  background-color: black;
-  border: none;
-  font-size: 14px;
-  font-weight: bold;
-  color: white;
-  cursor: pointer;
-  
-  margin: 10px;
-}
-
-.big-black-button:disabled {
-  
-  background-color: #888;
-  color: #ddd;
-  cursor: default;
-}
-
-#statusBar {
-  width: 100%;
-  text-align: center;
-  padding-top: 15px;
-  padding-bottom: 15px;
-}
-
-#statusBar h4 {
-  margin-top: 0px;
-}
-
-.statusBar-none {
-  display: none;
-}
-
-.statusBar-success {
-  display: block;
-  background-color: #CFFFC1;
-}
-
-.statusBar-error {
-  display: block;
-  background-color: #FFE6C1;
-}
-
-.statusBar-info {
-  display: block;
-  background-color: #F4F5CF;
-}

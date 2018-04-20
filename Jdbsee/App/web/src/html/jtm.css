@@ -1,0 +1,56 @@
+.big-black-button {
+  width: 200px;
+  height: 44px;
+  
+  background-color: black;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  
+  margin: 10px;
+}
+
+.big-black-button:disabled {
+  
+  background-color: #888;
+  color: #ddd;
+  cursor: default;
+}
+
+
+
+
+
+/******* status bar *******/
+
+#statusBar {
+  width: 100%;
+  text-align: center;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+#statusBar h4 {
+  margin-top: 0px;
+}
+
+.statusBar-none {
+  display: none;
+}
+
+.statusBar-success {
+  display: block;
+  background-color: #CFFFC1;
+}
+
+.statusBar-error {
+  display: block;
+  background-color: #FFE6C1;
+}
+
+.statusBar-info {
+  display: block;
+  background-color: #F4F5CF;
+}

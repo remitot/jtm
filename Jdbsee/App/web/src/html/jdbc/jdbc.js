@@ -388,9 +388,13 @@ function onDeleteButtonClick(button) {
   row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.add("deleted");
   
-  rowInputs = row.querySelectorAll("input.deletable, .deletable input");
+  rowInputs = row.querySelectorAll("input.deletable");
   for (var i = 0; i < rowInputs.length; i++) {
     rowInputs[i].disabled = true;
+  }
+  checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
+  for (var i = 0; i < checkboxCas.length; i++) {
+    setCheckboxCaEnabled(checkboxCas[i], false);
   }
   
   checkModifications();
@@ -401,9 +405,13 @@ function onUndeleteButtonClick(button) {
   row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   row.classList.remove("deleted");
   
-  rowInputs = row.querySelectorAll("input.deletable, .deletable input");
+  rowInputs = row.querySelectorAll("input.deletable");
   for (var i = 0; i < rowInputs.length; i++) {
     rowInputs[i].disabled = false;
+  }
+  checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
+  for (var i = 0; i < checkboxCas.length; i++) {
+    setCheckboxCaEnabled(checkboxCas[i], true);
   }
   
   checkModifications();

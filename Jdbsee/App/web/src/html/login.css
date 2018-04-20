@@ -1,0 +1,31 @@
+#login-form .row {
+    position: fixed;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.05);
+}
+#login-form .row .column-center {
+    width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+#login-form .row .column-left, #login-form .row .column-right {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 50%;
+    margin-right: 150px; /* 1/2 from .column-center width */
+    background:#F00;
+}
+#login-form .row .column-right {
+    left: 50%;
+    right: 0;
+    margin-left: 150px; /* 1/2 from .column-center width */
+    margin-right: 0;
+}
+#login-form .column-center > * {
+  width: 100%;
+}
+
+#login-form .field-label {
+  float: right;
+}
