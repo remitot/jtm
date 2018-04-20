@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="jtm.css">
   <link rel="stylesheet" href="login.css">
   <title>Login Page</title>
 </head>
@@ -15,7 +16,7 @@
   <form id="login-form" action="j_security_check" method=post>
     <div class="row">
       <div class="column-center">
-        <input type="text" name="j_username" size="25">
+        <input type="text" class="field-text" name="j_username" size="25">
       </div>
       <div class="column-left">
         <span class="field-label">Username</span>
@@ -25,7 +26,7 @@
     <br/>
     <div class="row">
       <div class="column-center">
-        <input type="password" size="15" name="j_password">
+        <input type="password" class="field-text" size="15" name="j_password">
       </div>
       <div class="column-left">
         <span class="field-label">Password</span>
@@ -35,7 +36,7 @@
     <br/>
     <div class="row">
       <div class="column-center">
-        <input type="submit" value="Submit">
+        <input type="submit" class="big-black-button"  value="Submit">
       </div>
       <div class="column-left"></div>
       <div class="column-right"></div>

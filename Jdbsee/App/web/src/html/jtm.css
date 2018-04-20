@@ -19,9 +19,26 @@
   cursor: default;
 }
 
+/******* input text *******/
 
+input.field-text {
+  background-color: transparent;
+  outline: 0;
+  
+  border-width: 0 0 2px 0;
+  border-color: #ddd;
+  
+  font-family: monospace;
+  font-size: 120%;
+  color: black; 
+  
+  padding-top: 6px;
+  padding-bottom: 2px;
+}
 
-
+input.field-text:focus {
+  border-color: #0089bd;
+}
 
 /******* status bar *******/
 

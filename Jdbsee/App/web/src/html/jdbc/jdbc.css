@@ -92,21 +92,6 @@ div.cell.column-password {
   height: 20px;
 }
 
-.field-text {
-  background-color: transparent;
-  outline: 0;
-  
-  border-width: 0 0 2px 0;
-  border-color: #ddd;
-  
-  font-family: monospace;
-  font-size: 120%;
-  color: black; 
-  
-  padding-top: 6px;
-  padding-bottom: 2px;
-}
-
 .checkbox-ca {
   border-width: 0 0 0 0;
   border-bottom: 2px solid;
@@ -119,12 +104,6 @@ div.cell.column-password {
   padding-bottom: 2px;
 }
 
-input.field-text:focus {
-  border-color: #0089bd;
-}
-.row.created input.field-text:focus {
-  border-color: #0089bd;
-}
 
 /* elements that go opaque when inactive */
 .row.inactive input.inactivatible {
@@ -143,8 +122,12 @@ div.strike {
 }
 
 
-.modified {
+input.field-text.modified, .modified {
   border-color: #fb8f40;
+}
+
+input.field-text.modified:focus {
+  border-color: #0089bd;
 }
 
 .checkbox-ca-disabled.modified {
