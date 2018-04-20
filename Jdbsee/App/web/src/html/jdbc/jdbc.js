@@ -48,7 +48,6 @@ function refillGrid(jsonConnections) {
 
 function createHeader() {
   row = document.createElement("div");
-  row.classList.add("row");
   row.classList.add("header");
   // active
   cell = createCell(row, "column-active");// empty cell
@@ -551,7 +550,7 @@ function getRowsModified() {
   rowsModifiedJson = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
-    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.querySelectorAll(".modified") != null) {
+    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.querySelectorAll(".modified").length > 0) {
       rowJson = rowToJson(row);
       rowsModifiedJson.push({connectionLocation: row.getAttribute("connection-location"), connection: rowJson});
     }
