@@ -1,11 +1,11 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-public class ConnectionModificationRequestDto {
+public class ModRequestDto {
   private String action;
   private String location;
   private ConnectionDto data;
   
-  public ConnectionModificationRequestDto() {
+  public ModRequestDto() {
   }
 
   public String getAction() {

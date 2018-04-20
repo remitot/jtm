@@ -471,9 +471,9 @@ function onSaveButtonClick() {
           uiSaveEnd();
           jsonResponse = JSON.parse(this.responseText);
           
-          jsonModStatuses = jsonResponse.modStatuses;
+          jsonModStates = jsonResponse.mod_states;
           // if everything is OK, all statuses are 0
-          sum = jsonModStatuses.reduce(function(a, b) {return a + b;});
+          sum = jsonModStates.reduce(function(a, b) {return a + b;});
           if (sum > 0) {
             console.log("ERRORS");
             //TODO log about something went wrong
@@ -487,7 +487,9 @@ function onSaveButtonClick() {
         }
     };
     xhttp.open("POST", "jdbc/api/mod", true);
-    xhttp.send(JSON.stringify(connectionModificationRequests));
+    
+    requestJson = {mod_requests: connectionModificationRequests};
+    xhttp.send(JSON.stringify(requestJson));
     
   } else {
     // TODO report nothing to save

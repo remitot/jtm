@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -134,38 +136,40 @@ public class JdbcServlet extends HttpServlet {
     
     resp.setContentType("application/json; charset=UTF-8");
 
-    ConfigurationEnvironment environment = newConfigurationEnvironment(req);
-    
-    Configuration conf = null;
-    
     try {
 
-      List<ConnectionModificationRequestDto> connectionModificationRequests;
+      List<ModRequestDto> modRequests;
 
       try {
-        Type listType = new TypeToken<ArrayList<ConnectionModificationRequestDto>>(){}.getType();
-        connectionModificationRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), listType);
+        Type mapType = new TypeToken<HashMap<String, List<ModRequestDto>>>(){}.getType();
+        Map<String, List<ModRequestDto>> requestJsonMap = new Gson().fromJson(new InputStreamReader(req.getInputStream()), mapType);
+        modRequests = requestJsonMap.get("mod_requests");
+        if (modRequests == null) {
+          throw new NoSuchElementException("mod_requests");
+        }
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.getOutputStream().println("Error parsing JSON request body: expected list of connection modification request objects");
+        resp.getOutputStream().println("Error parsing JSON request body");
         resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
       }
 
-      conf = new Configuration(environment.getContextXmlInputStream(), 
+      ConfigurationEnvironment environment = newConfigurationEnvironment(req);
+      
+      Configuration conf = new Configuration(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
 
       final Map<String, Connection> connections = conf.getConnections();
 
       // responses correspond to requests
-      int[] connectionModificationResponseStatuses = new int[connectionModificationRequests.size()];
+      int[] connectionModificationResponseStatuses = new int[modRequests.size()];
       Set<Integer> processedRequestIndexes = new HashSet<>();
 
       // 1) updates
-      for (int i = 0; i < connectionModificationRequests.size(); i++) {
-        ConnectionModificationRequestDto cmRequest = connectionModificationRequests.get(i);
+      for (int i = 0; i < modRequests.size(); i++) {
+        ModRequestDto cmRequest = modRequests.get(i);
 
         if ("update".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
@@ -223,8 +227,8 @@ public class JdbcServlet extends HttpServlet {
 
 
       // 2) deletions
-      for (int i = 0; i < connectionModificationRequests.size(); i++) {
-        ConnectionModificationRequestDto cmRequest = connectionModificationRequests.get(i);
+      for (int i = 0; i < modRequests.size(); i++) {
+        ModRequestDto cmRequest = modRequests.get(i);
 
         if ("delete".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
@@ -263,8 +267,8 @@ public class JdbcServlet extends HttpServlet {
 
 
       // 3) creations
-      for (int i = 0; i < connectionModificationRequests.size(); i++) {
-        ConnectionModificationRequestDto cmRequest = connectionModificationRequests.get(i);
+      for (int i = 0; i < modRequests.size(); i++) {
+        ModRequestDto cmRequest = modRequests.get(i);
 
         if ("create".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
@@ -305,7 +309,7 @@ public class JdbcServlet extends HttpServlet {
 
 
       // 4) process illegal actions
-      for (int i = 0; i < connectionModificationRequests.size(); i++) {
+      for (int i = 0; i < modRequests.size(); i++) {
         if (!processedRequestIndexes.contains(i)) {
           int cmResponse = ConnectionModificationResponseStatus.ERR__ILLEGAL_ACTION;
           connectionModificationResponseStatuses[i] = cmResponse;
@@ -313,26 +317,44 @@ public class JdbcServlet extends HttpServlet {
       }
 
 
-      // 5) save configuration to temporary storage and get connections after save
+      // 5) do a fake save (to temporary storage) and get after-save connections 
       ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
       ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
       
       conf.save(contextXmlBaos, serverXmlBaos);
       
-      Configuration conf2 = new Configuration(
+      Configuration confAfterSave = new Configuration(
           new ByteArrayInputStream(contextXmlBaos.toByteArray()),
           new ByteArrayInputStream(serverXmlBaos.toByteArray()));
       
-      List<ConnectionDto> connectionDtos = getConnections(conf2);
+      List<ConnectionDto> connectionDtos = getConnections(confAfterSave);
       
-      
-      // 6) write response
+      // prepare repsonse to write as fast as possible, after a real save
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("modStatuses", connectionModificationResponseStatuses);
+      responseJsonMap.put("mod_states", connectionModificationResponseStatuses);
       responseJsonMap.put("connections", connectionDtos);
       
-      try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
+      ByteArrayOutputStream preparedResponse = new ByteArrayOutputStream();
+      
+      try (OutputStreamWriter osw = new OutputStreamWriter(preparedResponse, "UTF-8")) {
         new Gson().toJson(responseJsonMap, osw);
+      }
+      
+      // do a real save
+      conf.save(environment.getContextXmlOutputStream(), 
+          environment.getServerXmlOutputStream());
+      
+      // XXX potential vulnerability here! 
+      // Although we try to write response as fast as possible further,
+      // the tomcat server may have already reloaded the context 
+      // (triggered by context.xml change, with autodeploy option).
+      // In this case, the servlet may behave unexpectedly:
+      // respond 500, or wait to respond after the server reloads, whatever.
+      
+      // write response as fast as possible
+      OutputStream os = resp.getOutputStream();
+      for (byte b: preparedResponse.toByteArray()) {
+        os.write(b);
       }
       
       resp.setStatus(HttpServletResponse.SC_OK);
@@ -346,21 +368,7 @@ public class JdbcServlet extends HttpServlet {
       resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.flushBuffer();
       return;
-      
-    } finally {
-      
-      if (conf != null) {
-        // save configuration to real files
-        try {
-          conf.save(environment.getContextXmlOutputStream(), 
-              environment.getServerXmlOutputStream());
-        } catch (Throwable e) {
-          // no throw
-          e.printStackTrace();
-        }
-      }
     }
-
   }
 
   /**
