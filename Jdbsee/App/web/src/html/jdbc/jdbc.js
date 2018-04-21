@@ -137,7 +137,7 @@ function createRowCreate() {
 
   // add header row if the table is empty
   table = document.getElementById("connections");
-  if (table.querySelectorAll(".row.header").length == 0) {
+  if (table.querySelectorAll(".header").length == 0) {
     table.appendChild(createHeader());
   }
   
@@ -521,6 +521,13 @@ function onSaveButtonClick() {
             checkboxCa = checkboxCas[i];
             setCheckboxCaEnabled(checkboxCa, false);
           }
+          
+          // gray out every second row
+          rows = table.querySelectorAll(".row");
+          for (var i = 0; i < rows.length; i += 2) {
+            rows[i].classList.add("even-odd-gray");
+          }
+          
           document.getElementById("controlButtons").style.display = "none";
         }
     };

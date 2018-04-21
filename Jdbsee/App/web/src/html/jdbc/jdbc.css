@@ -13,7 +13,8 @@ div.cell {
   position: relative;
   height: 32px;
   
-  padding-bottom: 12px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 .flexColumns div.cell > *, .strike {
@@ -110,6 +111,10 @@ div.cell.column-password {
   color: #888;
 }
 
+.row.even-odd-gray {
+  background-color: #fafafa;
+}
+
 
 div.strike {
   display: none;
@@ -141,8 +146,8 @@ input.field-text:disabled {
 div.strike {
   border-color: #fb8f40;
 }
-.row.created div.strike {
-  border-color: #000;
+.row.created.deleted {
+  display: none;
 }
 
 .row.deleted div.strike {
