@@ -1,5 +1,6 @@
 #login-form {
   margin-top: 60px;
+  margin-bottom: 60px;
 }
 
 #login-form .row {
@@ -7,20 +8,6 @@
   text-align: center;
 }
 
-#login-form .row .column-left, #login-form .row .column-right {
-  width: 400px;
-  display: inline-block;
-}
-
-#login-form .row .column-center {
-  width: 220px;
-  display: inline-block;
-}
-
-#login-form .row .column-center .field-text {
+#login-form .row .field-text {
   width: 200px;
-}
-
-#login-form .field-label {
-  float: right;
 }

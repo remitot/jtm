@@ -1,21 +1,28 @@
 function reload() {
   
-  uiGridReloadBegin();
+  uiOnGridReloadBegin();
   
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
+    if (this.readyState == 4) {
+      
+      if (this.status == 200) {
+      
         uiGridReloadEnd();
         jsonResponse = JSON.parse(this.responseText);
         jsonConnections = jsonResponse.connections; 
         refillGrid(jsonConnections);
+        
+      } else if (this.status == 401) {
+        uiOnAuthRequired();
       }
+    }
   };
   xhttp.open("GET", "jdbc/api/list", true);
   xhttp.send();
 }
 
-function uiGridReloadBegin() {
+function uiOnGridReloadBegin() {
   setButtonSaveEnabled(false);
   
   statusBar = document.getElementById("statusBar"); 
@@ -439,7 +446,7 @@ function onSaveButtonClick() {
   rowsCreated = getRowsCreated();
   
   
-  uiSaveBegin();
+  uiOnSaveBegin();
   
   connectionModificationRequests = [];
   
@@ -482,53 +489,59 @@ function onSaveButtonClick() {
   if (connectionModificationRequests.length > 0) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-          uiSaveEnd();
-          jsonResponse = JSON.parse(this.responseText);
-          
-          jsonModStates = jsonResponse.mod_states;
-          // if everything is OK, all statuses are 0
-          sum = jsonModStates.reduce(function(a, b) {return a + b;});
-          if (sum > 0) {
-            statusBar = document.getElementById("statusBar");
-            statusBar.className = "statusBar-error";
-            statusBar.innerHTML = "<h4>Modifications saved, but some of them produced errors.</h4> The server might be restaring now...";
-          } else {
-            statusBar = document.getElementById("statusBar");
-            statusBar.className = "statusBar-success";
-            statusBar.innerHTML = "<h4>Modifications successfully saved.</h4> The server might be restaring now...";
+        
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            uiOnSaveEnd();
+            jsonResponse = JSON.parse(this.responseText);
+            
+            jsonModStates = jsonResponse.mod_states;
+            // if everything is OK, all statuses are 0
+            sum = jsonModStates.reduce(function(a, b) {return a + b;});
+            if (sum > 0) {
+              statusBar = document.getElementById("statusBar");
+              statusBar.className = "statusBar-error";
+              statusBar.innerHTML = "<h4>Modifications saved, but some of them produced errors.</h4> The server might be restaring now...";
+            } else {
+              statusBar = document.getElementById("statusBar");
+              statusBar.className = "statusBar-success";
+              statusBar.innerHTML = "<h4>Modifications successfully saved.</h4> The server might be restaring now...";
+            }
+            
+            jsonConnections = jsonResponse.connections; 
+            refillGrid(jsonConnections);
+            
+            // disable whole grid
+            table = document.getElementById("connections");
+            // remove column-delete contents
+            columnDeletes = table.querySelectorAll(".column-delete");
+            for (var i = 0; i < columnDeletes.length; i++) {
+              columnDelete = columnDeletes[i];
+              columnDelete.innerHTML = "";
+            }
+            
+            inputs = table.querySelectorAll("input");
+            for (var i = 0; i < inputs.length; i++) {
+              input = inputs[i];
+              input.disabled = true;
+            }
+            checkboxCas = table.querySelectorAll(".checkbox-ca");
+            for (var i = 0; i < checkboxCas.length; i++) {
+              checkboxCa = checkboxCas[i];
+              setCheckboxCaEnabled(checkboxCa, false);
+            }
+            
+            // gray out every second row
+            rows = table.querySelectorAll(".row");
+            for (var i = 0; i < rows.length; i += 2) {
+              rows[i].classList.add("even-odd-gray");
+            }
+            
+            document.getElementById("controlButtons").style.display = "none";
+            
+          } else if (this.status == 401) {
+            uiOnAuthRequired();
           }
-          
-          jsonConnections = jsonResponse.connections; 
-          refillGrid(jsonConnections);
-          
-          // disable whole grid
-          table = document.getElementById("connections");
-          // remove column-delete contents
-          columnDeletes = table.querySelectorAll(".column-delete");
-          for (var i = 0; i < columnDeletes.length; i++) {
-            columnDelete = columnDeletes[i];
-            columnDelete.innerHTML = "";
-          }
-          
-          inputs = table.querySelectorAll("input");
-          for (var i = 0; i < inputs.length; i++) {
-            input = inputs[i];
-            input.disabled = true;
-          }
-          checkboxCas = table.querySelectorAll(".checkbox-ca");
-          for (var i = 0; i < checkboxCas.length; i++) {
-            checkboxCa = checkboxCas[i];
-            setCheckboxCaEnabled(checkboxCa, false);
-          }
-          
-          // gray out every second row
-          rows = table.querySelectorAll(".row");
-          for (var i = 0; i < rows.length; i += 2) {
-            rows[i].classList.add("even-odd-gray");
-          }
-          
-          document.getElementById("controlButtons").style.display = "none";
         }
     };
     xhttp.open("POST", "jdbc/api/mod", true);
@@ -538,15 +551,21 @@ function onSaveButtonClick() {
     
   } else {
     // TODO report nothing to save
-    uiSaveEnd();
+    uiOnSaveEnd();
   }
 }
 
-function uiSaveEnd() {
+function uiOnAuthRequired() {
+  statusBar = document.getElementById("statusBar"); 
+  statusBar.className = "statusBar-error";
+  statusBar.innerHTML = "Authorization required";
+}
+
+function uiOnSaveEnd() {
   document.getElementById("statusBar").className = "statusBar-none";
 }
 
-function uiSaveBegin() {
+function uiOnSaveBegin() {
   statusBar = document.getElementById("statusBar");
   statusBar.className = "statusBar-info";
   statusBar.innerHTML = "saving...";
