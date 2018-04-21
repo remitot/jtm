@@ -2,26 +2,13 @@
 <html>
 <head>
   <link rel="stylesheet" href="jtm.css">
-  <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" href="login/login.css">
   <title>Login Page</title>
 </head>
 <body>
-  <div id="statusBar" class="statusBar-none"></div>
-  <form id="login-form" action="j_security_check" method=post>
-    <div class="row">
-      <input id="username" type="text" class="field-text" name="j_username"
-           placeholder="username">
-    </div>
-    <br/>
-    <div class="row">
-      <input type="password" class="field-text" name="j_password"
-           placeholder="password">
-    </div>
-    <br/>
-    <div class="row">
-      <input type="submit" class="big-black-button" value="LOGIN">
-    </div>
-  </form>
+  
+  <%-- TODO resolve the relative path! --%>
+  <%@include file="../../login/login-fragment.html" %>
   
   <script type="text/javascript">
     document.getElementById("username").focus();

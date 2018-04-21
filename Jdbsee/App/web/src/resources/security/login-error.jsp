@@ -1,4 +1,1 @@
-<% 
-  request.getRequestDispatcher("login.jsp?error").include(request, response);
-  response.setStatus(401); 
-%>
+<jsp:forward page="login.jsp?error"/>
