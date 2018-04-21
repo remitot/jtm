@@ -5,6 +5,16 @@
   </session-config>
 
   <servlet>
+    <servlet-name>AuthServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.AuthServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AuthServlet</servlet-name>
+    <url-pattern>/auth/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>JdbcServlet</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcServlet
     </servlet-class>
@@ -22,7 +32,7 @@
     <servlet-name>JdbcGui</servlet-name>
     <url-pattern>/jdbc</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <servlet-name>ApiDocs</servlet-name>
     <jsp-file>/api-docs.html</jsp-file>
@@ -54,7 +64,7 @@
     <auth-method>FORM</auth-method>
     <form-login-config>
       <form-login-page>/WEB-INF/security/login.jsp</form-login-page>
-      <form-error-page>/WEB-INF/security/login-error.jsp</form-error-page>
+      <form-error-page>/WEB-INF/security/login.jsp</form-error-page>
     </form-login-config>
   </login-config>
 

@@ -5,16 +5,13 @@ function reload() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
-      
       if (this.status == 200) {
-      
         uiGridReloadEnd();
         jsonResponse = JSON.parse(this.responseText);
         jsonConnections = jsonResponse.connections; 
         refillGrid(jsonConnections);
-        
       } else if (this.status == 401) {
-        uiOnAuthRequired();
+        uiOnLoginRequired();
       }
     }
   };
@@ -25,13 +22,13 @@ function reload() {
 function uiOnGridReloadBegin() {
   setButtonSaveEnabled(false);
   
-  statusBar = document.getElementById("statusBar"); 
-  statusBar.className = "statusBar-info";
+  statusBar = document.getElementById("jdbcStatusBar"); 
+  statusBar.className = "statusBar statusBar-info";
   statusBar.innerHTML = "loading...";
 }
 
 function uiGridReloadEnd() {
-  document.getElementById("statusBar").className = "statusBar-none";
+  document.getElementById("jdbcStatusBar").className = "statusBar statusBar-none";
 }
 
 function refillGrid(jsonConnections) {
@@ -499,12 +496,12 @@ function onSaveButtonClick() {
             // if everything is OK, all statuses are 0
             sum = jsonModStates.reduce(function(a, b) {return a + b;});
             if (sum > 0) {
-              statusBar = document.getElementById("statusBar");
-              statusBar.className = "statusBar-error";
+              statusBar = document.getElementById("jdbcStatusBar");
+              statusBar.className = "statusBar statusBar-error";
               statusBar.innerHTML = "<h4>Modifications saved, but some of them produced errors.</h4> The server might be restaring now...";
             } else {
-              statusBar = document.getElementById("statusBar");
-              statusBar.className = "statusBar-success";
+              statusBar = document.getElementById("jdbcStatusBar");
+              statusBar.className = "statusBar statusBar-success";
               statusBar.innerHTML = "<h4>Modifications successfully saved.</h4> The server might be restaring now...";
             }
             
@@ -540,7 +537,7 @@ function onSaveButtonClick() {
             document.getElementById("controlButtons").style.display = "none";
             
           } else if (this.status == 401) {
-            uiOnAuthRequired();
+            uiOnLoginRequired();
           }
         }
     };
@@ -555,19 +552,17 @@ function onSaveButtonClick() {
   }
 }
 
-function uiOnAuthRequired() {
-  statusBar = document.getElementById("statusBar"); 
-  statusBar.className = "statusBar-error";
-  statusBar.innerHTML = "Authorization required";
+function uiOnLoginRequired() {
+  raiseLoginForm();
 }
 
 function uiOnSaveEnd() {
-  document.getElementById("statusBar").className = "statusBar-none";
+  document.getElementById("jdbcStatusBar").className = "statusBar statusBar-none";
 }
 
 function uiOnSaveBegin() {
-  statusBar = document.getElementById("statusBar");
-  statusBar.className = "statusBar-info";
+  statusBar = document.getElementById("jdbcStatusBar");
+  statusBar.className = "statusBar statusBar-info";
   statusBar.innerHTML = "saving...";
 }
 
@@ -624,3 +619,8 @@ function rowToJson(row) {
   return rowJson;
 }
 
+/* override */
+function onLoginSuccess() {
+  loginFragment = document.getElementById("loginFragment");
+  document.body.removeChild(loginFragment);
+}

@@ -42,14 +42,14 @@ input.field-text:focus {
 
 /******* status bar *******/
 
-#statusBar {
+.statusBar {
   width: 100%;
   text-align: center;
   padding-top: 15px;
   padding-bottom: 15px;
 }
 
-#statusBar h4 {
+.statusBar h4 {
   margin-top: 0px;
 }
 
@@ -70,4 +70,29 @@ input.field-text:focus {
 .statusBar-info {
   display: block;
   background-color: #F4F5CF;
+}
+
+/******* login fragment *******/
+
+#loginFragment {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  
+  background-color: rgba(40, 40, 40, 0.85);
+}
+
+#loginFragment #loginFrame {
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  
+  left: 50%;
+  margin-left: -150px;
+  
+  text-align: center;
+  
+  background-color: white;
 }

@@ -1,16 +1,17 @@
-<div id="statusBar" class="statusBar-none"></div>
-<form id="login-form" action="j_security_check" method=post>
+<div id="loginStatusBar" class="statusBar statusBar-none"></div>
+<form id="login-form">
   <div class="row">
-    <input id="username" type="text" class="field-text" name="j_username"
+    <input type="text" class="field-text" id="field-username"
          placeholder="username">
   </div>
   <br/>
   <div class="row">
-    <input type="password" class="field-text" name="j_password"
+    <input type="password" class="field-text" id="field-password"
          placeholder="password">
   </div>
   <br/>
   <div class="row">
-    <input type="submit" class="big-black-button" value="LOGIN">
+    <button type="submit" class="big-black-button" 
+        onclick="submitForm(); return false;">LOGIN</button>
   </div>
 </form>
