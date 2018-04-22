@@ -1,4 +1,4 @@
-<div id="loginFragment" style="display:none;">
+<div id="loginFragment">
   <div id="loginFrame">
     <div id="loginStatusBar" class="statusBar statusBar-none"></div>
     <form id="login-form">
@@ -63,7 +63,11 @@
   }
 </style>
 
-<script>
+<script type="text/javascript">
+  hideLoginForm();
+</script>
+
+<script type="text/javascript">
   function submitForm() {
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "auth", true);

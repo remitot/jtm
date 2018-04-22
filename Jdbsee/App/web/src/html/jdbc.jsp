@@ -1,6 +1,8 @@
+<%@ page contentType="text/html; charset=UTF-8" %>
 <!DOCTYPE html>
 <html>
   <head>
+    <title>JDBC connections — Tomcat manager</title>
     <link rel="stylesheet" href="jtm.css">
     <link rel="stylesheet" href="jdbc.css">
     <link rel="stylesheet" href="checkbox-ca.css">
@@ -24,7 +26,7 @@
           >SAVE EVERYTHING</button>
     </div>
 
-<%@include file="login-fragment.jsp" %>    
+<%@ include file="login-fragment.jsp" %>    
     
   </body>
 </html>
