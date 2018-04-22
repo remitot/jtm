@@ -25,7 +25,7 @@ function reload() {
         statusBar.className = "statusBar statusBar-error";
         statusBar.innerHTML = "Authorization required";
     
-        raiseLoginForm("Are you the server admin?", function() {
+        raiseLoginForm(function() {
           hideLoginForm();
           reload();  
         });
@@ -545,11 +545,11 @@ function onSaveButtonClick() {
         
           statusBar = document.getElementById("jdbcStatusBar"); 
           statusBar.className = "statusBar statusBar-error";
-          statusBar.innerHTML = "Session expired, authorization required";
-        
-          raiseLoginForm("Session expired, login again", function() {
+          statusBar.innerHTML = "Authorization required";
+      
+          raiseLoginForm(function() {
             hideLoginForm();
-            onSaveButtonClick();
+            reload();  
           });
         }
       }

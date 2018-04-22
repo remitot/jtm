@@ -1,4 +1,4 @@
-<div id="loginFragment">
+<div id="loginFragment" class="loginForm-hidden">
   <div id="loginFrame">
     <div id="loginStatusBar" class="statusBar statusBar-none"></div>
     <form id="login-form">
@@ -42,6 +42,14 @@
     
     background-color: white;
   }
+  
+  #loginFragment.loginForm-raised {
+    display: block;
+  }
+  
+  #loginFragment.loginForm-hidden {
+    display: none;
+  }
 
   #login-form {
     padding: 40px 40px 20px 40px;
@@ -62,10 +70,6 @@
     margin-top: 40px;
   }
 </style>
-
-<script type="text/javascript">
-  hideLoginForm();
-</script>
 
 <script type="text/javascript">
   function submitForm() {
@@ -117,19 +121,19 @@
   
   var onLoginSuccessCallback0 = null; 
   
-  function raiseLoginForm(statusText, onLoginSuccessCallback) {
-    document.getElementById("loginFragment").style.display = "block";
+  function raiseLoginForm(onLoginSuccessCallback) {
+    document.getElementById("loginFragment").className = "loginForm-raised";
     
     resetFields();
 
     statusBar = document.getElementById("loginStatusBar");
     statusBar.className = "statusBar statusBar-info";
-    statusBar.innerHTML = statusText;
+    statusBar.innerHTML = "Are you the server admin?";
 
     onLoginSuccessCallback0 = onLoginSuccessCallback;
   } 
   
   function hideLoginForm() {
-    document.getElementById("loginFragment").style.display = "none";
+    document.getElementById("loginFragment").className = "loginForm-hidden";
   }
 </script>
