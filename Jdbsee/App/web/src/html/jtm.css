@@ -71,28 +71,3 @@ input.field-text:focus {
   background-color: #F4F5CF;
 }
 
-/******* login fragment *******/
-
-#loginFragment {
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  
-  background-color: rgba(40, 40, 40, 0.85);
-}
-
-#loginFragment #loginFrame {
-  position: fixed;
-  
-  left: 50%;
-  margin-left: -150px;
-  
-  top: 50%;
-  margin-top: -146px;
-  
-  text-align: center;
-  
-  background-color: white;
-}

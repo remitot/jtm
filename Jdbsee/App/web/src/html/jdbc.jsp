@@ -2,11 +2,9 @@
 <html>
   <head>
     <link rel="stylesheet" href="jtm.css">
-    <link rel="stylesheet" href="login/login.css">
-    <link rel="stylesheet" href="jdbc/jdbc.css">
-    <link rel="stylesheet" href="jdbc/checkbox-ca.css">
-    <script src="jdbc/jdbc.js"></script>
-    <script src="login/login.js"></script>
+    <link rel="stylesheet" href="jdbc.css">
+    <link rel="stylesheet" href="checkbox-ca.css">
+    <script src="jdbc.js"></script>
   </head>
   
   <body onload="reload()">
@@ -25,5 +23,8 @@
           disabled
           >SAVE EVERYTHING</button>
     </div>
+
+<%@include file="login-fragment.jsp" %>    
+    
   </body>
 </html>

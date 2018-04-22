@@ -1,34 +1,39 @@
 function reload() {
   
-  uiOnGridReloadBegin();
   
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4) {
-      if (this.status == 200) {
-        uiGridReloadEnd();
-        jsonResponse = JSON.parse(this.responseText);
-        jsonConnections = jsonResponse.connections; 
-        refillGrid(jsonConnections);
-      } else if (this.status == 401) {
-        uiOnLoginRequired();
-      }
-    }
-  };
-  xhttp.open("GET", "jdbc/api/list", true);
-  xhttp.send();
-}
-
-function uiOnGridReloadBegin() {
   setButtonSaveEnabled(false);
   
   statusBar = document.getElementById("jdbcStatusBar"); 
   statusBar.className = "statusBar statusBar-info";
   statusBar.innerHTML = "loading...";
-}
-
-function uiGridReloadEnd() {
-  document.getElementById("jdbcStatusBar").className = "statusBar statusBar-none";
+  
+  
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+      
+        document.getElementById("jdbcStatusBar").className = "statusBar statusBar-none";
+        
+        jsonResponse = JSON.parse(this.responseText);
+        jsonConnections = jsonResponse.connections; 
+        refillGrid(jsonConnections);
+        
+      } else if (this.status == 401) {
+      
+        statusBar = document.getElementById("jdbcStatusBar"); 
+        statusBar.className = "statusBar statusBar-error";
+        statusBar.innerHTML = "Authorization required";
+    
+        raiseLoginForm("Are you the server admin?", function() {
+          hideLoginForm();
+          reload();  
+        });
+      }
+    }
+  };
+  xhttp.open("GET", "api/jdbc/list", true);
+  xhttp.send();
 }
 
 function refillGrid(jsonConnections) {
@@ -325,7 +330,7 @@ function addFieldDelete(cell) {
   
   field = document.createElement("input");
   field.type = "image";
-  field.src = "jdbc/img/delete.png";
+  field.src = "img/delete.png";
   field.title = "Delete";
   field.classList.add("button-delete");
   field.onclick = function(event){onDeleteButtonClick(event.target);};
@@ -333,7 +338,7 @@ function addFieldDelete(cell) {
   
   field = document.createElement("input");
   field.type = "image";
-  field.src = "jdbc/img/undelete.png";
+  field.src = "img/undelete.png";
   field.title = "Do not delete";
   field.classList.add("button-undelete");
   field.onclick = function(event){onUndeleteButtonClick(event.target);};
@@ -487,61 +492,69 @@ function onSaveButtonClick() {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         
-        if (this.readyState == 4) {
-          if (this.status == 200) {
-            uiOnSaveEnd();
-            jsonResponse = JSON.parse(this.responseText);
-            
-            jsonModStates = jsonResponse.mod_states;
-            // if everything is OK, all statuses are 0
-            sum = jsonModStates.reduce(function(a, b) {return a + b;});
-            if (sum > 0) {
-              statusBar = document.getElementById("jdbcStatusBar");
-              statusBar.className = "statusBar statusBar-error";
-              statusBar.innerHTML = "<span class=\"span-bold\">Modifications saved, but some of them produced errors.</span>&emsp;The server might be restaring now...";
-            } else {
-              statusBar = document.getElementById("jdbcStatusBar");
-              statusBar.className = "statusBar statusBar-success";
-              statusBar.innerHTML = "<span class=\"span-bold\">Modifications successfully saved.</span>&emsp;The server might be restaring now...";
-            }
-            
-            jsonConnections = jsonResponse.connections; 
-            refillGrid(jsonConnections);
-            
-            // disable whole grid
-            table = document.getElementById("connections");
-            // remove column-delete contents
-            columnDeletes = table.querySelectorAll(".column-delete");
-            for (var i = 0; i < columnDeletes.length; i++) {
-              columnDelete = columnDeletes[i];
-              columnDelete.innerHTML = "";
-            }
-            
-            inputs = table.querySelectorAll("input");
-            for (var i = 0; i < inputs.length; i++) {
-              input = inputs[i];
-              input.disabled = true;
-            }
-            checkboxCas = table.querySelectorAll(".checkbox-ca");
-            for (var i = 0; i < checkboxCas.length; i++) {
-              checkboxCa = checkboxCas[i];
-              setCheckboxCaEnabled(checkboxCa, false);
-            }
-            
-            // gray out every second row
-            rows = table.querySelectorAll(".row");
-            for (var i = 0; i < rows.length; i += 2) {
-              rows[i].classList.add("even-odd-gray");
-            }
-            
-            document.getElementById("controlButtons").style.display = "none";
-            
-          } else if (this.status == 401) {
-            uiOnLoginRequired();
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          uiOnSaveEnd();
+          jsonResponse = JSON.parse(this.responseText);
+          
+          jsonModStates = jsonResponse.mod_states;
+          // if everything is OK, all statuses are 0
+          sum = jsonModStates.reduce(function(a, b) {return a + b;});
+          if (sum > 0) {
+            statusBar = document.getElementById("jdbcStatusBar");
+            statusBar.className = "statusBar statusBar-error";
+            statusBar.innerHTML = "<span class=\"span-bold\">Modifications saved, but some of them produced errors.</span>&emsp;The server might be restaring now...";
+          } else {
+            statusBar = document.getElementById("jdbcStatusBar");
+            statusBar.className = "statusBar statusBar-success";
+            statusBar.innerHTML = "<span class=\"span-bold\">Modifications successfully saved.</span>&emsp;The server might be restaring now...";
           }
+          
+          jsonConnections = jsonResponse.connections; 
+          refillGrid(jsonConnections);
+          
+          // disable whole grid
+          table = document.getElementById("connections");
+          // remove column-delete contents
+          columnDeletes = table.querySelectorAll(".column-delete");
+          for (var i = 0; i < columnDeletes.length; i++) {
+            columnDelete = columnDeletes[i];
+            columnDelete.innerHTML = "";
+          }
+          
+          inputs = table.querySelectorAll("input");
+          for (var i = 0; i < inputs.length; i++) {
+            input = inputs[i];
+            input.disabled = true;
+          }
+          checkboxCas = table.querySelectorAll(".checkbox-ca");
+          for (var i = 0; i < checkboxCas.length; i++) {
+            checkboxCa = checkboxCas[i];
+            setCheckboxCaEnabled(checkboxCa, false);
+          }
+          
+          // gray out every second row
+          rows = table.querySelectorAll(".row");
+          for (var i = 0; i < rows.length; i += 2) {
+            rows[i].classList.add("even-odd-gray");
+          }
+          
+          document.getElementById("controlButtons").style.display = "none";
+          
+        } else if (this.status == 401) {
+        
+          statusBar = document.getElementById("jdbcStatusBar"); 
+          statusBar.className = "statusBar statusBar-error";
+          statusBar.innerHTML = "Session expired, authorization required";
+        
+          raiseLoginForm("Session expired, login again", function() {
+            hideLoginForm();
+            onSaveButtonClick();
+          });
         }
+      }
     };
-    xhttp.open("POST", "jdbc/api/mod", true);
+    xhttp.open("POST", "api/jdbc/mod", true);
     
     requestJson = {mod_requests: connectionModificationRequests};
     xhttp.send(JSON.stringify(requestJson));
@@ -550,10 +563,6 @@ function onSaveButtonClick() {
     // TODO report nothing to save
     uiOnSaveEnd();
   }
-}
-
-function uiOnLoginRequired() {
-  raiseLoginForm();
 }
 
 function uiOnSaveEnd() {
@@ -617,10 +626,4 @@ function rowToJson(row) {
     }
   }
   return rowJson;
-}
-
-/* override */
-function onLoginSuccess() {
-  loginFragment = document.getElementById("loginFragment");
-  document.body.removeChild(loginFragment);
 }

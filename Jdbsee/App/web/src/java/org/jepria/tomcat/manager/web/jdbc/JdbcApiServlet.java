@@ -32,7 +32,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-public class JdbcServlet extends HttpServlet {
+public class JdbcApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7724868882541481749L;
 

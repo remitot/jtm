@@ -15,18 +15,18 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>JdbcServlet</servlet-name>
-    <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcServlet
+    <servlet-name>JdbcApiServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcApiServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>JdbcServlet</servlet-name>
-    <url-pattern>/jdbc/api/*</url-pattern>
+    <servlet-name>JdbcApiServlet</servlet-name>
+    <url-pattern>/api/jdbc/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
     <servlet-name>JdbcGui</servlet-name>
-    <jsp-file>/jdbc/gui.html</jsp-file>
+    <jsp-file>/jdbc.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
     <servlet-name>JdbcGui</servlet-name>
@@ -53,7 +53,7 @@
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
-      <url-pattern>/jdbc/*</url-pattern>
+      <url-pattern>/api/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>
