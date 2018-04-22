@@ -498,11 +498,11 @@ function onSaveButtonClick() {
             if (sum > 0) {
               statusBar = document.getElementById("jdbcStatusBar");
               statusBar.className = "statusBar statusBar-error";
-              statusBar.innerHTML = "<h4>Modifications saved, but some of them produced errors.</h4> The server might be restaring now...";
+              statusBar.innerHTML = "<span class=\"span-bold\">Modifications saved, but some of them produced errors.</span>&emsp;The server might be restaring now...";
             } else {
               statusBar = document.getElementById("jdbcStatusBar");
               statusBar.className = "statusBar statusBar-success";
-              statusBar.innerHTML = "<h4>Modifications successfully saved.</h4> The server might be restaring now...";
+              statusBar.innerHTML = "<span class=\"span-bold\">Modifications successfully saved.</span>&emsp;The server might be restaring now...";
             }
             
             jsonConnections = jsonResponse.connections; 
