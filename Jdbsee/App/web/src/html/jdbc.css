@@ -93,7 +93,7 @@
   height: 20px;
 }
 
-#connections .checkbox-ca {
+#connections .checkbox {
   border-width: 0 0 0 0;
   border-bottom: 2px solid;
   border-color: transparent;
@@ -135,7 +135,7 @@
   border-color: #0089bd;
 }
 
-#connections .checkbox-ca-disabled.modified {
+#connections .checkbox-disabled.modified {
   border-color: transparent !important; /* overrides .modified */
 }
 
@@ -181,16 +181,16 @@
 
 
 
-#connections .checkbox-ca-disabled {
-  cursor: default !important; /* overrides .checkbox-ca */
+#connections .checkbox-disabled {
+  cursor: default !important; /* overrides .checkbox */
 }
-#connections .checkbox-ca-disabled .checkmark {
+#connections .checkbox-disabled .checkmark {
   background-color: transparent !important; /* overrides .checkmark */
 }
-#connections .checkbox-ca-disabled .checkmark.hovered {
+#connections .checkbox-disabled .checkmark.hovered {
   background-color: transparent !important; /* overrides .checkmark.hovered */
 }
-#connections .checkbox-ca-disabled .checkmark:after {
+#connections .checkbox-disabled .checkmark:after {
   border-color: black !important; /* overrides .checkmark:after */
 }
 

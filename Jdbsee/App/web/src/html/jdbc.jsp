@@ -5,7 +5,7 @@
     <title>JDBC connections — Tomcat manager</title>
     <link rel="stylesheet" href="jtm.css">
     <link rel="stylesheet" href="jdbc.css">
-    <link rel="stylesheet" href="checkbox-ca.css">
+    <link rel="stylesheet" href="checkbox.css">
     <script src="jdbc.js"></script>
   </head>
   

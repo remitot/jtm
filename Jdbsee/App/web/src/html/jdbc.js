@@ -103,7 +103,8 @@ function createRow(connection) {
   
   // active
   cell = createCell(row, "column-active");
-  addCheckboxCa(cell, connection.active, true);
+  cell.classList.add("cell-field");
+  addCheckbox(cell, connection.active, true);
   if (!connection.active) {
     row.classList.add("inactive");
   }
@@ -116,23 +117,28 @@ function createRow(connection) {
   div.classList.add("flexColumns");
   
   cell = createCell(div, "column-name");
+  cell.classList.add("cell-field");
   field = addField(cell, "name", connection.name, null);
   field.setAttribute("value0", connection.name);
   
   
   cell = createCell(div, "column-server");
+  cell.classList.add("cell-field");
   field = addField(cell, "server", connection.server, null);
   field.setAttribute("value0", connection.server);
   
   cell = createCell(div, "column-db");
+  cell.classList.add("cell-field");
   field = addField(cell, "db", connection.db, null);
   field.setAttribute("value0", connection.db);
   
   cell = createCell(div, "column-user");
+  cell.classList.add("cell-field");
   field = addField(cell, "user", connection.user, null);
   field.setAttribute("value0", connection.user);
   
   cell = createCell(div, "column-password");
+  cell.classList.add("cell-field");
   field = addField(cell, "password", connection.password, null);
   field.setAttribute("value0", connection.password);
   
@@ -157,7 +163,8 @@ function createRowCreate() {
   
   // active
   cell = createCell(row, "column-active");
-  addCheckboxCa(cell, true, false);
+  cell.classList.add("cell-field");
+  addCheckbox(cell, true, false);
   
   cell = createCell(row, "column-delete");
   addFieldDelete(cell);
@@ -167,22 +174,27 @@ function createRowCreate() {
   flexColumns.classList.add("flexColumns");
   
   cell = createCell(flexColumns, "column-name");
+  cell.classList.add("cell-field");
   field = addField(cell, "name", "", "jdbc/MyDataSource");
   onFieldInput(field);// trigger initial event
  
   cell = createCell(flexColumns, "column-server");
+  cell.classList.add("cell-field");
   field = addField(cell, "server", "", "mydbserver.com:1521");
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-db");
+  cell.classList.add("cell-field");
   field = addField(cell, "db", "", "MYDATABASE");
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-user");
+  cell.classList.add("cell-field");
   field = addField(cell, "user", "", "me");
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-password");
+  cell.classList.add("cell-field");
   field = addField(cell, "password", "", "mysecret");
   onFieldInput(field);// trigger initial event
   
@@ -191,41 +203,41 @@ function createRowCreate() {
   return row;
 }
 
-function setCheckboxCaEnabled(checkboxCa, enabled) {
+function setCheckboxEnabled(checkbox, enabled) {
   if (enabled) {
-    checkboxCa.classList.remove("checkbox-ca-disabled");
-    checkboxCa.querySelectorAll("input")[0].disabled = false;
+    checkbox.classList.remove("checkbox-disabled");
+    checkbox.querySelectorAll("input")[0].disabled = false;
   } else {
-    checkboxCa.classList.add("checkbox-ca-disabled");
-    checkboxCa.querySelectorAll("input")[0].disabled = true;
+    checkbox.classList.add("checkbox-disabled");
+    checkbox.querySelectorAll("input")[0].disabled = true;
   }
 }
 
-function addCheckboxCa(cell, active, enabled) {
-  checkboxCa = createCheckboxCa(active);
+function addCheckbox(cell, active, enabled) {
+  checkbox = createCheckbox(active);
   
-  setCheckboxCaEnabled(checkboxCa, enabled);
+  setCheckboxEnabled(checkbox, enabled);
   
-  checkboxCa.onclick = function(event){
-    onCheckboxCaInput(event.target);
+  checkbox.onclick = function(event){
+    onCheckboxInput(event.target);
     checkModifications();
   };
-  checkboxCa.classList.add("deletable");
+  checkbox.classList.add("deletable");
 
-  wrapper = wrapCellPad(checkboxCa);  
+  wrapper = wrapCellPad(checkbox);  
   
   cell.appendChild(wrapper);
   
-  onCheckboxCaInput(checkboxCa.querySelectorAll("input")[0]);// trigger initial event
+  onCheckboxInput(checkbox.querySelectorAll("input")[0]);// trigger initial event
   
   strike = document.createElement("div");
   strike.classList.add("strike");
   cell.appendChild(strike);
 }
 
-function createCheckboxCa(active) {
+function createCheckbox(active) {
   var field = document.createElement("label");
-  field.classList.add("checkbox-ca");
+  field.classList.add("checkbox");
   
   var input = document.createElement("input");
   input.type = "checkbox";
@@ -257,7 +269,7 @@ function createCheckboxCa(active) {
   return field;
 }
 
-function onCheckboxCaInput(input) {
+function onCheckboxInput(input) {
   // this will be SPAN, then INPUT on a single click
   if (input.tagName.toLowerCase() == "input") {
     if (input.checked && input.getAttribute("value0") == "true" 
@@ -404,9 +416,9 @@ function onDeleteButtonClick(button) {
   }
   
   if (!row.classList.contains("created")) {// no change checkboxes for created rows
-    checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
-    for (var i = 0; i < checkboxCas.length; i++) {
-      setCheckboxCaEnabled(checkboxCas[i], false);
+    checkboxes = row.querySelectorAll(".checkbox.deletable");
+    for (var i = 0; i < checkboxes.length; i++) {
+      setCheckboxEnabled(checkboxes[i], false);
     }
   }
   
@@ -424,9 +436,9 @@ function onUndeleteButtonClick(button) {
   }
   
   if (!row.classList.contains("created")) {// no change checkboxes for created rows
-    checkboxCas = row.querySelectorAll(".checkbox-ca.deletable");
-    for (var i = 0; i < checkboxCas.length; i++) {
-      setCheckboxCaEnabled(checkboxCas[i], true);
+    checkboxes = row.querySelectorAll(".checkbox.deletable");
+    for (var i = 0; i < checkboxes.length; i++) {
+      setCheckboxEnabled(checkboxes[i], true);
     }
   }
   
@@ -527,10 +539,10 @@ function onSaveButtonClick() {
             input = inputs[i];
             input.disabled = true;
           }
-          checkboxCas = table.querySelectorAll(".checkbox-ca");
-          for (var i = 0; i < checkboxCas.length; i++) {
-            checkboxCa = checkboxCas[i];
-            setCheckboxCaEnabled(checkboxCa, false);
+          checkboxes = table.querySelectorAll(".checkbox");
+          for (var i = 0; i < checkboxes.length; i++) {
+            checkbox = checkboxes[i];
+            setCheckboxEnabled(checkbox, false);
           }
           
           // gray out every second row
@@ -615,11 +627,11 @@ function getRowsCreated() {
 
 function rowToJson(row) {
   rowJson = {};
-  fields = row.querySelectorAll("input");
+  fields = row.querySelectorAll(".cell-field input");
   for (var j = 0; j < fields.length; j++) {
     field = fields[j];
     if (field.name === "active") {
-      // TODO workaround. If checkboxCa becomes a class, make its own property 'value'
+      // TODO workaround. If checkbox becomes a class, make its own property 'value'
       rowJson[field.name] = field.checked;
     } else {
       rowJson[field.name] = field.value;
