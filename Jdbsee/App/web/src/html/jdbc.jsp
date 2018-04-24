@@ -6,7 +6,10 @@
     <link rel="stylesheet" href="jtm.css">
     <link rel="stylesheet" href="jdbc.css">
     <link rel="stylesheet" href="checkbox.css">
-    <script src="jdbc.js"></script>
+    <script type="text/javascript" src="jdbc.js"></script>
+    
+    <%-- TODO only if client IE detected: --%>
+    <script type="text/javascript" src="ie/json2.js"></script>
   </head>
   
   <body onload="reload()">

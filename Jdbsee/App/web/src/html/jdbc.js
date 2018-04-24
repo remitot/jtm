@@ -1,34 +1,32 @@
 function reload() {
   
-  
   setButtonSaveEnabled(false);
   
-  statusBar = document.getElementById("jdbcStatusBar"); 
-  statusBar.className = "statusBar statusBar-info";
-  statusBar.innerHTML = "loading...";
-  
+  statusInfo("loading...");
   
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
       if (this.status == 200) {
       
-        document.getElementById("jdbcStatusBar").className = "statusBar statusBar-none";
+        statusClear();
         
         jsonResponse = JSON.parse(this.responseText);
         jsonConnections = jsonResponse.connections; 
         refillGrid(jsonConnections);
         
       } else if (this.status == 401) {
-      
-        statusBar = document.getElementById("jdbcStatusBar"); 
-        statusBar.className = "statusBar statusBar-error";
-        statusBar.innerHTML = "Authorization required";
+        statusError("Authorization required");
     
         raiseLoginForm(function() {
           hideLoginForm();
           reload();  
         });
+      } else if (this.status == 403) {
+        statusError("<span class=\"span-bold\">Access denied.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Logout</a> to change the user");
+        
+      } else {
+        statusError("Network error " + this.status);
       }
     }
   };
@@ -56,7 +54,7 @@ function refillGrid(jsonConnections) {
 }
 
 function createHeader() {
-  row = document.createElement("div");
+  var row = document.createElement("div");
   row.classList.add("header");
   // active
   cell = createCell(row, "column-active");// empty cell
@@ -151,7 +149,7 @@ function createRow(connection) {
 function createRowCreate() {
 
   // add header row if the table is empty
-  table = document.getElementById("connections");
+  var table = document.getElementById("connections");
   if (table.querySelectorAll(".header").length == 0) {
     table.appendChild(createHeader());
   }
@@ -395,7 +393,7 @@ function checkModifications() {
 }
 
 function setButtonSaveEnabled(enabled) {
-  buttonSave = document.getElementById("buttonSave");
+  var buttonSave = document.getElementById("buttonSave");
   if (enabled) {
     buttonSave.disabled = false;  
     buttonSave.title = "Save all modifications (orange)";
@@ -483,7 +481,7 @@ function onSaveButtonClick() {
       connectionModificationRequests.push(
           {
             action: "delete", 
-            location: rowsDeleted[i], 
+            location: rowsDeleted[i]
           }
       );
     }
@@ -494,7 +492,7 @@ function onSaveButtonClick() {
       connectionModificationRequests.push(
           {
             action: "create", 
-            data: rowsCreated[i], 
+            data: rowsCreated[i]
           }
       );
     }
@@ -513,9 +511,8 @@ function onSaveButtonClick() {
           // if everything is OK, all statuses are 0
           sum = jsonModStates.reduce(function(a, b) {return a + b;});
           if (sum > 0) {
-            statusBar = document.getElementById("jdbcStatusBar");
-            statusBar.className = "statusBar statusBar-error";
-            statusBar.innerHTML = "<span class=\"span-bold\">Modifications saved, but some of them produced errors.</span>&emsp;The server might be restaring now...";
+            message = "<span class=\"span-bold\">Modifications saved, but some of them produced errors.</span>&emsp;The server might be restaring now...";
+            statusError(message);
           } else {
             statusBar = document.getElementById("jdbcStatusBar");
             statusBar.className = "statusBar statusBar-success";
@@ -554,15 +551,18 @@ function onSaveButtonClick() {
           document.getElementById("controlButtons").style.display = "none";
           
         } else if (this.status == 401) {
-        
-          statusBar = document.getElementById("jdbcStatusBar"); 
-          statusBar.className = "statusBar statusBar-error";
-          statusBar.innerHTML = "Authorization required";
+          statusError("Authorization required");
       
           raiseLoginForm(function() {
             hideLoginForm();
             reload();  
           });
+          
+        } else if (this.status == 403) {
+          statusError("<span class=\"span-bold\">Access denied.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Logout</a> to change the user");
+          
+        } else {
+          statusError("Network error " + this.status);
         }
       }
     };
@@ -577,14 +577,55 @@ function onSaveButtonClick() {
   }
 }
 
+function changeUser() {
+  logout(function() {
+    reload();
+  });
+}
+
+function logout(afterLogoutCallback) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        statusClear();
+        
+        if (afterLogoutCallback != null) {
+          afterLogoutCallback();
+        }
+      } else {
+        statusError("Network error " + this.status);
+      }
+    }
+  };
+  xhttp.open("POST", "logout", true);
+  xhttp.send();
+}
+
+function statusClear() {
+  statusBar = document.getElementById("jdbcStatusBar");
+  statusBar.className = "statusBar statusBar-none";
+  statusBar.innerHTML = "";
+}
+
+function statusInfo(message) {
+  statusBar = document.getElementById("jdbcStatusBar"); 
+  statusBar.className = "statusBar statusBar-info";
+  statusBar.innerHTML = message;
+}
+
+function statusError(message) {
+  statusBar = document.getElementById("jdbcStatusBar"); 
+  statusBar.className = "statusBar statusBar-error";
+  statusBar.innerHTML = message;
+}
+
 function uiOnSaveEnd() {
-  document.getElementById("jdbcStatusBar").className = "statusBar statusBar-none";
+  statusClear();
 }
 
 function uiOnSaveBegin() {
-  statusBar = document.getElementById("jdbcStatusBar");
-  statusBar.className = "statusBar statusBar-info";
-  statusBar.innerHTML = "saving...";
+  statusInfo("saving...");
 }
 
 function getRowsModified() {

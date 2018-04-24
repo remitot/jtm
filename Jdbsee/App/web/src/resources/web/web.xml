@@ -13,6 +13,16 @@
     <servlet-name>AuthServlet</servlet-name>
     <url-pattern>/auth/*</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>LogoutServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.LogoutServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LogoutServlet</servlet-name>
+    <url-pattern>/logout/*</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>JdbcApiServlet</servlet-name>

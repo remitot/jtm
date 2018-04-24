@@ -26,6 +26,7 @@
     right: 0;
     bottom: 0;
     
+    background-color: rgb(40, 40, 40);
     background-color: rgba(40, 40, 40, 0.85);
   }
   
@@ -57,7 +58,6 @@
   }
   
   #login-form .row {
-    position: relative;
     text-align: center;
   }
   
