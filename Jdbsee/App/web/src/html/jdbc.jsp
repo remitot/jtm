@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="jdbc.css">
     <link rel="stylesheet" href="checkbox.css">
     <script type="text/javascript" src="jdbc.js"></script>
-    
-    <%-- TODO only if client IE detected: --%>
+
+<% if (request.getHeader("User-Agent").contains(" MSIE ")) { %>    
     <script type="text/javascript" src="ie/json2.js"></script>
+<% } %>
+
   </head>
   
   <body onload="reload()">
