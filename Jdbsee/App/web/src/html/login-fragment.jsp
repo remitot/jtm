@@ -26,7 +26,7 @@
     right: 0;
     bottom: 0;
     
-    background-color: rgb(40, 40, 40);
+    background-color: rgb(40, 40, 40); /* fallback */
     background-color: rgba(40, 40, 40, 0.85);
   }
   

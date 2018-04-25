@@ -1,5 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <!DOCTYPE html>
+
+<% if (request.getHeader("User-Agent").contains(" MSIE ")) { %>
+
+<html>
+  <head>
+    <title>JDBC connections — Tomcat manager</title>
+  </head>
+  
+  <body>   
+    Not supported for Internet Explorer
+  </body>
+</html>
+
+<% } else { %>
+
 <html>
   <head>
     <title>JDBC connections — Tomcat manager</title>
@@ -7,11 +22,6 @@
     <link rel="stylesheet" href="jdbc.css">
     <link rel="stylesheet" href="checkbox.css">
     <script type="text/javascript" src="jdbc.js"></script>
-
-<% if (request.getHeader("User-Agent").contains(" MSIE ")) { %>    
-    <script type="text/javascript" src="ie/json2.js"></script>
-<% } %>
-
   </head>
   
   <body onload="reload()">
@@ -35,3 +45,5 @@
     
   </body>
 </html>
+
+<% } %>
