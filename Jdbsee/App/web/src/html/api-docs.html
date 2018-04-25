@@ -6,11 +6,11 @@
   <body>
   <h1>API</h1>
   <h2>General</h2>
-  <h3>Authentication</h3>
+  <h3>Login</h3>
   <table border="1">
     <tbody>
       <tr><td>Method</td><td><code>POST</code></td></tr>
-      <tr><td>Url</td><td><code>/auth</code></td></tr>
+      <tr><td>Url</td><td><code>/login</code></td></tr>
       <tr><td>Request params</td><td><code>username</code>, <code>password</code></td></tr>
       <tr><td>Request body</td><td>none</td></tr>
       <tr><td>Response (text/plain UTF-8)</td><td><code>SUCCESS</code> or <code>FAILURE</code></td></tr>
@@ -24,8 +24,30 @@
         <th>Response</t>  
       </tr>
       <tr>
-        <td><code>/auth?username=admin&password=admin</code></td>
+        <td><code>/login?username=admin&password=admin</code></td>
         <td><code>SUCCESS</code></td>  
+      </tr>
+    </tbody>
+  </table>
+  
+  <h3>Logout</h3>
+  <table border="1">
+    <tbody>
+      <tr><td>Method</td><td><code>POST</code></td></tr>
+      <tr><td>Url</td><td><code>/logout</code></td></tr>
+      <tr><td>Request params</td><td>none</td></tr>
+      <tr><td>Request body</td><td>none</td></tr>
+      <tr><td>Response (text/plain UTF-8)</td><td>none</td></tr>
+    </tbody>
+  </table>
+  <h4>Example:</h4>
+  <table border="1">
+    <tbody>
+      <tr>
+        <th>Request</th>
+      </tr>
+      <tr>
+        <td><code>/logout</code></td>
       </tr>
     </tbody>
   </table>
