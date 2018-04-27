@@ -29,7 +29,7 @@ input.field-text {
   border-color: #ddd;
   
   font-family: monospace;
-  font-size: 120%;
+  font-size: 15.7px;
   color: black; 
   
   padding-top: 6px;
@@ -45,7 +45,7 @@ input.field-text:focus {
 .statusBar {
   text-align: center;
   padding: 15px;
-  font-size: 120%;
+  font-size: 15.7px;
 }
 
 .statusBar .span-bold {
