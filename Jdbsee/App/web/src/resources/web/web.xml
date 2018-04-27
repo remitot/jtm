@@ -56,33 +56,9 @@
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
 
-  <security-role>
-    <role-name>manager-gui</role-name>
-  </security-role>
-
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>Protected resources</web-resource-name>
-      <url-pattern>/api/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>manager-gui</role-name>
-    </auth-constraint>
-  </security-constraint>
-  
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>Public resources</web-resource-name>
-      <url-pattern>/api</url-pattern>
-    </web-resource-collection>
-  </security-constraint>
-
-  <login-config>
-    <auth-method>FORM</auth-method>
-    <form-login-config>
-      <form-login-page>/WEB-INF/security/login.jsp</form-login-page>
-      <form-error-page>/WEB-INF/security/login.jsp</form-error-page>
-    </form-login-config>
-  </login-config>
+  <context-param>
+    <param-name>jtm.security-role</param-name>
+    <param-value>manager-gui</param-value>
+  </context-param>
 
 </web-app>

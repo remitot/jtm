@@ -21,18 +21,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.core.jdbc.Configuration;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
+import org.jepria.tomcat.manager.web.JtmSecureServlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-public class JdbcApiServlet extends HttpServlet {
+public class JdbcApiServlet extends JtmSecureServlet {
 
   private static final long serialVersionUID = -7724868882541481749L;
 
@@ -43,7 +43,7 @@ public class JdbcApiServlet extends HttpServlet {
 
 
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doGetAuth(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
     resp.setContentType("application/json; charset=UTF-8");
     
@@ -125,7 +125,7 @@ public class JdbcApiServlet extends HttpServlet {
 
 
   @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doPostAuth(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
     String path = req.getPathInfo();
     

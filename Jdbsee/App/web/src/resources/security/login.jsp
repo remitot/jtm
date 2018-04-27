@@ -1,3 +1,0 @@
-<% 
-  response.setStatus(401); 
-%>
