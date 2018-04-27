@@ -13,7 +13,6 @@
   </head>
   
   <body onload="reload()">
-    <div id="jdbcStatusBar" class="statusBar statusBar-none"></div>
     <div id="connections" style="width:100%"></div>
     
     <div id="controlButtons">
@@ -28,7 +27,10 @@
           disabled
           >SAVE EVERYTHING</button>
     </div>
-
+    
+    <!-- after main content elements: -->
+    <div id="jdbcStatusBar" class="statusBar statusBar-none"></div>
+    
 <%@ include file="login-fragment.jsp" %>    
     
   </body>

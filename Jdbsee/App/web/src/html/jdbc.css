@@ -32,10 +32,12 @@
 } 
 
 #connections div.cell.column-active {
+  margin-left: 8px;
   width: 36px;
   float: left;
 }
 #connections div.cell.column-delete {
+  margin-right: 8px;
   width: 36px;
   float: right;
 }
@@ -195,3 +197,16 @@
   border-color: black !important; /* overrides .checkmark:after */
 }
 
+
+/* status bar is fixed */
+#jdbcStatusBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+}
+/* and controlButtons do not flow under the status bar if #connections table is empty */
+#connections {
+  min-height: 35px;
+}
