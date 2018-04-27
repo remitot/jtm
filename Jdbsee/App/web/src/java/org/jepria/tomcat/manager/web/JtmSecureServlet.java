@@ -11,7 +11,7 @@ public class JtmSecureServlet extends HttpServlet {
   
   private static final long serialVersionUID = -2990837522249446367L;
 
-  private static boolean authenticate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  private boolean authenticate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     
     String username = req.getParameter("username");
     String password = req.getParameter("password");
@@ -29,8 +29,7 @@ public class JtmSecureServlet extends HttpServlet {
       } catch (ServletException e) {
         e.printStackTrace();
         
-        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        resp.flushBuffer();
+        onLoginFailed(req, resp);
         return false;
       }
     }
@@ -38,8 +37,7 @@ public class JtmSecureServlet extends HttpServlet {
     
     if (req.getUserPrincipal() == null) {
       // unauthorized
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      resp.flushBuffer();
+      onLoginFailed(req, resp);
       return false;
     }
 
@@ -47,12 +45,21 @@ public class JtmSecureServlet extends HttpServlet {
     String securityRoleName = req.getServletContext().getInitParameter("jtm.security-role"); 
     if (!req.isUserInRole(securityRoleName)) {
       // forbidden
-      resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-      resp.flushBuffer();
+      onAccessDenied(req, resp);
       return false;
     }
     
     return true;
+  }
+  
+  protected void onLoginFailed(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    resp.flushBuffer();
+  }
+  
+  protected void onAccessDenied(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    resp.flushBuffer();
   }
   
   @Override
