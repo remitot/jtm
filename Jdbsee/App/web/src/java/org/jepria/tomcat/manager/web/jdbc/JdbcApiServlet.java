@@ -8,8 +8,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,12 +34,6 @@ public class JdbcApiServlet extends JtmSecureServlet {
 
   private static final long serialVersionUID = -7724868882541481749L;
 
-  private ConfigurationEnvironment newConfigurationEnvironment(HttpServletRequest req) {
-    Path confPath = Paths.get(req.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
-    return new ConfigurationEnvironment(confPath); 
-  }
-
-
   @Override
   protected void doGetAuth(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
@@ -53,7 +45,7 @@ public class JdbcApiServlet extends JtmSecureServlet {
       
       try {
         
-        ConfigurationEnvironment environment = newConfigurationEnvironment(req);
+        ConfigurationEnvironment environment = new ConfigurationEnvironment(req);
         
         Configuration conf = new Configuration(environment.getContextXmlInputStream(), 
             environment.getServerXmlInputStream());
@@ -157,7 +149,7 @@ public class JdbcApiServlet extends JtmSecureServlet {
         return;
       }
 
-      ConfigurationEnvironment environment = newConfigurationEnvironment(req);
+      ConfigurationEnvironment environment = new ConfigurationEnvironment(req);
       
       Configuration conf = new Configuration(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
