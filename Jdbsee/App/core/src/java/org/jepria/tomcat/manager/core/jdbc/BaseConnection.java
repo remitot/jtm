@@ -11,9 +11,9 @@ import java.util.regex.Pattern;
   /*package*/abstract void delete();
   
   /**
-   * Fill the node with default parameters in the endpoint files
+   * Apply initial settings to the nodes in the endpoint files
    */
-  /*package*/abstract void fillDefault();
+  /*package*/abstract void fillDefault(ConnectionInitialParams initialSettings);
   
   
   

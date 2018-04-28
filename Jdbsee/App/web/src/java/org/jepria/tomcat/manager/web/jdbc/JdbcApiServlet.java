@@ -288,7 +288,7 @@ public class JdbcApiServlet extends JtmSecureServlet {
 
             } else {
 
-              Connection newConnection = conf.create();
+              Connection newConnection = conf.create(environment.getConnectionInitialParams());
 
               newConnection.setDb(connectionDto.getDb());
               newConnection.setName(connectionDto.getName());

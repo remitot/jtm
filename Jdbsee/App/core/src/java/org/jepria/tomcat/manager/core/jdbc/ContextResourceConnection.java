@@ -7,7 +7,7 @@ import org.w3c.dom.Node;
 
   private Element contextResourceNode;
   
-  /*package*/public ContextResourceConnection(
+  /*package*/ContextResourceConnection(
       Node contextResourceNode, boolean active) {
     this.contextResourceNode = (Element)contextResourceNode;
     this.active = active;
@@ -72,10 +72,8 @@ import org.w3c.dom.Node;
   }
   
   @Override
-  public void fillDefault() {
-    contextResourceNode.setAttribute("auth", "Container");
-    contextResourceNode.setAttribute("connectionCachingEnabled", "true");
-    contextResourceNode.setAttribute("factory", "oracle.jdbc.pool.OracleDataSourceFactory");
-    contextResourceNode.setAttribute("type", "oracle.jdbc.pool.OracleDataSource");
+  public void fillDefault(ConnectionInitialParams initialSettings) {
+    initialSettings.contextResourceNodeAttributeValues().forEach(
+        (name, value) -> contextResourceNode.setAttribute(name, value));
   }
 }

@@ -76,31 +76,10 @@ import org.w3c.dom.Node;
   }
   
   @Override
-  public void fillDefault() {
-    contextResourceLinkNode.setAttribute("closeMethod", "close");
-    contextResourceLinkNode.setAttribute("type", "javax.sql.DataSource");
-    
-    serverResourceNode.setAttribute("auth", "Container");
-    serverResourceNode.setAttribute("type", "javax.sql.DataSource");
-    serverResourceNode.setAttribute("factory", "org.apache.tomcat.jdbc.pool.DataSourceFactory");
-    serverResourceNode.setAttribute("testWhileIdle", "false");
-    serverResourceNode.setAttribute("testOnBorrow", "true");
-    serverResourceNode.setAttribute("testOnReturn", "false");
-    serverResourceNode.setAttribute("validationQuery", "SELECT 1 FROM DUAL");
-    serverResourceNode.setAttribute("validationInterval", "34000");
-    serverResourceNode.setAttribute("timeBetweenEvictionRunsMillis", "30000");
-    serverResourceNode.setAttribute("maxActive", "100");
-    serverResourceNode.setAttribute("minIdle", "30");
-    serverResourceNode.setAttribute("maxIdle", "70");
-    serverResourceNode.setAttribute("maxWait", "10000");
-    serverResourceNode.setAttribute("initialSize", "30");
-    serverResourceNode.setAttribute("removeAbandonedTimeout", "15");
-    serverResourceNode.setAttribute("removeAbandoned", "true");
-    serverResourceNode.setAttribute("logAbandoned", "false");
-    serverResourceNode.setAttribute("minEvictableIdleTimeMillis", "30000");
-    serverResourceNode.setAttribute("jmxEnabled", "true");
-    serverResourceNode.setAttribute("jdbcInterceptors", 
-        "org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer");
-    serverResourceNode.setAttribute("driverClassName", "oracle.jdbc.OracleDriver");
+  public void fillDefault(ConnectionInitialParams initialSettings) {
+    initialSettings.contextResourceLinkNodeAttributeValues().forEach(
+        (name, value) -> contextResourceLinkNode.setAttribute(name, value));
+    initialSettings.serverResourceNodeAttributeValues().forEach(
+        (name, value) -> serverResourceNode.setAttribute(name, value));
   }
 }

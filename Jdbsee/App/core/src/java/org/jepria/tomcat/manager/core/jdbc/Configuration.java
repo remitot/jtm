@@ -507,16 +507,24 @@ public class Configuration {
   
   /**
    * Creates a new active connection and adds it to the document(s).
+   * @param initialParams initial params to apply to the newly created connections, in the endpoint files
    * @return
    * @throws TransactionException 
    */
-  public Connection create() throws TransactionException {
+  public Connection create(ConnectionInitialParams initialParams) throws TransactionException {
     try {
+      final BaseConnection baseConnection;
+      
       if (useResourceLinkOnCreateConnection) {
-        return createContextResourceLinkConnection();
+        baseConnection = createContextResourceLinkConnection();
       } else {
-        return createContextResourceConnection();
+        baseConnection = createContextResourceConnection();
       }
+      
+      baseConnection.fillDefault(initialParams);
+      
+      return baseConnection;
+      
     } catch (Throwable e) {
       handleThrowable(e);
       throw new TransactionException(e);
@@ -531,10 +539,7 @@ public class Configuration {
     Node contextResourceRoot = (Node)contextResourceRootExpr.evaluate(contextDoc, XPathConstants.NODE);
     contextResourceRoot.appendChild(contextResourceNode);
     
-    ContextResourceConnection connection = new ContextResourceConnection(contextResourceNode, true);
-    connection.fillDefault();
-    
-    return connection; 
+    return new ContextResourceConnection(contextResourceNode, true);
   }
   
   /**
@@ -560,11 +565,7 @@ public class Configuration {
     Node serverResourceRoot = (Node)serverResourceRootExpr.evaluate(serverDoc, XPathConstants.NODE);
     serverResourceRoot.appendChild(serverResourceNode);
     
-    
-    ContextResourceLinkConnection connection = new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true); 
-    connection.fillDefault();
-    
-    return connection; 
+    return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true); 
   }
   
   public void delete(String location) throws TransactionException, LocationNotExistException {
