@@ -78,6 +78,10 @@
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
           <fileset file="${GSON_LIB}" />
         </copy>
+      	
+      	<copy todir="temp-war/WEB-INF/connection_default_attrs">
+          <fileset file="src/resources/connection_default_attrs/**/" />
+        </copy>
         
         <copy todir="temp-war">
           <fileset file="src/html/**/" />

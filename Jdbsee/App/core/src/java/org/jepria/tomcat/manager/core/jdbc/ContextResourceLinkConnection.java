@@ -77,9 +77,9 @@ import org.w3c.dom.Node;
   
   @Override
   public void fillDefault(ConnectionInitialParams initialSettings) {
-    initialSettings.contextResourceLinkNodeAttributeValues().forEach(
+    initialSettings.contextResourceLinkDefaultAttrs().forEach(
         (name, value) -> contextResourceLinkNode.setAttribute(name, value));
-    initialSettings.serverResourceNodeAttributeValues().forEach(
+    initialSettings.serverResourceDefaultAttrs().forEach(
         (name, value) -> serverResourceNode.setAttribute(name, value));
   }
 }

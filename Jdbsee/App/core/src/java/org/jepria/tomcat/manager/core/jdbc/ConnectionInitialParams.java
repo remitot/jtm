@@ -3,21 +3,21 @@ package org.jepria.tomcat.manager.core.jdbc;
 import java.util.Map;
 
 /**
- * Initial connection params to apply no the newly created connections, in the endpoint files
+ * Initial connection params to apply to the newly created connections, in the endpoint files
  */
 public interface ConnectionInitialParams {
   /**
-   * @return initial attribute values for the Context/Resource nodes
+   * @return default attribute values for the Context/Resource nodes
    */
-  Map<String, String> contextResourceNodeAttributeValues();
+  Map<String, String> contextResourceDefaultAttrs();
   
   /**
-   * @return initial attribute values for the Context/ResourceLink nodes
+   * @return default attribute values for the Context/ResourceLink nodes
    */
-  Map<String, String> contextResourceLinkNodeAttributeValues();
+  Map<String, String> contextResourceLinkDefaultAttrs();
   
   /**
-   * @return initial attribute values for the Server/Resource nodes
+   * @return default attribute values for the Server/Resource nodes
    */
-  Map<String, String> serverResourceNodeAttributeValues();
+  Map<String, String> serverResourceDefaultAttrs();
 }
