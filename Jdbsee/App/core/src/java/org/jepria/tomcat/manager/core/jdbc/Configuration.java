@@ -181,7 +181,7 @@ public class Configuration {
   
   private List<Node> getContextResourceNodes() throws XPathExpressionException {
     final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-        "Context/Resource[@type='oracle.jdbc.pool.OracleDataSource']");
+        "Context/Resource");
     
     NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
     
@@ -194,7 +194,7 @@ public class Configuration {
   
   private List<Node> getServerResourceNodes() throws XPathExpressionException {
     final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-        "Server/GlobalNamingResources/Resource[@type='javax.sql.DataSource']");
+        "Server/GlobalNamingResources/Resource");
     NodeList nodeList = (NodeList) expr.evaluate(serverDoc, XPathConstants.NODESET);
     
     List<Node> res = new ArrayList<>();
@@ -206,7 +206,7 @@ public class Configuration {
   
   private List<Node> getContextResourceLinkNodes() throws XPathExpressionException {
     final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-        "Context/ResourceLink[@type='javax.sql.DataSource']");
+        "Context/ResourceLink");
     NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
     
     List<Node> res = new ArrayList<>();
@@ -232,7 +232,7 @@ public class Configuration {
       final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
       
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-          "Context/UnfoldedComment[" + (k + 1) + "]/Resource[@type='oracle.jdbc.pool.OracleDataSource']");
+          "Context/UnfoldedComment[" + (k + 1) + "]/Resource");
       NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
       
       if (nodeList.getLength() > 0) {
@@ -264,7 +264,7 @@ public class Configuration {
       final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
       
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-          "Context/UnfoldedComment[" + (k + 1) + "]/ResourceLink[@type='javax.sql.DataSource']");
+          "Context/UnfoldedComment[" + (k + 1) + "]/ResourceLink");
       NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
       
       if (nodeList.getLength() > 0) {
