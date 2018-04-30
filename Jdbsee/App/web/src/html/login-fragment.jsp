@@ -37,7 +37,7 @@
     margin-left: -150px;
     
     top: 50%;
-    margin-top: -146px;
+    margin-top: -144px;
     
     text-align: center;
     
