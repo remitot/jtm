@@ -109,7 +109,7 @@ If there are no connections, the <code>"connections"</code> element will have th
       <tr><td>Request params</td><td>none</td></tr>
       <tr><td>Request body</td>
         <td>list of connection modification requests, where each element is one of three modification requests:
-          <table>
+          <table border="1" style="margin: 10px;">
             <tbody>
               <tr><th>Update connection</th><th>Delete connection</th><th>Create connection</th></tr>
               <tr>
@@ -155,7 +155,7 @@ If there are no connections, the <code>"connections"</code> element will have th
         <td><pre>
 {
   "mod_states": <i>array of states corresponding to the array of modification requests</i>,
-  "connections": <i>the full list of connections after all modifiacations performed, analogous to the response of /api/jdbc/list</i>
+  "connections": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
 }       </pre><br/>
 The <code>"mod_states"</code> element is an array of states corresponding to the array of modification requests.<br/>
 The states are:
