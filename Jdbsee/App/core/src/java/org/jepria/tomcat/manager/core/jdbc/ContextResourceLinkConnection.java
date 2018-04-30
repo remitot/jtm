@@ -17,13 +17,13 @@ import org.w3c.dom.Node;
  
   @Override
   protected void onActivate() {
-    Node uncommented = NodeUtils.moveNodeFromUnfoldedComments(contextResourceLinkNode);
+    Node uncommented = NodeFoldHelper.moveNodeFromUnfoldedComments(contextResourceLinkNode);
     contextResourceLinkNode = (Element)uncommented;
   }
   
   @Override
   protected void onDeactivate() {
-    Node commented = NodeUtils.moveNodeToUnfoldedComments(contextResourceLinkNode);
+    Node commented = NodeFoldHelper.moveNodeToUnfoldedComments(contextResourceLinkNode);
     contextResourceLinkNode = (Element)commented;
   }
 

@@ -1,7 +1,6 @@
 package org.jepria.tomcat.manager.core.jdbc;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.regex.Matcher;
@@ -9,19 +8,15 @@ import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
+import org.jepria.tomcat.manager.core.NodeUtils;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-/*package*/class NodeUtils {
+/*package*/class NodeFoldHelper {
   
   
   /**
@@ -40,7 +35,7 @@ import org.xml.sax.SAXException;
         node.getAttributes().removeNamedItem(attr.getNodeName());
       }
       
-      String commentContentAsXml = printNodeToString(node);
+      String commentContentAsXml = NodeUtils.printNodeToString(node);
       Matcher m = Pattern.compile("\\s*<UnfoldedComment>(.*?)</UnfoldedComment>\\s*", Pattern.DOTALL).matcher(commentContentAsXml);
       if (!m.matches()) {
         throw new IllegalArgumentException("The root of the node must be '<UnfoldedComment>' tag");
@@ -112,30 +107,5 @@ import org.xml.sax.SAXException;
     unfoldedCommentParent.removeChild(node);
     
     return nodeClone;
-  }
-  
-  /*package*/static String printNodeToString(Node node) throws TransformerException, IOException {
-    if (node == null) {
-      return null;
-    }
-    
-    TransformerFactory tf = TransformerFactory.newInstance();
-    Transformer transformer = tf.newTransformer();
-    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");//TODO obtain existing indent amount
-
-    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-      transformer.transform(new DOMSource(node), new StreamResult(baos));
-      
-      try {
-        return baos.toString("UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        // impossible
-        throw new RuntimeException(e);
-      }
-    }
   }
 }

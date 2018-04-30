@@ -21,6 +21,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.jepria.tomcat.manager.core.NodeUtils;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -28,14 +29,24 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Configuration {
+/**
+ * Class represents the configuration of Tomcat server (namely, server.xml and context.xml)
+ */
+public class TomcatConf {
   
+  /**
+   * context.xml Document
+   */
   private final Document contextDoc;
+  
+  /**
+   * server.xml Document
+   */
   private final Document serverDoc;
   
   private final Map<String, BaseConnection> baseConnections;
   
-  public Configuration(InputStream contextXmlInputStream,
+  public TomcatConf(InputStream contextXmlInputStream,
       InputStream serverXmlInputStream) throws TransactionException {
     
     try (InputStream contextXmlInputStream0 = contextXmlInputStream;
@@ -185,11 +196,7 @@ public class Configuration {
     
     NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
     
-    List<Node> res = new ArrayList<>();
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      res.add(nodeList.item(i));
-    }
-    return res;
+    return NodeUtils.nodeListToList(nodeList);
   }
   
   private List<Node> getServerResourceNodes() throws XPathExpressionException {
@@ -197,11 +204,7 @@ public class Configuration {
         "Server/GlobalNamingResources/Resource");
     NodeList nodeList = (NodeList) expr.evaluate(serverDoc, XPathConstants.NODESET);
     
-    List<Node> res = new ArrayList<>();
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      res.add(nodeList.item(i));
-    }
-    return res;
+    return NodeUtils.nodeListToList(nodeList);
   }
   
   private List<Node> getContextResourceLinkNodes() throws XPathExpressionException {
@@ -209,11 +212,7 @@ public class Configuration {
         "Context/ResourceLink");
     NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
     
-    List<Node> res = new ArrayList<>();
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      res.add(nodeList.item(i));
-    }
-    return res;
+    return NodeUtils.nodeListToList(nodeList);
   }
   
   /**
@@ -236,12 +235,7 @@ public class Configuration {
       NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
       
       if (nodeList.getLength() > 0) {
-        List<Node> res1 = new ArrayList<>();
-        
-        for (int i = 0; i < nodeList.getLength(); i++) {
-          res1.add(nodeList.item(i));
-        }
-        
+        List<Node> res1 = NodeUtils.nodeListToList(nodeList);
         res.put(ucIndex, res1);
       }
     }
@@ -268,11 +262,7 @@ public class Configuration {
       NodeList nodeList = (NodeList) expr.evaluate(contextDoc, XPathConstants.NODESET);
       
       if (nodeList.getLength() > 0) {
-        List<Node> res1 = new ArrayList<>();
-        
-        for (int i = 0; i < nodeList.getLength(); i++) {
-          res1.add(nodeList.item(i));
-        }
+        List<Node> res1 = NodeUtils.nodeListToList(nodeList);
         res.put(ucIndex, res1);
       }
     }
@@ -298,7 +288,7 @@ public class Configuration {
         Comment comment = (Comment)nodeList.item(i);
         
         // try unfold comment (but may fail to parse comment text as a node)
-        Node unfolded = NodeUtils.unfoldComment(comment);
+        Node unfolded = NodeFoldHelper.unfoldComment(comment);
         ((Element)unfolded).setAttribute("commentIndex", Integer.toString(i));
         
         // insert unfolded comment node instead of original comment
@@ -320,7 +310,7 @@ public class Configuration {
         Node node = nodeList.item(i);
         
         // try fold comment
-        Comment comment = NodeUtils.foldComment(node);
+        Comment comment = NodeFoldHelper.foldComment(node);
         
         // insert original comment instead of unfolded comment node
         if (comment != null) {

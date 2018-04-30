@@ -22,8 +22,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.tomcat.manager.core.jdbc.Configuration;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
+import org.jepria.tomcat.manager.core.jdbc.TomcatConf;
 import org.jepria.tomcat.manager.web.JtmSecureServlet;
 
 import com.google.gson.Gson;
@@ -47,10 +47,10 @@ public class JdbcApiServlet extends JtmSecureServlet {
         
         ConfigurationEnvironment environment = new ConfigurationEnvironment(req);
         
-        Configuration conf = new Configuration(environment.getContextXmlInputStream(), 
+        TomcatConf tomcatConf = new TomcatConf(environment.getContextXmlInputStream(), 
             environment.getServerXmlInputStream());
         
-        List<ConnectionDto> connectionDtos = getConnections(conf);
+        List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
         
         Map<String, Object> responseJsonMap = new HashMap<>();
         responseJsonMap.put("connections", connectionDtos);
@@ -72,8 +72,8 @@ public class JdbcApiServlet extends JtmSecureServlet {
     }
   }
   
-  private List<ConnectionDto> getConnections(Configuration configuration) {
-    Map<String, Connection> connections = configuration.getConnections();
+  private List<ConnectionDto> getConnections(TomcatConf tomcatConf) {
+    Map<String, Connection> connections = tomcatConf.getConnections();
 
     // list all connections
     return connections.entrySet().stream().map(
@@ -151,10 +151,10 @@ public class JdbcApiServlet extends JtmSecureServlet {
 
       ConfigurationEnvironment environment = new ConfigurationEnvironment(req);
       
-      Configuration conf = new Configuration(environment.getContextXmlInputStream(), 
+      TomcatConf tomcatConf = new TomcatConf(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
 
-      final Map<String, Connection> connections = conf.getConnections();
+      final Map<String, Connection> connections = tomcatConf.getConnections();
 
       // responses correspond to requests
       int[] connectionModificationResponseStatuses = new int[modRequests.size()];
@@ -244,7 +244,7 @@ public class JdbcApiServlet extends JtmSecureServlet {
                 cmResponse = ConnectionModificationResponseStatus.ERR__CONNECTION_NOT_FOUND_BY_LOCATION;
 
               } else {
-                conf.delete(location);
+                tomcatConf.delete(location);
 
                 cmResponse = ConnectionModificationResponseStatus.SUCCESS;
               }
@@ -280,7 +280,7 @@ public class JdbcApiServlet extends JtmSecureServlet {
 
             } else {
 
-              Connection newConnection = conf.create(environment.getConnectionInitialParams());
+              Connection newConnection = tomcatConf.create(environment.getConnectionInitialParams());
 
               newConnection.setDb(connectionDto.getDb());
               newConnection.setName(connectionDto.getName());
@@ -314,13 +314,13 @@ public class JdbcApiServlet extends JtmSecureServlet {
       ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
       ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
       
-      conf.save(contextXmlBaos, serverXmlBaos);
+      tomcatConf.save(contextXmlBaos, serverXmlBaos);
       
-      Configuration confAfterSave = new Configuration(
+      TomcatConf tomcatConfAfterSave = new TomcatConf(
           new ByteArrayInputStream(contextXmlBaos.toByteArray()),
           new ByteArrayInputStream(serverXmlBaos.toByteArray()));
       
-      List<ConnectionDto> connectionDtos = getConnections(confAfterSave);
+      List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
       
       // prepare repsonse to write as fast as possible, after a real save
       Map<String, Object> responseJsonMap = new HashMap<>();
@@ -334,7 +334,7 @@ public class JdbcApiServlet extends JtmSecureServlet {
       }
       
       // 6) do a real save
-      conf.save(environment.getContextXmlOutputStream(), 
+      tomcatConf.save(environment.getContextXmlOutputStream(), 
           environment.getServerXmlOutputStream());
       
       // XXX potential vulnerability here!
