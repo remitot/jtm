@@ -149,7 +149,6 @@ function createRow(connection) {
   field.tabIndex = tabindex0++;
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
-  cellDelete.getElementsByTagName("input")[1].tabIndex = tabindex0++;
   
   row.appendChild(div);
   
@@ -215,7 +214,6 @@ function createRowCreate() {
   onFieldInput(field);// trigger initial event
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
-  cellDelete.getElementsByTagName("input")[1].tabIndex = tabindex0++;
   
   row.appendChild(flexColumns);
   
@@ -357,25 +355,13 @@ function wrapCellPad(element) {
 
 function addFieldDelete(cell) {
 
-  container = document.createElement("div");
+  button = document.createElement("input");
+  button.type = "image";
+  button.src = "img/delete.png";
+  button.title = "Delete";
+  button.onclick = function(event){onDeleteButtonClick(event.target);};
   
-  field = document.createElement("input");
-  field.type = "image";
-  field.src = "img/delete.png";
-  field.title = "Delete";
-  field.classList.add("button-delete");
-  field.onclick = function(event){onDeleteButtonClick(event.target);};
-  container.appendChild(field);
-  
-  field = document.createElement("input");
-  field.type = "image";
-  field.src = "img/undelete.png";
-  field.title = "Do not delete";
-  field.classList.add("button-undelete");
-  field.onclick = function(event){onUndeleteButtonClick(event.target);};
-  container.appendChild(field);
-
-  wrapper = wrapCellPad(container);  
+  wrapper = wrapCellPad(button);  
   cell.appendChild(wrapper);
 }
 
@@ -426,38 +412,43 @@ function setButtonSaveEnabled(enabled) {
 
 function onDeleteButtonClick(button) {
   //TODO resolve the relative path!
-  row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
-  row.classList.add("deleted");
+  row = button.parentElement.parentElement.parentElement.parentElement;
   
   rowInputs = row.querySelectorAll("input.deletable");
-  for (var i = 0; i < rowInputs.length; i++) {
-    rowInputs[i].disabled = true;
-  }
   
-  if (!row.classList.contains("created")) {// no change checkboxes for created rows
-    checkboxes = row.getElementsByClassName("checkbox deletable");
-    for (var i = 0; i < checkboxes.length; i++) {
-      setCheckboxEnabled(checkboxes[i], false);
+  if (!row.classList.contains("deleted")) {
+    row.classList.add("deleted");
+    
+    // button changes image
+    button.src = "img/undelete.png";
+    button.title = "Do not delete";
+    
+    for (var i = 0; i < rowInputs.length; i++) {
+      rowInputs[i].disabled = true;
     }
-  }
-  
-  checkModifications();
-}
-
-function onUndeleteButtonClick(button) {
-  //TODO resolve the relative path!
-  row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
-  row.classList.remove("deleted");
-  
-  rowInputs = row.querySelectorAll("input.deletable");
-  for (var i = 0; i < rowInputs.length; i++) {
-    rowInputs[i].disabled = false;
-  }
-  
-  if (!row.classList.contains("created")) {// no change checkboxes for created rows
-    checkboxes = row.getElementsByClassName("checkbox deletable");
-    for (var i = 0; i < checkboxes.length; i++) {
-      setCheckboxEnabled(checkboxes[i], true);
+    
+    if (!row.classList.contains("created")) {// no change checkboxes for created rows
+      checkboxes = row.getElementsByClassName("checkbox deletable");
+      for (var i = 0; i < checkboxes.length; i++) {
+        setCheckboxEnabled(checkboxes[i], false);
+      }
+    }
+  } else {
+    row.classList.remove("deleted");
+    
+    // button changes image
+    button.src = "img/delete.png";
+    button.title = "Delete";
+    
+    for (var i = 0; i < rowInputs.length; i++) {
+      rowInputs[i].disabled = false;
+    }
+    
+    if (!row.classList.contains("created")) {// no change checkboxes for created rows
+      checkboxes = row.getElementsByClassName("checkbox deletable");
+      for (var i = 0; i < checkboxes.length; i++) {
+        setCheckboxEnabled(checkboxes[i], true);
+      }
     }
   }
   

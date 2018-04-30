@@ -169,21 +169,6 @@
 }
 
 
-#connections .row .column-delete .button-delete {
-  display: block;
-}
-#connections .row .column-delete .button-undelete {
-  display: none;
-}
-#connections .row.deleted .column-delete .button-delete {
-  display: none;
-}
-#connections .row.deleted .column-delete .button-undelete {
-  display: block;
-}
-
-
-
 #connections .checkbox-disabled {
   cursor: default !important; /* overrides .checkbox */
 }
