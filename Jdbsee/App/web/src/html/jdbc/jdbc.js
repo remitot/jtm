@@ -105,7 +105,7 @@ function createRow(connection) {
   cell = createCell(row, "column-active");
   cell.classList.add("cell-field");
   addCheckbox(cell, connection.active, true);
-  cell.querySelectorAll("input")[0].tabIndex = tabindex0++;
+  cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   if (!connection.active) {
     row.classList.add("inactive");
   }
@@ -148,8 +148,8 @@ function createRow(connection) {
   field.setAttribute("value0", connection.password);
   field.tabIndex = tabindex0++;
   
-  cellDelete.querySelectorAll("input")[0].tabIndex = tabindex0++;
-  cellDelete.querySelectorAll("input")[1].tabIndex = tabindex0++;
+  cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  cellDelete.getElementsByTagName("input")[1].tabIndex = tabindex0++;
   
   row.appendChild(div);
   
@@ -161,7 +161,7 @@ function createRowCreate() {
 
   // add header row if the table is empty
   var table = document.getElementById("connections");
-  if (table.querySelectorAll(".header").length == 0) {
+  if (table.getElementsByClassName("header").length == 0) {
     table.appendChild(createHeader());
   }
   
@@ -174,7 +174,7 @@ function createRowCreate() {
   cell = createCell(row, "column-active");
   cell.classList.add("cell-field");
   addCheckbox(cell, true, false);
-  cell.querySelectorAll("input")[0].tabIndex = tabindex0++;
+  cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   
   cellDelete = createCell(row, "column-delete");
@@ -214,8 +214,8 @@ function createRowCreate() {
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
-  cellDelete.querySelectorAll("input")[0].tabIndex = tabindex0++;
-  cellDelete.querySelectorAll("input")[1].tabIndex = tabindex0++;
+  cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  cellDelete.getElementsByTagName("input")[1].tabIndex = tabindex0++;
   
   row.appendChild(flexColumns);
   
@@ -225,10 +225,10 @@ function createRowCreate() {
 function setCheckboxEnabled(checkbox, enabled) {
   if (enabled) {
     checkbox.classList.remove("checkbox-disabled");
-    checkbox.querySelectorAll("input")[0].disabled = false;
+    checkbox.getElementsByTagName("input")[0].disabled = false;
   } else {
     checkbox.classList.add("checkbox-disabled");
-    checkbox.querySelectorAll("input")[0].disabled = true;
+    checkbox.getElementsByTagName("input")[0].disabled = true;
   }
 }
 
@@ -247,7 +247,7 @@ function addCheckbox(cell, active, enabled) {
   
   cell.appendChild(wrapper);
   
-  onCheckboxInput(checkbox.querySelectorAll("input")[0]);// trigger initial event
+  onCheckboxInput(checkbox.getElementsByTagName("input")[0]);// trigger initial event
   
   strike = document.createElement("div");
   strike.classList.add("strike");
@@ -265,11 +265,11 @@ function createCheckbox(active) {
   input.setAttribute("value0", active);
   input.onfocus = function(event){
     var input = event.target;
-    input.parentElement.querySelector(".checkmark").classList.add("hovered");
+    input.parentElement.getElementsByClassName("checkmark").classList.add("hovered");
   }
   input.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
     var input = event.target;
-    input.parentElement.querySelector(".checkmark").classList.remove("hovered");
+    input.parentElement.getElementsByClassName("checkmark").classList.remove("hovered");
   });
   field.appendChild(input);
   
@@ -405,10 +405,10 @@ function onFieldInput(field) {
 
 function checkModifications() {
   totalModifications = 
-      document.querySelectorAll(".modified").length
+      document.getElementsByClassName("modified").length
       - document.querySelectorAll(".row.created.deleted .modified").length
-      + document.querySelectorAll(".row.deleted").length
-      - document.querySelectorAll(".row.created.deleted").length;
+      + document.getElementsByClassName("row deleted").length
+      - document.getElementsByClassName("row created deleted").length;
   
   setButtonSaveEnabled(totalModifications > 0);
 }
@@ -435,7 +435,7 @@ function onDeleteButtonClick(button) {
   }
   
   if (!row.classList.contains("created")) {// no change checkboxes for created rows
-    checkboxes = row.querySelectorAll(".checkbox.deletable");
+    checkboxes = row.getElementsByClassName("checkbox deletable");
     for (var i = 0; i < checkboxes.length; i++) {
       setCheckboxEnabled(checkboxes[i], false);
     }
@@ -455,7 +455,7 @@ function onUndeleteButtonClick(button) {
   }
   
   if (!row.classList.contains("created")) {// no change checkboxes for created rows
-    checkboxes = row.querySelectorAll(".checkbox.deletable");
+    checkboxes = row.getElementsByClassName("checkbox deletable");
     for (var i = 0; i < checkboxes.length; i++) {
       setCheckboxEnabled(checkboxes[i], true);
     }
@@ -546,25 +546,25 @@ function onSaveButtonClick() {
           // disable whole grid
           table = document.getElementById("connections");
           // remove column-delete contents
-          columnDeletes = table.querySelectorAll(".column-delete");
+          columnDeletes = table.getElementsByClassName("column-delete");
           for (var i = 0; i < columnDeletes.length; i++) {
             columnDelete = columnDeletes[i];
             columnDelete.innerHTML = "";
           }
           
-          inputs = table.querySelectorAll("input");
+          inputs = table.getElementsByTagName("input");
           for (var i = 0; i < inputs.length; i++) {
             input = inputs[i];
             input.disabled = true;
           }
-          checkboxes = table.querySelectorAll(".checkbox");
+          checkboxes = table.getElementsByClassName("checkbox");
           for (var i = 0; i < checkboxes.length; i++) {
             checkbox = checkboxes[i];
             setCheckboxEnabled(checkbox, false);
           }
           
           // gray out every second row
-          rows = table.querySelectorAll(".row");
+          rows = table.getElementsByClassName("row");
           for (var i = 0; i < rows.length; i += 2) {
             rows[i].classList.add("even-odd-gray");
           }
@@ -654,7 +654,7 @@ function getRowsModified() {
   rowsModifiedJson = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
-    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.querySelectorAll(".modified").length > 0) {
+    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.getElementsByClassName("modified").length > 0) {
       rowJson = rowToJson(row);
       rowsModifiedJson.push({connectionLocation: row.getAttribute("connection-location"), connection: rowJson});
     }
