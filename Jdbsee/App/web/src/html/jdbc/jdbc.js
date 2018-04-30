@@ -94,6 +94,8 @@ function createHeader() {
   return row;
 }
 
+var tabindex0 = 1;
+
 function createRow(connection) {
   row = document.createElement("div");
   row.classList.add("row");
@@ -103,12 +105,14 @@ function createRow(connection) {
   cell = createCell(row, "column-active");
   cell.classList.add("cell-field");
   addCheckbox(cell, connection.active, true);
+  cell.querySelectorAll("input")[0].tabIndex = tabindex0++;
   if (!connection.active) {
     row.classList.add("inactive");
   }
   
-  cell = createCell(row, "column-delete");
-  addFieldDelete(cell);
+  
+  cellDelete = createCell(row, "column-delete");
+  addFieldDelete(cellDelete);
   
   
   div = document.createElement("div");
@@ -118,27 +122,34 @@ function createRow(connection) {
   cell.classList.add("cell-field");
   field = addField(cell, "name", connection.name, null);
   field.setAttribute("value0", connection.name);
-  
+  field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-server");
   cell.classList.add("cell-field");
   field = addField(cell, "server", connection.server, null);
   field.setAttribute("value0", connection.server);
+  field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-db");
   cell.classList.add("cell-field");
   field = addField(cell, "db", connection.db, null);
   field.setAttribute("value0", connection.db);
+  field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-user");
   cell.classList.add("cell-field");
   field = addField(cell, "user", connection.user, null);
   field.setAttribute("value0", connection.user);
+  field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-password");
   cell.classList.add("cell-field");
   field = addField(cell, "password", connection.password, null);
   field.setAttribute("value0", connection.password);
+  field.tabIndex = tabindex0++;
+  
+  cellDelete.querySelectorAll("input")[0].tabIndex = tabindex0++;
+  cellDelete.querySelectorAll("input")[1].tabIndex = tabindex0++;
   
   row.appendChild(div);
   
@@ -163,9 +174,11 @@ function createRowCreate() {
   cell = createCell(row, "column-active");
   cell.classList.add("cell-field");
   addCheckbox(cell, true, false);
+  cell.querySelectorAll("input")[0].tabIndex = tabindex0++;
   
-  cell = createCell(row, "column-delete");
-  addFieldDelete(cell);
+  
+  cellDelete = createCell(row, "column-delete");
+  addFieldDelete(cellDelete);
   
   
   flexColumns = document.createElement("div");
@@ -174,27 +187,35 @@ function createRowCreate() {
   cell = createCell(flexColumns, "column-name");
   cell.classList.add("cell-field");
   field = addField(cell, "name", "", "jdbc/MyDataSource");
+  field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
  
   cell = createCell(flexColumns, "column-server");
   cell.classList.add("cell-field");
   field = addField(cell, "server", "", "mydbserver.com:1521");
+  field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-db");
   cell.classList.add("cell-field");
   field = addField(cell, "db", "", "MYDATABASE");
+  field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-user");
   cell.classList.add("cell-field");
   field = addField(cell, "user", "", "me");
+  field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-password");
   cell.classList.add("cell-field");
   field = addField(cell, "password", "", "mysecret");
+  field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
+  
+  cellDelete.querySelectorAll("input")[0].tabIndex = tabindex0++;
+  cellDelete.querySelectorAll("input")[1].tabIndex = tabindex0++;
   
   row.appendChild(flexColumns);
   
