@@ -1,4 +1,4 @@
-<div id="loginFragment" class="loginForm-hidden">
+<div id="loginScreen" class="loginForm-hidden">
   <div id="loginFrame">
     <div id="loginStatusBar" class="statusBar statusBar-none"></div>
     <form id="login-form">
@@ -19,7 +19,7 @@
 </div>
 
 <style type="text/css">
-  #loginFragment {
+  #loginScreen {
     position: fixed;
     left: 0;
     top: 0;
@@ -30,7 +30,7 @@
     background-color: rgba(40, 40, 40, 0.85);
   }
   
-  #loginFragment #loginFrame {
+  #loginScreen #loginFrame {
     position: fixed;
     
     left: 50%;
@@ -44,11 +44,11 @@
     background-color: white;
   }
   
-  #loginFragment.loginForm-raised {
+  #loginScreen.loginForm-raised {
     display: block;
   }
   
-  #loginFragment.loginForm-hidden {
+  #loginScreen.loginForm-hidden {
     display: none;
   }
 
@@ -122,7 +122,7 @@
   var onLoginSuccessCallback0 = null; 
   
   function raiseLoginForm(onLoginSuccessCallback) {
-    document.getElementById("loginFragment").className = "loginForm-raised";
+    document.getElementById("loginScreen").className = "loginForm-raised";
     
     resetFields();
 
@@ -134,6 +134,6 @@
   } 
   
   function hideLoginForm() {
-    document.getElementById("loginFragment").className = "loginForm-hidden";
+    document.getElementById("loginScreen").className = "loginForm-hidden";
   }
 </script>
