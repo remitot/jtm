@@ -73,6 +73,10 @@
       <sequential>
         <mkdir dir="temp-war" />
         
+        <copy todir="temp-war/WEB-INF/security">
+          <fileset dir="src/resources/security"/>
+        </copy>
+        
         <copy todir="temp-war/WEB-INF/lib">
         	<fileset file="${JEPRIA-TOMCAT-MANAGER-CORE_LIB}" />
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />

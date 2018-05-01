@@ -82,15 +82,11 @@
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4) {
         if (this.status == 200) {
-          if (this.responseText === 'SUCCESS') {
-            if (onLoginSuccessCallback0 != null) {
-              onLoginSuccessCallback0();
-            }
-          } else {
-            onLoginFailure(1);
+          if (onLoginSuccessCallback0 != null) {
+            onLoginSuccessCallback0();
           }
         } else {
-          onLoginFailure(2);
+          onLoginFailure(this.status);
         }
       }
     };
@@ -105,14 +101,14 @@
     fieldPassword.value = "";
   }
   
-  function onLoginFailure(reasonCode) {
+  function onLoginFailure(httpStatus) {
     resetFields();
   
     // show status
     statusBar = document.getElementById("loginStatusBar");
     statusBar.className = "statusBar statusBar-error";
     
-    if (reasonCode == 1) {
+    if (httpStatus == 401) {
       statusBar.innerHTML = "Incorrect credentials, try again";
     } else {
       statusBar.innerHTML = "Authorization error, try later";
