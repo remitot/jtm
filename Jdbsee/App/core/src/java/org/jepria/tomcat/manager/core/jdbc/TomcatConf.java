@@ -73,7 +73,7 @@ public class TomcatConf {
   }
   
   /**
-   * @return Map&lt;Location, Connection&gt;
+   * @return Map&lt;Location, BaseConnection&gt;
    */
   private Map<String, BaseConnection> getBaseConnections() {
     

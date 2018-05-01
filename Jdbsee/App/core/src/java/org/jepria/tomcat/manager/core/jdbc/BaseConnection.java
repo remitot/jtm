@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
   /**
    * Apply initial settings to the nodes in the endpoint files
    */
-  /*package*/abstract void fillDefault(ConnectionInitialParams initialSettings);
+  /*package*/abstract void fillDefault(ConnectionInitialParams initialParams);
   
   protected abstract void setUrl(String url);
   protected abstract String getUrl();
