@@ -8,21 +8,28 @@ import org.w3c.dom.Node;
   private Element contextResourceLinkNode;
   private Element serverResourceNode;
   
+  private boolean active = true;
+  
   /*package*/public ContextResourceLinkConnection(
       Node contextResourceLinkNode, Node serverResourceNode, boolean active) {
     this.contextResourceLinkNode = (Element)contextResourceLinkNode;
     this.serverResourceNode = (Element)serverResourceNode;
     this.active = active;
   }
+  
+  @Override
+  public boolean isActive() {
+    return active;
+  }
  
   @Override
-  protected void onActivate() {
+  public void onActivate() {
     Node uncommented = NodeFoldHelper.moveNodeFromUnfoldedComments(contextResourceLinkNode);
     contextResourceLinkNode = (Element)uncommented;
   }
   
   @Override
-  protected void onDeactivate() {
+  public void onDeactivate() {
     Node commented = NodeFoldHelper.moveNodeToUnfoldedComments(contextResourceLinkNode);
     contextResourceLinkNode = (Element)commented;
   }

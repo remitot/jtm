@@ -188,8 +188,13 @@ public class JdbcApiServlet extends HttpServlet {
                 ConnectionDto connectionDto = cmRequest.getData();
 
                 if (connectionDto.getActive() != null) {
-                  connection.setActive(connectionDto.getActive());
+                  if (!connection.isActive() && connectionDto.getActive()) {
+                    connection.onActivate();
+                  } else if (connection.isActive() && !connectionDto.getActive()) {
+                    connection.onDeactivate();
+                  }
                 }
+                
                 if (connectionDto.getDb() != null) {
                   connection.setDb(connectionDto.getDb());
                 }

@@ -21,7 +21,9 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.jepria.tomcat.manager.core.LocationNotExistException;
 import org.jepria.tomcat.manager.core.NodeUtils;
+import org.jepria.tomcat.manager.core.TransactionException;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,14 +65,16 @@ public class TomcatConf {
   }
 
   /**
-   * 
-   * @return unmodifiable map
+   * @return unmodifiable Map&lt;Location, Connection&gt;
    */
   @SuppressWarnings("unchecked")
   public Map<String, Connection> getConnections() {
     return Collections.unmodifiableMap((Map<String, Connection>)(Map<String, ?>)baseConnections);
   }
   
+  /**
+   * @return Map&lt;Location, Connection&gt;
+   */
   private Map<String, BaseConnection> getBaseConnections() {
     
     Map<String, BaseConnection> connections = new HashMap<>();
@@ -462,26 +466,6 @@ public class TomcatConf {
     }
     
     return true;
-  }
-  
-  public class TransactionException extends Exception {
-
-    private static final long serialVersionUID = 1L;
-
-    public TransactionException(Throwable cause) {
-      super(cause);
-    }
-    
-  }
-  
-  public class LocationNotExistException extends Exception {
-    
-    private static final long serialVersionUID = 1L;
-
-    public LocationNotExistException(String message) {
-      super(message);
-    }
-    
   }
   
   protected boolean useResourceLinkOnCreateConnection = true;

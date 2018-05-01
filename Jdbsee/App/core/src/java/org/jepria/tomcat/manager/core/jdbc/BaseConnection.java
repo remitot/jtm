@@ -15,43 +15,6 @@ import java.util.regex.Pattern;
    */
   /*package*/abstract void fillDefault(ConnectionInitialParams initialSettings);
   
-  
-  
-  /**
-   * Action for an inactive connection became active
-   */
-  protected abstract void onActivate();
-  
-  /**
-   * Action for an active connection became inactive
-   */
-  protected abstract void onDeactivate();
-  
-  protected boolean active;
-
-  // final
-  @Override
-  public final boolean isActive() {
-    return active;
-  }
-
-  // final
-  @Override
-  public final void setActive(boolean active) {
-    if (!this.active && active) {
-      onActivate();
-    } else if (this.active && !active) {
-      onDeactivate();
-    }
-    
-    this.active = active;
-  }
-  
-  
-  
-  
-  
-  
   protected abstract void setUrl(String url);
   protected abstract String getUrl();
   
