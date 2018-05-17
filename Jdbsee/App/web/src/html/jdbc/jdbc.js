@@ -263,11 +263,11 @@ function createCheckbox(active) {
   input.setAttribute("value0", active);
   input.onfocus = function(event){
     var input = event.target;
-    input.parentElement.getElementsByClassName("checkmark").classList.add("hovered");
+    input.parentElement.getElementsByClassName("checkmark")[0].classList.add("hovered");
   }
   input.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
     var input = event.target;
-    input.parentElement.getElementsByClassName("checkmark").classList.remove("hovered");
+    input.parentElement.getElementsByClassName("checkmark")[0].classList.remove("hovered");
   });
   field.appendChild(input);
   
