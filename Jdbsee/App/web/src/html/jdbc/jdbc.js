@@ -49,7 +49,7 @@ function refillGrid(jsonConnections) {
       table.appendChild(row);
     }
     
-    checkModifications();
+    checkConnectionsModified();
   }
 }
 
@@ -237,7 +237,7 @@ function addCheckbox(cell, active, enabled) {
   
   checkbox.onclick = function(event){
     onCheckboxInput(event.target);
-    checkModifications();
+    checkConnectionsModified();
   };
   checkbox.classList.add("deletable");
 
@@ -297,11 +297,11 @@ function onCheckboxInput(input) {
     }
     
     if (!input.checked) {
-      //TODO resolve the relative path!
+      //TODO resolve the relative path:
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
       input.parentElement.title = "Inactive connection";
     } else {
-      //TODO resolve the relative path!
+      //TODO resolve the relative path:
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
       input.parentElement.title = "Active connection";
     }
@@ -386,10 +386,10 @@ function onFieldInput(field) {
     }
   }
   
-  checkModifications();
+  checkConnectionsModified();
 }
 
-function checkModifications() {
+function checkConnectionsModified() {
   totalModifications = 
       document.getElementsByClassName("modified").length
       - document.querySelectorAll(".row.created.deleted .modified").length
@@ -397,6 +397,9 @@ function checkModifications() {
       - document.getElementsByClassName("row created deleted").length;
   
   setButtonSaveEnabled(totalModifications > 0);
+  
+  // graphics:
+  adjustBottomShadow();
 }
 
 function setButtonSaveEnabled(enabled) {
@@ -411,7 +414,7 @@ function setButtonSaveEnabled(enabled) {
 }
 
 function onDeleteButtonClick(button) {
-  //TODO resolve the relative path!
+  //TODO resolve the relative path:
   row = button.parentElement.parentElement.parentElement.parentElement;
   
   rowInputs = row.querySelectorAll("input.deletable");
@@ -452,7 +455,7 @@ function onDeleteButtonClick(button) {
     }
   }
   
-  checkModifications();
+  checkConnectionsModified();
 }
 
 function onCreateButtonClick() {
@@ -460,7 +463,8 @@ function onCreateButtonClick() {
   document.getElementById("connections").appendChild(row);
   
   row.querySelectorAll(".cell.column-name input")[0].focus();
-  checkModifications();
+      
+  checkConnectionsModified();
 }
 
 function onSaveButtonClick() {
@@ -692,3 +696,14 @@ function rowToJson(row) {
   }
   return rowJson;
 }
+
+function adjustBottomShadow() {
+  if (document.getElementById("connections").getBoundingClientRect().bottom <= 
+    document.getElementById("controlButtons").getBoundingClientRect().top) {
+    document.getElementById("controlButtons").classList.remove("bottom-shadow");
+  } else {
+    document.getElementById("controlButtons").classList.add("bottom-shadow");
+  }
+}
+
+window.onscroll = adjustBottomShadow;

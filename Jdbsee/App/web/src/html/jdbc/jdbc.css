@@ -195,3 +195,15 @@
 #connections {
   min-height: 35px;
 }
+
+#controlButtons {
+  background-color: white;
+  position: sticky;
+  left: 0;
+  bottom: 0;
+}
+
+.bottom-shadow {
+  box-shadow: 0 -3px 5px rgb(57, 63, 72); /* fallback */
+  box-shadow: 0 -3px 5px rgba(57, 63, 72, 0.3);  
+}
