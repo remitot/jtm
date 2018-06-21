@@ -13,7 +13,7 @@
   </head>
   
   <body onload="reload()">
-    <div id="connections" style="width:100%"></div>
+    <div id="table" style="width:100%"></div>
     
     <div id="controlButtons">
       <button 

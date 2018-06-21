@@ -1,13 +1,13 @@
-#connections {
+#table {
   margin-top: 15px;
   display: table;
 }
 
-#connections div.row {
+#table div.row {
   display: table-row;
 }
 
-#connections div.cell {
+#table div.cell {
   display: table-cell;
   
   position: relative;
@@ -17,71 +17,71 @@
   padding-bottom: 4px;
 }
 
-#connections .flexColumns div.cell > *, #connections .strike {
+#table .flexColumns div.cell > *, #table .strike {
   width: 100%;
 }
 
-#connections div.cell > .deletable, #connections div.cell > .strike {
+#table div.cell > .deletable, #table div.cell > .strike {
   position: absolute;
   top: 0;
   left: 0;
 }
 
-#connections .flexColumns {
+#table .flexColumns {
   overflow: hidden;
 } 
 
-#connections div.cell.column-active {
+#table div.cell.column-active {
   margin-left: 8px;
   width: 36px;
   float: left;
 }
-#connections div.cell.column-delete {
+#table div.cell.column-delete {
   margin-right: 8px;
   width: 36px;
   float: right;
 }
 
-#connections .cell-pad-left {
+#table .cell-pad-left {
   width: 6px;
   height: 6px;
   float: left;
 }
-#connections .cell-pad-right {
+#table .cell-pad-right {
   width: 6px;
   height: 6px;
   float: right;
 }
-#connections .cell-pad-mid {
+#table .cell-pad-mid {
   overflow: hidden;
 }
 
-#connections .cell-pad-mid > * {
+#table .cell-pad-mid > * {
   width: 100%;
 }
 
-#connections div.cell.column-name {
+#table div.cell.column-name {
   width: 20%;
   display: inline-block;
 }
-#connections div.cell.column-server {
+#table div.cell.column-server {
   width: 30%;
   display: inline-block;
 }
-#connections div.cell.column-db {
+#table div.cell.column-db {
   width: 15%;
   display: inline-block;
 }
-#connections div.cell.column-user {
+#table div.cell.column-user {
   width: 15%;
   display: inline-block;
 }
-#connections div.cell.column-password {
+#table div.cell.column-password {
   width: 20%;
   display: inline-block;
 }
 
-#connections .header label {
+#table .header label {
   background-color: transparent;
   
   font-family: monospace;
@@ -92,11 +92,11 @@
   padding-left: 6px;
 }
 
-#connections .header div.cell {
+#table .header div.cell {
   height: 20px;
 }
 
-#connections .checkbox {
+#table .checkbox {
   border-width: 0 0 0 0;
   border-bottom: 2px solid;
   border-color: transparent;
@@ -110,16 +110,16 @@
 
 
 /* elements that go opaque when inactive */
-#connections .row.inactive input.inactivatible {
+#table .row.inactive input.inactivatible {
   color: #888;
 }
 
-#connections .row.even-odd-gray {
+#table .row.even-odd-gray {
   background-color: #fafafa;
 }
 
 
-#connections div.strike {
+#table div.strike {
   display: none;
   
   border-bottom: 2px solid;
@@ -130,55 +130,55 @@
 }
 
 
-#connections input.field-text.modified, #connections .modified {
+#table input.field-text.modified, #table .modified {
   border-color: #fb8f40;
 }
 
-#connections input.field-text.modified:focus {
+#table input.field-text.modified:focus {
   border-color: #0089bd;
 }
 
-#connections .checkbox-disabled.modified {
+#table .checkbox-disabled.modified {
   border-color: transparent !important; /* overrides .modified */
 }
 
-#connections input.field-text:disabled {
+#table input.field-text:disabled {
   border-color: transparent;
 }
 
-#connections div.strike {
+#table div.strike {
   border-color: #fb8f40;
 }
-#connections .row.created.deleted {
+#table .row.created.deleted {
   display: none;
 }
 
-#connections .row.deleted div.strike {
+#table .row.deleted div.strike {
   display: block;
 }
 
-#connections .row.deleted .deletable {
+#table .row.deleted .deletable {
   pointer-events: none;
   opacity: 0.3;
 }
 
 
-#connections .row .column-delete input {
+#table .row .column-delete input {
   width: 24px;
   height: 24px;
 }
 
 
-#connections .checkbox-disabled {
+#table .checkbox-disabled {
   cursor: default !important; /* overrides .checkbox */
 }
-#connections .checkbox-disabled .checkmark {
+#table .checkbox-disabled .checkmark {
   background-color: transparent !important; /* overrides .checkmark */
 }
-#connections .checkbox-disabled .checkmark.hovered {
+#table .checkbox-disabled .checkmark.hovered {
   background-color: transparent !important; /* overrides .checkmark.hovered */
 }
-#connections .checkbox-disabled .checkmark:after {
+#table .checkbox-disabled .checkmark:after {
   border-color: black !important; /* overrides .checkmark:after */
 }
 
@@ -191,8 +191,8 @@
   right: 0;
   height: 20px;
 }
-/* and controlButtons do not flow under the status bar if #connections table is empty */
-#connections {
+/* and controlButtons do not flow under the status bar if #table is empty */
+#table {
   min-height: 35px;
 }
 

@@ -35,7 +35,7 @@ function reload() {
 }
 
 function refillGrid(jsonConnections) {
-  table = document.getElementById("connections");
+  table = document.getElementById("table");
   table.innerHTML = "";
   
   if (jsonConnections.length > 0) {
@@ -159,7 +159,7 @@ function createRow(connection) {
 function createRowCreate() {
 
   // add header row if the table is empty
-  var table = document.getElementById("connections");
+  var table = document.getElementById("table");
   if (table.getElementsByClassName("header").length == 0) {
     table.appendChild(createHeader());
   }
@@ -460,7 +460,7 @@ function onDeleteButtonClick(button) {
 
 function onCreateButtonClick() {
   row = createRowCreate();
-  document.getElementById("connections").appendChild(row);
+  document.getElementById("table").appendChild(row);
   
   row.querySelectorAll(".cell.column-name input")[0].focus();
       
@@ -539,7 +539,7 @@ function onSaveButtonClick() {
           refillGrid(jsonConnections);
           
           // disable whole grid
-          table = document.getElementById("connections");
+          table = document.getElementById("table");
           // remove column-delete contents
           columnDeletes = table.getElementsByClassName("column-delete");
           for (var i = 0; i < columnDeletes.length; i++) {
@@ -645,7 +645,7 @@ function uiOnSaveBegin() {
 }
 
 function getRowsModified() {
-  var rows = document.querySelectorAll("#connections div.row");
+  var rows = document.querySelectorAll("#table div.row");
   rowsModifiedJson = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
@@ -658,7 +658,7 @@ function getRowsModified() {
 }
 
 function getRowsDeleted() {
-  var rows = document.querySelectorAll("#connections div.row");
+  var rows = document.querySelectorAll("#table div.row");
   rowsDeletedLocations = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
@@ -670,7 +670,7 @@ function getRowsDeleted() {
 }
 
 function getRowsCreated() {
-  var rows = document.querySelectorAll("#connections div.row");
+  var rows = document.querySelectorAll("#table div.row");
   rowsCreatedJson = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
@@ -698,7 +698,7 @@ function rowToJson(row) {
 }
 
 function adjustBottomShadow() {
-  if (document.getElementById("connections").getBoundingClientRect().bottom <= 
+  if (document.getElementById("table").getBoundingClientRect().bottom <= 
     document.getElementById("controlButtons").getBoundingClientRect().top) {
     document.getElementById("controlButtons").classList.remove("bottom-shadow");
   } else {
