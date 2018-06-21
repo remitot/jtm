@@ -61,7 +61,7 @@ public class JdbcApiServlet extends HttpServlet {
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.getOutputStream().println("Oops! Something went wrong.");
+        resp.getOutputStream().println("Oops! Something went wrong.");//TODO
         resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         resp.flushBuffer();
         return;
@@ -363,7 +363,7 @@ public class JdbcApiServlet extends HttpServlet {
     } catch (Throwable e) {
       e.printStackTrace();
 
-      resp.getOutputStream().println("Oops! Something went wrong.");
+      resp.getOutputStream().println("Oops! Something went wrong.");//TODO
       resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.flushBuffer();
       return;
