@@ -36,11 +36,11 @@ public class ConfigurationEnvironment {
     serverXml = confPath.resolve("server.xml").toFile();
     
     contextResourceDefaultAttrs = new File(request.getServletContext().getRealPath(
-        "/WEB-INF/connection_default_attrs/context_Resource.default_attrs.properties"));
+        "/WEB-INF/jdbc_connection_default_attrs/context_Resource.default_attrs.properties"));
     contextResourceLinkDefaultAttrs = new File(request.getServletContext().getRealPath(
-        "/WEB-INF/connection_default_attrs/context_ResourceLink.default_attrs.properties"));
+        "/WEB-INF/jdbc_connection_default_attrs/context_ResourceLink.default_attrs.properties"));
     serverResourceDefaultAttrs = new File(request.getServletContext().getRealPath(
-        "/WEB-INF/connection_default_attrs/server_Resource.default_attrs.properties"));
+        "/WEB-INF/jdbc_connection_default_attrs/server_Resource.default_attrs.properties"));
   }
   
   public OutputStream getServerXmlOutputStream() throws FileNotFoundException {
