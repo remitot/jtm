@@ -62,7 +62,7 @@ public class JdbcApiServlet extends HttpServlet {
         e.printStackTrace();
 
         resp.getOutputStream().println("Oops! Something went wrong.");
-        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         resp.flushBuffer();
         return;
       }
@@ -122,7 +122,7 @@ public class JdbcApiServlet extends HttpServlet {
     String path = req.getPathInfo();
     
     if (!"/mod".equals(path)) {
-      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
     }
@@ -144,7 +144,7 @@ public class JdbcApiServlet extends HttpServlet {
         e.printStackTrace();
 
         resp.getOutputStream().println("Error parsing JSON request body");
-        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
       }
@@ -364,7 +364,7 @@ public class JdbcApiServlet extends HttpServlet {
       e.printStackTrace();
 
       resp.getOutputStream().println("Oops! Something went wrong.");
-      resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.flushBuffer();
       return;
     }

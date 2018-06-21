@@ -1,3 +1,3 @@
 <% 
-  response.setStatus(401); 
+  response.sendError(401); 
 %>

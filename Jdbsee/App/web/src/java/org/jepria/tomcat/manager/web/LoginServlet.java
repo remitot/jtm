@@ -35,7 +35,7 @@ public class LoginServlet extends HttpServlet {
       } catch (ServletException e) {
         e.printStackTrace();
         
-        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         resp.flushBuffer();
         return;
       }
@@ -44,7 +44,7 @@ public class LoginServlet extends HttpServlet {
     
     if (req.getUserPrincipal() == null) {
       // unauthorized
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       resp.flushBuffer();
       return;
     }
