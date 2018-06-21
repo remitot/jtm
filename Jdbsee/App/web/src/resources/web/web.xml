@@ -42,6 +42,26 @@
     <servlet-name>JdbcGui</servlet-name>
     <url-pattern>/jdbc</url-pattern>
   </servlet-mapping>
+  
+  
+  <servlet>
+    <servlet-name>ModjkApiServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.modjk.ModjkApiServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ModjkApiServlet</servlet-name>
+    <url-pattern>/api/modjk/*</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>ModJkGui</servlet-name>
+    <jsp-file>/modjk/modjk.jsp</jsp-file>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ModJkGui</servlet-name>
+    <url-pattern>/modjk</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>ApiDocs</servlet-name>
