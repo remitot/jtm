@@ -464,7 +464,7 @@ function onCreateButtonClick() {
   
   row.querySelectorAll(".cell.column-name input")[0].focus();
       
-  checkConnectionsModified();
+  checkListItemsModified();
 }
 
 function onSaveButtonClick() {
