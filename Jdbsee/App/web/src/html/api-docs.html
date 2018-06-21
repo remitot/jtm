@@ -1,19 +1,34 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>JTM API</title>
-  </head>
-  <body>
+<head>
+<title>JTM API</title>
+</head>
+<body>
   <h1>API</h1>
   <h2>General</h2>
   <h3>Login</h3>
   <table border="1">
     <tbody>
-      <tr><td>Method</td><td><code>POST</code></td></tr>
-      <tr><td>Url</td><td><code>/login</code></td></tr>
-      <tr><td>Request params</td><td><code>username</code>, <code>password</code></td></tr>
-      <tr><td>Request body</td><td>none</td></tr>
-      <tr><td>Response (text/plain UTF-8)</td><td><code>SUCCESS</code> or <code>FAILURE</code></td></tr>
+      <tr>
+        <td>Method</td>
+        <td><code>POST</code></td>
+      </tr>
+      <tr>
+        <td>Url</td>
+        <td><code>/login</code></td>
+      </tr>
+      <tr>
+        <td>Request params</td>
+        <td><code>username</code>, <code>password</code></td>
+      </tr>
+      <tr>
+        <td>Request body</td>
+        <td>none</td>
+      </tr>
+      <tr>
+        <td>Response (text/plain UTF-8)</td>
+        <td><code>SUCCESS</code> or <code>FAILURE</code></td>
+      </tr>
     </tbody>
   </table>
   <h4>Example:</h4>
@@ -21,23 +36,38 @@
     <tbody>
       <tr>
         <th>Request</th>
-        <th>Response</t>  
+        <th>Response</t>
       </tr>
       <tr>
         <td><code>/login?username=admin&password=admin</code></td>
-        <td><code>SUCCESS</code></td>  
+        <td><code>SUCCESS</code></td>
       </tr>
     </tbody>
   </table>
-  
+
   <h3>Logout</h3>
   <table border="1">
     <tbody>
-      <tr><td>Method</td><td><code>POST</code></td></tr>
-      <tr><td>Url</td><td><code>/logout</code></td></tr>
-      <tr><td>Request params</td><td>none</td></tr>
-      <tr><td>Request body</td><td>none</td></tr>
-      <tr><td>Response (text/plain UTF-8)</td><td>none</td></tr>
+      <tr>
+        <td>Method</td>
+        <td><code>POST</code></td>
+      </tr>
+      <tr>
+        <td>Url</td>
+        <td><code>/logout</code></td>
+      </tr>
+      <tr>
+        <td>Request params</td>
+        <td>none</td>
+      </tr>
+      <tr>
+        <td>Request body</td>
+        <td>none</td>
+      </tr>
+      <tr>
+        <td>Response (text/plain UTF-8)</td>
+        <td>none</td>
+      </tr>
     </tbody>
   </table>
   <h4>Example:</h4>
@@ -51,16 +81,31 @@
       </tr>
     </tbody>
   </table>
-    
+
   <h2>JDBC</h2>
   <h3>Get list of connections</h3>
   <table border="1">
     <tbody>
-      <tr><td>Method</td><td><code>GET</code></td></tr>
-      <tr><td>Url</td><td><code>/api/jdbc/list</code></td></tr>
-      <tr><td>Request params</td><td>none</td></tr>
-      <tr><td>Request body</td><td>none</td></tr>
-      <tr><td>Response (application/json UTF-8)</td><td>list of connections</td></tr>
+      <tr>
+        <td>Method</td>
+        <td><code>GET</code></td>
+      </tr>
+      <tr>
+        <td>Url</td>
+        <td><code>/api/jdbc/list</code></td>
+      </tr>
+      <tr>
+        <td>Request params</td>
+        <td>none</td>
+      </tr>
+      <tr>
+        <td>Request body</td>
+        <td>none</td>
+      </tr>
+      <tr>
+        <td>Response (application/json UTF-8)</td>
+        <td>list of connections</td>
+      </tr>
     </tbody>
   </table>
   <h4>Example:</h4>
@@ -68,7 +113,7 @@
     <tbody>
       <tr>
         <th>Request</th>
-        <th>Response</t>  
+        <th>Response</t>
       </tr>
       <tr>
         <td><code>/api/jdbc/list</code></td>
@@ -94,24 +139,39 @@
       "password": "yoursecret"
     }
   ]
-}       </pre><br/>
-If there are no connections, the <code>"connections"</code> element will have the value of an empty array
-        </td>  
+}       </pre><br /> If there are no connections, the <code>"connections"</code>
+          element will have the value of an empty array</td>
       </tr>
     </tbody>
   </table>
 
   <h3>Modify connections</h3>
+  Modify existing connections
   <table border="1">
     <tbody>
-      <tr><td>Method</td><td><code>POST</code></td></tr>
-      <tr><td>Url</td><td><code>/api/jdbc/mod</code></td></tr>
-      <tr><td>Request params</td><td>none</td></tr>
-      <tr><td>Request body</td>
-        <td>list of connection modification requests, where each element is one of three modification requests:
+      <tr>
+        <td>Method</td>
+        <td><code>POST</code></td>
+      </tr>
+      <tr>
+        <td>Url</td>
+        <td><code>/api/jdbc/mod</code></td>
+      </tr>
+      <tr>
+        <td>Request params</td>
+        <td>none</td>
+      </tr>
+      <tr>
+        <td>Request body</td>
+        <td>list of connection modification requests, where each
+          element is one of three modification requests:
           <table border="1" style="margin: 10px;">
             <tbody>
-              <tr><th>Update connection</th><th>Delete connection</th><th>Create connection</th></tr>
+              <tr>
+                <th>Update connection</th>
+                <th>Delete connection</th>
+                <th>Create connection</th>
+              </tr>
               <tr>
                 <td><pre>
 {
@@ -151,22 +211,28 @@ If there are no connections, the <code>"connections"</code> element will have th
           </table>
         </td>
       </tr>
-      <tr><td>Response (application/json UTF-8)</td>
+      <tr>
+        <td>Response (application/json UTF-8)</td>
         <td><pre>
 {
   "mod_states": <i>array of states corresponding to the array of modification requests</i>,
   "connections": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
-}       </pre><br/>
-The <code>"mod_states"</code> element is an array of states corresponding to the array of modification requests.<br/>
-The states are:
-<ul>
-  <li><code>0</code>: <code>SUCCESS</code></li>
-  <li><code>1</code>: <code>ERROR</code>: no connection found by <code>"location"</code></li>
-  <li><code>2</code>: <code>ERROR</code>: <code>"location"</code> is empty</li>
-  <li><code>3</code>: <code>ERROR</code>: some mandatory fields in <code>"data"</code> are empty</li>
-  <li><code>4</code>: <code>ERROR</code>: illegal <code>"action"</code> value</li>
-  <li><code>5</code>: <code>ERROR</code>: internal server error</li>
-</ul></td>
+}       </pre><br /> The <code>"mod_states"</code> element is an array of
+          states corresponding to the array of modification requests.<br />
+          The states are:
+          <ul>
+            <li><code>0</code>: <code>SUCCESS</code></li>
+            <li><code>1</code>: <code>ERROR</code>: no connection
+              found by <code>"location"</code></li>
+            <li><code>2</code>: <code>ERROR</code>: <code>"location"</code>
+              is empty</li>
+            <li><code>3</code>: <code>ERROR</code>: some mandatory
+              fields in <code>"data"</code> are empty</li>
+            <li><code>4</code>: <code>ERROR</code>: illegal <code>"action"</code>
+              value</li>
+            <li><code>5</code>: <code>ERROR</code>: internal server
+              error</li>
+          </ul></td>
       </tr>
     </tbody>
   </table>
@@ -175,7 +241,7 @@ The states are:
     <tbody>
       <tr>
         <th>Request</th>
-        <th>Response</t>  
+        <th>Response</t>
       </tr>
       <tr>
         <td><pre>
@@ -238,8 +304,122 @@ The states are:
   ]
 }  
           </pre></td>
-        </tr>
-      </tbody>
-    </table>
-  </body>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Ensure connection</h3>
+  Ensures a connection. Unlike modifying, which manipulates existing
+  connections only, this method ensures the connection is present after
+  invocation. If there is no active connection with the same name, a new
+  active connection is created. If there is an active connection with
+  the same name, the existing connection becomes inactive, and a new
+  active connection is created.
+  <table border="1">
+    <tbody>
+      <tr>
+        <td>Method</td>
+        <td><code>POST</code></td>
+      </tr>
+      <tr>
+        <td>Url</td>
+        <td><code>/api/jdbc/ensure</code></td>
+      </tr>
+      <tr>
+        <td>Request params</td>
+        <td>none</td>
+      </tr>
+      <tr>
+        <td>Request body</td>
+        <td>A connection description (all fields are mandatory): <pre>
+{
+  "name": <i>value</i>,
+  "server": <i>value</i>,
+  "db": <i>value</i>,
+  "user": <i>value</i>,
+  "password": <i>value</i>
+}
+          </pre>
+        </td>
+      </tr>
+      <tr>
+        <td>Response (application/json UTF-8)</td>
+        <td><pre>
+{
+  "ensure_state": <i>state of ensure request</i>,
+  "connections": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
+}       </pre><br /> The states are:
+          <ul>
+            <li><code>0</code>: <code>SUCCESS</code>: there has
+              been an entirely same active connection, no connection has
+              been changed</li>
+            <li><code>1</code>: <code>SUCCESS</code>: there has
+              been no active connection with the same name, a new active
+              connection was created</li>
+            <li><code>2</code>: <code>SUCCESS</code>: there has
+              been an active connection with the same name, the existing
+              connection made inactive, and a new active connection was
+              created</li>
+            <li><code>3</code>: <code>ERROR</code>: some mandatory
+              fields are empty</li>
+            <li><code>4</code>: <code>ERROR</code>: internal server
+              error</li>
+          </ul></td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>Example:</h4>
+  <table border="1">
+    <tbody>
+      <tr>
+        <th>Request</th>
+        <th>Response</t>
+      </tr>
+      <tr>
+        <td><pre>
+/api/jdbc/ensure
+{
+    "name": "jdbc/EnsuredDataSource",
+    "server": "theirdbserver.com:1521",
+    "db": "ENSUREDDATABASE",
+    "user": "ens",
+    "password": "ens"
+}       </pre></td>
+        <td><pre>
+{
+  "ensure_state": 1,
+  "connections": [
+    {
+      "location": "Context.ResourceLink-0__Server.Resource-1",
+      "active": true,
+      "name": "jdbc/TheirDataSource",
+      "server": "theirdbserver.com:1521",
+      "db": "THEIRDATABASE",
+      "user": "them",
+      "password": "theirsecret"
+    },
+    {
+      "location": "Context.comment-4.ResourceLink-0__Server.Resource-0",
+      "active": false,
+      "name": "jdbc/YourNewDataSource",
+      "server": "yourdbserver.com:1521",
+      "db": "YOURNEWDATABASE",
+      "user": "you",
+      "password": "yournewsecret"
+    }
+    {
+      "location": "Context.comment-5.ResourceLink-0__Server.Resource-1",
+      "active": true,
+      "name": "jdbc/EnsuredDataSource",
+      "server": "theirdbserver.com:1521",
+      "db": "ENSUREDDATABASE",
+      "user": "ens",
+      "password": "ens"
+    }
+  ]
+}  
+          </pre></td>
+      </tr>
+    </tbody>
+  </table>
+</body>
 </html>
