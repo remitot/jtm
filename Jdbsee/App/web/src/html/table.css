@@ -1,0 +1,190 @@
+/* Common code to draw and manipulate main page tables */
+
+#table {
+  margin-top: 15px;
+  display: table;
+}
+
+#table div.row {
+  display: table-row;
+}
+
+#table div.cell {
+  display: table-cell;
+  
+  position: relative;
+  height: 32px;
+  
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+#table .flexColumns div.cell > *, #table .strike {
+  width: 100%;
+}
+
+#table div.cell > .deletable, #table div.cell > .strike {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#table .flexColumns {
+  overflow: hidden;
+} 
+
+#table div.cell.column-active {
+  margin-left: 8px;
+  width: 36px;
+  float: left;
+}
+#table div.cell.column-delete {
+  margin-right: 8px;
+  width: 36px;
+  float: right;
+}
+
+#table .cell-pad-left {
+  width: 6px;
+  height: 6px;
+  float: left;
+}
+#table .cell-pad-right {
+  width: 6px;
+  height: 6px;
+  float: right;
+}
+#table .cell-pad-mid {
+  overflow: hidden;
+}
+
+#table .cell-pad-mid > * {
+  width: 100%;
+}
+
+#table .header label {
+  background-color: transparent;
+  
+  font-family: monospace;
+  font-size: 13.5px;
+  font-weight: bold;
+  color: black;
+  
+  padding-left: 6px;
+}
+
+#table .header div.cell {
+  height: 20px;
+}
+
+#table .checkbox {
+  border-width: 0 0 0 0;
+  border-bottom: 2px solid;
+  border-color: transparent;
+
+  width: 24px;
+  height: 24px;
+  
+  padding-top: 0;
+  padding-bottom: 2px;
+}
+
+
+/* elements that go opaque when inactive */
+#table .row.inactive input.inactivatible {
+  color: #888;
+}
+
+#table .row.even-odd-gray {
+  background-color: #fafafa;
+}
+
+
+#table div.strike {
+  display: none;
+  
+  border-bottom: 2px solid;
+  height: 19px;
+  
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}
+
+
+#table input.field-text.modified, #table .modified {
+  border-color: #fb8f40;
+}
+
+#table input.field-text.modified:focus {
+  border-color: #0089bd;
+}
+
+#table .checkbox-disabled.modified {
+  border-color: transparent !important; /* overrides .modified */
+}
+
+#table input.field-text:disabled {
+  border-color: transparent;
+}
+
+#table div.strike {
+  border-color: #fb8f40;
+}
+#table .row.created.deleted {
+  display: none;
+}
+
+#table .row.deleted div.strike {
+  display: block;
+}
+
+#table .row.deleted .deletable {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+
+#table .row .column-delete input {
+  width: 24px;
+  height: 24px;
+}
+
+
+#table .checkbox-disabled {
+  cursor: default !important; /* overrides .checkbox */
+}
+#table .checkbox-disabled .checkmark {
+  background-color: transparent !important; /* overrides .checkmark */
+}
+#table .checkbox-disabled .checkmark.hovered {
+  background-color: transparent !important; /* overrides .checkmark.hovered */
+}
+#table .checkbox-disabled .checkmark:after {
+  border-color: black !important; /* overrides .checkmark:after */
+}
+
+
+/* status bar is fixed */
+#jdbcStatusBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+}
+/* and controlButtons do not flow under the status bar if #table is empty */
+#table {
+  min-height: 35px;
+}
+
+#controlButtons {
+  background-color: white;
+  position: sticky;
+  left: 0;
+  bottom: 0;
+}
+
+.bottom-shadow {
+  box-shadow: 0 -3px 5px rgb(57, 63, 72); /* fallback */
+  box-shadow: 0 -3px 5px rgba(57, 63, 72, 0.3);  
+}
