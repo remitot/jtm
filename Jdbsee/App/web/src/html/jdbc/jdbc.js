@@ -462,7 +462,7 @@ function onCreateButtonClick() {
   row = createRowCreate();
   document.getElementById("table").appendChild(row);
   
-  row.querySelectorAll(".cell.column-name input")[0].focus();
+  row.querySelectorAll(".cell input[type='text']")[0].focus(); // focus on the first text input field
       
   checkListItemsModified();
 }
