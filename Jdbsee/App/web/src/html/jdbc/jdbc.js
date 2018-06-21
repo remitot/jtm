@@ -34,22 +34,22 @@ function reload() {
   xhttp.send();
 }
 
-function refillGrid(jsonConnections) {
+function refillGrid(jsonListItems) {
   table = document.getElementById("table");
   table.innerHTML = "";
   
-  if (jsonConnections.length > 0) {
+  if (jsonListItems.length > 0) {
     table.appendChild(createHeader());
     
-    for (var i = 0; i < jsonConnections.length; i++) {
-      connection = jsonConnections[i];
+    for (var i = 0; i < jsonListItems.length; i++) {
+      listItem = jsonListItems[i];
       
-      row = createRow(connection);
+      row = createRow(listItem);
       
       table.appendChild(row);
     }
     
-    checkConnectionsModified();
+    checkListItemsModified();
   }
 }
 
@@ -237,7 +237,7 @@ function addCheckbox(cell, active, enabled) {
   
   checkbox.onclick = function(event){
     onCheckboxInput(event.target);
-    checkConnectionsModified();
+    checkListItemsModified();
   };
   checkbox.classList.add("deletable");
 
@@ -386,10 +386,10 @@ function onFieldInput(field) {
     }
   }
   
-  checkConnectionsModified();
+  checkListItemsModified();
 }
 
-function checkConnectionsModified() {
+function checkListItemsModified() {
   totalModifications = 
       document.getElementsByClassName("modified").length
       - document.querySelectorAll(".row.created.deleted .modified").length
@@ -455,7 +455,7 @@ function onDeleteButtonClick(button) {
     }
   }
   
-  checkConnectionsModified();
+  checkListItemsModified();
 }
 
 function onCreateButtonClick() {
@@ -476,13 +476,13 @@ function onSaveButtonClick() {
   
   uiOnSaveBegin();
   
-  connectionModificationRequests = [];
+  modificationRequests = [];
   
   if (rowsModified.length > 0) {
     for (var i = 0; i < rowsModified.length; i++) {
       connectionLocation = rowsModified[i].connectionLocation;
       connection = rowsModified[i].connection;
-      connectionModificationRequests.push(
+      modificationRequests.push(
           {
             action: "update", 
             location: rowsModified[i].connectionLocation, 
@@ -494,7 +494,7 @@ function onSaveButtonClick() {
   
   if (rowsDeleted.length > 0) {
     for (var i = 0; i < rowsDeleted.length; i++) {
-      connectionModificationRequests.push(
+      modificationRequests.push(
           {
             action: "delete", 
             location: rowsDeleted[i]
@@ -505,7 +505,7 @@ function onSaveButtonClick() {
   
   if (rowsCreated.length > 0) {
     for (var i = 0; i < rowsCreated.length; i++) {
-      connectionModificationRequests.push(
+      modificationRequests.push(
           {
             action: "create", 
             data: rowsCreated[i]
@@ -514,7 +514,7 @@ function onSaveButtonClick() {
     }
   }
   
-  if (connectionModificationRequests.length > 0) {
+  if (modificationRequests.length > 0) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         
@@ -584,7 +584,7 @@ function onSaveButtonClick() {
     };
     xhttp.open("POST", "api/jdbc/mod", true);
     
-    requestJson = {mod_requests: connectionModificationRequests};
+    requestJson = {mod_requests: modificationRequests};
     xhttp.send(JSON.stringify(requestJson));
     
   } else {

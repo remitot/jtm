@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.web.jdbc;
+package org.jepria.tomcat.manager.web;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
 
 /**
- * Arbitrary environment-dependent configuration parameters
+ * Basic production environment
  */
-public class ConfigurationEnvironment {
+public class BasicEnvironment implements Environment {
   
   private final File contextXml;
   private final File serverXml;
@@ -29,7 +29,7 @@ public class ConfigurationEnvironment {
   private final File contextResourceLinkDefaultAttrs;
   private final File serverResourceDefaultAttrs;
   
-  public ConfigurationEnvironment(HttpServletRequest request) {
+  public BasicEnvironment(HttpServletRequest request) {
     Path confPath = Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
     
     contextXml = confPath.resolve("context.xml").toFile();
@@ -43,23 +43,44 @@ public class ConfigurationEnvironment {
         "/WEB-INF/jdbc_connection_default_attrs/server_Resource.default_attrs.properties"));
   }
   
-  public OutputStream getServerXmlOutputStream() throws FileNotFoundException {
-    return new FileOutputStream(serverXml);
+  @Override
+  public OutputStream getServerXmlOutputStream() {
+    try {
+      return new FileOutputStream(serverXml);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
   }
   
-  public InputStream getServerXmlInputStream() throws FileNotFoundException {
-    return new FileInputStream(serverXml);
+  @Override
+  public InputStream getServerXmlInputStream() {
+    try {
+      return new FileInputStream(serverXml);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
   }
   
-  public OutputStream getContextXmlOutputStream() throws FileNotFoundException {
-    return new FileOutputStream(contextXml);
+  @Override
+  public OutputStream getContextXmlOutputStream() {
+    try {
+      return new FileOutputStream(contextXml);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
   }
   
-  public InputStream getContextXmlInputStream() throws FileNotFoundException {
-    return new FileInputStream(contextXml);
+  @Override
+  public InputStream getContextXmlInputStream() {
+    try {
+      return new FileInputStream(contextXml);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
   }
   
-  public ConnectionInitialParams getConnectionInitialParams() {
+  @Override
+  public ConnectionInitialParams getJdbcConnectionInitialParams() {
     
     // TODO reload each time?
     Properties contextResourceDefaultAttrsProps = new Properties();
