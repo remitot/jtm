@@ -23,9 +23,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jepria.tomcat.manager.core.Connection;
+import org.jepria.tomcat.manager.core.TomcatConf;
 import org.jepria.tomcat.manager.core.TransactionException;
-import org.jepria.tomcat.manager.core.jdbc.Connection;
-import org.jepria.tomcat.manager.core.jdbc.TomcatConf;
 import org.jepria.tomcat.manager.web.BasicEnvironment;
 import org.jepria.tomcat.manager.web.Environment;
 
