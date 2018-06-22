@@ -216,6 +216,7 @@
         <td><pre>
 {
   "statuses": <i>array of statuses corresponding to the array of modification requests</i>,
+  "status_messages": <i>array of status messages corresponding to the array of statuses</i>,
   "connections": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
 }       </pre><br /> The <code>"statuses"</code> element is an array of
           statuses corresponding to the array of modification requests.<br />
@@ -281,6 +282,11 @@
     <span style="color: orange;">0</span>,
     <span style="color: green;">0</span>
   ],
+  "status_messages": [
+    <span style="color: red;">SUCCESS</span>,
+    <span style="color: orange;">SUCCESS</span>,
+    <span style="color: green;">SUCCESS</span>
+  ],
   "connections": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-1",
@@ -344,11 +350,12 @@
         <td>Response (application/json UTF-8)</td>
         <td><pre>
 {
-  "status": <i>status of ensure request</i>,
+  "status": <i>status of the ensure request</i>,
+  "status_message": <i>status message of the ensure request</i>,
 }       </pre><br /> The statuses are:
           <ul>
-            <li><code>0</code>: <code>SUCCESS</code>: there has
-              been an entirely same active connection, no modifications
+            <li><code>0</code>: <code>SUCCESS</code>: there is an
+              entirely same active connection, no modifications
               performed</li>
             <li><code>1</code>: <code>SUCCESS</code>: there has
               been no active connection with the same name, a new active
@@ -383,7 +390,8 @@
 }       </pre></td>
         <td><pre>
 {
-  "status": 1
+  "status": 1,
+  "status_message": "SUCCESS: there has been no active connection with the same name, a new active connection was created"
 }  
           </pre></td>
       </tr>

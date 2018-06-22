@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -148,8 +149,9 @@ public class JdbcApiServlet extends HttpServlet {
 
       final Map<String, Connection> connections = tomcatConf.getConnections();
 
-      // responses correspond to requests
-      int[] connectionModificationResponseStatuses = new int[modRequests.size()];
+      // response statuses and messages, corresponding to requests
+      final int[] respStatuses = new int[modRequests.size()];
+      
       Set<Integer> processedRequestIndexes = new HashSet<>();
 
       // 1) updates
@@ -159,22 +161,22 @@ public class JdbcApiServlet extends HttpServlet {
         if ("update".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
 
-          int cmResponse;
-
+          int respStatus;
+          
           try {
             String location = cmRequest.getLocation();
 
             if (location == null) {
 
-              cmResponse = ConnectionModificationResponseStatus.ERR__LOCATION_IS_EMPTY;
-
+              respStatus = ConnectionModificationResponseStatus.ERR__LOCATION_IS_EMPTY;
+                  
             } else {
 
               Connection connection = connections.get(location);
 
               if (connection == null) {
 
-                cmResponse = ConnectionModificationResponseStatus.ERR__CONNECTION_NOT_FOUND_BY_LOCATION;
+                respStatus = ConnectionModificationResponseStatus.ERR__CONNECTION_NOT_FOUND_BY_LOCATION;
 
               } else {
                 ConnectionDto connectionDto = cmRequest.getData();
@@ -203,15 +205,15 @@ public class JdbcApiServlet extends HttpServlet {
                   connection.setUser(connectionDto.getUser());
                 }
 
-                cmResponse = ConnectionModificationResponseStatus.SUCCESS;
+                respStatus = ConnectionModificationResponseStatus.SUCCESS;
               }
             }
           } catch (Throwable e) {
             e.printStackTrace();
-            cmResponse = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
+            respStatus = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
           }
 
-          connectionModificationResponseStatuses[i] = cmResponse;
+          respStatuses[i] = respStatus;
         }
       }
 
@@ -223,14 +225,14 @@ public class JdbcApiServlet extends HttpServlet {
         if ("delete".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
 
-          int cmResponse;
+          int respStatus;
 
           try {
             String location = cmRequest.getLocation();
 
             if (location == null) {
 
-              cmResponse = ConnectionModificationResponseStatus.ERR__LOCATION_IS_EMPTY;
+              respStatus = ConnectionModificationResponseStatus.ERR__LOCATION_IS_EMPTY;
 
             } else {
 
@@ -238,20 +240,20 @@ public class JdbcApiServlet extends HttpServlet {
 
               if (connection == null) {
 
-                cmResponse = ConnectionModificationResponseStatus.ERR__CONNECTION_NOT_FOUND_BY_LOCATION;
+                respStatus = ConnectionModificationResponseStatus.ERR__CONNECTION_NOT_FOUND_BY_LOCATION;
 
               } else {
                 tomcatConf.delete(location);
 
-                cmResponse = ConnectionModificationResponseStatus.SUCCESS;
+                respStatus = ConnectionModificationResponseStatus.SUCCESS;
               }
             }
           } catch (Throwable e) {
             e.printStackTrace();
-            cmResponse = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
+            respStatus = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
           }
 
-          connectionModificationResponseStatuses[i] = cmResponse;
+          respStatuses[i] = respStatus;
         }
       }
 
@@ -263,7 +265,7 @@ public class JdbcApiServlet extends HttpServlet {
         if ("create".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
 
-          int cmResponse;
+          int respStatus;
 
           try {
             ConnectionDto connectionDto = cmRequest.getData();
@@ -273,7 +275,7 @@ public class JdbcApiServlet extends HttpServlet {
 
             if (!emptyFields.isEmpty()) {
 
-              cmResponse = ConnectionModificationResponseStatus.ERR__MANDATORY_FIELDS_EMPTY;
+              respStatus = ConnectionModificationResponseStatus.ERR__MANDATORY_FIELDS_EMPTY;
 
             } else {
 
@@ -285,14 +287,14 @@ public class JdbcApiServlet extends HttpServlet {
               newConnection.setServer(connectionDto.getServer());
               newConnection.setUser(connectionDto.getUser());
 
-              cmResponse = ConnectionModificationResponseStatus.SUCCESS;
+              respStatus = ConnectionModificationResponseStatus.SUCCESS;
             }
           } catch (Throwable e) {
             e.printStackTrace();
-            cmResponse = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
+            respStatus = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
           }
 
-          connectionModificationResponseStatuses[i] = cmResponse;
+          respStatuses[i] = respStatus;
         }
       }
 
@@ -301,8 +303,8 @@ public class JdbcApiServlet extends HttpServlet {
       // 4) process illegal actions
       for (int i = 0; i < modRequests.size(); i++) {
         if (!processedRequestIndexes.contains(i)) {
-          int cmResponse = ConnectionModificationResponseStatus.ERR__ILLEGAL_ACTION;
-          connectionModificationResponseStatuses[i] = cmResponse;
+          int respStatus = ConnectionModificationResponseStatus.ERR__ILLEGAL_ACTION;
+          respStatuses[i] = respStatus;
         }
       }
 
@@ -319,9 +321,16 @@ public class JdbcApiServlet extends HttpServlet {
       
       List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
       
+      
+      // prepare status_messages
+      List<String> respStatusMessages = Arrays.stream(respStatuses)
+          .mapToObj(status -> ConnectionModificationResponseStatus.getMessage(status))
+          .collect(Collectors.toList());
+      
 
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("statuses", connectionModificationResponseStatuses);
+      responseJsonMap.put("statuses", respStatuses);
+      responseJsonMap.put("status_messages", respStatusMessages);
       responseJsonMap.put("connections", connectionDtos);
       
       saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
@@ -398,7 +407,7 @@ public class JdbcApiServlet extends HttpServlet {
 
       final Map<String, Connection> connections = tomcatConf.getConnections();
 
-      int emResponse;
+      int respStatus;
       
       try {
         
@@ -407,7 +416,7 @@ public class JdbcApiServlet extends HttpServlet {
 
         if (!emptyFields.isEmpty()) {
 
-          emResponse = EnsureConnectionResponseStatus.ERR__MANDATORY_FIELDS_EMPTY;
+          respStatus = EnsureConnectionResponseStatus.ERR__MANDATORY_FIELDS_EMPTY;
 
         } else {
 
@@ -422,7 +431,7 @@ public class JdbcApiServlet extends HttpServlet {
               .filter(connection -> connectionsEqual(connectionDto, connection)).findAny().isPresent(); 
               
           if (hasExistingSameConnection) {
-            emResponse = EnsureConnectionResponseStatus.SUCCESS__EXISTED_THE_SAME;
+            respStatus = EnsureConnectionResponseStatus.SUCCESS__EXISTED_THE_SAME;
             
           } else {
 
@@ -442,13 +451,14 @@ public class JdbcApiServlet extends HttpServlet {
   
             
             if (existingConnections.isEmpty()) {
-              emResponse = EnsureConnectionResponseStatus.SUCCESS__NO_EXIST_CREATED;
+              respStatus = EnsureConnectionResponseStatus.SUCCESS__NO_EXIST_CREATED;
             } else {
-              emResponse = EnsureConnectionResponseStatus.SUCCESS__EXISTED_CREATED;
+              respStatus = EnsureConnectionResponseStatus.SUCCESS__EXISTED_CREATED;
             }
             
             Map<String, Object> responseJsonMap = new HashMap<>();
-            responseJsonMap.put("status", emResponse);
+            responseJsonMap.put("status", respStatus);
+            responseJsonMap.put("status_message", EnsureConnectionResponseStatus.getMessage(respStatus));
             
             saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
             return;
@@ -457,12 +467,13 @@ public class JdbcApiServlet extends HttpServlet {
         
       } catch (Throwable e) {
         e.printStackTrace();
-        emResponse = EnsureConnectionResponseStatus.ERR__INTERNAL_ERROR;
+        respStatus = EnsureConnectionResponseStatus.ERR__INTERNAL_ERROR;
       }
       
       
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("status", emResponse);
+      responseJsonMap.put("status", respStatus);
+      responseJsonMap.put("status_message", EnsureConnectionResponseStatus.getMessage(respStatus));
       
       try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
         new Gson().toJson(responseJsonMap, osw);
