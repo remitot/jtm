@@ -43,6 +43,9 @@ public class TomcatConf {
    */
   private final Document serverDoc;
   
+  /**
+   * Lazily initialized map of connections
+   */
   private Map<String, BaseConnection> baseConnections = null;
   
   public TomcatConf(InputStream contextXmlInputStream,
@@ -64,16 +67,22 @@ public class TomcatConf {
    */
   @SuppressWarnings("unchecked")
   public Map<String, Connection> getConnections() {
-    
+    return (Map<String, Connection>)(Map<String, ?>)getBaseConnections();
+  }
+  
+  /**
+   * @return unmodifiable Map&lt;Location, BaseConnection&gt;
+   */
+  protected Map<String, BaseConnection> getBaseConnections() {
     if (baseConnections == null) {
       initBaseConnections();
     }
     
-    return (Map<String, Connection>)(Map<String, ?>)baseConnections;
+    return baseConnections;
   }
   
   /**
-   * Initialize (lazily on the first invocation) or reset JDBC connections
+   * Lazily initialize (or re-initialize) {@link #baseConnections} map
    */
   private void initBaseConnections() {
     
@@ -544,7 +553,7 @@ public class TomcatConf {
   
   public void delete(String location) throws TransactionException, LocationNotExistException {
     try {
-      BaseConnection connection = baseConnections.get(location);
+      BaseConnection connection = getBaseConnections().get(location);
       
       if (connection == null) {
         throw new LocationNotExistException(location);
@@ -561,5 +570,19 @@ public class TomcatConf {
 
   protected void handleThrowable(Throwable e) {
     e.printStackTrace();
+  }
+  
+  
+  public String getPortAjp13() throws XPathExpressionException {
+    final XPathExpression ajp13ConnectorExpr = XPathFactory.newInstance().newXPath().compile(
+        "Server/Service/Connector[protocol='AJP/1.3']");
+    Node ajp13Connector = (Node)ajp13ConnectorExpr.evaluate(serverDoc, XPathConstants.NODE);
+    
+    if (ajp13Connector == null) {
+      return null;
+    }
+    
+    String port = ajp13Connector.getAttributes().getNamedItem("port").getNodeValue();
+    return port;
   }
 }
