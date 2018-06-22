@@ -72,6 +72,12 @@ public class JdbcApiServlet extends HttpServlet {
 
       resp.setStatus(HttpServletResponse.SC_OK);
       resp.flushBuffer();
+      return;
+      
+    } else {
+      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+      resp.flushBuffer();
+      return;
     }
   }
   
