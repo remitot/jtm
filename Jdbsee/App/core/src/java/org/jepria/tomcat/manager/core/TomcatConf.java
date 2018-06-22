@@ -43,7 +43,7 @@ public class TomcatConf {
    */
   private final Document serverDoc;
   
-  private final Map<String, BaseConnection> baseConnections;
+  private Map<String, BaseConnection> baseConnections = null;
   
   public TomcatConf(InputStream contextXmlInputStream,
       InputStream serverXmlInputStream) throws TransactionException {
@@ -57,8 +57,6 @@ public class TomcatConf {
     } catch (Throwable e) {
       throw new TransactionException(e);
     }
-    
-    this.baseConnections = getBaseConnections();
   }
 
   /**
@@ -66,15 +64,20 @@ public class TomcatConf {
    */
   @SuppressWarnings("unchecked")
   public Map<String, Connection> getConnections() {
-    return Collections.unmodifiableMap((Map<String, Connection>)(Map<String, ?>)baseConnections);
+    
+    if (baseConnections == null) {
+      initBaseConnections();
+    }
+    
+    return (Map<String, Connection>)(Map<String, ?>)baseConnections;
   }
   
   /**
-   * @return Map&lt;Location, BaseConnection&gt;
+   * Initialize (lazily on the first invocation) or reset JDBC connections
    */
-  private Map<String, BaseConnection> getBaseConnections() {
+  private void initBaseConnections() {
     
-    Map<String, BaseConnection> connections = new HashMap<>();
+    Map<String, BaseConnection> baseConnections0 = new HashMap<>();
     
     try {
       // context resources
@@ -86,7 +89,7 @@ public class TomcatConf {
           
           String location = "Context.Resource-" + i;
           
-          connections.put(location, 
+          baseConnections0.put(location, 
               new ContextResourceConnection(
                   contextResourceNode, 
                   true));
@@ -113,7 +116,7 @@ public class TomcatConf {
             
             String location = "Context.ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
             
-            connections.put(location, 
+            baseConnections0.put(location, 
                 new ContextResourceLinkConnection(
                     contextResourceLinkNode, 
                     serverResourceNode, 
@@ -142,7 +145,7 @@ public class TomcatConf {
             
             String location = "Context.comment-" + commentIndex + ".Resource-" + i; 
             
-            connections.put(location,
+            baseConnections0.put(location,
                 new ContextResourceConnection(
                     contextResourceCommentedNode,
                     false));
@@ -170,7 +173,7 @@ public class TomcatConf {
               
               String location = "Context.comment-" + commentIndex + ".ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
               
-              connections.put(location, 
+              baseConnections0.put(location, 
                   new ContextResourceLinkConnection(
                       contextResourceLinkCommentedNode,
                       serverResourceNode,
@@ -188,7 +191,7 @@ public class TomcatConf {
       handleThrowable(e);
     }
     
-    return connections;
+    this.baseConnections = Collections.unmodifiableMap(baseConnections0);
   }
   
   private List<Node> getContextResourceNodes() throws XPathExpressionException {
