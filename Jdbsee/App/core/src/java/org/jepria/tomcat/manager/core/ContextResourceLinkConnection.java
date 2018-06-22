@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.core.jdbc;
+package org.jepria.tomcat.manager.core;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

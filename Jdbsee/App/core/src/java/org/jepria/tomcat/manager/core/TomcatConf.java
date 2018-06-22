@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.core.jdbc;
+package org.jepria.tomcat.manager.core;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,9 +21,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.jepria.tomcat.manager.core.LocationNotExistException;
-import org.jepria.tomcat.manager.core.NodeUtils;
-import org.jepria.tomcat.manager.core.TransactionException;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
