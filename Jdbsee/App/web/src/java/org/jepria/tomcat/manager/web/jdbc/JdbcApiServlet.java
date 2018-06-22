@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -15,7 +14,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -130,8 +128,9 @@ public class JdbcApiServlet extends HttpServlet {
         Type mapType = new TypeToken<HashMap<String, List<ModRequestDto>>>(){}.getType();
         Map<String, List<ModRequestDto>> requestJsonMap = new Gson().fromJson(new InputStreamReader(req.getInputStream()), mapType);
         modRequests = requestJsonMap.get("mod_requests");
+        
         if (modRequests == null) {
-          throw new NoSuchElementException("mod_requests");
+          throw new IllegalStateException("mod_requests is null");
         }
       } catch (Throwable e) {
         e.printStackTrace();
@@ -308,10 +307,25 @@ public class JdbcApiServlet extends HttpServlet {
       }
 
 
+      // 5) do a fake save (to a temporary storage) and get after-save connections from there
+      ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
+      ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
+      
+      tomcatConf.save(contextXmlBaos, serverXmlBaos);
+      
+      TomcatConf tomcatConfAfterSave = new TomcatConf(
+          new ByteArrayInputStream(contextXmlBaos.toByteArray()),
+          new ByteArrayInputStream(serverXmlBaos.toByteArray()));
+      
+      List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
+      
+
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("mod_states", connectionModificationResponseStatuses);
+      responseJsonMap.put("statuses", connectionModificationResponseStatuses);
+      responseJsonMap.put("connections", connectionDtos);
       
       saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
+      
       return;
 
     } catch (Throwable e) {
@@ -324,18 +338,49 @@ public class JdbcApiServlet extends HttpServlet {
     }
   }
   
+  private static void saveAndWriteResponse(TomcatConf tomcatConf, Environment environment,
+      Map<String, Object> responseJsonMap, HttpServletResponse resp)
+          throws TransactionException, IOException {
+    // prepare response to write as fast as possible, after save completes
+    ByteArrayOutputStream preparedResponse = new ByteArrayOutputStream();
+    
+    try (OutputStreamWriter osw = new OutputStreamWriter(preparedResponse, "UTF-8")) {
+      new Gson().toJson(responseJsonMap, osw);
+    }
+    
+    // do save
+    tomcatConf.save(environment.getContextXmlOutputStream(), 
+        environment.getServerXmlOutputStream());
+    
+    // XXX potential vulnerability here!
+    // If tomcat configuration has autodeploy=true option,
+    // then it will reload the server by context.xml change event. 
+    // Although we try to write response as fast as possible further,
+    // the server may have already started reloading. 
+    // In this case, the servlet may behave unexpectedly:
+    // respond 500, or wait to respond after the server reloading finishes, whatever.
+    
+    // write response as fast as possible
+    OutputStream os = resp.getOutputStream();
+    for (byte b: preparedResponse.toByteArray()) {
+      os.write(b);
+    }
+    
+    resp.setStatus(HttpServletResponse.SC_OK);
+    resp.flushBuffer();
+  }
+  
   private void ensure(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     resp.setContentType("application/json; charset=UTF-8");
 
     try {
-
-
       ConnectionDto connectionDto;
 
       try {
         connectionDto = new Gson().fromJson(new InputStreamReader(req.getInputStream()), ConnectionDto.class);
+        
         if (connectionDto == null) {
-          throw new NoSuchElementException();
+          throw new IllegalStateException("connectionDto is null");
         }
       } catch (Throwable e) {
         e.printStackTrace();
@@ -395,11 +440,18 @@ public class JdbcApiServlet extends HttpServlet {
             newConnection.setServer(connectionDto.getServer());
             newConnection.setUser(connectionDto.getUser());
   
+            
             if (existingConnections.isEmpty()) {
               emResponse = EnsureConnectionResponseStatus.SUCCESS__NO_EXIST_CREATED;
             } else {
               emResponse = EnsureConnectionResponseStatus.SUCCESS__EXISTED_CREATED;
             }
+            
+            Map<String, Object> responseJsonMap = new HashMap<>();
+            responseJsonMap.put("status", emResponse);
+            
+            saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
+            return;
           }
         }
         
@@ -410,10 +462,15 @@ public class JdbcApiServlet extends HttpServlet {
       
       
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("ensure_state", emResponse);
+      responseJsonMap.put("status", emResponse);
       
+      try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
+        new Gson().toJson(responseJsonMap, osw);
+      }
       
-      saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
+      
       return;
 
     } catch (Throwable e) {
@@ -434,67 +491,6 @@ public class JdbcApiServlet extends HttpServlet {
         connectionDto.getPassword().equals(connection.getPassword());
   }
   
-  /**
-   * Save the current tomcatConf state, put a list of connections after the save complete as a "connections" JSON element, 
-   * write and close the HttpServletResponse.
-   * @param tomcatConf state to save
-   * @param environment environment to save the state to
-   * @param responseJsonMap main data to write to the JSON response (the "connections" JSON list will be added into the map too) 
-   * @param resp the response
-   * @throws IOException 
-   * @throws UnsupportedEncodingException 
-   * @throws TransactionException 
-   */
-  private static void saveAndWriteResponse(TomcatConf tomcatConf, Environment environment, 
-      Map<String, Object> responseJsonMap, HttpServletResponse resp) 
-          throws UnsupportedEncodingException, IOException, TransactionException {
-    
-    if (responseJsonMap == null) {
-      responseJsonMap = new HashMap<>();
-    }
-    
-    
-    // do a fake save (to a temporary storage) and get after-save connections from there
-    ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
-    ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
-    
-    tomcatConf.save(contextXmlBaos, serverXmlBaos);
-    
-    TomcatConf tomcatConfAfterSave = new TomcatConf(
-        new ByteArrayInputStream(contextXmlBaos.toByteArray()),
-        new ByteArrayInputStream(serverXmlBaos.toByteArray()));
-    
-    List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
-    
-    // prepare repsonse to write as fast as possible, after a real save
-    responseJsonMap.put("connections", connectionDtos);
-    ByteArrayOutputStream preparedResponse = new ByteArrayOutputStream();
-    
-    try (OutputStreamWriter osw = new OutputStreamWriter(preparedResponse, "UTF-8")) {
-      new Gson().toJson(responseJsonMap, osw);
-    }
-    
-    // do a real save
-    tomcatConf.save(environment.getContextXmlOutputStream(), 
-        environment.getServerXmlOutputStream());
-    
-    // XXX potential vulnerability here!
-    // If tomcat configuration has autodeploy=true option,
-    // then it will reload the server by context.xml change event. 
-    // Although we try to write response as fast as possible further,
-    // the server may have already started reloading. 
-    // In this case, the servlet may behave unexpectedly:
-    // respond 500, or wait to respond after the server reloading finishes, whatever.
-    
-    // write response as fast as possible
-    OutputStream os = resp.getOutputStream();
-    for (byte b: preparedResponse.toByteArray()) {
-      os.write(b);
-    }
-    
-    resp.setStatus(HttpServletResponse.SC_OK);
-    resp.flushBuffer();
-  }
   
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

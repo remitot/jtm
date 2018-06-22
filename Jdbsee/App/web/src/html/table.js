@@ -371,9 +371,9 @@ function onSaveButtonClick() {
           uiOnSaveEnd();
           jsonResponse = JSON.parse(this.responseText);
           
-          jsonModStates = jsonResponse.mod_states;
+          jsonStatuses = jsonResponse.statuses;
           // if everything is OK, all statuses are 0
-          sum = jsonModStates.reduce(function(a, b) {return a + b;});
+          sum = jsonStatuses.reduce(function(a, b) {return a + b;});
           if (sum > 0) {
             message = "<span class=\"span-bold\">Modifications saved, but some of them produced errors.</span>&emsp;The server might be restaring now...";
             statusError(message);
