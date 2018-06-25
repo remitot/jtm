@@ -23,9 +23,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.tomcat.manager.core.Connection;
-import org.jepria.tomcat.manager.core.TomcatConf;
 import org.jepria.tomcat.manager.core.TransactionException;
+import org.jepria.tomcat.manager.core.jdbc.Connection;
+import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.BasicEnvironment;
 import org.jepria.tomcat.manager.web.Environment;
 
@@ -50,7 +50,7 @@ public class JdbcApiServlet extends HttpServlet {
         
         Environment environment = new BasicEnvironment(req);
         
-        TomcatConf tomcatConf = new TomcatConf(environment.getContextXmlInputStream(), 
+        TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
             environment.getServerXmlInputStream());
         
         List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
@@ -81,7 +81,7 @@ public class JdbcApiServlet extends HttpServlet {
     }
   }
   
-  private static List<ConnectionDto> getConnections(TomcatConf tomcatConf) {
+  private static List<ConnectionDto> getConnections(TomcatConfJdbc tomcatConf) {
     Map<String, Connection> connections = tomcatConf.getConnections();
 
     // list all connections
@@ -150,7 +150,7 @@ public class JdbcApiServlet extends HttpServlet {
 
       Environment environment = new BasicEnvironment(req);
       
-      TomcatConf tomcatConf = new TomcatConf(environment.getContextXmlInputStream(), 
+      TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
 
       final Map<String, Connection> connections = tomcatConf.getConnections();
@@ -333,7 +333,7 @@ public class JdbcApiServlet extends HttpServlet {
         
         tomcatConf.save(contextXmlBaos, serverXmlBaos);
         
-        TomcatConf tomcatConfAfterSave = new TomcatConf(
+        TomcatConfJdbc tomcatConfAfterSave = new TomcatConfJdbc(
             new ByteArrayInputStream(contextXmlBaos.toByteArray()),
             new ByteArrayInputStream(serverXmlBaos.toByteArray()));
         
@@ -368,7 +368,7 @@ public class JdbcApiServlet extends HttpServlet {
     }
   }
   
-  private static void saveAndWriteResponse(TomcatConf tomcatConf, Environment environment,
+  private static void saveAndWriteResponse(TomcatConfJdbc tomcatConf, Environment environment,
       Map<String, Object> responseJsonMap, HttpServletResponse resp)
           throws TransactionException, IOException {
     // prepare response to write as fast as possible, after save completes
@@ -423,7 +423,7 @@ public class JdbcApiServlet extends HttpServlet {
 
       Environment environment = new BasicEnvironment(req);
       
-      TomcatConf tomcatConf = new TomcatConf(environment.getContextXmlInputStream(), 
+      TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
 
       final Map<String, Connection> connections = tomcatConf.getConnections();

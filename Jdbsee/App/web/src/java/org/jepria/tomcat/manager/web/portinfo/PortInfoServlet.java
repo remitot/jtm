@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.tomcat.manager.core.TomcatConf;
+import org.jepria.tomcat.manager.core.portinfo.TomcatConfPortInfo;
 import org.jepria.tomcat.manager.web.BasicEnvironment;
 import org.jepria.tomcat.manager.web.Environment;
 
@@ -26,7 +26,7 @@ public class PortInfoServlet extends HttpServlet {
       
       Environment environment = new BasicEnvironment(req);
       
-      TomcatConf tomcatConf = new TomcatConf(environment.getContextXmlInputStream(), 
+      TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
       
       String port = tomcatConf.getConnectorPort("AJP/1.3");
@@ -63,7 +63,7 @@ public class PortInfoServlet extends HttpServlet {
       
       Environment environment = new BasicEnvironment(req);
       
-      TomcatConf tomcatConf = new TomcatConf(environment.getContextXmlInputStream(), 
+      TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
       
       String port = tomcatConf.getConnectorPort("HTTP/1.1");

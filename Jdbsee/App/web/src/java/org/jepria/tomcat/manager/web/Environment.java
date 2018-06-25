@@ -3,7 +3,7 @@ package org.jepria.tomcat.manager.web;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.jepria.tomcat.manager.core.ConnectionInitialParams;
+import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
 
 /**
  * Environment-dependent configuration parameters

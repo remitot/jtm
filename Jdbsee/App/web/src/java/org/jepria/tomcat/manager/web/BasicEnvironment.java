@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.jepria.tomcat.manager.core.ConnectionInitialParams;
+import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
 
 /**
  * Basic production environment
