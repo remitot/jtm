@@ -143,7 +143,7 @@ public class JdbcApiServlet extends HttpServlet {
         e.printStackTrace();
 
         resp.getOutputStream().println("Error parsing JSON request body");
-        resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
       }
@@ -156,10 +156,12 @@ public class JdbcApiServlet extends HttpServlet {
       final Map<String, Connection> connections = tomcatConf.getConnections();
 
       // response statuses and messages, corresponding to requests
-      final int[] respStatuses = new int[modRequests.size()];
+      final ConnectionModificationResponseStatus[] respStatuses = new ConnectionModificationResponseStatus[modRequests.size()];
       
       Set<Integer> processedRequestIndexes = new HashSet<>();
-
+      
+      boolean confModified = false; 
+      
       // 1) updates
       for (int i = 0; i < modRequests.size(); i++) {
         ModRequestDto cmRequest = modRequests.get(i);
@@ -167,14 +169,14 @@ public class JdbcApiServlet extends HttpServlet {
         if ("update".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
 
-          int respStatus;
+          ConnectionModificationResponseStatus respStatus;
           
           try {
             String location = cmRequest.getLocation();
 
             if (location == null) {
 
-              respStatus = ConnectionModificationResponseStatus.ERR__LOCATION_IS_EMPTY;
+              respStatus = ConnectionModificationResponseStatus.errLocationIsEmpty();
                   
             } else {
 
@@ -182,7 +184,7 @@ public class JdbcApiServlet extends HttpServlet {
 
               if (connection == null) {
 
-                respStatus = ConnectionModificationResponseStatus.ERR__CONNECTION_NOT_FOUND_BY_LOCATION;
+                respStatus = ConnectionModificationResponseStatus.errConnectionNotFoundByLocation(location);
 
               } else {
                 ConnectionDto connectionDto = cmRequest.getData();
@@ -211,12 +213,13 @@ public class JdbcApiServlet extends HttpServlet {
                   connection.setUser(connectionDto.getUser());
                 }
 
-                respStatus = ConnectionModificationResponseStatus.SUCCESS;
+                respStatus = ConnectionModificationResponseStatus.success();
+                confModified = true;
               }
             }
           } catch (Throwable e) {
             e.printStackTrace();
-            respStatus = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
+            respStatus = ConnectionModificationResponseStatus.errInternalError();
           }
 
           respStatuses[i] = respStatus;
@@ -231,14 +234,14 @@ public class JdbcApiServlet extends HttpServlet {
         if ("delete".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
 
-          int respStatus;
+          ConnectionModificationResponseStatus respStatus;
 
           try {
             String location = cmRequest.getLocation();
 
             if (location == null) {
 
-              respStatus = ConnectionModificationResponseStatus.ERR__LOCATION_IS_EMPTY;
+              respStatus = ConnectionModificationResponseStatus.errLocationIsEmpty();
 
             } else {
 
@@ -246,17 +249,18 @@ public class JdbcApiServlet extends HttpServlet {
 
               if (connection == null) {
 
-                respStatus = ConnectionModificationResponseStatus.ERR__CONNECTION_NOT_FOUND_BY_LOCATION;
+                respStatus = ConnectionModificationResponseStatus.errConnectionNotFoundByLocation(location);
 
               } else {
                 tomcatConf.delete(location);
 
-                respStatus = ConnectionModificationResponseStatus.SUCCESS;
+                respStatus = ConnectionModificationResponseStatus.success();
+                confModified = true;
               }
             }
           } catch (Throwable e) {
             e.printStackTrace();
-            respStatus = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
+            respStatus = ConnectionModificationResponseStatus.errInternalError();
           }
 
           respStatuses[i] = respStatus;
@@ -271,7 +275,7 @@ public class JdbcApiServlet extends HttpServlet {
         if ("create".equals(cmRequest.getAction())) {
           processedRequestIndexes.add(i);
 
-          int respStatus;
+          ConnectionModificationResponseStatus respStatus;
 
           try {
             ConnectionDto connectionDto = cmRequest.getData();
@@ -281,7 +285,7 @@ public class JdbcApiServlet extends HttpServlet {
 
             if (!emptyFields.isEmpty()) {
 
-              respStatus = ConnectionModificationResponseStatus.ERR__MANDATORY_FIELDS_EMPTY;
+              respStatus = ConnectionModificationResponseStatus.errMandatoryFieldsEmpty(emptyFields);
 
             } else {
 
@@ -293,11 +297,12 @@ public class JdbcApiServlet extends HttpServlet {
               newConnection.setServer(connectionDto.getServer());
               newConnection.setUser(connectionDto.getUser());
 
-              respStatus = ConnectionModificationResponseStatus.SUCCESS;
+              respStatus = ConnectionModificationResponseStatus.success();
+              confModified = true;
             }
           } catch (Throwable e) {
             e.printStackTrace();
-            respStatus = ConnectionModificationResponseStatus.ERR__INTERNAL_ERROR;
+            respStatus = ConnectionModificationResponseStatus.errInternalError();
           }
 
           respStatuses[i] = respStatus;
@@ -309,40 +314,50 @@ public class JdbcApiServlet extends HttpServlet {
       // 4) process illegal actions
       for (int i = 0; i < modRequests.size(); i++) {
         if (!processedRequestIndexes.contains(i)) {
-          int respStatus = ConnectionModificationResponseStatus.ERR__ILLEGAL_ACTION;
-          respStatuses[i] = respStatus;
+          respStatuses[i] = ConnectionModificationResponseStatus.errIllegalAction(modRequests.get(i).getAction());
         }
       }
 
 
-      // 5) do a fake save (to a temporary storage) and get after-save connections from there
-      ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
-      ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
       
-      tomcatConf.save(contextXmlBaos, serverXmlBaos);
-      
-      TomcatConf tomcatConfAfterSave = new TomcatConf(
-          new ByteArrayInputStream(contextXmlBaos.toByteArray()),
-          new ByteArrayInputStream(serverXmlBaos.toByteArray()));
-      
-      List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
-      
-      
-      // prepare status_messages
-      List<String> respStatusMessages = Arrays.stream(respStatuses)
-          .mapToObj(status -> ConnectionModificationResponseStatus.getMessage(status))
-          .collect(Collectors.toList());
-      
-
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("statuses", respStatuses);
-      responseJsonMap.put("status_messages", respStatusMessages);
-      responseJsonMap.put("connections", connectionDtos);
+      responseJsonMap.put("statuses", Arrays.stream(respStatuses).map(status -> status.code).collect(Collectors.toList()));
+      // TODO maybe to check some URL parameter (such as 'verbose=1') and to put or not to put status_messages into a response?
+      responseJsonMap.put("status_messages", Arrays.stream(respStatuses).map(status -> status.message).collect(Collectors.toList()));
       
-      saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
+      if (confModified) {
+        
+        // because the new connection list needed in response, do a fake save (to a temporary storage) and get after-save connections from there
+        ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
+        ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
+        
+        tomcatConf.save(contextXmlBaos, serverXmlBaos);
+        
+        TomcatConf tomcatConfAfterSave = new TomcatConf(
+            new ByteArrayInputStream(contextXmlBaos.toByteArray()),
+            new ByteArrayInputStream(serverXmlBaos.toByteArray()));
+        
+        List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
+        responseJsonMap.put("connections", connectionDtos);
+        
+        saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
+        return;
+        
+      } else {
+        // no conf save, just write response
+        List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
+        responseJsonMap.put("connections", connectionDtos);
+        
+        try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
+          new Gson().toJson(responseJsonMap, osw);
+        }
+        
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.flushBuffer();
+        
+        return;
+      }
       
-      return;
-
     } catch (Throwable e) {
       e.printStackTrace();
 
@@ -413,7 +428,9 @@ public class JdbcApiServlet extends HttpServlet {
 
       final Map<String, Connection> connections = tomcatConf.getConnections();
 
-      int respStatus;
+      EnsureConnectionResponseStatus respStatus;
+      
+      boolean confModified = false;
       
       try {
         
@@ -422,7 +439,7 @@ public class JdbcApiServlet extends HttpServlet {
 
         if (!emptyFields.isEmpty()) {
 
-          respStatus = EnsureConnectionResponseStatus.ERR__MANDATORY_FIELDS_EMPTY;
+          respStatus = EnsureConnectionResponseStatus.errMandatoryFieldsEmpty(emptyFields);
 
         } else {
 
@@ -437,7 +454,7 @@ public class JdbcApiServlet extends HttpServlet {
               .filter(connection -> connectionsEqual(connectionDto, connection)).findAny().isPresent(); 
               
           if (hasExistingSameConnection) {
-            respStatus = EnsureConnectionResponseStatus.SUCCESS__EXISTED_THE_SAME;
+            respStatus = EnsureConnectionResponseStatus.successExistedTheSame();
             
           } else {
 
@@ -457,38 +474,41 @@ public class JdbcApiServlet extends HttpServlet {
   
             
             if (existingConnections.isEmpty()) {
-              respStatus = EnsureConnectionResponseStatus.SUCCESS__NO_EXIST_CREATED;
+              respStatus = EnsureConnectionResponseStatus.successNoExistCreated();
             } else {
-              respStatus = EnsureConnectionResponseStatus.SUCCESS__EXISTED_CREATED;
+              respStatus = EnsureConnectionResponseStatus.successExistedCreated();
             }
             
-            Map<String, Object> responseJsonMap = new HashMap<>();
-            responseJsonMap.put("status", respStatus);
-            responseJsonMap.put("status_message", EnsureConnectionResponseStatus.getMessage(respStatus));
-            
-            saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
-            return;
+            confModified = true;
           }
         }
         
       } catch (Throwable e) {
         e.printStackTrace();
-        respStatus = EnsureConnectionResponseStatus.ERR__INTERNAL_ERROR;
+        respStatus = EnsureConnectionResponseStatus.errInternalError();
       }
       
       
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("status", respStatus);
-      responseJsonMap.put("status_message", EnsureConnectionResponseStatus.getMessage(respStatus));
+      responseJsonMap.put("status", respStatus.code);
+      // TODO maybe to check some URL parameter (such as 'verbose=1') and to put or not to put status_message into a response?
+      responseJsonMap.put("status_message", respStatus.message);
       
-      try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
-        new Gson().toJson(responseJsonMap, osw);
+      if (confModified) {
+        saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
+        return;
+        
+      } else {
+        // no conf save, just write response
+        try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
+          new Gson().toJson(responseJsonMap, osw);
+        }
+        
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.flushBuffer();
+        
+        return;
       }
-      
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.flushBuffer();
-      
-      return;
 
     } catch (Throwable e) {
       e.printStackTrace();
