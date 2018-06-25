@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.core;
+package org.jepria.tomcat.manager.core.jdbc;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -21,47 +20,32 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.jepria.tomcat.manager.core.LocationNotExistException;
+import org.jepria.tomcat.manager.core.NodeFoldHelper;
+import org.jepria.tomcat.manager.core.NodeUtils;
+import org.jepria.tomcat.manager.core.TomcatConfBase;
+import org.jepria.tomcat.manager.core.TransactionException;
 import org.w3c.dom.Comment;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Class represents the configuration of Tomcat server (namely, server.xml and context.xml)
+ * Class represents the configuration of Tomcat server for accessing JDBC resources
  */
-public class TomcatConf {
+public class TomcatConfJdbc extends TomcatConfBase {
   
-  /**
-   * context.xml Document
-   */
-  private final Document contextDoc;
-  
-  /**
-   * server.xml Document
-   */
-  private final Document serverDoc;
-  
+  public TomcatConfJdbc(InputStream contextXmlInputStream, InputStream serverXmlInputStream)
+      throws TransactionException {
+    super(contextXmlInputStream, serverXmlInputStream);
+  }
+
   /**
    * Lazily initialized map of connections
    */
   private Map<String, BaseConnection> baseConnections = null;
   
-  public TomcatConf(InputStream contextXmlInputStream,
-      InputStream serverXmlInputStream) throws TransactionException {
-    
-    try (InputStream contextXmlInputStream0 = contextXmlInputStream;
-        InputStream serverXmlInputStream0 = serverXmlInputStream) {
-      
-      contextDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(contextXmlInputStream0);
-      serverDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(serverXmlInputStream0);
-      
-    } catch (Throwable e) {
-      throw new TransactionException(e);
-    }
-  }
-
   /**
    * @return unmodifiable Map&lt;Location, Connection&gt;
    */
@@ -565,35 +549,6 @@ public class TomcatConf {
       throw e;
     } catch (Throwable e) {
       throw new TransactionException(e);
-    }
-  }
-
-  protected void handleThrowable(Throwable e) {
-    e.printStackTrace();
-  }
-  
-  
-  /**
-   * 
-   * @param protocol for example "AJP/1.3" or "HTTP/1.1"
-   * @return
-   */
-  public String getConnectorPort(String protocol) {
-    try {
-      final XPathExpression connectorExpr = XPathFactory.newInstance().newXPath().compile(
-          "Server/Service/Connector[@protocol='" + protocol + "']");
-      Node connector = (Node)connectorExpr.evaluate(serverDoc, XPathConstants.NODE);
-      
-      if (connector == null) {
-        return null;
-      }
-      
-      String portNumber = connector.getAttributes().getNamedItem("port").getNodeValue();
-      return portNumber;
-      
-    } catch (Throwable e) {
-      handleThrowable(e);
-      return null;
     }
   }
 }

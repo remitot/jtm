@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.core;
+package org.jepria.tomcat.manager.core.jdbc;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

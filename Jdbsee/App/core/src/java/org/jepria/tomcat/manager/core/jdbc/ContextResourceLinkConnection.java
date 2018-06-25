@@ -1,5 +1,6 @@
-package org.jepria.tomcat.manager.core;
+package org.jepria.tomcat.manager.core.jdbc;
 
+import org.jepria.tomcat.manager.core.NodeFoldHelper;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 

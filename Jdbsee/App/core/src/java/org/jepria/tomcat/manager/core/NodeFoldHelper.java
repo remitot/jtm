@@ -15,7 +15,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-/*package*/class NodeFoldHelper {
+public class NodeFoldHelper {
   
   
   /**
@@ -25,7 +25,7 @@ import org.xml.sax.SAXException;
    * @throws IllegalArgumentException
    * @throws IOException 
    */
-  /*package*/static Comment foldComment(Node node) throws TransformerException, IllegalArgumentException, IOException {
+  public static Comment foldComment(Node node) throws TransformerException, IllegalArgumentException, IOException {
     if ("UnfoldedComment".equals(((Element)node).getTagName())) {
       
       // remove all UnfoldedComment attributes, e.g. commentIndex
@@ -64,7 +64,7 @@ import org.xml.sax.SAXException;
    * @throws IOException
    * @throws ParserConfigurationException
    */
-  /*package*/static Node unfoldComment(Comment comment) throws UnsupportedEncodingException, SAXException, IOException, ParserConfigurationException {
+  public static Node unfoldComment(Comment comment) throws UnsupportedEncodingException, SAXException, IOException, ParserConfigurationException {
     String commentContentAsXml = "<UnfoldedComment>" + comment.getTextContent() + "</UnfoldedComment>";
     return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
         new ByteArrayInputStream(commentContentAsXml.getBytes("UTF-8"))).getDocumentElement();
@@ -75,7 +75,7 @@ import org.xml.sax.SAXException;
    * @param node
    * @return new node which is the uncommented old
    */
-  /*package*/static Node moveNodeFromUnfoldedComments(Node node) {
+  public static Node moveNodeFromUnfoldedComments(Node node) {
     Node unfoldedCommentRoot = node.getParentNode();
     
     if (unfoldedCommentRoot == null || !"UnfoldedComment".equals(((Element)unfoldedCommentRoot).getTagName())) {
@@ -93,7 +93,7 @@ import org.xml.sax.SAXException;
     return nodeClone;
   }
   
-  /*package*/static Node moveNodeToUnfoldedComments(Node node) {
+  public static Node moveNodeToUnfoldedComments(Node node) {
     Node nodeClone = node.cloneNode(true);
     nodeClone = node.getOwnerDocument().importNode(nodeClone, true);
     
