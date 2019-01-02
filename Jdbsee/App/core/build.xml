@@ -1,7 +1,7 @@
 <project name="Module Building" default="build">
 
   <property name="DISTR_DIR" location="lib" />
-  <property name="DISTR_NAME" value="jepria-tomcat-manager-core" />
+  <property name="DISTR_NAME" value="jtm-core" />
 
 	
 	<!-- java compile -->

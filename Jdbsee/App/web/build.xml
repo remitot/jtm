@@ -25,7 +25,7 @@
 
   <!-- Общие наборы файлов -->
   <path id="libs">
-  	<pathelement location="${JEPRIA-TOMCAT-MANAGER-CORE_LIB}" />
+  	<pathelement location="${JTM-CORE_LIB}" />
     <pathelement location="${SERVLET-API_LIB}" />
     <pathelement location="${GSON_LIB}" />
   </path>
@@ -78,7 +78,7 @@
         </copy>
         
         <copy todir="temp-war/WEB-INF/lib">
-        	<fileset file="${JEPRIA-TOMCAT-MANAGER-CORE_LIB}" />
+        	<fileset file="${JTM-CORE_LIB}" />
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
           <fileset file="${GSON_LIB}" />
         </copy>
