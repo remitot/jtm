@@ -11,7 +11,7 @@ import org.w3c.dom.Node;
   
   private boolean active = true;
   
-  /*package*/public ContextResourceLinkConnection(
+  /*package*/ContextResourceLinkConnection(
       Node contextResourceLinkNode, Node serverResourceNode, boolean active) {
     this.contextResourceLinkNode = (Element)contextResourceLinkNode;
     this.serverResourceNode = (Element)serverResourceNode;
