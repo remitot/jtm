@@ -11,22 +11,26 @@ import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
 public interface Environment {
   
   /**
-   * @return new output stream for the server.xml configuration file
+   * @return new output stream for the server.xml configuration file 
+   * (normally at TOMCAT_HOME/conf/server.xml)
    */
   OutputStream getServerXmlOutputStream();
   
   /**
    * @return new input stream for the server.xml configuration file
+   * (normally at TOMCAT_HOME/conf/server.xml)
    */
   InputStream getServerXmlInputStream();
   
   /**
    * @return new output stream for the context.xml configuration file
+   * (normally at TOMCAT_HOME/conf/context.xml)
    */
   OutputStream getContextXmlOutputStream();
   
   /**
    * @return new input stream for the context.xml configuration file
+   * (normally at TOMCAT_HOME/conf/context.xml)
    */
   InputStream getContextXmlInputStream();
   
