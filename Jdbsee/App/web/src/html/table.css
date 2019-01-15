@@ -35,12 +35,12 @@
 
 #table div.cell.column-active {
   margin-left: 8px;
-  width: 30px;
+  width: 36px;
   float: left;
 }
 #table div.cell.column-delete {
   margin-right: 8px;
-  width: 30px;
+  width: 36px;
   float: right;
 }
 

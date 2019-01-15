@@ -91,7 +91,7 @@ function addCheckbox(cell, active, enabled) {
   };
   checkbox.classList.add("deletable");
 
-  wrapper = wrapCellContent(checkbox, "left");  
+  wrapper = wrapCellPad(checkbox);  
   
   cell.appendChild(wrapper);
   
@@ -148,11 +148,11 @@ function onCheckboxInput(input) {
     
     if (!input.checked) {
       //TODO resolve the relative path:
-      input.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
+      input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
       input.parentElement.title = "Inactive item";
     } else {
       //TODO resolve the relative path:
-      input.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
+      input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
       input.parentElement.title = "Active item";
     }
   }
@@ -172,7 +172,7 @@ function addField(cell, name, value, placeholder) {
   field.classList.add("inactivatible");
   field.classList.add("deletable");
   
-  wrapper = wrapCellContent(field, "center");
+  wrapper = wrapCellPad(field);
   
   cell.appendChild(wrapper);
   
@@ -183,39 +183,22 @@ function addField(cell, name, value, placeholder) {
   return field;
 }
 
-/**
- * Prepares content to be displayed inside a table cell
- * by wrapping into a div (or multiple divs) 
- * to get the desired float inside the cell 
-**/
-function wrapCellContent(content, floatInside) {
+function wrapCellPad(element) {
   wrapper = document.createElement("div");
   
-  if (floatInside === "center") {
+  leftDiv = document.createElement("div");
+  leftDiv.classList.add("cell-pad-left");
+  wrapper.appendChild(leftDiv);
   
-    padLft = document.createElement("div");
-    padLft.classList.add("cell-pad-left");
-    wrapper.appendChild(padLft);
-    
-    padRgt = document.createElement("div");
-    padRgt.classList.add("cell-pad-right");
-    wrapper.appendChild(padRgt);
-    
-    padMid = document.createElement("div");
-    padMid.classList.add("cell-pad-mid");
-    wrapper.appendChild(padMid);
-    
-    padMid.appendChild(content);
-    
-  } else if (floatInside === "right") {
-    wrapper.appendChild(content);
-    wrapper.style.cssFloat = "right";
-    
-  } else if (floatInside === "left") {
-    wrapper.appendChild(content);
-    wrapper.style.cssFloat = "left";
-    
-  }
+  leftDiv = document.createElement("div");
+  leftDiv.classList.add("cell-pad-right");
+  wrapper.appendChild(leftDiv);
+  
+  midDiv = document.createElement("div");
+  midDiv.classList.add("cell-pad-mid");
+  wrapper.appendChild(midDiv);
+  
+  midDiv.appendChild(element);
   
   return wrapper;
 }
@@ -228,7 +211,7 @@ function addFieldDelete(cell) {
   button.title = "Delete";
   button.onclick = function(event){onDeleteButtonClick(event.target);};
   
-  wrapper = wrapCellContent(button, "right");  
+  wrapper = wrapCellPad(button);  
   cell.appendChild(wrapper);
 }
 
@@ -282,7 +265,7 @@ function setButtonSaveEnabled(enabled) {
 
 function onDeleteButtonClick(button) {
   //TODO resolve the relative path:
-  row = button.parentElement.parentElement.parentElement;
+  row = button.parentElement.parentElement.parentElement.parentElement;
   
   rowInputs = row.querySelectorAll("input.deletable");
   
