@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>mod_jk bindings — Tomcat manager</title>
+    <title>Привязки mod_jk — Tomcat manager</title> <!-- NON-NLS -->
     
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     
