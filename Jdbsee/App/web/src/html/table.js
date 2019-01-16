@@ -17,7 +17,7 @@ function getApiModUrl() {
 
 function reload() {
   
-  setModButtonsEnabled(false);
+  setControlButtonsEnabled(false);
   
   statusInfo("загрузка..."); // NON-NLS
   
@@ -250,33 +250,18 @@ function checkListItemsModified() {
       + document.getElementsByClassName("row deleted").length
       - document.getElementsByClassName("row created deleted").length;
   
-  setModButtonsEnabled(totalModifications > 0);
+  setControlButtonsEnabled(totalModifications > 0);
   
   // graphics:
   adjustBottomShadow();
 }
 
 /**
- * Sets enability of control buttons which depend on the table elements modification status
+ * Sets enability of control buttons (which depend on the table elements modification status)
  */
-function setModButtonsEnabled(enabled) {
-  var buttonSave = document.getElementById("buttonSave");
-  var buttonReset = document.getElementById("buttonReset");
-  
-  if (enabled) {
-    buttonSave.disabled = false;  
-    buttonReset.disabled = false;
-    
-    buttonSave.title = "Сохранить все изменения (оранжевые)"; // NON-NLS
-    buttonReset.title = "Сбросить все изменения (оранжевые) и обновить таблицу"; // NON-NLS
-    
-  } else {
-    buttonSave.disabled = true;
-    buttonReset.disabled = true;
-    
-    buttonSave.title = "Изменений нет"; // NON-NLS
-    buttonReset.title = "Изменений нет"; // NON-NLS
-  }
+function setControlButtonsEnabled(enabled) {
+  // the function affects the control buttons only, so it is overridden in control-buttons.fragment script
+  return null;
 }
 
 function onDeleteButtonClick(button) {
@@ -561,12 +546,18 @@ function rowToJson(row) {
   return rowJson;
 }
 
+// TODO the function affects the control buttons only. 
+// Better to move into control-buttons.fragment script?
 function adjustBottomShadow() {
-  if (document.getElementById("table").getBoundingClientRect().bottom <= 
-    document.getElementById("controlButtons").getBoundingClientRect().top) {
-    document.getElementById("controlButtons").classList.remove("bottom-shadow");
-  } else {
-    document.getElementById("controlButtons").classList.add("bottom-shadow");
+  var controlButtons = document.getElementById("controlButtons");
+  
+  if (controlButtons != null) {
+    if (document.getElementById("table").getBoundingClientRect().bottom <= 
+      controlButtons.getBoundingClientRect().top) {
+      controlButtons.classList.remove("bottom-shadow");
+    } else {
+      controlButtons.classList.add("bottom-shadow");
+    }
   }
 }
 

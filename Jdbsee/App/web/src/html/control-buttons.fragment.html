@@ -43,4 +43,26 @@
       button.classList.remove("hovered");
     });
   }
+  
+  
+  /* Override from table.js */
+  function setControlButtonsEnabled(enabled) {
+    var buttonSave = document.getElementById("buttonSave");
+    var buttonReset = document.getElementById("buttonReset");
+    
+    if (enabled) {
+      buttonSave.disabled = false;  
+      buttonReset.disabled = false;
+      
+      buttonSave.title = "Сохранить все изменения (оранжевые)"; // NON-NLS
+      buttonReset.title = "Сбросить все изменения (оранжевые) и обновить таблицу"; // NON-NLS
+      
+    } else {
+      buttonSave.disabled = true;
+      buttonReset.disabled = true;
+      
+      buttonSave.title = "Изменений нет"; // NON-NLS
+      buttonReset.title = "Изменений нет"; // NON-NLS
+    }
+  }
 </script>
