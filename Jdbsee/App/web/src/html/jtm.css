@@ -23,6 +23,10 @@ body {
   cursor: default;
 }
 
+.big-black-button.hovered {
+  background-color: #0089bd
+}
+
 /******* input text *******/
 
 input.field-text {

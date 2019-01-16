@@ -111,6 +111,14 @@ function createCheckbox(active) {
   input.name = "active";
   input.checked = active;
   input.setAttribute("value0", active);
+  field.appendChild(input);
+  
+  var span = document.createElement("span");
+  span.classList.add("checkmark");
+  field.appendChild(span);
+
+
+  // add 'hovered' class for checkbox's onfocus and onmouseover  
   input.onfocus = function(event){
     var input = event.target;
     input.parentElement.getElementsByClassName("checkmark")[0].classList.add("hovered");
@@ -119,10 +127,6 @@ function createCheckbox(active) {
     var input = event.target;
     input.parentElement.getElementsByClassName("checkmark")[0].classList.remove("hovered");
   });
-  field.appendChild(input);
-  
-  var span = document.createElement("span");
-  span.classList.add("checkmark");
   span.onmouseover = function(event) {
     var checkmark = event.target;
     checkmark.classList.add("hovered");
@@ -131,7 +135,7 @@ function createCheckbox(active) {
     var checkmark = event.target;
     checkmark.classList.remove("hovered");
   });
-  field.appendChild(span);
+
   
   return field;
 }
