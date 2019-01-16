@@ -23,27 +23,27 @@ function createHeader() {
   
   cell = createCell(div, "column-name");
   label = document.createElement("label");
-  label.innerHTML = "Name";
+  label.innerHTML = "Название датасорса"; // NON-NLS
   cell.appendChild(label);
   
   cell = createCell(div, "column-server");
   label = document.createElement("label");
-  label.innerHTML = "Server";
+  label.innerHTML = "Сервер базы данных"; // NON-NLS
   cell.appendChild(label);
   
   cell = createCell(div, "column-db");
   label = document.createElement("label");
-  label.innerHTML = "Database";
+  label.innerHTML = "Имя базы"; // NON-NLS
   cell.appendChild(label);
   
   cell = createCell(div, "column-user");
   label = document.createElement("label");
-  label.innerHTML = "User";
+  label.innerHTML = "Пользователь базы"; // NON-NLS
   cell.appendChild(label);
   
   cell = createCell(div, "column-password");
   label = document.createElement("label");
-  label.innerHTML = "Password";
+  label.innerHTML = "Пароль к базе"; // NON-NLS
   cell.appendChild(label);
   
   row.appendChild(div);

@@ -19,7 +19,7 @@ function reload() {
   
   setModButtonsEnabled(false);
   
-  statusInfo("loading...");
+  statusInfo("загрузка..."); // NON-NLS
   
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -33,17 +33,17 @@ function reload() {
         refillGrid(jsonListItems);
         
       } else if (this.status == 401) {
-        statusError("Authorization required");
+        statusError("Требуется авторизация"); // NON-NLS
     
         raiseLoginForm(function() {
           hideLoginForm();
           reload();  
         });
       } else if (this.status == 403) {
-        statusError("<span class=\"span-bold\">Access denied.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Logout</a> to change the user");
+        statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
         
       } else {
-        statusError("Network error " + this.status);
+        statusError("Сетевая ошибка " + this.status); // NON-NLS
       }
     }
   };
@@ -153,11 +153,11 @@ function onCheckboxInput(input) {
     if (!input.checked) {
       //TODO resolve the relative path:
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
-      input.parentElement.title = "Inactive item";
+      input.parentElement.title = "Запись неактивна"; // NON-NLS
     } else {
       //TODO resolve the relative path:
       input.parentElement.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
-      input.parentElement.title = "Active item";
+      input.parentElement.title = "Запись активна"; // NON-NLS
     }
   }
 }
@@ -212,7 +212,7 @@ function addFieldDelete(cell) {
   button = document.createElement("input");
   button.type = "image";
   button.src = "img/delete.png";
-  button.title = "Delete";
+  button.title = "Удалить"; // NON-NLS
   button.onclick = function(event){onDeleteButtonClick(event.target);};
   
   wrapper = wrapCellPad(button);  
@@ -267,15 +267,15 @@ function setModButtonsEnabled(enabled) {
     buttonSave.disabled = false;  
     buttonReset.disabled = false;
     
-    buttonSave.title = "Save all modifications (orange)";
-    buttonReset.title = "Clear all modifications (orange) and refresh the table";
+    buttonSave.title = "Сохранить все изменения (оранжевые)"; // NON-NLS
+    buttonReset.title = "Сбросить все изменения (оранжевые) и обновить таблицу"; // NON-NLS
     
   } else {
     buttonSave.disabled = true;
     buttonReset.disabled = true;
     
-    buttonSave.title = "No modifications performed";
-    buttonReset.title = "No modifications performed";
+    buttonSave.title = "Изменений нет"; // NON-NLS
+    buttonReset.title = "Изменений нет"; // NON-NLS
   }
 }
 
@@ -290,7 +290,7 @@ function onDeleteButtonClick(button) {
     
     // button changes image
     button.src = "img/undelete.png";
-    button.title = "Do not delete";
+    button.title = "Не удалять"; // NON-NLS
     
     for (var i = 0; i < rowInputs.length; i++) {
       rowInputs[i].disabled = true;
@@ -307,7 +307,7 @@ function onDeleteButtonClick(button) {
     
     // button changes image
     button.src = "img/delete.png";
-    button.title = "Delete";
+    button.title = "Удалить"; // NON-NLS
     
     for (var i = 0; i < rowInputs.length; i++) {
       rowInputs[i].disabled = false;
@@ -391,12 +391,12 @@ function onSaveButtonClick() {
           // if everything is OK, all statuses are 0
           sum = jsonStatuses.reduce(function(a, b) {return a + b;});
           if (sum > 0) {
-            message = "<span class=\"span-bold\">Modifications saved, but some of them produced errors.</span>&emsp;The server might be restaring now...";
+            message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагружаться..."; // NON-NLS // NON-NLS
             statusError(message);
           } else {
             statusBar = document.getElementById("jdbcStatusBar");
             statusBar.className = "statusBar statusBar-success";
-            statusBar.innerHTML = "<span class=\"span-bold\">Modifications successfully saved.</span>&emsp;The server might be restaring now...";
+            statusBar.innerHTML = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагружаться..."; // NON-NLS // NON-NLS
           }
           
           jsonListItems = getJsonListItems(jsonResponse); 
@@ -431,7 +431,7 @@ function onSaveButtonClick() {
           document.getElementById("controlButtons").style.display = "none";
           
         } else if (this.status == 401) {
-          statusError("Authorization required");
+          statusError("Требуется авторизация"); // NON-NLS
       
           raiseLoginForm(function() {
             hideLoginForm();
@@ -439,10 +439,10 @@ function onSaveButtonClick() {
           });
           
         } else if (this.status == 403) {
-          statusError("<span class=\"span-bold\">Access denied.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Logout</a> to change the user");
+          statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
           
         } else {
-          statusError("Network error " + this.status);
+          statusError("Сетевая ошибка " + this.status); // NON-NLS
         }
       }
     };
@@ -474,7 +474,7 @@ function logout(afterLogoutCallback) {
           afterLogoutCallback();
         }
       } else {
-        statusError("Network error " + this.status);
+        statusError("Сетевая ошибка " + this.status); // NON-NLS
       }
     }
   };
@@ -505,7 +505,7 @@ function uiOnSaveEnd() {
 }
 
 function uiOnSaveBegin() {
-  statusInfo("saving...");
+  statusInfo("сохраняем..."); // NON-NLS
 }
 
 function getRowsModified() {

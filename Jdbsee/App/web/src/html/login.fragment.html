@@ -1,18 +1,21 @@
+<!-- for correct cyrillic display while including as jsp -->
+<%@ page contentType="text/html; charset=UTF-8" %>
+
 <div id="loginScreen" class="loginForm-hidden">
   <div id="loginFrame">
     <div id="loginStatusBar" class="statusBar statusBar-none"></div>
     <form id="login-form">
       <div class="row">
         <input type="text" class="field-text" id="fieldUsername"
-             placeholder="username">
+             placeholder="серверный логин"> <!-- NON-NLS -->
       </div>
       <div class="row">
         <input type="password" class="field-text" id="fieldPassword"
-             placeholder="password">
+             placeholder="пароль"> <!-- NON-NLS -->
       </div>
       <div class="row">
         <button type="submit" class="big-black-button" 
-            onclick="submitForm(); return false;">LOGIN</button>
+            onclick="submitForm(); return false;">ВОЙТИ</button> <!-- NON-NLS -->
       </div>
     </form>
   </div>
@@ -109,9 +112,9 @@
     statusBar.className = "statusBar statusBar-error";
     
     if (httpStatus == 401) {
-      statusBar.innerHTML = "Incorrect credentials, try again";
+      statusBar.innerHTML = "Неверные данные, попробуйте другие"; // NON-NLS
     } else {
-      statusBar.innerHTML = "Authorization error, try later";
+      statusBar.innerHTML = "Ошибка авторизации, попробуйте позже"; // NON-NLS
     }
   }
   
@@ -124,7 +127,7 @@
 
     statusBar = document.getElementById("loginStatusBar");
     statusBar.className = "statusBar statusBar-info";
-    statusBar.innerHTML = "Are you the server admin?";
+    statusBar.innerHTML = "Вы — админ сервера?"; // NON-NLS
 
     onLoginSuccessCallback0 = onLoginSuccessCallback;
   } 
