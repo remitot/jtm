@@ -74,7 +74,7 @@
 <script type="text/javascript">
   function submitForm() {
     var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", "login", true);
+    xhttp.open("POST", "api/login", true);
     xhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     var params = "username=" + document.getElementById("fieldUsername").value
         + "&password=" + document.getElementById("fieldPassword").value;

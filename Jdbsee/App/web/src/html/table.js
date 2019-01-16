@@ -462,7 +462,7 @@ function logout(afterLogoutCallback) {
       }
     }
   };
-  xhttp.open("POST", "logout", true);
+  xhttp.open("POST", "api/logout", true);
   xhttp.send();
 }
 
