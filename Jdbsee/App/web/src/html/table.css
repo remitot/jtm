@@ -10,7 +10,7 @@
 }
 
 #table div.cell {
-  display: table-cell;
+  display: inline-block;
   
   position: relative;
   height: 32px;

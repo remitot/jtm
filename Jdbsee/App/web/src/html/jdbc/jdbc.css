@@ -1,27 +1,21 @@
 #table div.cell.column-name {
   width: 20%;
-  display: inline-block;
 }
 #table div.cell.column-server {
   width: 30%;
-  display: inline-block;
 }
 #table div.cell.column-db {
   width: 15%;
-  display: inline-block;
 }
 #table div.cell.column-user {
   width: 15%;
-  display: inline-block;
 }
 #table div.cell.column-password {
   width: 20%;
-  display: inline-block;
 }
 
 #table div.cell.column-password {
   width: 20%;
-  display: inline-block;
 }
 
 #controlButtons .big-black-button {

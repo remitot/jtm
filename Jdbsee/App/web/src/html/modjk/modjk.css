@@ -1,9 +1,7 @@
 #table div.cell.column-pattern {
   width: 20%;
-  display: inline-block;
 }
 #table div.cell.column-worker {
   width: 30%;
-  display: inline-block;
 }
 
