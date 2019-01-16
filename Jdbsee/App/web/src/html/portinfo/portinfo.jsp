@@ -1,0 +1,27 @@
+<%@ page contentType="text/html; charset=UTF-8" %>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Серверные порты — Tomcat manager</title> <!-- NON-NLS -->
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+    
+    <link rel="stylesheet" href="jtm.css">
+    <link rel="stylesheet" href="table.css">
+    <link rel="stylesheet" href="portinfo/portinfo.css">
+    <script type="text/javascript" src="table.js"></script>
+    <script type="text/javascript" src="portinfo/portinfo.js"></script>
+    
+  </head>
+  
+  <body onload="reload()">
+    <div id="table" style="width:100%"></div>
+    
+    <!-- after main content elements: -->
+    <div id="jdbcStatusBar" class="statusBar statusBar-none"></div>
+    
+    <%@ include file="../login.fragment.html" %>    
+    
+  </body>
+</html>

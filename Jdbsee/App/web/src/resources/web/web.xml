@@ -73,6 +73,16 @@
     <servlet-name>PortInfoApiServlet</servlet-name>
     <url-pattern>/api/portinfo/*</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>PortInfoGui</servlet-name>
+    <jsp-file>/portinfo/portinfo.jsp</jsp-file>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PortInfoGui</servlet-name>
+    <url-pattern>/portinfo</url-pattern>
+  </servlet-mapping>
+  
 
   <servlet>
     <servlet-name>ApiDocs</servlet-name>
