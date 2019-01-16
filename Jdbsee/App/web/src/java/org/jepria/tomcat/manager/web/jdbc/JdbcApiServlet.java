@@ -26,8 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.core.TransactionException;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
-import org.jepria.tomcat.manager.web.BasicEnvironment;
 import org.jepria.tomcat.manager.web.Environment;
+import org.jepria.tomcat.manager.web.EnvironmentFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -48,7 +48,7 @@ public class JdbcApiServlet extends HttpServlet {
       
       try {
         
-        Environment environment = new BasicEnvironment(req);
+        Environment environment = EnvironmentFactory.get(req);
         
         TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
             environment.getServerXmlInputStream());
@@ -145,7 +145,7 @@ public class JdbcApiServlet extends HttpServlet {
         return;
       }
 
-      Environment environment = new BasicEnvironment(req);
+      Environment environment = EnvironmentFactory.get(req);
       
       TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
@@ -418,7 +418,7 @@ public class JdbcApiServlet extends HttpServlet {
         return;
       }
 
-      Environment environment = new BasicEnvironment(req);
+      Environment environment = EnvironmentFactory.get(req);
       
       TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());

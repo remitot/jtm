@@ -29,8 +29,16 @@ public class BasicEnvironment implements Environment {
   private final File contextResourceLinkDefaultAttrs;
   private final File serverResourceDefaultAttrs;
   
+  /**
+   * @param request
+   * @return a path to tomcat conf folder
+   */
+  protected Path getConfPath(HttpServletRequest request) {
+    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
+  }
+  
   public BasicEnvironment(HttpServletRequest request) {
-    Path confPath = Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
+    Path confPath = getConfPath(request);
     
     contextXml = confPath.resolve("context.xml").toFile();
     serverXml = confPath.resolve("server.xml").toFile();

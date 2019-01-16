@@ -11,8 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.core.portinfo.TomcatConfPortInfo;
-import org.jepria.tomcat.manager.web.BasicEnvironment;
 import org.jepria.tomcat.manager.web.Environment;
+import org.jepria.tomcat.manager.web.EnvironmentFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,7 +24,7 @@ public class PortInfoServlet extends HttpServlet {
   private void ajp13(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     try {
       
-      Environment environment = new BasicEnvironment(req);
+      Environment environment = EnvironmentFactory.get(req);
       
       TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
@@ -61,7 +61,7 @@ public class PortInfoServlet extends HttpServlet {
   private void http11(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     try {
       
-      Environment environment = new BasicEnvironment(req);
+      Environment environment = EnvironmentFactory.get(req);
       
       TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
