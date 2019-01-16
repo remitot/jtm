@@ -1,66 +1,150 @@
 package org.jepria.tomcat.manager.web.portinfo;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jepria.tomcat.manager.core.TransactionException;
 import org.jepria.tomcat.manager.core.portinfo.TomcatConfPortInfo;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class PortInfoApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2791033129244689227L;
 
   private void ajp13(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    getConnectorPort(req, resp, "AJP/1.3");
-  }
-  
-  
-  private void http11(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    getConnectorPort(req, resp, "HTTP/1.1");
-  }
-  
-  private void getConnectorPort(HttpServletRequest req, HttpServletResponse resp, String portName) throws ServletException, IOException {
+    
+    // the content type is defined for the entire method
+    resp.setContentType("text/plain; charset=UTF-8");
+    
     try {
-      
-      Environment environment = EnvironmentFactory.get(req);
-      
-      TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
-          environment.getServerXmlInputStream());
-      
-      String port = tomcatConf.getConnectorPort(portName);
-      
+      Integer port = getConnectorPort(req, "AJP/1.3");
+
       if (port != null) {
         resp.getOutputStream().print(port);
       }
+      
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
+      return;
 
     } catch (Throwable e) {
       e.printStackTrace();
 
-      resp.getOutputStream().println("Oops! Something went wrong.");//TODO
+      // response body must either be empty or match the declared content type
       resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.flushBuffer();
       return;
     }
+  }
+  
+  
+  private void http11(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    
+    // the content type is defined for the entire method
+    resp.setContentType("text/plain; charset=UTF-8");
+    
+    try {
+      Integer port = getConnectorPort(req, "HTTP/1.1");
 
-    resp.setContentType("text/plain");
-    resp.setStatus(HttpServletResponse.SC_OK);
-    resp.flushBuffer();
-    return;
+      if (port != null) {
+        resp.getOutputStream().print(port);
+      }
+      
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
+      return;
+
+    } catch (Throwable e) {
+      e.printStackTrace();
+
+      // response body must either be empty or match the declared content type
+      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      resp.flushBuffer();
+      return;
+    }
+  }
+  
+  /**
+   * @param req the request to get the {@link Environment} for
+   * @param portName
+   * @return
+   * @throws TransactionException 
+   */
+  private Integer getConnectorPort(HttpServletRequest req, String portName) throws TransactionException {
+    Environment environment = EnvironmentFactory.get(req);
+    
+    TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
+        environment.getServerXmlInputStream());
+    
+    String port = tomcatConf.getConnectorPort(portName); 
+    return Integer.parseInt(port);
+  }
+  
+  private void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    
+    // the content type is defined for the entire method
+    resp.setContentType("application/json; charset=UTF-8");
+    
+    try {
+      Integer ajp13port = getConnectorPort(req, "AJP/1.3");
+      Integer http11port = getConnectorPort(req, "HTTP/1.1");
+      
+      List<Map<String, Object>> portInfos = new ArrayList<>();
+      
+      if (ajp13port != null) {
+        Map<String, Object> ajp13portJsonMap = new HashMap<>();
+        ajp13portJsonMap.put("name", "AJP/1.3");
+        ajp13portJsonMap.put("port", ajp13port);
+        portInfos.add(ajp13portJsonMap);
+      }
+      
+      if (http11port != null) {
+        Map<String, Object> http11portJsonMap = new HashMap<>();
+        http11portJsonMap.put("name", "HTTP/1.1");
+        http11portJsonMap.put("port", http11port);
+        portInfos.add(http11portJsonMap);
+      }
+      
+      Gson gson = new GsonBuilder().setPrettyPrinting().create();
+      gson.toJson(portInfos, new PrintStream(resp.getOutputStream()));
+    
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
+      return;
+      
+    } catch (Throwable e) {
+      e.printStackTrace();
+
+      // response body must either be empty or match the declared content type
+      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      resp.flushBuffer();
+      return;
+    }
   }
   
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
-    resp.setContentType("application/json; charset=UTF-8");
-    
     String path = req.getPathInfo();
     
-    if ("/ajp13".equals(path)) {
+    if ("/list".equals(path)) {
+      list(req, resp);
+      return;
+      
+    } else if ("/ajp13".equals(path)) {
       ajp13(req, resp);
       return;
       
@@ -69,6 +153,8 @@ public class PortInfoApiServlet extends HttpServlet {
       return;
       
     } else {
+      
+      // TODO set content type for the error case?
       resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
