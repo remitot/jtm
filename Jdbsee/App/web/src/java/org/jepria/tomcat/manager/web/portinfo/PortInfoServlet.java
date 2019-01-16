@@ -1,9 +1,6 @@
 package org.jepria.tomcat.manager.web.portinfo;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,51 +11,20 @@ import org.jepria.tomcat.manager.core.portinfo.TomcatConfPortInfo;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 public class PortInfoServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2791033129244689227L;
 
   private void ajp13(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    try {
-      
-      Environment environment = EnvironmentFactory.get(req);
-      
-      TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
-          environment.getServerXmlInputStream());
-      
-      String port = tomcatConf.getConnectorPort("AJP/1.3");
-      
-      Map<String, Object> responseJsonMap = new HashMap<>();
-      
-      if (port != null && !"".equals(port)) {
-        responseJsonMap.put("status", PortInfoResponseStatus.SUCCESS);
-        responseJsonMap.put("port_ajp13", port);
-      } else {
-        responseJsonMap.put("status", PortInfoResponseStatus.ERR__INTERNAL_ERROR);
-      }
-      
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-
-      resp.getOutputStream().println("Oops! Something went wrong.");//TODO
-      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      resp.flushBuffer();
-      return;
-    }
-
-    resp.setStatus(HttpServletResponse.SC_OK);
-    resp.flushBuffer();
-    return;
+    getConnectorPort(req, resp, "AJP/1.3");
   }
   
   
   private void http11(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    getConnectorPort(req, resp, "HTTP/1.1");
+  }
+  
+  private void getConnectorPort(HttpServletRequest req, HttpServletResponse resp, String portName) throws ServletException, IOException {
     try {
       
       Environment environment = EnvironmentFactory.get(req);
@@ -66,20 +32,12 @@ public class PortInfoServlet extends HttpServlet {
       TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
       
-      String port = tomcatConf.getConnectorPort("HTTP/1.1");
+      String port = tomcatConf.getConnectorPort(portName);
       
-      Map<String, Object> responseJsonMap = new HashMap<>();
-      
-      if (port == null || "".equals(port)) {
-        responseJsonMap.put("status", PortInfoResponseStatus.ERR__INTERNAL_ERROR);
-      } else {
-        responseJsonMap.put("status", PortInfoResponseStatus.SUCCESS);
-        responseJsonMap.put("port_http11", port);
+      if (port != null) {
+        resp.getOutputStream().print(port);
       }
-      
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
-      
+
     } catch (Throwable e) {
       e.printStackTrace();
 
@@ -89,6 +47,7 @@ public class PortInfoServlet extends HttpServlet {
       return;
     }
 
+    resp.setContentType("text/plain");
     resp.setStatus(HttpServletResponse.SC_OK);
     resp.flushBuffer();
     return;

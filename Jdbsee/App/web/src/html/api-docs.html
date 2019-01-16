@@ -428,16 +428,10 @@
         <td>none</td>
       </tr>
       <tr>
-        <td>Response (application/json UTF-8)</td>
+        <td>Response (text/plain UTF-8)</td>
         <td><pre>
-{
-  "status": <i>status of the request</i>,
-  "port_ajp13": <i>port number</i>
-}       </pre><br /> The statuses are:
-          <ul>
-            <li><code>0</code>: <code>SUCCESS</code></li>
-            <li><code>1</code>: <code>ERROR</code>: internal error</li>
-          </ul></td>
+<i>port number</i> or nothing (empty response) if no such port defined</pre>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -451,11 +445,8 @@
       <tr>
         <td><code>/api/portinfo/ajp13</code></td>
         <td><pre>
-{
-  "status": 0,
-  "port_ajp13": "8009"
-}  
-          </pre></td>
+8009</pre>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -480,16 +471,10 @@
         <td>none</td>
       </tr>
       <tr>
-        <td>Response (application/json UTF-8)</td>
+        <td>Response (text/plain UTF-8)</td>
         <td><pre>
-{
-  "status": <i>status of the request</i>,
-  "port_http11": <i>port number</i>
-}       </pre><br /> The statuses are:
-          <ul>
-            <li><code>0</code>: <code>SUCCESS</code></li>
-            <li><code>1</code>: <code>ERROR</code>: internal error</li>
-          </ul></td>
+<i>port number</i> or nothing (empty response) if no such port defined</pre>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -503,11 +488,8 @@
       <tr>
         <td><code>/api/portinfo/http11</code></td>
         <td><pre>
-{
-  "status": 0,
-  "port_http11": "8080"
-}  
-          </pre></td>
+8080</pre>
+        </td>
       </tr>
     </tbody>
   </table>

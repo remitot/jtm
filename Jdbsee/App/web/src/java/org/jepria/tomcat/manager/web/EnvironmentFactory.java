@@ -1,5 +1,8 @@
 package org.jepria.tomcat.manager.web;
 
+import java.io.File;
+import java.nio.file.Path;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -14,6 +17,11 @@ public final class EnvironmentFactory {
   private EnvironmentFactory() {}
   
   public static Environment get(HttpServletRequest request) {
-    return new BasicEnvironment(request); // production
+    return new BasicEnvironment(request) {
+      @Override
+      protected Path getConfPath(HttpServletRequest request) {
+        return new File("/home/roma/Desktop/conf-debug").toPath();
+      }
+    };
   }
 }
