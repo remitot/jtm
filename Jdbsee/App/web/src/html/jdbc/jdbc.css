@@ -19,3 +19,13 @@
   display: inline-block;
 }
 
+#table div.cell.column-password {
+  width: 20%;
+  display: inline-block;
+}
+
+/* override */
+.big-black-button {
+  margin: 14px;
+  margin-right: -4px; /* magic value */
+}
