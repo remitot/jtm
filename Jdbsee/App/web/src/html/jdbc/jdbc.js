@@ -1,5 +1,5 @@
 function getJsonListItems(jsonResponse) {
-  return jsonResponse.connections;
+  return jsonResponse; // the response itself is a JSON array of connections
 }
 
 function getApiListUrl() {

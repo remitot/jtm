@@ -111,7 +111,7 @@
       </tr>
       <tr>
         <td>Response (application/json UTF-8)</td>
-        <td>list of connections</td>
+        <td>JSON array of connections (or else an empty JSON array)</td>
       </tr>
     </tbody>
   </table>
@@ -125,29 +125,27 @@
       <tr>
         <td><code>/api/jdbc/list</code></td>
         <td><pre>
-{
-  "connections": [
-    {
-      "location": "Context.ResourceLink-0__Server.Resource-0",
-      "active": true,
-      "name": "jdbc/MyDataSource",
-      "server": "mydbserver.com:1521",
-      "db": "MYDATABASE",
-      "user": "me",
-      "password": "mysecret"
-    },
-    {
-      "location": "Context.ResourceLink-1__Server.Resource-1",
-      "active": true,
-      "name": "jdbc/YourDataSource",
-      "server": "yourdbserver.com:1521",
-      "db": "YOURDATABASE",
-      "user": "you",
-      "password": "yoursecret"
-    }
-  ]
-}       </pre><br /> If there are no connections, the <code>"connections"</code>
-          element will have the value of an empty array</td>
+[
+  {
+    "location": "Context.ResourceLink-0__Server.Resource-0",
+    "active": true,
+    "name": "jdbc/MyDataSource",
+    "server": "mydbserver.com:1521",
+    "db": "MYDATABASE",
+    "user": "me",
+    "password": "mysecret"
+  },
+  {
+    "location": "Context.ResourceLink-1__Server.Resource-1",
+    "active": true,
+    "name": "jdbc/YourDataSource",
+    "server": "yourdbserver.com:1521",
+    "db": "YOURDATABASE",
+    "user": "you",
+    "password": "yoursecret"
+  }
+]       </pre><br /> If there are no connections, an empty JSON array will be returned:<pre>
+[]</pre></td>
       </tr>
     </tbody>
   </table>

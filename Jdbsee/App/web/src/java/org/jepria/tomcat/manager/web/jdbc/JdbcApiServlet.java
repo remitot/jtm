@@ -55,11 +55,8 @@ public class JdbcApiServlet extends HttpServlet {
         
         List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
         
-        Map<String, Object> responseJsonMap = new HashMap<>();
-        responseJsonMap.put("connections", connectionDtos);
-        
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
+        gson.toJson(connectionDtos, new PrintStream(resp.getOutputStream()));
         
       } catch (Throwable e) {
         e.printStackTrace();
