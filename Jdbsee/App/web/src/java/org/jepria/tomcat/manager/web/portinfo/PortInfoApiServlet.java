@@ -106,14 +106,14 @@ public class PortInfoApiServlet extends HttpServlet {
       
       if (ajp13port != null) {
         Map<String, Object> ajp13portJsonMap = new HashMap<>();
-        ajp13portJsonMap.put("name", "AJP/1.3");
+        ajp13portJsonMap.put("type", "AJP/1.3");
         ajp13portJsonMap.put("port", ajp13port);
         portInfos.add(ajp13portJsonMap);
       }
       
       if (http11port != null) {
         Map<String, Object> http11portJsonMap = new HashMap<>();
-        http11portJsonMap.put("name", "HTTP/1.1");
+        http11portJsonMap.put("type", "HTTP/1.1");
         http11portJsonMap.put("port", http11port);
         portInfos.add(http11portJsonMap);
       }
