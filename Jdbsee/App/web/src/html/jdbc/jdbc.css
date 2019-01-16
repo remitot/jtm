@@ -22,3 +22,8 @@
   margin: 14px;
   margin-right: -4px; /* magic value */
 }
+
+/* left margin for the leftmost column */
+#table div.cell.column-active {
+  margin-left: 8px;
+}

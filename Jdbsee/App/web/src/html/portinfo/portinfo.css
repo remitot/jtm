@@ -4,3 +4,8 @@
 #table div.cell.column-port {
   width: 10%;
 }
+
+/* left margin for the leftmost column */
+#table div.cell.column-type {
+  margin-left: 44px;
+}
