@@ -11,7 +11,7 @@ import org.jepria.tomcat.manager.core.portinfo.TomcatConfPortInfo;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 
-public class PortInfoServlet extends HttpServlet {
+public class PortInfoApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2791033129244689227L;
 
