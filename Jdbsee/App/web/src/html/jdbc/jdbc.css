@@ -24,8 +24,7 @@
   display: inline-block;
 }
 
-/* override */
-.big-black-button {
+#controlButtons .big-black-button {
   margin: 14px;
   margin-right: -4px; /* magic value */
 }
