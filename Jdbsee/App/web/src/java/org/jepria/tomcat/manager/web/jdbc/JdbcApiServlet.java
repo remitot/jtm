@@ -40,11 +40,12 @@ public class JdbcApiServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
-    resp.setContentType("application/json; charset=UTF-8");
-    
     String path = req.getPathInfo();
     
     if ("/list".equals(path)) {
+      
+      // the content type is defined for the entire method
+      resp.setContentType("application/json; charset=UTF-8");
       
       try {
         
@@ -58,20 +59,22 @@ public class JdbcApiServlet extends HttpServlet {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         gson.toJson(connectionDtos, new PrintStream(resp.getOutputStream()));
         
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.flushBuffer();
+        return;
+        
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.getOutputStream().println("Oops! Something went wrong.");//TODO
+        // response body must either be empty or match the declared content type
         resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         resp.flushBuffer();
         return;
       }
 
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.flushBuffer();
-      return;
-      
     } else {
+      
+      // TODO set content type for the error case?
       resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
@@ -122,6 +125,8 @@ public class JdbcApiServlet extends HttpServlet {
 
 
   private void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    
+    // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
 
     try {
@@ -139,7 +144,6 @@ public class JdbcApiServlet extends HttpServlet {
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.getOutputStream().println("Error parsing JSON request body");
         resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
@@ -338,7 +342,6 @@ public class JdbcApiServlet extends HttpServlet {
         responseJsonMap.put("connections", connectionDtos);
         
         saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
-        return;
         
       } else {
         // no conf save, just write response
@@ -348,23 +351,33 @@ public class JdbcApiServlet extends HttpServlet {
         try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
           new Gson().toJson(responseJsonMap, osw);
         }
-        
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.flushBuffer();
-        
-        return;
       }
+      
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
+      
+      return;
       
     } catch (Throwable e) {
       e.printStackTrace();
 
-      resp.getOutputStream().println("Oops! Something went wrong.");//TODO
+      // response body must either be empty or match the declared content type
       resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.flushBuffer();
       return;
     }
   }
   
+  /**
+   * Assumes the resp has the {@code Content-Type=application/json;charset=UTF-8}
+   * header already set
+   * @param tomcatConf
+   * @param environment
+   * @param responseJsonMap
+   * @param resp
+   * @throws TransactionException
+   * @throws IOException
+   */
   private static void saveAndWriteResponse(TomcatConfJdbc tomcatConf, Environment environment,
       Map<String, Object> responseJsonMap, HttpServletResponse resp)
           throws TransactionException, IOException {
@@ -392,12 +405,11 @@ public class JdbcApiServlet extends HttpServlet {
     for (byte b: preparedResponse.toByteArray()) {
       os.write(b);
     }
-    
-    resp.setStatus(HttpServletResponse.SC_OK);
-    resp.flushBuffer();
   }
   
   private void ensure(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    
+    // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
 
     try {
@@ -493,24 +505,23 @@ public class JdbcApiServlet extends HttpServlet {
       
       if (confModified) {
         saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
-        return;
         
       } else {
         // no conf save, just write response
         try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
           new Gson().toJson(responseJsonMap, osw);
         }
-        
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.flushBuffer();
-        
-        return;
       }
+      
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
+      
+      return;
 
     } catch (Throwable e) {
       e.printStackTrace();
 
-      resp.getOutputStream().println("Oops! Something went wrong.");//TODO
+      // response body must either be empty or match the declared content type
       resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.flushBuffer();
       return;
@@ -540,6 +551,8 @@ public class JdbcApiServlet extends HttpServlet {
       return;
       
     } else {
+      
+      // TODO set content type for the error case?
       resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
