@@ -19,22 +19,13 @@
     <div id="table" style="width:100%"></div>
     
     <div id="controlButtons">
-      <button 
-          onclick="onCreateButtonClick()" 
-          class="big-black-button"
-          >NEW CONNECTION</button>
-      <button 
-          id="buttonSave" 
-          onclick="onSaveButtonClick()" 
-          class="big-black-button" 
-          disabled
-          >SAVE EVERYTHING</button>
+      <%@ include file="../control-buttons.html" %>
     </div>
     
     <!-- after main content elements: -->
     <div id="jdbcStatusBar" class="statusBar statusBar-none"></div>
     
-<%@ include file="../login-fragment.jsp" %>    
+    <%@ include file="../login-fragment.jsp" %>    
     
   </body>
 </html>

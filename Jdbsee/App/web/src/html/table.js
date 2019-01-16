@@ -17,7 +17,7 @@ function getApiModUrl() {
 
 function reload() {
   
-  setButtonSaveEnabled(false);
+  setModButtonsEnabled(false);
   
   statusInfo("loading...");
   
@@ -246,20 +246,32 @@ function checkListItemsModified() {
       + document.getElementsByClassName("row deleted").length
       - document.getElementsByClassName("row created deleted").length;
   
-  setButtonSaveEnabled(totalModifications > 0);
+  setModButtonsEnabled(totalModifications > 0);
   
   // graphics:
   adjustBottomShadow();
 }
 
-function setButtonSaveEnabled(enabled) {
+/**
+ * Sets enability of control buttons which depend on the table elements modification status
+ */
+function setModButtonsEnabled(enabled) {
   var buttonSave = document.getElementById("buttonSave");
+  var buttonReset = document.getElementById("buttonReset");
+  
   if (enabled) {
     buttonSave.disabled = false;  
+    buttonReset.disabled = false;
+    
     buttonSave.title = "Save all modifications (orange)";
+    buttonReset.title = "Clear all modifications (orange) and refresh the table";
+    
   } else {
     buttonSave.disabled = true;
+    buttonReset.disabled = true;
+    
     buttonSave.title = "No modifications performed";
+    buttonReset.title = "No modifications performed";
   }
 }
 
