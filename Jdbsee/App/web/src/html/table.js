@@ -76,7 +76,8 @@ function refillGrid(jsonListItems) {
   table.innerHTML = "";
   
   if (jsonListItems.length > 0) {
-    table.appendChild(createHeader());
+    
+    addHeaderIfNeeded();
     
     for (var i = 0; i < jsonListItems.length; i++) {
       listItem = jsonListItems[i];
@@ -95,7 +96,7 @@ function refillGrid(jsonListItems) {
 
 function createRowButtonCreate() {
   row = document.createElement("div");
-  row.classList.add("row");
+  row.classList.add("row-button-create");
   
   // active
   cell = createCell(row, "column-button-create");
@@ -103,7 +104,6 @@ function createRowButtonCreate() {
   
   buttonCreate = document.createElement("button");
   buttonCreate.classList.add("big-black-button");
-  buttonCreate.classList.add("row-create");
   buttonCreate.innerHTML = "НОВАЯ ЗАПИСЬ"; // NON-NLS
   buttonCreate.onclick = function(event){onButtonCreateClick();};
   
@@ -320,6 +320,8 @@ function onDeleteButtonClick(button) {
   if (row.classList.contains("created")) {
     // for newly created rows just remove them from table
     row.parentNode.removeChild(row);
+    
+    removeHeaderIfNeeded();
       
   } else if (!row.classList.contains("deleted")) {
     row.classList.add("deleted");
@@ -360,14 +362,39 @@ function onDeleteButtonClick(button) {
   checkModifications();
 }
 
-function onButtonCreateClick() {
-  
-  // add header row if the table is empty
+/**
+ * Adds the header if the table has no header yet
+ */
+function addHeaderIfNeeded() {
   var table = document.getElementById("table");
-  if (table.getElementsByClassName("header").length == 0) {
+  var tableHeaders = table.getElementsByClassName("header");
+  if (tableHeaders.length == 0) {
     var header = createHeader();
     table.insertBefore(header, table.firstChild);
   }
+}
+
+/**
+ * Removes the header if the table is empty
+ */
+function removeHeaderIfNeeded() {
+  var table = document.getElementById("table");
+  
+  rows = table.getElementsByClassName("row");
+  if (rows.length == 0) {
+    var tableHeaders = table.getElementsByClassName("header");
+    if (tableHeaders.length != 0) {
+      var header = tableHeaders[0];
+      header.parentNode.removeChild(header);
+    }
+  }
+}
+
+function onButtonCreateClick() {
+  
+  addHeaderIfNeeded();
+  
+  var table = document.getElementById("table");
 
   rowCreate = createRowCreate();
   table.insertBefore(rowCreate, table.lastChild);
