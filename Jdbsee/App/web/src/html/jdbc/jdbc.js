@@ -122,15 +122,7 @@ function createRow(listItem) {
 
 /* @Override from table.js */
 function createRowCreate() {
-
-  // add header row if the table is empty
-  var table = document.getElementById("table");
-  if (table.getElementsByClassName("header").length == 0) {
-    table.appendChild(createHeader());
-  }
-  
-
-  row = document.createElement("div");
+  var row = document.createElement("div");
   row.classList.add("row");
   row.classList.add("created");
   

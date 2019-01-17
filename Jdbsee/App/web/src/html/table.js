@@ -358,8 +358,16 @@ function onDeleteButtonClick(button) {
 }
 
 function onButtonCreateClick() {
+  
+  // add header row if the table is empty
+  var table = document.getElementById("table");
+  if (table.getElementsByClassName("header").length == 0) {
+    var header = createHeader();
+    table.insertBefore(header, table.firstChild);
+  }
+
   rowCreate = createRowCreate();
-  document.getElementById("table").insertBefore(rowCreate, document.getElementById("table").lastChild);
+  table.insertBefore(rowCreate, table.lastChild);
   
   rowCreate.querySelectorAll(".cell input[type='text']")[0].focus(false); // focus on the first text input field
   
