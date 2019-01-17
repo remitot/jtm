@@ -12,8 +12,6 @@ body {
   font-weight: bold;
   color: white;
   cursor: pointer;
-  
-  margin: 10px;
 }
 
 .big-black-button:disabled {
