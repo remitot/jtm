@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="checkbox.css">
     <script type="text/javascript" src="table.js"></script>
     <script type="text/javascript" src="jdbc/jdbc.js"></script>
+    <script type="text/javascript" src="jtm.js"></script>
     
   </head>
   

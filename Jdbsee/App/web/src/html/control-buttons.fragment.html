@@ -9,37 +9,13 @@
     >СОХРАНИТЬ ВСЁ</button> <!-- NON-NLS -->
 <button 
     id="buttonReset" 
-    onclick="reload()" 
+    onclick="reloadTable()" 
     class="big-black-button" 
     disabled
     >СБРОСИТЬ ВСЁ</button> <!-- NON-NLS -->
     
     
 <script>
-  // add 'hovered' class for button's onfocus and onmouseover
-
-  var buttons = document.getElementsByClassName("big-black-button");
-  for (var i = 0; i < buttons.length; i++) {
-    var button = buttons[i];
-    button.onfocus = function(event){
-      var button = event.target;
-      button.classList.add("hovered");
-    }
-    button.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
-      var button = event.target;
-      button.classList.remove("hovered");
-    });
-    
-    button.onmouseover = function(event) {
-      var button = event.target;
-      button.classList.add("hovered");
-    }
-    button.addEventListener("mouseout", function(event) { // .onmouseout not working in some browsers
-      var button = event.target;
-      button.classList.remove("hovered");
-    });
-  }
-  
   
   /* @Override from table.js */
   function setControlButtonsEnabled(enabled) {

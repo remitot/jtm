@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="portinfo/portinfo.css">
     <script type="text/javascript" src="table.js"></script>
     <script type="text/javascript" src="portinfo/portinfo.js"></script>
+    <script type="text/javascript" src="jtm.js"></script>
     
   </head>
   

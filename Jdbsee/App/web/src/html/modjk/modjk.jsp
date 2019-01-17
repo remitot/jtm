@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="checkbox.css">
     <script type="text/javascript" src="table.js"></script>
     <script type="text/javascript" src="modjk/modjk.js"></script>
+    <script type="text/javascript" src="jtm.js"></script>
     
   </head>
   

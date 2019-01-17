@@ -14,7 +14,7 @@
              placeholder="пароль"> <!-- NON-NLS -->
       </div>
       <div class="row">
-        <button type="submit" class="big-black-button" 
+        <button type="submit" id="buttonLogin" class="big-black-button" 
             onclick="submitForm(); return false;">ВОЙТИ</button> <!-- NON-NLS -->
       </div>
     </form>
@@ -70,11 +70,15 @@
   }
   
   #login-form .big-black-button {
+    width: 200px;
+    height: 44px; 
+  
     margin-top: 40px;
   }
 </style>
 
 <script type="text/javascript">
+
   function submitForm() {
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "api/login", true);

@@ -35,7 +35,7 @@ function createRowCreate() {
 
 
 
-function reload() {
+function reloadTable() {
   
   setControlButtonsEnabled(false);
   
@@ -58,7 +58,7 @@ function reload() {
     
         raiseLoginForm(function() {
           hideLoginForm();
-          reload();  
+          reloadTable();  
         });
       } else if (this.status == 403) {
         statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
@@ -113,6 +113,8 @@ function createRowButtonCreate() {
   buttonCreate.classList.add("big-black-button");
   buttonCreate.innerHTML = "НОВАЯ ЗАПИСЬ"; // NON-NLS
   buttonCreate.onclick = function(event){onButtonCreateClick();};
+  
+  addHoverForBigBlackButton(buttonCreate);
   
   wrapper = wrapCellPad(buttonCreate);
   
@@ -487,7 +489,7 @@ function onSaveButtonClick() {
       
           raiseLoginForm(function() {
             hideLoginForm();
-            reload();  
+            reloadTable();  
           });
           
         } else if (this.status == 403) {
@@ -542,7 +544,7 @@ function disableGrid() {
 
 function changeUser() {
   logout(function() {
-    reload();
+    reloadTable();
   });
 }
 

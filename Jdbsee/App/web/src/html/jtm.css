@@ -3,14 +3,14 @@ body {
 }
 
 .big-black-button {
-  width: 200px;
-  height: 44px;
-  
   background-color: black;
   border: none;
+  
+  font-family: serif;
   font-size: 14px;
   font-weight: bold;
   color: white;
+  
   cursor: pointer;
 }
 
@@ -23,6 +23,14 @@ body {
 
 .big-black-button.hovered {
   background-color: #0089bd
+}
+
+#controlButtons .big-black-button {
+  width: 200px;
+  height: 44px;
+  
+  margin: 14px;
+  margin-right: -4px; /* magic value */
 }
 
 /******* input text *******/
@@ -47,11 +55,40 @@ input.field-text:focus {
   border-color: #0089bd;
 }
 
+
+.pageHeader {
+  background-color: black;
+  
+  height: 60px;
+}
+
+.pageHeader label {
+  padding-left: 14px;
+  
+  font-family: serif;
+  font-size: 26px;
+  font-weight: bold;
+  
+  color: #ddd;
+}
+
+.pageHeader > * {
+  vertical-align: middle;
+  line-height: 60px;
+}
+
+.pageHeader #buttonLogout {
+  float: right;
+  
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
 /******* status bar *******/
 
 .statusBar {
-  text-align: center;
-  padding: 15px;
+  padding: 14px;
+  
   font-size: 16px;
 }
 

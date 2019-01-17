@@ -18,7 +18,3 @@
   width: 20%;
 }
 
-#controlButtons .big-black-button {
-  margin: 14px;
-  margin-right: -4px; /* magic value */
-}
