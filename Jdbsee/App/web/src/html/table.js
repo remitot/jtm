@@ -15,6 +15,26 @@ function getApiModUrl() {
   return null;
 }
 
+function createHeader() {
+  console.error("createHeader() function must be overridden in the endpoint JS file (inherited from table.js)");
+  return null;
+}
+
+function createRow(listItem) {
+  console.error("createRow(listItem) function must be overridden in the endpoint JS file (inherited from table.js)");
+  return null;
+}
+
+/**
+ * Creates a new empty row for creating a new table record
+ */
+function createRowCreate() {
+  console.error("createRowCreate() function must be overridden in the endpoint JS file (inherited from table.js)");
+  return null;
+}
+
+
+
 function reload() {
   
   setControlButtonsEnabled(false);
@@ -318,7 +338,8 @@ function onCreateButtonClick() {
   document.getElementById("table").appendChild(row);
   
   row.querySelectorAll(".cell input[type='text']")[0].focus(false); // focus on the first text input field
-      
+  document.body.scrollTop = document.body.scrollHeight; // scroll to the bottom of the page
+  
   checkModifications();
 }
 

@@ -1,15 +1,19 @@
+/* @Override from table.js */
 function getJsonListItems(jsonResponse) {
   return jsonResponse // the response itself is a JSON array of port infos
 }
 
+/* @Override from table.js */
 function getApiListUrl() {
   return "api/portinfo/list";
 }
 
+/* @Override from table.js */
 function getApiModUrl() {
   // unsupported
 }
 
+/* @Override from table.js */
 function createHeader() {
   var row = document.createElement("div");
   row.classList.add("header");
@@ -35,6 +39,7 @@ function createHeader() {
 
 var tabindex0 = 1;
 
+/* @Override from table.js */
 function createRow(listItem) {
   row = document.createElement("div");
   row.classList.add("row");
@@ -62,6 +67,7 @@ function createRow(listItem) {
   return row;
 }
 
+/* @Override from table.js */
 function createRowCreate() {
   // unsupported
 }

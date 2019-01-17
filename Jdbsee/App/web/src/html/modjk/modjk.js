@@ -1,15 +1,19 @@
+/* @Override from table.js */
 function getJsonListItems(jsonResponse) {
   return jsonResponse.bindings;
 }
 
+/* @Override from table.js */
 function getApiListUrl() {
   return "api/modjk/list";
 }
 
+/* @Override from table.js */
 function getApiModUrl() {
   return "api/modjk/mod";
 }
 
+/* @Override from table.js */
 function createHeader() {
   var row = document.createElement("div");
   row.classList.add("header");
@@ -39,6 +43,7 @@ function createHeader() {
 
 var tabindex0 = 1;
 
+/* @Override from table.js */
 function createRow(listItem) {
   row = document.createElement("div");
   row.classList.add("row");
@@ -82,6 +87,7 @@ function createRow(listItem) {
   return row;
 }
 
+/* @Override from table.js */
 function createRowCreate() {
 
   // add header row if the table is empty
