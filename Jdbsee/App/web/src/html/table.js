@@ -66,7 +66,7 @@ function refillGrid(jsonListItems) {
       table.appendChild(row);
     }
     
-    checkListItemsModified();
+    checkModifications();
   }
 }
 
@@ -87,7 +87,7 @@ function addCheckbox(cell, active, enabled) {
   
   checkbox.onclick = function(event){
     onCheckboxInput(event.target);
-    checkListItemsModified();
+    checkModifications();
   };
   checkbox.classList.add("deletable");
 
@@ -240,10 +240,14 @@ function onFieldInput(field) {
     }
   }
   
-  checkListItemsModified();
+  checkModifications();
 }
 
-function checkListItemsModified() {
+
+/**
+ * Checks for any user modifications throughout the table
+ */
+function checkModifications() {
   totalModifications = 
       document.getElementsByClassName("modified").length
       - document.querySelectorAll(".row.created.deleted .modified").length
@@ -306,7 +310,7 @@ function onDeleteButtonClick(button) {
     }
   }
   
-  checkListItemsModified();
+  checkModifications();
 }
 
 function onCreateButtonClick() {
@@ -315,7 +319,7 @@ function onCreateButtonClick() {
   
   row.querySelectorAll(".cell input[type='text']")[0].focus(false); // focus on the first text input field
       
-  checkListItemsModified();
+  checkModifications();
 }
 
 function onSaveButtonClick() {
