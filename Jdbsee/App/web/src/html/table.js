@@ -50,7 +50,8 @@ function reload() {
         
         jsonResponse = JSON.parse(this.responseText);
         jsonListItems = getJsonListItems(jsonResponse); 
-        refillGrid(jsonListItems);
+        
+        refillGrid(jsonListItems, isEditable());
         
       } else if (this.status == 401) {
         statusError("Требуется авторизация"); // NON-NLS
@@ -71,7 +72,7 @@ function reload() {
   xhttp.send();
 }
 
-function refillGrid(jsonListItems) {
+function refillGrid(jsonListItems, editable) {
   table = document.getElementById("table");
   table.innerHTML = "";
   
@@ -91,14 +92,11 @@ function refillGrid(jsonListItems) {
   }
   
 
-  if (isEditable()) {
+  if (editable) {
     rowButtonCreate = createRowButtonCreate();
     table.appendChild(rowButtonCreate);
   } else {
-    inputFields = table.querySelectorAll("input");
-    for (var i = 0; i < inputFields.length; i++) {
-      inputFields[i].setAttribute("readonly", true);
-    }
+    disableGrid();
   }
   
 }
@@ -480,33 +478,7 @@ function onSaveButtonClick() {
           }
           
           jsonListItems = getJsonListItems(jsonResponse); 
-          refillGrid(jsonListItems);
-          
-          // disable whole grid
-          table = document.getElementById("table");
-          // remove column-delete contents
-          columnDeletes = table.getElementsByClassName("column-delete");
-          for (var i = 0; i < columnDeletes.length; i++) {
-            columnDelete = columnDeletes[i];
-            columnDelete.innerHTML = "";
-          }
-          
-          inputs = table.getElementsByTagName("input");
-          for (var i = 0; i < inputs.length; i++) {
-            input = inputs[i];
-            input.disabled = true;
-          }
-          checkboxes = table.getElementsByClassName("checkbox");
-          for (var i = 0; i < checkboxes.length; i++) {
-            checkbox = checkboxes[i];
-            setCheckboxEnabled(checkbox, false);
-          }
-          
-          // gray out every second row
-          rows = table.getElementsByClassName("row");
-          for (var i = 0; i < rows.length; i += 2) {
-            rows[i].classList.add("even-odd-gray");
-          }
+          refillGrid(jsonListItems, false);
           
           document.getElementById("controlButtons").style.display = "none";
           
@@ -534,6 +506,37 @@ function onSaveButtonClick() {
   } else {
     // TODO report nothing to save
     uiOnSaveEnd();
+  }
+}
+
+function disableGrid() {
+
+  table = document.getElementById("table");
+  // remove column-delete contents
+  columnDeletes = table.getElementsByClassName("column-delete");
+  for (var i = 0; i < columnDeletes.length; i++) {
+    columnDelete = columnDeletes[i];
+    columnDelete.innerHTML = "";
+  }
+  
+  inputs = table.getElementsByTagName("input");
+  for (var i = 0; i < inputs.length; i++) {
+    input = inputs[i];
+    
+    // two alternative ways to graphically disable the input 
+    input.disabled = true;
+    //input.setAttribute("readonly", true);
+  }
+  checkboxes = table.getElementsByClassName("checkbox");
+  for (var i = 0; i < checkboxes.length; i++) {
+    checkbox = checkboxes[i];
+    setCheckboxEnabled(checkbox, false);
+  }
+  
+  // gray out every second row
+  rows = table.getElementsByClassName("row");
+  for (var i = 0; i < rows.length; i += 2) {
+    rows[i].classList.add("even-odd-gray");
   }
 }
 
