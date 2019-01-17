@@ -21,6 +21,10 @@ public class LogoutServlet extends HttpServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     req.logout();
     req.getSession().invalidate();
+    
+    resp.setStatus(HttpServletResponse.SC_OK);
+    resp.flushBuffer();
+    return;
   }
 
 }

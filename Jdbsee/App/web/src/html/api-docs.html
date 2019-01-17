@@ -14,7 +14,7 @@
     <tbody>
       <tr>
         <td>Method</td>
-        <td><code>POST</code></td>
+        <td><code>POST</code> or <code>GET</code></td>
       </tr>
       <tr>
         <td>Url</td>
@@ -26,11 +26,14 @@
       </tr>
       <tr>
         <td>Request body</td>
-        <td>none</td>
+        <td>empty body</td>
       </tr>
       <tr>
-        <td>Response (text/plain UTF-8)</td>
-        <td><code>SUCCESS</code> or <code>FAILURE</code></td>
+        <td>Response</td>
+        <td>empty body; status code either 
+          <code>200</code> (successful login) or 
+          <code>400</code> (a mandatory field is empty) or 
+          <code>401</code> (authorization failure).</td>
       </tr>
     </tbody>
   </table>
@@ -39,11 +42,9 @@
     <tbody>
       <tr>
         <th>Request</th>
-        <th>Response</t>
       </tr>
       <tr>
         <td><code>/api/login?username=admin&password=admin</code></td>
-        <td><code>SUCCESS</code></td>
       </tr>
     </tbody>
   </table>
@@ -53,7 +54,7 @@
     <tbody>
       <tr>
         <td>Method</td>
-        <td><code>POST</code></td>
+        <td><code>POST</code> or <code>GET</code></td>
       </tr>
       <tr>
         <td>Url</td>
@@ -65,11 +66,11 @@
       </tr>
       <tr>
         <td>Request body</td>
-        <td>none</td>
+        <td>empty body</td>
       </tr>
       <tr>
-        <td>Response (text/plain UTF-8)</td>
-        <td>none</td>
+        <td>Response</td>
+        <td>empty body; status <code>200</code> (successful logout).</td>
       </tr>
     </tbody>
   </table>
@@ -107,7 +108,7 @@
       </tr>
       <tr>
         <td>Request body</td>
-        <td>none</td>
+        <td>empty body</td>
       </tr>
       <tr>
         <td>Response (application/json UTF-8)</td>
@@ -438,13 +439,11 @@
       </tr>
       <tr>
         <td>Request body</td>
-        <td>none</td>
+        <td>empty body</td>
       </tr>
       <tr>
         <td>Response (text/plain UTF-8)</td>
-        <td><pre>
-<i>port number</i> or nothing (empty response) if no such port defined</pre>
-        </td>
+        <td><code><i>port number</i></code> or empty body if no such port defined</td>
       </tr>
     </tbody>
   </table>
@@ -485,9 +484,7 @@
       </tr>
       <tr>
         <td>Response (text/plain UTF-8)</td>
-        <td><pre>
-<i>port number</i> or nothing (empty response) if no such port defined</pre>
-        </td>
+        <td><code><i>port number</i></code> or empty body if no such port defined</td>
       </tr>
     </tbody>
   </table>
@@ -524,7 +521,7 @@
       </tr>
       <tr>
         <td>Request body</td>
-        <td>none</td>
+        <td>empty body</td>
       </tr>
       <tr>
         <td>Response (application/json UTF-8)</td>

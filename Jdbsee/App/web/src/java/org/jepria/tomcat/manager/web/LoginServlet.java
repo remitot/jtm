@@ -24,6 +24,14 @@ public class LoginServlet extends HttpServlet {
     String username = req.getParameter("username");
     String password = req.getParameter("password");
     
+    if (username == null || "".equals(username) 
+        || password == null || "".equals(password)) {
+      
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      resp.flushBuffer();
+      return;
+    }
+    
     if (username != null && password != null) {
       try {
         

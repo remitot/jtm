@@ -105,14 +105,20 @@
   }
   
   function onLoginFailure(httpStatus) {
-    resetFields();
+    
+    // reset password field
+    fieldPassword = document.getElementById("fieldPassword");
+    fieldPassword.value = "";
+    fieldPassword.focus();
+    //
+    
   
     // show status
     statusBar = document.getElementById("loginStatusBar");
     statusBar.className = "statusBar statusBar-error";
     
-    if (httpStatus == 401) {
-      statusBar.innerHTML = "Неверные данные, попробуйте другие"; // NON-NLS
+    if (httpStatus == 400 || httpStatus == 401) {
+      statusBar.innerHTML = "Неверные данные"; // NON-NLS
     } else {
       statusBar.innerHTML = "Ошибка авторизации, попробуйте позже"; // NON-NLS
     }
@@ -123,7 +129,14 @@
   function raiseLoginForm(onLoginSuccessCallback) {
     document.getElementById("loginScreen").className = "loginForm-raised";
     
-    resetFields();
+    
+    // init fields
+    fieldUsername = document.getElementById("fieldUsername");
+    fieldUsername.value = "";
+    fieldUsername.focus();
+    fieldPassword = document.getElementById("fieldPassword");
+    fieldPassword.value = "";
+    //    
 
     statusBar = document.getElementById("loginStatusBar");
     statusBar.className = "statusBar statusBar-info";
