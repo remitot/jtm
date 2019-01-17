@@ -1,6 +1,6 @@
 /* @Override from table.js */
 function getJsonListItems(jsonResponse) {
-  return jsonResponse; // the response itself is a JSON array of connections
+  return jsonResponse.items;
 }
 
 /* @Override from table.js */

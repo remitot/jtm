@@ -55,9 +55,12 @@ public class JdbcApiServlet extends HttpServlet {
             environment.getServerXmlInputStream());
         
         List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
+
+        Map<String, Object> responseJsonMap = new HashMap<>();
+        responseJsonMap.put("items", connectionDtos);
         
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(connectionDtos, new PrintStream(resp.getOutputStream()));
+        gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
         
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
@@ -339,14 +342,14 @@ public class JdbcApiServlet extends HttpServlet {
             new ByteArrayInputStream(serverXmlBaos.toByteArray()));
         
         List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
-        responseJsonMap.put("connections", connectionDtos);
+        responseJsonMap.put("items", connectionDtos);
         
         saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
         
       } else {
         // no conf save, just write response
         List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
-        responseJsonMap.put("connections", connectionDtos);
+        responseJsonMap.put("items", connectionDtos);
         
         try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
           new Gson().toJson(responseJsonMap, osw);

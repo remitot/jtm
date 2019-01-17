@@ -125,27 +125,36 @@
       <tr>
         <td><code>/api/jdbc/list</code></td>
         <td><pre>
-[
-  {
-    "location": "Context.ResourceLink-0__Server.Resource-0",
-    "active": true,
-    "name": "jdbc/MyDataSource",
-    "server": "mydbserver.com:1521",
-    "db": "MYDATABASE",
-    "user": "me",
-    "password": "mysecret"
-  },
-  {
-    "location": "Context.ResourceLink-1__Server.Resource-1",
-    "active": true,
-    "name": "jdbc/YourDataSource",
-    "server": "yourdbserver.com:1521",
-    "db": "YOURDATABASE",
-    "user": "you",
-    "password": "yoursecret"
-  }
-]       </pre><br /> If there are no connections, an empty JSON array will be returned:<pre>
-[]</pre></td>
+{
+  "items": [
+    {
+      "location": "Context.ResourceLink-0__Server.Resource-0",
+      "active": true,
+      "name": "jdbc/MyDataSource",
+      "server": "mydbserver.com:1521",
+      "db": "MYDATABASE",
+      "user": "me",
+      "password": "mysecret"
+    },
+    {
+      "location": "Context.ResourceLink-1__Server.Resource-1",
+      "active": true,
+      "name": "jdbc/YourDataSource",
+      "server": "yourdbserver.com:1521",
+      "db": "YOURDATABASE",
+      "user": "you",
+      "password": "yoursecret"
+    }
+  ]
+}       </pre>
+        <br /> If there are no connections, the <code>"items"</code>
+          element will have the value of an empty array:<pre>
+{
+  "items": []
+}        </pre>
+          <br /> Although the response always contains the single <code>"items"</code> element,
+          it is important to maintain the common template with <code>/mod</code> response. 
+        </td>
       </tr>
     </tbody>
   </table>
@@ -222,7 +231,7 @@
 {
   "statuses": <i>array of statuses corresponding to the array of modification requests</i>,
   "status_messages": <i>array of status messages corresponding to the array of statuses</i>,
-  "connections": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
+  "items": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
 }       </pre><br /> The <code>"statuses"</code> element is an array of
           statuses corresponding to the array of modification requests.<br />
           The statuses are:
@@ -295,7 +304,7 @@
     <span style="color: orange;">SUCCESS</span>,
     <span style="color: green;">SUCCESS</span>
   ],
-  "connections": [
+  "items": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-1",
       "active": true,
