@@ -17,6 +17,12 @@
   </head>
   
   <body onload="reload()">
+    
+    <div id="pageHeader" class="pageHeader">
+      <label>Серверные порты</label> <!-- NON-NLS -->
+      <div id="buttonLogout" class="big-black-button" onclick="logout();">ВЫЙТИ</div> <!-- NON-NLS -->
+    </div>
+     
     <div id="statusBar" class="statusBar statusBar-none"></div>
   
     <div id="table" style="width:100%"></div>
