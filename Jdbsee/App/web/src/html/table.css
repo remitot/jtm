@@ -172,20 +172,6 @@
   border-color: black !important; /* overrides .checkmark:after */
 }
 
-
-/* status bar is fixed */
-#jdbcStatusBar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 20px;
-}
-/* and controlButtons do not flow under the status bar if #table is empty */
-#table {
-  min-height: 35px;
-}
-
 #controlButtons {
   background-color: white;
   position: sticky;

@@ -472,7 +472,7 @@ function onSaveButtonClick() {
             message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагружаться..."; // NON-NLS // NON-NLS
             statusError(message);
           } else {
-            statusBar = document.getElementById("jdbcStatusBar");
+            statusBar = document.getElementById("statusBar");
             statusBar.className = "statusBar statusBar-success";
             statusBar.innerHTML = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагружаться..."; // NON-NLS // NON-NLS
           }
@@ -566,19 +566,19 @@ function logout(afterLogoutCallback) {
 }
 
 function statusClear() {
-  statusBar = document.getElementById("jdbcStatusBar");
+  statusBar = document.getElementById("statusBar");
   statusBar.className = "statusBar statusBar-none";
   statusBar.innerHTML = "";
 }
 
 function statusInfo(message) {
-  statusBar = document.getElementById("jdbcStatusBar"); 
+  statusBar = document.getElementById("statusBar"); 
   statusBar.className = "statusBar statusBar-info";
   statusBar.innerHTML = message;
 }
 
 function statusError(message) {
-  statusBar = document.getElementById("jdbcStatusBar"); 
+  statusBar = document.getElementById("statusBar"); 
   statusBar.className = "statusBar statusBar-error";
   statusBar.innerHTML = message;
 }

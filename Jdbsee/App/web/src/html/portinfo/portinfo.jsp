@@ -16,10 +16,9 @@
   </head>
   
   <body onload="reload()">
+    <div id="statusBar" class="statusBar statusBar-none"></div>
+  
     <div id="table" style="width:100%"></div>
-    
-    <!-- after main content elements: -->
-    <div id="jdbcStatusBar" class="statusBar statusBar-none"></div>
     
     <%@ include file="../login.fragment.html" %>    
     
