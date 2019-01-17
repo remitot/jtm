@@ -88,6 +88,30 @@ function refillGrid(jsonListItems) {
     
     checkModifications();
   }
+  
+  rowButtonCreate = createRowButtonCreate();
+  table.appendChild(rowButtonCreate);
+}
+
+function createRowButtonCreate() {
+  row = document.createElement("div");
+  row.classList.add("row");
+  
+  // active
+  cell = createCell(row, "column-button-create");
+  cell.classList.add("column-left");
+  
+  buttonCreate = document.createElement("button");
+  buttonCreate.classList.add("big-black-button");
+  buttonCreate.classList.add("row-create");
+  buttonCreate.innerHTML = "НОВАЯ ЗАПИСЬ"; // NON-NLS
+  buttonCreate.onclick = function(event){onButtonCreateClick();};
+  
+  wrapper = wrapCellPad(buttonCreate);
+  
+  cell.appendChild(wrapper);
+  
+  return row;
 }
 
 function setCheckboxEnabled(checkbox, enabled) {
@@ -333,12 +357,11 @@ function onDeleteButtonClick(button) {
   checkModifications();
 }
 
-function onCreateButtonClick() {
-  row = createRowCreate();
-  document.getElementById("table").appendChild(row);
+function onButtonCreateClick() {
+  rowCreate = createRowCreate();
+  document.getElementById("table").insertBefore(rowCreate, document.getElementById("table").lastChild);
   
-  row.querySelectorAll(".cell input[type='text']")[0].focus(false); // focus on the first text input field
-  document.body.scrollTop = document.body.scrollHeight; // scroll to the bottom of the page
+  rowCreate.querySelectorAll(".cell input[type='text']")[0].focus(false); // focus on the first text input field
   
   checkModifications();
 }
