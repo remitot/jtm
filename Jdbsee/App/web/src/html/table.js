@@ -1,10 +1,7 @@
 /* Common code to draw and manipulate main page tables */
 
-function getJsonListItems(jsonResponse) {
-  console.error("getJsonListItems(jsonResponse) function must be overridden in the endpoint JS file (inherited from table.js)");
-  return null;
-}
 
+// Abstract functions to be overridden in JS endpoints
 function getApiListUrl() {
   console.error("getApiListUrl() function must be overridden in the endpoint JS file (inherited from table.js)");
   return null;
@@ -25,6 +22,8 @@ function createRow(listItem) {
   return null;
 }
 
+
+
 /**
  * Creates a new empty row for creating a new table record
  */
@@ -33,7 +32,9 @@ function createRowCreate() {
   return null;
 }
 
-
+function getJsonItemList(jsonResponse) {
+  return jsonResponse.itemList;
+}
 
 function reloadTable() {
   
@@ -49,9 +50,9 @@ function reloadTable() {
         statusClear();
         
         jsonResponse = JSON.parse(this.responseText);
-        jsonListItems = getJsonListItems(jsonResponse); 
+        jsonItemList = getJsonItemList(jsonResponse); 
         
-        refillGrid(jsonListItems, isEditable());
+        refillGrid(jsonItemList, isEditable());
         
       } else if (this.status == 401) {
         statusError("Требуется авторизация"); // NON-NLS
@@ -72,16 +73,16 @@ function reloadTable() {
   xhttp.send();
 }
 
-function refillGrid(jsonListItems, editable) {
+function refillGrid(jsonItemList, editable) {
   table = document.getElementById("table");
   table.innerHTML = "";
   
-  if (jsonListItems.length > 0) {
+  if (jsonItemList.length > 0) {
     
     addHeaderIfNeeded();
     
-    for (var i = 0; i < jsonListItems.length; i++) {
-      listItem = jsonListItems[i];
+    for (var i = 0; i < jsonItemList.length; i++) {
+      listItem = jsonItemList[i];
       
       row = createRow(listItem);
       
@@ -479,8 +480,8 @@ function onSaveButtonClick() {
             statusBar.innerHTML = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагружаться..."; // NON-NLS // NON-NLS
           }
           
-          jsonListItems = getJsonListItems(jsonResponse); 
-          refillGrid(jsonListItems, false);
+          jsonItemList = getJsonItemList(jsonResponse); 
+          refillGrid(jsonItemList, false);
           
           document.getElementById("controlButtons").style.display = "none";
           

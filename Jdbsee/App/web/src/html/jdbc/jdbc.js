@@ -1,9 +1,4 @@
 /* @Override from table.js */
-function getJsonListItems(jsonResponse) {
-  return jsonResponse.items;
-}
-
-/* @Override from table.js */
 function getApiListUrl() {
   return "api/jdbc/list";
 }

@@ -1,5 +1,5 @@
 /* @Override from table.js */
-function getJsonListItems(jsonResponse) {
+function getJsonItemList(jsonResponse) {
   return jsonResponse // the response itself is a JSON array of port infos
 }
 

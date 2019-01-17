@@ -127,7 +127,7 @@
         <td><code>/api/jdbc/list</code></td>
         <td><pre>
 {
-  "items": [
+  "itemList": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-0",
       "active": true,
@@ -148,14 +148,13 @@
     }
   ]
 }       </pre>
-        <br /> If there are no connections, the <code>"items"</code>
+        <br /> If there are no connections, the <code>"itemList"</code>
           element will have the value of an empty array:<pre>
 {
-  "items": []
+  "itemList": []
 }        </pre>
-          <br /> The method does not return a JSON array of connections only 
-          (what seems to be the simplest API) 
-          to maintain the common response structure with <code>/mod</code> response. 
+          <br /> Returning the list under the "itemList" key instead of plain JSON array
+          used for maintaining the common response structure with other method responses. 
         </td>
       </tr>
     </tbody>
@@ -233,7 +232,7 @@
 {
   "statuses": <i>array of statuses corresponding to the array of modification requests</i>,
   "status_messages": <i>array of status messages corresponding to the array of statuses</i>,
-  "items": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
+  "itemList": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
 }       </pre><br /> The <code>"statuses"</code> element is an array of
           statuses corresponding to the array of modification requests.<br />
           The statuses are:
@@ -306,7 +305,7 @@
     <span style="color: orange;">SUCCESS</span>,
     <span style="color: green;">SUCCESS</span>
   ],
-  "items": [
+  "itemList": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-1",
       "active": true,
