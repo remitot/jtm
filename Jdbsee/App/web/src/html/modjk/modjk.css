@@ -4,8 +4,3 @@
 #table div.cell.column-worker {
   width: 30%;
 }
-
-/* left margin for the leftmost column */
-#table div.cell.column-active {
-  margin-left: 8px;
-}

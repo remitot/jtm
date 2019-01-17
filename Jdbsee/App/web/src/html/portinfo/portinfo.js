@@ -18,6 +18,7 @@ function createHeader() {
   div.classList.add("flexColumns");
   
   cell = createCell(div, "column-type");
+  cell.classList.add("column-left");
   label = document.createElement("label");
   label.innerHTML = "Тип"; // NON-NLS
   cell.appendChild(label);
@@ -43,6 +44,7 @@ function createRow(listItem) {
   div.classList.add("flexColumns");
   
   cell = createCell(div, "column-type");
+  cell.classList.add("column-left");
   cell.classList.add("cell-field");
   field = addField(cell, "type", listItem.type, null);
   field.setAttribute("value0", listItem.type);

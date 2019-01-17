@@ -15,6 +15,7 @@ function createHeader() {
   row.classList.add("header");
   // active
   cell = createCell(row, "column-active");// empty cell
+  cell.classList.add("column-left");
   
   cell = createCell(row, "column-delete");// empty cell
   
@@ -45,6 +46,7 @@ function createRow(listItem) {
   
   // active
   cell = createCell(row, "column-active");
+  cell.classList.add("column-left");
   cell.classList.add("cell-field");
   addCheckbox(cell, listItem.active, true);
   cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
@@ -95,6 +97,7 @@ function createRowCreate() {
   
   // active
   cell = createCell(row, "column-active");
+  cell.classList.add("column-left");
   cell.classList.add("cell-field");
   addCheckbox(cell, true, false);
   cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;

@@ -43,6 +43,11 @@
   float: right;
 }
 
+/* left margin for the leftmost column */
+#table div.cell.column-left {
+  margin-left: 8px;
+}
+
 #table .cell-pad-left {
   width: 6px;
   height: 6px;
