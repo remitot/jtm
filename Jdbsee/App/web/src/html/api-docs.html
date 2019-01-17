@@ -178,8 +178,10 @@
       </tr>
       <tr>
         <td>Request body</td>
-        <td>list of connection modification requests, where each
-          element is one of three modification requests:
+        <td>list of connection modification requests (modRequests),
+        where each element is a modRequest consisting of 
+        a <code>modRequestId</code> (arbitrary value but unique over the entire list)
+        and a <code>modRequestBody</code>, representing one of the three modification requests:
           <table border="1" style="margin: 10px;">
             <tbody>
               <tr>
@@ -230,12 +232,17 @@
         <td>Response (application/json UTF-8)</td>
         <td><pre>
 {
-  "statuses": <i>array of statuses corresponding to the array of modification requests</i>,
-  "status_messages": <i>array of status messages corresponding to the array of statuses</i>,
-  "itemList": <i>the full list of connections after all modifications performed, analogous to the response of /api/jdbc/list</i>
-}       </pre><br /> The <code>"statuses"</code> element is an array of
-          statuses corresponding to the array of modification requests.<br />
-          The statuses are:
+  "modStatusList": 
+      <i>list of statuses corresponding to the list of connection modification requests,  
+      where each element is a modStatus consisting of 
+      a <code>modRequestId</code> (matching by the <code>modRequestId</code> values from the request),
+      a <code>modStatusCode</code>,
+      and a <code>modStatusMessage</code> (a description of the status)</i>
+       
+  "itemList": 
+      <i>the full list of connections after all modifications performed, 
+      analogous to the response of /api/jdbc/list</i>
+}       </pre><br /> The <code>modStatusCode</code> values are:
           <ul>
             <li><code>0</code>: <code>SUCCESS</code></li>
             <li><code>1</code>: <code>ERROR</code>: no connection
@@ -249,6 +256,10 @@
             <li><code>5</code>: <code>ERROR</code>: internal error</li>
           </ul>
           If the error occures while parsing the request body JSON, 
+          the 400 status will be returned.
+          <br/><br/>
+          If the requested connection modification list contains
+          duplicate or empty <code>modRequestId</code> values, 
           the 400 status will be returned.
         </td>
       </tr>
@@ -264,9 +275,10 @@
       <tr>
         <td><pre>
 /api/jdbc/mod
-{
-  "mod_requests": [
-    <span style="color: red;">{
+[
+  {
+    "modRequestId": <span style="color: red;">"update_1_1"</span>,
+    "modRequestBody": {
       "action": "update",
       "location": "Context.ResourceLink-1__Server.Resource-1",
       "data": {
@@ -275,12 +287,18 @@
         "db": "YOURNEWDATABASE",
         "password": "yournewsecret"
       }
-    }</span>,
-    <span style="color: orange;">{
+    }
+  },
+  {
+    "modRequestId": <span style="color: orange;">"delete_0_0"</span>,
+    "modRequestBody": {
       "action": "delete",
       "location": "Context.ResourceLink-0__Server.Resource-0"
-    }</span>,
-    <span style="color: green;">{
+    }
+  },
+  {
+    "modRequestId": <span style="color: green;">"create"</span>,
+    "modRequestBody": {
       "action": "create",
       "data": {
         "active": true,
@@ -290,21 +308,29 @@
         "user": "them",
         "password": "theirsecret"
       }
-    }</span>
-  ]
-}       </pre></td>
+    }
+  }
+]       </pre></td>
         <td><pre>
 {
-  "statuses": [
-    <span style="color: red;">0</span>,
-    <span style="color: orange;">0</span>,
-    <span style="color: green;">0</span>
+  "modStatusList": [
+    {
+      "modRequestId": <span style="color: red;">"update_1_1"</span>,
+      "modStatusCode": 0,
+      "modStatusMessage": "SUCCESS"
+    },
+    {
+      "modRequestId": <span style="color: orange;">"delete_0_0"</span>,
+      "modStatusCode": 0,
+      "modStatusMessage": "SUCCESS"
+    },
+    {
+      "modRequestId": <span style="color: green;">"create"</span>,
+      "modStatusCode": 0,
+      "modStatusMessage": "SUCCESS"
+    }
   ],
-  "status_messages": [
-    <span style="color: red;">SUCCESS</span>,
-    <span style="color: orange;">SUCCESS</span>,
-    <span style="color: green;">SUCCESS</span>
-  ],
+  
   "itemList": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-1",
