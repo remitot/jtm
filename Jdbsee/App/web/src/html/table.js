@@ -493,14 +493,14 @@ function onSaveButtonClick() {
           }
           
           if (!allModStatusOk) {
-            message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагружаться." // NON-NLS // NON-NLS 
+            message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS 
                 + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
             statusError(message);
             
           } else {
             statusBar = document.getElementById("statusBar");
             statusBar.className = "statusBar statusBar-success";
-            statusBar.innerHTML = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагружаться." // NON-NLS // NON-NLS
+            statusBar.innerHTML = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
                 + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
           }
           
