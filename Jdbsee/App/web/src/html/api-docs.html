@@ -111,7 +111,7 @@
       </tr>
       <tr>
         <td>Response (application/json UTF-8)</td>
-        <td>JSON array of connections (or else an empty JSON array)</td>
+        <td>list of connections</td>
       </tr>
     </tbody>
   </table>
@@ -152,8 +152,9 @@
 {
   "items": []
 }        </pre>
-          <br /> Although the response always contains the single <code>"items"</code> element,
-          it is important to maintain the common template with <code>/mod</code> response. 
+          <br /> The method does not return a JSON array of connections only 
+          (what seems to be the simplest API) 
+          to maintain the common response structure with <code>/mod</code> response. 
         </td>
       </tr>
     </tbody>
