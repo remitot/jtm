@@ -295,8 +295,7 @@ function checkModifications() {
   totalModifications = 
       document.getElementsByClassName("modified").length
       - document.querySelectorAll(".row.created.deleted .modified").length
-      + document.getElementsByClassName("row deleted").length
-      - document.getElementsByClassName("row created deleted").length;
+      + document.getElementsByClassName("row deleted").length;
   
   setControlButtonsEnabled(totalModifications > 0);
   
@@ -318,7 +317,11 @@ function onDeleteButtonClick(button) {
   
   rowInputs = row.querySelectorAll("input.deletable");
   
-  if (!row.classList.contains("deleted")) {
+  if (row.classList.contains("created")) {
+    // for newly created rows just remove them from table
+    row.parentNode.removeChild(row);
+      
+  } else if (!row.classList.contains("deleted")) {
     row.classList.add("deleted");
     
     // button changes image

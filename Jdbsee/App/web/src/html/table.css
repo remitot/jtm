@@ -142,9 +142,6 @@
 #table div.strike {
   border-color: #fb8f40;
 }
-#table .row.created.deleted {
-  display: none;
-}
 
 #table .row.deleted div.strike {
   display: block;
