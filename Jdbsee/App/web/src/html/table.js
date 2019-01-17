@@ -414,6 +414,7 @@ function onButtonCreateClick() {
   checkModifications();
 }
 
+// TODO the logic below is almost JDBC-specific! move it into jdbc.js
 function onSaveButtonClick() {
   
   rowsModified = getRowsModified();
@@ -423,15 +424,20 @@ function onSaveButtonClick() {
   
   uiOnSaveBegin();
   
-  modificationRequests = [];
+  modRequestList = [];
+  
+  var id = 0;
   
   if (rowsModified.length > 0) {
     for (var i = 0; i < rowsModified.length; i++) {
-      modificationRequests.push(
+      modRequestList.push(
           {
-            action: "update", 
-            location: rowsModified[i].itemLocation, 
-            data: rowsModified[i].itemData
+            modRequestId: ++id,
+            modRequestBody: {
+              action: "update", 
+              location: rowsModified[i].itemLocation, 
+              data: rowsModified[i].itemData
+            }
           }
       );
     }
@@ -439,10 +445,13 @@ function onSaveButtonClick() {
   
   if (rowsDeleted.length > 0) {
     for (var i = 0; i < rowsDeleted.length; i++) {
-      modificationRequests.push(
+      modRequestList.push(
           {
-            action: "delete", 
-            location: rowsDeleted[i]
+            modRequestId: ++id,
+            modRequestBody: {
+              action: "delete", 
+              location: rowsDeleted[i]
+            }
           }
       );
     }
@@ -450,16 +459,19 @@ function onSaveButtonClick() {
   
   if (rowsCreated.length > 0) {
     for (var i = 0; i < rowsCreated.length; i++) {
-      modificationRequests.push(
+      modRequestList.push(
           {
-            action: "create", 
-            data: rowsCreated[i]
+            modRequestId: ++id,
+            modRequestBody: {
+              action: "create", 
+              data: rowsCreated[i]
+            }
           }
       );
     }
   }
   
-  if (modificationRequests.length > 0) {
+  if (modRequestList.length > 0) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         
@@ -468,19 +480,30 @@ function onSaveButtonClick() {
           uiOnSaveEnd();
           jsonResponse = JSON.parse(this.responseText);
           
-          jsonStatuses = jsonResponse.statuses;
-          // if everything is OK, all statuses are 0
-          sum = jsonStatuses.reduce(function(a, b) {return a + b;});
-          if (sum > 0) {
+          
+          modStatusList = jsonResponse.modStatusList;
+          
+          // check all modStatus ok
+          var allModStatusOk = true;
+          for (var i = 0; i < modStatusList.length; i++) {
+            if (modStatusList[i].modStatusCode != 0) {
+              allModStatusOk = false;
+              break;
+            }
+          }
+          
+          if (!allModStatusOk) {
             message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагружаться." // NON-NLS // NON-NLS 
                 + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
             statusError(message);
+            
           } else {
             statusBar = document.getElementById("statusBar");
             statusBar.className = "statusBar statusBar-success";
             statusBar.innerHTML = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагружаться." // NON-NLS // NON-NLS
                 + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
           }
+          
           
           jsonItemList = getJsonItemList(jsonResponse); 
           refillGrid(jsonItemList, false);
@@ -505,8 +528,8 @@ function onSaveButtonClick() {
     };
     xhttp.open("POST", getApiModUrl(), true);
     
-    requestJson = {mod_requests: modificationRequests};
-    xhttp.send(JSON.stringify(requestJson));
+    
+    xhttp.send(JSON.stringify(modRequestList));
     
   } else {
     // TODO report nothing to save

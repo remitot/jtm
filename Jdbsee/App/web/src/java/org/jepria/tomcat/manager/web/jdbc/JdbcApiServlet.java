@@ -9,7 +9,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -134,200 +133,139 @@ public class JdbcApiServlet extends HttpServlet {
 
     try {
 
-      List<ModRequestDto> modRequests;
-
+      // read list from request body
+      final List<ModRequestDto> modRequests;
+      
       try {
-        Type mapType = new TypeToken<HashMap<String, List<ModRequestDto>>>(){}.getType();
-        Map<String, List<ModRequestDto>> requestJsonMap = new Gson().fromJson(new InputStreamReader(req.getInputStream()), mapType);
-        modRequests = requestJsonMap.get("mod_requests");
+        Type mapType = new TypeToken<ArrayList<ModRequestDto>>(){}.getType();
+        modRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), mapType);
         
-        if (modRequests == null) {
-          throw new IllegalStateException("mod_requests is null");
-        }
       } catch (Throwable e) {
         e.printStackTrace();
 
         resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
+      } 
+      
+      
+      // convert list to map
+      final Map<String, ModRequestBodyDto> modRequestBodyMap = new HashMap<>();
+      
+      if (modRequests != null) {
+        for (ModRequestDto modRequest: modRequests) {
+          final String modRequestId = modRequest.getModRequestId();
+          
+          if (modRequestId == null || "".equals(modRequestId)
+              || modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
+            // duplicate or empty modRequestId values
+            
+            // TODO log?
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.flushBuffer();
+            return;
+          }
+        }
       }
+      
 
+      
       Environment environment = EnvironmentFactory.get(req);
       
-      TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
+      final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
 
-      final Map<String, Connection> connections = tomcatConf.getConnections();
-
-      // response statuses and messages, corresponding to requests
-      final ConnectionModificationResponseStatus[] respStatuses = new ConnectionModificationResponseStatus[modRequests.size()];
       
-      Set<Integer> processedRequestIndexes = new HashSet<>();
+      // collect processed modRequests
+      final Set<String> processedModRequestIds = new HashSet<>();
+      
+      
+      // response map
+      final Map<String, ModStatus> modStatusMap = new HashMap<>();
+      
       
       boolean confModified = false; 
       
-      // 1) updates
-      for (int i = 0; i < modRequests.size(); i++) {
-        ModRequestDto cmRequest = modRequests.get(i);
+      // 1) perform all updates
+      for (String modRequestId: modRequestBodyMap.keySet()) {
+        ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
 
-        if ("update".equals(cmRequest.getAction())) {
-          processedRequestIndexes.add(i);
+        if ("update".equals(mreq.getAction())) {
+          processedModRequestIds.add(modRequestId);
 
-          ConnectionModificationResponseStatus respStatus;
+          ModStatus modStatus = updateConnection(mreq, tomcatConf);
+          if (modStatus.code == ModStatus.CODE_SUCCESS) {
+            confModified = true;
+          }
+
+          modStatusMap.put(modRequestId, modStatus);
+        }
+      }
+
+
+      // 2) perform all deletions
+      for (String modRequestId: modRequestBodyMap.keySet()) {
+        ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
+
+        if ("delete".equals(mreq.getAction())) {
+          processedModRequestIds.add(modRequestId);
+
+          ModStatus modStatus = deleteConnection(mreq, tomcatConf);
+          if (modStatus.code == ModStatus.CODE_SUCCESS) {
+            confModified = true;
+          }
           
-          try {
-            String location = cmRequest.getLocation();
-
-            if (location == null) {
-
-              respStatus = ConnectionModificationResponseStatus.errLocationIsEmpty();
-                  
-            } else {
-
-              Connection connection = connections.get(location);
-
-              if (connection == null) {
-
-                respStatus = ConnectionModificationResponseStatus.errConnectionNotFoundByLocation(location);
-
-              } else {
-                ConnectionDto connectionDto = cmRequest.getData();
-
-                if (connectionDto.getActive() != null) {
-                  if (!connection.isActive() && connectionDto.getActive()) {
-                    connection.onActivate();
-                  } else if (connection.isActive() && !connectionDto.getActive()) {
-                    connection.onDeactivate();
-                  }
-                }
-                
-                if (connectionDto.getDb() != null) {
-                  connection.setDb(connectionDto.getDb());
-                }
-                if (connectionDto.getName() != null) {
-                  connection.setName(connectionDto.getName());
-                }
-                if (connectionDto.getPassword() != null) {
-                  connection.setPassword(connectionDto.getPassword());
-                }
-                if (connectionDto.getServer() != null) {
-                  connection.setServer(connectionDto.getServer());
-                }
-                if (connectionDto.getUser() != null) {
-                  connection.setUser(connectionDto.getUser());
-                }
-
-                respStatus = ConnectionModificationResponseStatus.success();
-                confModified = true;
-              }
-            }
-          } catch (Throwable e) {
-            e.printStackTrace();
-            respStatus = ConnectionModificationResponseStatus.errInternalError();
-          }
-
-          respStatuses[i] = respStatus;
+          modStatusMap.put(modRequestId, modStatus);
         }
       }
 
 
-      // 2) deletions
-      for (int i = 0; i < modRequests.size(); i++) {
-        ModRequestDto cmRequest = modRequests.get(i);
+      // 3) perform all creations
+      for (String modRequestId: modRequestBodyMap.keySet()) {
+        ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
 
-        if ("delete".equals(cmRequest.getAction())) {
-          processedRequestIndexes.add(i);
+        if ("create".equals(mreq.getAction())) {
+          processedModRequestIds.add(modRequestId);
 
-          ConnectionModificationResponseStatus respStatus;
-
-          try {
-            String location = cmRequest.getLocation();
-
-            if (location == null) {
-
-              respStatus = ConnectionModificationResponseStatus.errLocationIsEmpty();
-
-            } else {
-
-              Connection connection = connections.get(location);
-
-              if (connection == null) {
-
-                respStatus = ConnectionModificationResponseStatus.errConnectionNotFoundByLocation(location);
-
-              } else {
-                tomcatConf.delete(location);
-
-                respStatus = ConnectionModificationResponseStatus.success();
-                confModified = true;
-              }
-            }
-          } catch (Throwable e) {
-            e.printStackTrace();
-            respStatus = ConnectionModificationResponseStatus.errInternalError();
+          ModStatus modStatus = createConnection(mreq, tomcatConf, environment);
+          if (modStatus.code == ModStatus.CODE_SUCCESS) {
+            confModified = true;
           }
-
-          respStatuses[i] = respStatus;
-        }
-      }
-
-
-      // 3) creations
-      for (int i = 0; i < modRequests.size(); i++) {
-        ModRequestDto cmRequest = modRequests.get(i);
-
-        if ("create".equals(cmRequest.getAction())) {
-          processedRequestIndexes.add(i);
-
-          ConnectionModificationResponseStatus respStatus;
-
-          try {
-            ConnectionDto connectionDto = cmRequest.getData();
-
-            // check mandatory fields of a new connection
-            List<String> emptyFields = getEmptyMandatoryFields(connectionDto);
-
-            if (!emptyFields.isEmpty()) {
-
-              respStatus = ConnectionModificationResponseStatus.errMandatoryFieldsEmpty(emptyFields);
-
-            } else {
-
-              Connection newConnection = tomcatConf.create(environment.getJdbcConnectionInitialParams());
-
-              newConnection.setDb(connectionDto.getDb());
-              newConnection.setName(connectionDto.getName());
-              newConnection.setPassword(connectionDto.getPassword());
-              newConnection.setServer(connectionDto.getServer());
-              newConnection.setUser(connectionDto.getUser());
-
-              respStatus = ConnectionModificationResponseStatus.success();
-              confModified = true;
-            }
-          } catch (Throwable e) {
-            e.printStackTrace();
-            respStatus = ConnectionModificationResponseStatus.errInternalError();
-          }
-
-          respStatuses[i] = respStatus;
+          
+          modStatusMap.put(modRequestId, modStatus);
         }
       }
 
 
 
       // 4) process illegal actions
-      for (int i = 0; i < modRequests.size(); i++) {
-        if (!processedRequestIndexes.contains(i)) {
-          respStatuses[i] = ConnectionModificationResponseStatus.errIllegalAction(modRequests.get(i).getAction());
+      for (String modRequestId: modRequestBodyMap.keySet()) {
+        if (!processedModRequestIds.contains(modRequestId)) {
+          
+          String action = modRequestBodyMap.get(modRequestId).getAction();
+          ModStatus modStatus = ModStatus.errIllegalAction(action);
+          
+          modStatusMap.put(modRequestId, modStatus);
         }
       }
 
 
+      // prepare response map
+      final Map<String, Object> responseJsonMap = new HashMap<>();
       
-      Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("statuses", Arrays.stream(respStatuses).map(status -> status.code).collect(Collectors.toList()));
-      // TODO maybe to check some URL parameter (such as 'verbose=1') and to put or not to put status_messages into a response?
-      responseJsonMap.put("status_messages", Arrays.stream(respStatuses).map(status -> status.message).collect(Collectors.toList()));
+      // convert map to list
+      final List<Map<String, Object>> modStatusList = modStatusMap.entrySet().stream().map(
+          entry -> {
+            Map<String, Object> jsonMap = new HashMap<>();
+            jsonMap.put("modRequestId", entry.getKey());
+            jsonMap.put("modStatusCode", entry.getValue().code);
+            // TODO maybe to check some URL parameter (such as 'verbose=1') and to put or not to put modStatusMessages into a response?
+            jsonMap.put("modStatusMessage", entry.getValue().message);
+            return jsonMap;
+          }).collect(Collectors.toList());
+      
+      responseJsonMap.put("modStatusList", modStatusList);
+      
       
       if (confModified) {
         
@@ -369,6 +307,136 @@ public class JdbcApiServlet extends HttpServlet {
       resp.flushBuffer();
       return;
     }
+  }
+  
+  private static ModStatus updateConnection(
+      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
+    
+    ModStatus ret;
+    
+    try {
+      String location = mreq.getLocation();
+
+      if (location == null) {
+
+        ret = ModStatus.errLocationIsEmpty();
+            
+      } else {
+
+        Map<String, Connection> connections = tomcatConf.getConnections();
+        Connection connection = connections.get(location);
+
+        if (connection == null) {
+
+          ret = ModStatus.errConnectionNotFoundByLocation(location);
+
+        } else {
+          ConnectionDto connectionDto = mreq.getData();
+
+          if (connectionDto.getActive() != null) {
+            if (!connection.isActive() && connectionDto.getActive()) {
+              connection.onActivate();
+            } else if (connection.isActive() && !connectionDto.getActive()) {
+              connection.onDeactivate();
+            }
+          }
+          
+          if (connectionDto.getDb() != null) {
+            connection.setDb(connectionDto.getDb());
+          }
+          if (connectionDto.getName() != null) {
+            connection.setName(connectionDto.getName());
+          }
+          if (connectionDto.getPassword() != null) {
+            connection.setPassword(connectionDto.getPassword());
+          }
+          if (connectionDto.getServer() != null) {
+            connection.setServer(connectionDto.getServer());
+          }
+          if (connectionDto.getUser() != null) {
+            connection.setUser(connectionDto.getUser());
+          }
+
+          ret = ModStatus.success();
+          
+        }
+      }
+    } catch (Throwable e) {
+      e.printStackTrace();
+      ret = ModStatus.errInternalError();
+    }
+    
+    return ret;
+  }
+  
+  private static ModStatus deleteConnection(
+      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
+    
+    ModStatus ret;
+
+    try {
+      String location = mreq.getLocation();
+
+      if (location == null) {
+
+        ret = ModStatus.errLocationIsEmpty();
+
+      } else {
+
+        Map<String, Connection> connections = tomcatConf.getConnections();
+        Connection connection = connections.get(location);
+
+        if (connection == null) {
+
+          ret = ModStatus.errConnectionNotFoundByLocation(location);
+
+        } else {
+          tomcatConf.delete(location);
+
+          ret = ModStatus.success();
+        }
+      }
+    } catch (Throwable e) {
+      e.printStackTrace();
+      ret = ModStatus.errInternalError();
+    }
+    
+    return ret;
+  }
+  
+  private static ModStatus createConnection(
+      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf, Environment environment) {
+    
+    ModStatus ret;
+
+    try {
+      ConnectionDto connectionDto = mreq.getData();
+
+      // check mandatory fields of a new connection
+      List<String> emptyFields = getEmptyMandatoryFields(connectionDto);
+
+      if (!emptyFields.isEmpty()) {
+
+        ret = ModStatus.errMandatoryFieldsEmpty(emptyFields);
+
+      } else {
+
+        Connection newConnection = tomcatConf.create(environment.getJdbcConnectionInitialParams());
+
+        newConnection.setDb(connectionDto.getDb());
+        newConnection.setName(connectionDto.getName());
+        newConnection.setPassword(connectionDto.getPassword());
+        newConnection.setServer(connectionDto.getServer());
+        newConnection.setUser(connectionDto.getUser());
+
+        ret = ModStatus.success();
+      }
+    } catch (Throwable e) {
+      e.printStackTrace();
+      ret = ModStatus.errInternalError();
+    }
+    
+    return ret;
   }
   
   /**

@@ -1,35 +1,27 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
 public class ModRequestDto {
-  private String action;
-  private String location;
-  private ConnectionDto data;
   
-  public ModRequestDto() {
+  private String modRequestId;
+  private ModRequestBodyDto modRequestBody;
+  
+  public ModRequestDto() {}
+
+  public String getModRequestId() {
+    return modRequestId;
   }
 
-  public String getAction() {
-    return action;
+  public void setModRequestId(String modRequestId) {
+    this.modRequestId = modRequestId;
   }
 
-  public void setAction(String action) {
-    this.action = action;
+  public ModRequestBodyDto getModRequestBody() {
+    return modRequestBody;
   }
 
-  public String getLocation() {
-    return location;
+  public void setModRequestBody(ModRequestBodyDto modRequestBody) {
+    this.modRequestBody = modRequestBody;
   }
-
-  public void setLocation(String location) {
-    this.location = location;
-  }
-
-  public ConnectionDto getData() {
-    return data;
-  }
-
-  public void setData(ConnectionDto data) {
-    this.data = data;
-  }
+  
   
 }
