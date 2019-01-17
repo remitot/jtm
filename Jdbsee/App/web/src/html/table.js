@@ -90,8 +90,17 @@ function refillGrid(jsonListItems) {
     checkModifications();
   }
   
-  rowButtonCreate = createRowButtonCreate();
-  table.appendChild(rowButtonCreate);
+
+  if (isEditable()) {
+    rowButtonCreate = createRowButtonCreate();
+    table.appendChild(rowButtonCreate);
+  } else {
+    inputFields = table.querySelectorAll("input");
+    for (var i = 0; i < inputFields.length; i++) {
+      inputFields[i].setAttribute("readonly", true);
+    }
+  }
+  
 }
 
 function createRowButtonCreate() {
@@ -645,6 +654,13 @@ function adjustBottomShadow() {
       controlButtons.classList.add("bottom-shadow");
     }
   }
+}
+
+/**
+ * Overridable function: whether the table is editable or readonly in general
+ */
+function isEditable() {
+  return true;
 }
 
 window.onscroll = adjustBottomShadow;

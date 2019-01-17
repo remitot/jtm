@@ -72,4 +72,8 @@ function createRowCreate() {
   // unsupported
 }
 
+/* @Override from table.js */
+function isEditable() {
+  return false;
+}
 
