@@ -59,14 +59,14 @@ input.field-text:focus {
 .pageHeader {
   background-color: black;
   
-  height: 60px;
+  height: 45px;
 }
 
 .pageHeader label {
   padding-left: 14px;
   
   font-family: serif;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: bold;
   
   color: #ddd;
@@ -74,7 +74,7 @@ input.field-text:focus {
 
 .pageHeader > * {
   vertical-align: middle;
-  line-height: 60px;
+  line-height: 45px;
 }
 
 .pageHeader #buttonLogout {
@@ -89,7 +89,7 @@ input.field-text:focus {
 .statusBar {
   padding: 14px;
   
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .statusBar .span-bold {

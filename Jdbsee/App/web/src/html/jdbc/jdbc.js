@@ -23,7 +23,7 @@ function createHeader() {
   
   cell = createCell(div, "column-name");
   label = document.createElement("label");
-  label.innerHTML = "Название датасорса"; // NON-NLS
+  label.innerHTML = "Название"; // NON-NLS
   cell.appendChild(label);
   
   cell = createCell(div, "column-server");
