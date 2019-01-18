@@ -551,9 +551,9 @@ function disableGrid() {
   for (var i = 0; i < inputs.length; i++) {
     input = inputs[i];
     
-    // two alternative ways to graphically disable the input 
-    input.disabled = true;
-    //input.setAttribute("readonly", true);
+    // when set 'input.disabled = true' then unable to select text in a field, so set readonly 
+    input.setAttribute("readonly", true);
+    input.classList.add("readonly");
   }
   checkboxes = table.getElementsByClassName("checkbox");
   for (var i = 0; i < checkboxes.length; i++) {
