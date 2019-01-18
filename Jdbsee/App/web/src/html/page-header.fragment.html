@@ -1,0 +1,79 @@
+<!-- 
+  <%-- for correct cyrillic display while including as jsp --%>
+  <%@ page contentType="text/html; charset=UTF-8" %> 
+-->
+
+<div class="page-header">
+  
+  <a class="page-header__menu-item" href="jdbc">JDBC коннекты</a> <!-- NON-NLS -->
+  &emsp;
+  <a class="page-header__menu-item" href="modjk">Apache modjk</a> <!-- NON-NLS -->
+  &emsp;
+  <a class="page-header__menu-item" href="portinfo">Серверные порты</a> <!-- NON-NLS -->
+  &emsp;&emsp;&emsp;
+  <a class="page-header__menu-item" href="api" target="_blank">API docs</a> <!-- NON-NLS -->
+  
+  <div class="page-header__button-logout big-black-button" onclick="logout();">ВЫЙТИ</div> <!-- NON-NLS -->
+</div>
+
+<style type="text/css">
+  .page-header {
+    background-color: black;
+    
+    height: 45px;
+    
+    padding-left: 28px;
+  }
+
+  .page-header__menu-item {
+    font-family: serif;
+    font-size: 16px;
+    font-weight: bold;
+    
+    color: #777;
+  }
+  
+  .page-header__menu-item:hover {
+    color: green;
+  }
+    
+  a.page-header__menu-item {
+    text-decoration: none;
+  }
+  
+  .page-header__menu-item_current {
+    color: white;
+  }
+  
+  
+  .page-header__menu-item:hover {
+    color: #0089bd;
+  }
+  .page-header__menu-item_current:hover {
+    color: white;
+  }
+  
+  
+  .page-header > * {
+    vertical-align: middle;
+    line-height: 45px;
+  }
+  
+  .page-header__button-logout {
+    float: right;
+    
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+</style>
+
+<script>
+  // disable the current menu item (which links to the same location)
+  var links = document.getElementsByClassName("page-header__menu-item");
+  for (var i = 0; i < links.length; i++) {
+    if (links[i].href == document.location) {
+      links[i].removeAttribute("href");
+      links[i].classList.add("page-header__menu-item_current");
+    }
+  }
+</script>

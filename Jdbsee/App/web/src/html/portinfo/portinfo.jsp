@@ -18,10 +18,7 @@
   
   <body onload="reload()">
     
-    <div id="pageHeader" class="pageHeader">
-      <label>Серверные порты</label> <!-- NON-NLS -->
-      <div id="buttonLogout" class="big-black-button" onclick="logout();">ВЫЙТИ</div> <!-- NON-NLS -->
-    </div>
+    <%@ include file="../page-header.fragment.html" %>
      
     <div id="statusBar" class="statusBar statusBar-none"></div>
   
