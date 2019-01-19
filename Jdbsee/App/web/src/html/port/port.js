@@ -15,9 +15,9 @@ function createHeader() {
   
   div = document.createElement("div");
   div.classList.add("flexColumns");
-  
+  div.classList.add("column-left");
+    
   cell = createCell(div, "column-type");
-  cell.classList.add("column-left");
   label = document.createElement("label");
   label.innerHTML = "Тип"; // NON-NLS
   cell.appendChild(label);
@@ -41,9 +41,9 @@ function createRow(listItem) {
   
   div = document.createElement("div");
   div.classList.add("flexColumns");
+  div.classList.add("column-left");
   
   cell = createCell(div, "column-type");
-  cell.classList.add("column-left");
   cell.classList.add("cell-field");
   field = addField(cell, "type", listItem.type, null);
   field.tabIndex = tabindex0++;

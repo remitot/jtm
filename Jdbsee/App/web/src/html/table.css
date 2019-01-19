@@ -44,7 +44,7 @@
 }
 
 /* left margin for the leftmost column */
-#table div.cell.column-left {
+#table .column-left {
   margin-left: 8px;
 }
 
