@@ -1,131 +1,124 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>JTM API</title>
-</head>
-<body>
-  <h1>API</h1>
-  
-  
-  
-  <h2>General</h2>
-  <h3>Login</h3>
-  <table border="1">
-    <tbody>
-      <tr>
-        <td>Method</td>
-        <td><code>POST</code> or <code>GET</code></td>
-      </tr>
-      <tr>
-        <td>Url</td>
-        <td><code>/api/login</code></td>
-      </tr>
-      <tr>
-        <td>Request params</td>
-        <td><code>username</code>, <code>password</code></td>
-      </tr>
-      <tr>
-        <td>Request body</td>
-        <td>empty body</td>
-      </tr>
-      <tr>
-        <td>Response</td>
-        <td>empty body; status code either 
-          <code>200</code> (successful login) or 
-          <code>400</code> (a mandatory field is empty) or 
-          <code>401</code> (authorization failure).</td>
-      </tr>
-    </tbody>
-  </table>
-  <h4>Example:</h4>
-  <table border="1">
-    <tbody>
-      <tr>
-        <th>Request</th>
-      </tr>
-      <tr>
-        <td><code>/api/login?username=admin&password=admin</code></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3>Logout</h3>
-  <table border="1">
-    <tbody>
-      <tr>
-        <td>Method</td>
-        <td><code>POST</code> or <code>GET</code></td>
-      </tr>
-      <tr>
-        <td>Url</td>
-        <td><code>/api/logout</code></td>
-      </tr>
-      <tr>
-        <td>Request params</td>
-        <td>none</td>
-      </tr>
-      <tr>
-        <td>Request body</td>
-        <td>empty body</td>
-      </tr>
-      <tr>
-        <td>Response</td>
-        <td>empty body; status <code>200</code> (successful logout).</td>
-      </tr>
-    </tbody>
-  </table>
-  <h4>Example:</h4>
-  <table border="1">
-    <tbody>
-      <tr>
-        <th>Request</th>
-      </tr>
-      <tr>
-        <td><code>/api/logout</code></td>
-      </tr>
-    </tbody>
-  </table>
-
-
-
-
-
-  <h2>JDBC</h2>
-  <h3>Get list of connection descriptions</h3>
-  <table border="1">
-    <tbody>
-      <tr>
-        <td>Method</td>
-        <td><code>GET</code></td>
-      </tr>
-      <tr>
-        <td>Url</td>
-        <td><code>/api/jdbc/list</code></td>
-      </tr>
-      <tr>
-        <td>Request params</td>
-        <td>none</td>
-      </tr>
-      <tr>
-        <td>Request body</td>
-        <td>empty body</td>
-      </tr>
-      <tr>
-        <td>Response (application/json UTF-8)</td>
-        <td>list of connections</td>
-      </tr>
-    </tbody>
-  </table>
-  <h4>Example:</h4>
-  <table border="1">
-    <tbody>
-      <tr>
-        <th>Request</th>
-        <th>Response</t>
-      </tr>
-      <tr>
-        <td><code>/api/jdbc/list</code></td>
-        <td><pre>
+  <head>
+    <title>JTM API</title>
+  </head>
+  <body>
+    <h1>API</h1>
+    <h2>General</h2>
+    <h3>Login</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>POST</code> or <code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/login</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td><code>username</code>, <code>password</code></td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response</td>
+          <td>empty body; status code either 
+            <code>200</code> (successful login) or 
+            <code>400</code> (a mandatory field is empty) or 
+            <code>401</code> (authorization failure).
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+        </tr>
+        <tr>
+          <td><code>/api/login?username=admin&password=admin</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Logout</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>POST</code> or <code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/logout</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td>none</td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response</td>
+          <td>empty body; status <code>200</code> (successful logout).</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+        </tr>
+        <tr>
+          <td><code>/api/logout</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <h2>JDBC</h2>
+    <h3>Get list of connection descriptions</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/jdbc/list</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td>none</td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response (application/json UTF-8)</td>
+          <td>list of connections</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+          <th>Response</t>
+        </tr>
+        <tr>
+          <td><code>/api/jdbc/list</code></td>
+          <td>
+            <pre>
 {
   "_list": [
     {
@@ -148,49 +141,51 @@
     }
   ]
 }       </pre>
-        <br /> If there are no connections, the <code>"_list"</code>
-          element will have the value of an empty array:<pre>
+            <br /> If there are no connections, the <code>"_list"</code>
+            element will have the value of an empty array:
+            <pre>
 {
   "_list": []
 }        </pre>
-          <br /> Returning the list under the "_list" key instead of plain JSON array
-          used for maintaining the common response structure with other method responses. 
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3>Modify connections</h3>
-  Modify existing connections
-  <table border="1">
-    <tbody>
-      <tr>
-        <td>Method</td>
-        <td><code>POST</code></td>
-      </tr>
-      <tr>
-        <td>Url</td>
-        <td><code>/api/jdbc/mod</code></td>
-      </tr>
-      <tr>
-        <td>Request params</td>
-        <td>none</td>
-      </tr>
-      <tr>
-        <td>Request body</td>
-        <td>list of connection modification requests (modRequests),
-        where each element is a modRequest consisting of 
-        a <code>modRequestId</code> (arbitrary value but unique over the entire list)
-        and a <code>modRequestBody</code>, representing one of the three modification requests:
-          <table border="1" style="margin: 10px;">
-            <tbody>
-              <tr>
-                <th>Update connection</th>
-                <th>Delete connection</th>
-                <th>Create connection</th>
-              </tr>
-              <tr>
-                <td><pre>
+            <br /> Returning the list under the "_list" key instead of plain JSON array
+            used for maintaining the common response structure with other method responses. 
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Modify connections</h3>
+    Modify existing connections
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>POST</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/jdbc/mod</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td>none</td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>
+            list of connection modification requests (modRequests),
+            where each element is a modRequest consisting of 
+            a <code>modRequestId</code> (arbitrary value but unique over the entire list)
+            and a <code>modRequestBody</code>, representing one of the three modification requests:
+            <table border="1" style="margin: 10px;">
+              <tbody>
+                <tr>
+                  <th>Update connection</th>
+                  <th>Delete connection</th>
+                  <th>Create connection</th>
+                </tr>
+                <tr>
+                  <td>
+                    <pre>
 {
   "action": "update",
   "location": <i>location</i>,
@@ -203,14 +198,18 @@
     "password": <i>newValue (optional)</i>
   }
 }
-                </pre></td>
-                <td><pre>
+                </pre>
+                  </td>
+                  <td>
+                    <pre>
 {
   "action": "delete",
   "location": <i>location</i>
 }
-                </pre></td>
-                <td><pre>
+                </pre>
+                  </td>
+                  <td>
+                    <pre>
 {
   "action": "create",
   "data": {
@@ -222,15 +221,17 @@
     "password": <i>value</i>
   }
 }
-                </pre></td>
-              </tr>
-            </tbody>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td>Response (application/json UTF-8)</td>
-        <td><pre>
+                </pre>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>Response (application/json UTF-8)</td>
+          <td>
+            <pre>
 {
   "modStatusList": 
       <i>list of statuses corresponding to the list of connection modification requests,  
@@ -242,38 +243,44 @@
   "_list": 
       <i>the full list of connections after all modifications performed, 
       analogous to the response of /api/jdbc/list</i>
-}       </pre><br /> The <code>modStatusCode</code> values are:
-          <ul>
-            <li><code>0</code>: <code>SUCCESS</code></li>
-            <li><code>1</code>: <code>ERROR</code>: no connection
-              found by <code>"location"</code></li>
-            <li><code>2</code>: <code>ERROR</code>: <code>"location"</code>
-              is empty</li>
-            <li><code>3</code>: <code>ERROR</code>: some mandatory
-              fields in <code>"data"</code> are empty</li>
-            <li><code>4</code>: <code>ERROR</code>: illegal <code>"action"</code>
-              value</li>
-            <li><code>5</code>: <code>ERROR</code>: internal error</li>
-          </ul>
-          If the error occures while parsing the request body JSON, 
-          the 400 status will be returned.
-          <br/><br/>
-          If the requested connection modification list contains
-          duplicate or empty <code>modRequestId</code> values, 
-          the 400 status will be returned.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <h4>Example:</h4>
-  <table border="1">
-    <tbody>
-      <tr>
-        <th>Request</th>
-        <th>Response</t>
-      </tr>
-      <tr>
-        <td><pre>
+}       </pre>
+            <br /> The <code>modStatusCode</code> values are:
+            <ul>
+              <li><code>0</code>: <code>SUCCESS</code></li>
+              <li><code>1</code>: <code>ERROR</code>: no connection
+                found by <code>"location"</code>
+              </li>
+              <li><code>2</code>: <code>ERROR</code>: <code>"location"</code>
+                is empty
+              </li>
+              <li><code>3</code>: <code>ERROR</code>: some mandatory
+                fields in <code>"data"</code> are empty
+              </li>
+              <li><code>4</code>: <code>ERROR</code>: illegal <code>"action"</code>
+                value
+              </li>
+              <li><code>5</code>: <code>ERROR</code>: internal error</li>
+            </ul>
+            If the error occures while parsing the request body JSON, 
+            the 400 status will be returned.
+            <br/><br/>
+            If the requested connection modification list contains
+            duplicate or empty <code>modRequestId</code> values, 
+            the 400 status will be returned.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+          <th>Response</t>
+        </tr>
+        <tr>
+          <td>
+            <pre>
 /api/jdbc/mod
 [
   {
@@ -310,8 +317,10 @@
       }
     }
   }
-]       </pre></td>
-        <td><pre>
+]       </pre>
+          </td>
+          <td>
+            <pre>
 {
   "modStatusList": [
     {
@@ -352,34 +361,37 @@
     }
   ]
 }  
-          </pre></td>
-      </tr>
-    </tbody>
-  </table>
-  <h3>Ensure connection</h3>
-  Ensures a connection. Unlike modifying, which manipulates existing
-  connections only, this method ensures the connection is present after
-  invocation. If there is no active connection with the same name, a new
-  active connection is created. If there is an active connection with
-  the same name, the existing connection becomes inactive, and a new
-  active connection is created.
-  <table border="1">
-    <tbody>
-      <tr>
-        <td>Method</td>
-        <td><code>POST</code></td>
-      </tr>
-      <tr>
-        <td>Url</td>
-        <td><code>/api/jdbc/ensure</code></td>
-      </tr>
-      <tr>
-        <td>Request params</td>
-        <td>none</td>
-      </tr>
-      <tr>
-        <td>Request body</td>
-        <td>A connection description (all fields are mandatory): <pre>
+          </pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Ensure connection</h3>
+    Ensures a connection. Unlike modifying, which manipulates existing
+    connections only, this method ensures the connection is present after
+    invocation. If there is no active connection with the same name, a new
+    active connection is created. If there is an active connection with
+    the same name, the existing connection becomes inactive, and a new
+    active connection is created.
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>POST</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/jdbc/ensure</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td>none</td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>
+            A connection description (all fields are mandatory): 
+            <pre>
 {
   "name": <i>value</i>,
   "server": <i>value</i>,
@@ -388,42 +400,50 @@
   "password": <i>value</i>
 }
           </pre>
-        </td>
-      </tr>
-      <tr>
-        <td>Response (application/json UTF-8)</td>
-        <td><pre>
+          </td>
+        </tr>
+        <tr>
+          <td>Response (application/json UTF-8)</td>
+          <td>
+            <pre>
 {
   "status": <i>status of the request</i>,
   "status_message": <i>status message</i>
-}       </pre><br /> The statuses are:
-          <ul>
-            <li><code>0</code>: <code>SUCCESS</code>: there is an
-              entirely same active connection, no modifications
-              performed</li>
-            <li><code>1</code>: <code>SUCCESS</code>: there has
-              been no active connection with the same name, a new active
-              connection was created</li>
-            <li><code>2</code>: <code>SUCCESS</code>: there has
-              been an active connection with the same name, the existing
-              connection made inactive, and a new active connection was
-              created</li>
-            <li><code>3</code>: <code>ERROR</code>: some mandatory
-              fields are empty</li>
-            <li><code>4</code>: <code>ERROR</code>: internal error</li>
-          </ul></td>
-      </tr>
-    </tbody>
-  </table>
-  <h4>Example:</h4>
-  <table border="1">
-    <tbody>
-      <tr>
-        <th>Request</th>
-        <th>Response</t>
-      </tr>
-      <tr>
-        <td><pre>
+}       </pre>
+            <br /> The statuses are:
+            <ul>
+              <li><code>0</code>: <code>SUCCESS</code>: there is an
+                entirely same active connection, no modifications
+                performed
+              </li>
+              <li><code>1</code>: <code>SUCCESS</code>: there has
+                been no active connection with the same name, a new active
+                connection was created
+              </li>
+              <li><code>2</code>: <code>SUCCESS</code>: there has
+                been an active connection with the same name, the existing
+                connection made inactive, and a new active connection was
+                created
+              </li>
+              <li><code>3</code>: <code>ERROR</code>: some mandatory
+                fields are empty
+              </li>
+              <li><code>4</code>: <code>ERROR</code>: internal error</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+          <th>Response</t>
+        </tr>
+        <tr>
+          <td>
+            <pre>
 /api/jdbc/ensure
 {
     "name": "jdbc/EnsuredDataSource",
@@ -431,117 +451,117 @@
     "db": "ENSUREDDATABASE",
     "user": "ens",
     "password": "ens"
-}       </pre></td>
-        <td><pre>
+}       </pre>
+          </td>
+          <td>
+            <pre>
 {
   "status": 1,
   "status_message": "SUCCESS: there has been no active connection with the same name, a new active connection was created"
 }  
-          </pre></td>
-      </tr>
-    </tbody>
-  </table>
-  
-  
-  
-  
-  
-  <h2>Ports</h2>
-  <h3>Get port description</h3>
-  <table border="1">
-    <tbody>
-      <tr>
-        <td>Method</td>
-        <td><code>GET</code></td>
-      </tr>
-      <tr>
-        <td>Url</td>
-        <td><code>/api/port/ajp13</code></td>
-      </tr>
-      <tr>
-        <td>Request params</td>
-        <td><code>type=AJP/1.3</code> or <code>type=HTTP/1.1</code></td>
-      </tr>
-      <tr>
-        <td>Request body</td>
-        <td>empty body</td>
-      </tr>
-      <tr>
-        <td>Response (application/json UTF-8)</td>
-        <td>port description<br />
-        <br />
-        If the <code>type</code> request parameter is empty, 
-        the 400 status will be returned.
-        <br/><br/>
-        If the requested <code>type</code> is invalid or no such port defined, 
-        the 404 status will be returned.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <h4>Example:</h4>
-  <table border="1">
-    <tbody>
-      <tr>
-        <th>Request</th>
-        <th>Response</t>
-      </tr>
-      <tr>
-        <td><code>/api/port?type=AJP/1.3</code></td>
-        <td><pre>
+          </pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h2>Ports</h2>
+    <h3>Get port description</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/port/ajp13</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td><code>type=AJP/1.3</code> or <code>type=HTTP/1.1</code></td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response (application/json UTF-8)</td>
+          <td>port description<br />
+            <br />
+            If the <code>type</code> request parameter is empty, 
+            the 400 status will be returned.
+            <br/><br/>
+            If the requested <code>type</code> is invalid or no such port defined, 
+            the 404 status will be returned.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+          <th>Response</t>
+        </tr>
+        <tr>
+          <td><code>/api/port?type=AJP/1.3</code></td>
+          <td>
+            <pre>
 {
   "type": "AJP/1.3",
   "number": 8009
 }       </pre>
-        </td>
-      </tr>
-      <tr>
-        <td><code>/api/port?type=HTTP/1.1</code></td>
-        <td><pre>
+          </td>
+        </tr>
+        <tr>
+          <td><code>/api/port?type=HTTP/1.1</code></td>
+          <td>
+            <pre>
 {
   "type": "HTTP/1.1",
   "number": 8080
 }       </pre>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  
-  <h3>Get list of port descriptions</h3>
-  <table border="1">
-    <tbody>
-      <tr>
-        <td>Method</td>
-        <td><code>GET</code></td>
-      </tr>
-      <tr>
-        <td>Url</td>
-        <td><code>/api/port/list</code></td>
-      </tr>
-      <tr>
-        <td>Request params</td>
-        <td>none</td>
-      </tr>
-      <tr>
-        <td>Request body</td>
-        <td>empty body</td>
-      </tr>
-      <tr>
-        <td>Response (application/json UTF-8)</td>
-        <td>list of ports</td>
-      </tr>
-    </tbody>
-  </table>
-  <h4>Example:</h4>
-  <table border="1">
-    <tbody>
-      <tr>
-        <th>Request</th>
-        <th>Response</t>
-      </tr>
-      <tr>
-        <td><code>/api/port/list</code></td>
-        <td><pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Get list of port descriptions</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/port/list</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td>none</td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response (application/json UTF-8)</td>
+          <td>list of ports</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+          <th>Response</t>
+        </tr>
+        <tr>
+          <td><code>/api/port/list</code></td>
+          <td>
+            <pre>
 {
   "_list": [
     {
@@ -554,16 +574,18 @@
     }
   ]
 }       </pre>
-        <br /> If there are no connections, the <code>"_list"</code>
-          element will have the value of an empty array:<pre>
+            <br /> If there are no connections, the <code>"_list"</code>
+            element will have the value of an empty array:
+            <pre>
 {
   "_list": []
 }        </pre>
-          <br /> Returning the list under the "_list" key instead of plain JSON array
-          used for maintaining the common response structure with other method responses.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</body>
+            <br /> Returning the list under the "_list" key instead of plain JSON array
+            used for maintaining the common response structure with other method responses.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
 </html>
+
