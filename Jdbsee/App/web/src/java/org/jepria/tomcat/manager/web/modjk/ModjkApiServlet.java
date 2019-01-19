@@ -42,7 +42,7 @@ public class ModjkApiServlet extends HttpServlet {
         connectionDtos.add(m);
         
         Map<String, Object> responseJsonMap = new HashMap<>();
-        responseJsonMap.put("itemList", connectionDtos);
+        responseJsonMap.put("_list", connectionDtos);
         
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));

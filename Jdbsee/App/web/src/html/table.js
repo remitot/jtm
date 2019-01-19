@@ -33,7 +33,7 @@ function createRowCreate() {
 }
 
 function getJsonItemList(jsonResponse) {
-  return jsonResponse.itemList;
+  return jsonResponse._list;
 }
 
 function reloadTable() {

@@ -115,7 +115,7 @@ public class PortApiServlet extends HttpServlet {
       }
       
       Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("itemList", ports);
+      responseJsonMap.put("_list", ports);
       
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));

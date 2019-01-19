@@ -127,7 +127,7 @@
         <td><code>/api/jdbc/list</code></td>
         <td><pre>
 {
-  "itemList": [
+  "_list": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-0",
       "active": true,
@@ -148,12 +148,12 @@
     }
   ]
 }       </pre>
-        <br /> If there are no connections, the <code>"itemList"</code>
+        <br /> If there are no connections, the <code>"_list"</code>
           element will have the value of an empty array:<pre>
 {
-  "itemList": []
+  "_list": []
 }        </pre>
-          <br /> Returning the list under the "itemList" key instead of plain JSON array
+          <br /> Returning the list under the "_list" key instead of plain JSON array
           used for maintaining the common response structure with other method responses. 
         </td>
       </tr>
@@ -239,7 +239,7 @@
       a <code>modStatusCode</code>,
       and a <code>modStatusMessage</code> (a description of the status)</i>
        
-  "itemList": 
+  "_list": 
       <i>the full list of connections after all modifications performed, 
       analogous to the response of /api/jdbc/list</i>
 }       </pre><br /> The <code>modStatusCode</code> values are:
@@ -331,7 +331,7 @@
     }
   ],
   
-  "itemList": [
+  "_list": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-1",
       "active": true,
@@ -543,7 +543,7 @@
         <td><code>/api/port/list</code></td>
         <td><pre>
 {
-  "itemList": [
+  "_list": [
     {
       "type": "AJP/1.3",
       "port": 8009
@@ -554,12 +554,12 @@
     }
   ]
 }       </pre>
-        <br /> If there are no connections, the <code>"itemList"</code>
+        <br /> If there are no connections, the <code>"_list"</code>
           element will have the value of an empty array:<pre>
 {
-  "itemList": []
+  "_list": []
 }        </pre>
-          <br /> Returning the list under the "itemList" key instead of plain JSON array
+          <br /> Returning the list under the "_list" key instead of plain JSON array
           used for maintaining the common response structure with other method responses.
         </td>
       </tr>
