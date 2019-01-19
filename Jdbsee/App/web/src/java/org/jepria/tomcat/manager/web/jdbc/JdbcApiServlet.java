@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.core.TransactionException;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
+import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
@@ -126,7 +127,7 @@ public class JdbcApiServlet extends HttpServlet {
   }
 
 
-  private void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  private static void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
@@ -170,12 +171,11 @@ public class JdbcApiServlet extends HttpServlet {
       
 
       
-      Environment environment = EnvironmentFactory.get(req);
+      final Environment environment = EnvironmentFactory.get(req);
       
       final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
           environment.getServerXmlInputStream());
 
-      
       // collect processed modRequests
       final Set<String> processedModRequestIds = new HashSet<>();
       
@@ -227,7 +227,8 @@ public class JdbcApiServlet extends HttpServlet {
         if ("create".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = createConnection(mreq, tomcatConf, environment);
+          ModStatus modStatus = createConnection(mreq, tomcatConf, 
+              environment.getJdbcConnectionInitialParams());
           if (modStatus.code == ModStatus.CODE_SUCCESS) {
             confModified = true;
           }
@@ -405,7 +406,8 @@ public class JdbcApiServlet extends HttpServlet {
   }
   
   private static ModStatus createConnection(
-      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf, Environment environment) {
+      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf,
+      ConnectionInitialParams connectionInitialParams) {
     
     ModStatus ret;
 
@@ -421,7 +423,7 @@ public class JdbcApiServlet extends HttpServlet {
 
       } else {
 
-        Connection newConnection = tomcatConf.create(environment.getJdbcConnectionInitialParams());
+        Connection newConnection = tomcatConf.create(connectionInitialParams);
 
         newConnection.setDb(connectionDto.getDb());
         newConnection.setName(connectionDto.getName());
@@ -478,7 +480,7 @@ public class JdbcApiServlet extends HttpServlet {
     }
   }
   
-  private void ensure(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  private static void ensure(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
