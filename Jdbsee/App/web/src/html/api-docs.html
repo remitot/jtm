@@ -654,6 +654,9 @@
           <td>Response (text/plain UTF-8)</td>
           <td>log file contents (inline)<br />
             <br />
+            If the <code>filename</code> request parameter is empty, 
+            the 400 status will be returned.
+            <br/><br/>
             If the requested <code>filename</code> contains <code>/</code> or <code>\</code> character, 
             the 400 status will be returned (browsing is not allowed).
             <br/><br/>
