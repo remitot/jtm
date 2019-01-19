@@ -80,31 +80,31 @@ function createRow(listItem) {
   cell = createCell(div, "column-name");
   cell.classList.add("cell-field");
   field = addField(cell, "name", listItem.name, null);
-  field.setAttribute("value0", listItem.name);
+  field.setAttribute("value-original", listItem.name);
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-server");
   cell.classList.add("cell-field");
   field = addField(cell, "server", listItem.server, null);
-  field.setAttribute("value0", listItem.server);
+  field.setAttribute("value-original", listItem.server);
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-db");
   cell.classList.add("cell-field");
   field = addField(cell, "db", listItem.db, null);
-  field.setAttribute("value0", listItem.db);
+  field.setAttribute("value-original", listItem.db);
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-user");
   cell.classList.add("cell-field");
   field = addField(cell, "user", listItem.user, null);
-  field.setAttribute("value0", listItem.user);
+  field.setAttribute("value-original", listItem.user);
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-password");
   cell.classList.add("cell-field");
   field = addField(cell, "password", listItem.password, null);
-  field.setAttribute("value0", listItem.password);
+  field.setAttribute("value-original", listItem.password);
   field.tabIndex = tabindex0++;
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;

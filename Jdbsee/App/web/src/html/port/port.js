@@ -46,13 +46,11 @@ function createRow(listItem) {
   cell.classList.add("column-left");
   cell.classList.add("cell-field");
   field = addField(cell, "type", listItem.type, null);
-  field.setAttribute("value0", listItem.type);
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-port");
   cell.classList.add("cell-field");
   field = addField(cell, "port", listItem.number, null);
-  field.setAttribute("value0", listItem.number);
   field.tabIndex = tabindex0++;
   
   row.appendChild(div);

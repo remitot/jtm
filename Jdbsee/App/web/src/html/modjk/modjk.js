@@ -64,13 +64,13 @@ function createRow(listItem) {
   cell = createCell(div, "column-pattern");
   cell.classList.add("cell-field");
   field = addField(cell, "pattern", listItem.pattern, null);
-  field.setAttribute("value0", listItem.pattern);
+  field.setAttribute("value-original", listItem.pattern);
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-worker");
   cell.classList.add("cell-field");
   field = addField(cell, "worker", listItem.worker, null);
-  field.setAttribute("value0", listItem.worker);
+  field.setAttribute("value-original", listItem.worker);
   field.tabIndex = tabindex0++;
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;

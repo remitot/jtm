@@ -164,7 +164,7 @@ function createCheckbox(active) {
   input.type = "checkbox";
   input.name = "active";
   input.checked = active;
-  input.setAttribute("value0", active);
+  input.setAttribute("value-original", active);
   field.appendChild(input);
   
   var span = document.createElement("span");
@@ -197,8 +197,8 @@ function createCheckbox(active) {
 function onCheckboxInput(input) {
   // this will be SPAN, then INPUT on a single click
   if (input.tagName.toLowerCase() == "input") {
-    if (input.checked && input.getAttribute("value0") == "true" 
-        || !input.checked && input.getAttribute("value0") == "false") {
+    if (input.checked && input.getAttribute("value-original") == "true" 
+        || !input.checked && input.getAttribute("value-original") == "false") {
       input.parentElement.classList.remove("modified");
     } else {
       input.parentElement.classList.add("modified");
@@ -282,12 +282,12 @@ function createCell(row, columnClass) {
 }
 
 function onFieldInput(field) {
-  value0 = field.getAttribute("value0");
-  if (typeof value0 === 'undefined') {
+  valueOriginal = field.getAttribute("value-original");
+  if (typeof valueOriginal === 'undefined') {
     // treat as modified
     field.classList.add("modified");
   } else {
-    if (value0 !== field.value) {
+    if (valueOriginal !== field.value) {
       field.classList.add("modified");
     } else {
       field.classList.remove("modified");
