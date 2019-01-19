@@ -9,10 +9,11 @@
     
     <link rel="stylesheet" href="jtm.css">
     <link rel="stylesheet" href="table.css">
-    <link rel="stylesheet" href="port/port.css">
-    <script type="text/javascript" src="table.js"></script>
-    <script type="text/javascript" src="port/port.js"></script>
     <script type="text/javascript" src="jtm.js"></script>
+    <script type="text/javascript" src="table.js"></script>
+    
+    <link rel="stylesheet" href="port/port.css">
+    <script type="text/javascript" src="port/port.js"></script>
     
   </head>
   

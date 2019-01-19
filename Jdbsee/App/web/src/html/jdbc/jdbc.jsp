@@ -9,11 +9,12 @@
     
     <link rel="stylesheet" href="jtm.css">
     <link rel="stylesheet" href="table.css">
-    <link rel="stylesheet" href="jdbc/jdbc.css">
     <link rel="stylesheet" href="checkbox.css">
-    <script type="text/javascript" src="table.js"></script>
-    <script type="text/javascript" src="jdbc/jdbc.js"></script>
     <script type="text/javascript" src="jtm.js"></script>
+    <script type="text/javascript" src="table.js"></script>
+    
+    <link rel="stylesheet" href="jdbc/jdbc.css">
+    <script type="text/javascript" src="jdbc/jdbc.js"></script>
     
   </head>
   

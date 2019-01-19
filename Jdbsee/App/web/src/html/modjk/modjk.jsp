@@ -8,11 +8,12 @@
     
     <link rel="stylesheet" href="jtm.css">
     <link rel="stylesheet" href="table.css">
-    <link rel="stylesheet" href="modjk/modjk.css">
     <link rel="stylesheet" href="checkbox.css">
-    <script type="text/javascript" src="table.js"></script>
-    <script type="text/javascript" src="modjk/modjk.js"></script>
     <script type="text/javascript" src="jtm.js"></script>
+    <script type="text/javascript" src="table.js"></script>
+    
+    <link rel="stylesheet" href="modjk/modjk.css">
+    <script type="text/javascript" src="modjk/modjk.js"></script>
     
   </head>
   
