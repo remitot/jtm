@@ -25,9 +25,7 @@
   
     <div id="table" style="width:100%"></div>
     
-    <div id="controlButtons">
-      <%@ include file="../control-buttons.fragment.html" %>
-    </div>
+    <%@ include file="../control-buttons.fragment.html" %>
     
     <%@ include file="../login.fragment.html" %>    
     

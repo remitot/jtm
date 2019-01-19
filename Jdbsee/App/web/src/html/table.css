@@ -172,7 +172,7 @@
   border-color: black !important; /* overrides .checkmark:after */
 }
 
-#controlButtons {
+.control-buttons {
   background-color: white;
   position: sticky;
   left: 0;

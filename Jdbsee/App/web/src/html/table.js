@@ -508,7 +508,7 @@ function onSaveButtonClick() {
           jsonItemList = getJsonItemList(jsonResponse); 
           refillGrid(jsonItemList, false);
           
-          document.getElementById("controlButtons").style.display = "none";
+          document.getElementsByClassName("control-buttons")[0].style.display = "none";
           
         } else if (this.status == 401) {
           statusError("Требуется авторизация"); // NON-NLS
@@ -675,7 +675,7 @@ function rowToJson(row) {
 // TODO the function affects the control buttons only. 
 // Better to move into control-buttons.fragment script?
 function adjustBottomShadow() {
-  var controlButtons = document.getElementById("controlButtons");
+  var controlButtons = document.getElementsByClassName("control-buttons")[0];
   
   if (controlButtons != null) {
     if (document.getElementById("table").getBoundingClientRect().bottom <= 
