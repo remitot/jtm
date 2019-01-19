@@ -29,12 +29,22 @@ public class BasicEnvironment implements Environment {
   private final File contextResourceLinkDefaultAttrs;
   private final File serverResourceDefaultAttrs;
   
+  private final File logsDirectory;
+  
   /**
    * @param request
    * @return a path to tomcat conf folder
    */
   protected Path getConfPath(HttpServletRequest request) {
     return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
+  }
+  
+  /**
+   * @param request
+   * @return a path to tomcat logs folder
+   */
+  protected Path getLogsPath(HttpServletRequest request) {
+    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("logs");
   }
   
   public BasicEnvironment(HttpServletRequest request) {
@@ -49,6 +59,8 @@ public class BasicEnvironment implements Environment {
         "/WEB-INF/jdbc_connection_default_attrs/context_ResourceLink.default_attrs.properties"));
     serverResourceDefaultAttrs = new File(request.getServletContext().getRealPath(
         "/WEB-INF/jdbc_connection_default_attrs/server_Resource.default_attrs.properties"));
+    
+    logsDirectory = getLogsPath(request).toFile();
   }
   
   @Override
@@ -85,6 +97,11 @@ public class BasicEnvironment implements Environment {
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }
+  }
+  
+  @Override
+  public File getLogsDirectory() {
+    return logsDirectory;
   }
   
   @Override

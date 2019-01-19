@@ -1,0 +1,13 @@
+#table div.cell.column-name {
+  width: 50%;
+}
+
+#table div.cell.column-lastmod {
+  width: 50%;
+}
+
+/* left margin for the leftmost column */
+#table .column-left {
+  margin-left: 44px;
+}
+

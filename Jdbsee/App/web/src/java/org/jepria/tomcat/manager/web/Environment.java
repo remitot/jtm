@@ -1,5 +1,6 @@
 package org.jepria.tomcat.manager.web;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -33,6 +34,12 @@ public interface Environment {
    * (normally at TOMCAT_HOME/conf/context.xml)
    */
   InputStream getContextXmlInputStream();
+  
+  /**
+   * @return new {@link File} representing the {@code logs} directory
+   * (normally at TOMCAT_HOME/logs). Normally the file is an existing readable directory.
+   */
+  File getLogsDirectory();
   
   /**
    * @return initial (default) params for the newly created JDBC connection

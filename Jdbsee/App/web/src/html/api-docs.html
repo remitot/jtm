@@ -586,6 +586,71 @@
         </tr>
       </tbody>
     </table>
+    <h2>Logs</h2>
+    <h3>Get list of log files</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/log/list</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td>none</td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response (application/json UTF-8)</td>
+          <td>list of log files</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+          <th>Response</t>
+        </tr>
+        <tr>
+          <td><code>/api/log/list</code></td>
+          <td>
+            <pre>
+{
+  "_list": [
+    {
+      "name": "localhost_access_log.2001-01-01.txt",
+      "lastModifiedDate": "2000-01-01",
+      "lastModifiedTime": "12:00:00",
+      "lastModifiedTimezone": "+0300"
+    },
+    {
+      "name": "catalina.out",
+      "lastModifiedDate": "2001-01-02",
+      "lastModifiedTime": "12:00:00",
+      "lastModifiedTimezone": "+0300"
+    }
+  ]
+}       </pre>
+            <br /> If there are no log files, the <code>"_list"</code>
+            element will have the value of an empty array:
+            <pre>
+{
+  "_list": []
+}        </pre>
+            <br /> Returning the list under the "_list" key instead of plain JSON array
+            used for maintaining the common response structure with other method responses.
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </body>
 </html>
 
