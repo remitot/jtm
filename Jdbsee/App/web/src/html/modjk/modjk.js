@@ -42,7 +42,6 @@ var tabindex0 = 1;
 function createRow(listItem) {
   row = document.createElement("div");
   row.classList.add("row");
-  row.setAttribute("item-location", listItem.location);
   
   // active
   cell = createCell(row, "column-active");

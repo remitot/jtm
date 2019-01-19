@@ -1,9 +1,4 @@
 /* @Override from table.js */
-function getJsonItemList(jsonResponse) {
-  return jsonResponse // the response itself is a JSON array of ports
-}
-
-/* @Override from table.js */
 function getApiListUrl() {
   return "api/port/list";
 }
@@ -43,7 +38,6 @@ var tabindex0 = 1;
 function createRow(listItem) {
   row = document.createElement("div");
   row.classList.add("row");
-  row.setAttribute("item-location", listItem.location);
   
   div = document.createElement("div");
   div.classList.add("flexColumns");
@@ -57,8 +51,8 @@ function createRow(listItem) {
   
   cell = createCell(div, "column-port");
   cell.classList.add("cell-field");
-  field = addField(cell, "port", listItem.port, null);
-  field.setAttribute("value0", listItem.port);
+  field = addField(cell, "port", listItem.number, null);
+  field.setAttribute("value0", listItem.number);
   field.tabIndex = tabindex0++;
   
   row.appendChild(div);
