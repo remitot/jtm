@@ -25,7 +25,7 @@
   #loginScreen {
     position: fixed;
     left: 0;
-    top: 0;
+    top: 45px; /* same with height of the page-header */
     right: 0;
     bottom: 0;
     
@@ -40,7 +40,7 @@
     margin-left: -150px;
     
     top: 50%;
-    margin-top: -144px;
+    margin-top: -116px;
     
     text-align: center;
     
@@ -89,9 +89,7 @@
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4) {
         if (this.status == 200) {
-          if (onLoginSuccessCallback0 != null) {
-            onLoginSuccessCallback0();
-          }
+          onLoginSuccess();
         } else {
           onLoginFailure(this.status);
         }
@@ -106,6 +104,16 @@
     
     fieldPassword = document.getElementById("fieldPassword");
     fieldPassword.value = "";
+  }
+  
+  function onLoginSuccess() {
+    
+    // assume the buitton-logout is the one on the page
+    document.getElementsByClassName("page-header__button-logout")[0].classList.remove("hidden");
+  
+    if (onLoginSuccessCallback0 != null) {
+      onLoginSuccessCallback0();
+    }
   }
   
   function onLoginFailure(httpStatus) {
@@ -133,6 +141,8 @@
   function raiseLoginForm(onLoginSuccessCallback) {
     document.getElementById("loginScreen").className = "loginForm-raised";
     
+    // assume the buitton-logout is the one on the page
+    document.getElementsByClassName("page-header__button-logout")[0].classList.add("hidden");
     
     // init fields
     fieldUsername = document.getElementById("fieldUsername");
