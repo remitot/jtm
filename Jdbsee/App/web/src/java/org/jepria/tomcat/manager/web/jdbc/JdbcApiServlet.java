@@ -54,10 +54,10 @@ public class JdbcApiServlet extends HttpServlet {
         TomcatConfJdbc tomcatConf = new TomcatConfJdbc(environment.getContextXmlInputStream(), 
             environment.getServerXmlInputStream());
         
-        List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
+        List<ConnectionDto> connections = getConnections(tomcatConf);
 
         Map<String, Object> responseJsonMap = new HashMap<>();
-        responseJsonMap.put("_list", connectionDtos);
+        responseJsonMap.put("_list", connections);
         
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
