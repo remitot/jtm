@@ -144,7 +144,7 @@ public class JdbcApiServlet extends HttpServlet {
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
       } 
@@ -162,7 +162,7 @@ public class JdbcApiServlet extends HttpServlet {
             // duplicate or empty modRequestId values
             
             // TODO log?
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
             resp.flushBuffer();
             return;
           }
