@@ -176,6 +176,8 @@ public class LogApiServlet extends HttpServlet {
         log.setLastModifiedTime(lastModifiedParts[1]);
         log.setLastModifiedTimezone(lastModifiedParts[2]);
         
+        log.setSize(logFile.length());
+        
         logs.add(log);
       }
     }

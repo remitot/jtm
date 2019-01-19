@@ -5,6 +5,7 @@ public class LogDto {
   private String lastModifiedDate;
   private String lastModifiedTime;
   private String lastModifiedTimezone;
+  private Long size;
   
   public LogDto() {}
 
@@ -38,5 +39,13 @@ public class LogDto {
 
   public void setLastModifiedTimezone(String lastModifiedTimezone) {
     this.lastModifiedTimezone = lastModifiedTimezone;
+  }
+
+  public Long getSize() {
+    return size;
+  }
+
+  public void setSize(Long size) {
+    this.size = size;
   }
 }

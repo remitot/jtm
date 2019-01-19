@@ -27,10 +27,16 @@
         </tr>
         <tr>
           <td>Response</td>
-          <td>empty body; status code either 
-            <code>200</code> (successful login) or 
-            <code>400</code> (a mandatory field is empty) or 
-            <code>401</code> (authorization failure).
+          <td>empty body
+            <br/><br/>
+            If login succeeds,
+            the 200 status will be returned.
+            <br/><br/>
+            If either <code>username</code> or <code>password</code> request parameter is empty, 
+            the 400 status will be returned.
+            <br/><br/>
+            If authorization fails, 
+            the 401 status will be returned.
           </td>
         </tr>
       </tbody>
@@ -67,7 +73,11 @@
         </tr>
         <tr>
           <td>Response</td>
-          <td>empty body; status <code>200</code> (successful logout).</td>
+          <td>empty body
+            <br/><br/>
+            If logout succeeds,
+            the 200 status will be returned.
+          </td>
         </tr>
       </tbody>
     </table>
@@ -100,7 +110,32 @@
         </tr>
         <tr>
           <td>Response (application/json UTF-8)</td>
-          <td>list of connections</td>
+          <td>list of connection descriptions
+            <pre>
+{
+  "_list": [
+    {
+      "location": <i>string</i>,
+      "active": <i>boolean</i>,
+      "name": <i>string</i>,
+      "server": <i>string</i>,
+      "db": <i>string</i>,
+      "user": <i>string</i>,
+      "password": <i>string</i>
+    },...
+  ]
+}
+            </pre>
+            If there are no connections, the <code>"_list"</code>
+            element will have the value of an empty array:
+            <pre>
+{
+  "_list": []
+}
+            </pre>
+            Returning the list under the "_list" key instead of plain JSON array
+            used for maintaining the common response structure with other method responses.
+          </td> 
         </tr>
       </tbody>
     </table>
@@ -136,15 +171,8 @@
       "password": "yoursecret"
     }
   ]
-}       </pre>
-            <br /> If there are no connections, the <code>"_list"</code>
-            element will have the value of an empty array:
-            <pre>
-{
-  "_list": []
-}        </pre>
-            <br /> Returning the list under the "_list" key instead of plain JSON array
-            used for maintaining the common response structure with other method responses. 
+}
+            </pre> 
           </td>
         </tr>
       </tbody>
@@ -184,14 +212,14 @@
                     <pre>
 {
   "action": "update",
-  "location": <i>location</i>,
+  "location": <i>string</i>,
   "data": {
-    "active": <i>newValue (optional)</i>,
-    "name": <i>newValue (optional)</i>,
-    "server": <i>newValue (optional)</i>,
-    "db": <i>newValue (optional)</i>,
-    "user": <i>newValue (optional)</i>,
-    "password": <i>newValue (optional)</i>
+    "active": <i>boolean (optional)</i>,
+    "name": <i>string (optional)</i>,
+    "server": <i>string (optional)</i>,
+    "db": <i>string (optional)</i>,
+    "user": <i>string (optional)</i>,
+    "password": <i>string (optional)</i>
   }
 }
                 </pre>
@@ -200,7 +228,7 @@
                     <pre>
 {
   "action": "delete",
-  "location": <i>location</i>
+  "location": <i>string</i>
 }
                 </pre>
                   </td>
@@ -209,12 +237,12 @@
 {
   "action": "create",
   "data": {
-    "active": <i>value</i>,
-    "name": <i>value</i>,
-    "server": <i>value</i>,
-    "db": <i>value</i>,
-    "user": <i>value</i>,
-    "password": <i>value</i>
+    "active": <i>boolean</i>,
+    "name": <i>string</i>,
+    "server": <i>string</i>,
+    "db": <i>string</i>,
+    "user": <i>string</i>,
+    "password": <i>string</i>
   }
 }
                 </pre>
@@ -406,7 +434,7 @@
   "status": <i>status of the request</i>,
   "status_message": <i>status message</i>
 }       </pre>
-            <br /> The statuses are:
+            <br /> The <code>status</code> values are:
             <ul>
               <li><code>0</code>: <code>SUCCESS</code>: there is an
                 entirely same active connection, no modifications
@@ -613,13 +641,15 @@
       "name": "localhost_access_log.2001-01-01.txt",
       "lastModifiedDate": "2000-01-01",
       "lastModifiedTime": "12:00:00",
-      "lastModifiedTimezone": "+0300"
+      "lastModifiedTimezone": "+0300",
+      "size": 587
     },
     {
       "name": "catalina.out",
       "lastModifiedDate": "2001-01-02",
       "lastModifiedTime": "12:00:00",
-      "lastModifiedTimezone": "+0300"
+      "lastModifiedTimezone": "+0300",
+      "size": 4197
     }
   ]
 }       </pre>
