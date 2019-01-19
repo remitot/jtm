@@ -34,13 +34,22 @@ function reload() {
   }
 }
 
-function logout() {
+function logout(afterLogoutCallback) {
   var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "api/logout", false); // synchronous invocation
-  xhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        statusClear();
+        
+        if (afterLogoutCallback != null) {
+          afterLogoutCallback();
+        }
+      } else {
+        statusError("Сетевая ошибка " + this.status); // NON-NLS
+      }
+    }
+  };
+  xhttp.open("POST", "api/logout", true);
   xhttp.send();
-  
-  document.location.reload(false);
 }
-
 

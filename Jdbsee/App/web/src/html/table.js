@@ -62,7 +62,7 @@ function reloadTable() {
           reloadTable();  
         });
       } else if (this.status == 403) {
-        statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
+        statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"logout(reloadTable);\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
         
       } else {
         statusError("Сетевая ошибка " + this.status); // NON-NLS
@@ -593,31 +593,6 @@ function disableGrid() {
   for (var i = 0; i < rows.length; i += 2) {
     rows[i].classList.add("even-odd-gray");
   }
-}
-
-function changeUser() {
-  logout(function() {
-    reloadTable();
-  });
-}
-
-function logout(afterLogoutCallback) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4) {
-      if (this.status == 200) {
-        statusClear();
-        
-        if (afterLogoutCallback != null) {
-          afterLogoutCallback();
-        }
-      } else {
-        statusError("Сетевая ошибка " + this.status); // NON-NLS
-      }
-    }
-  };
-  xhttp.open("POST", "api/logout", true);
-  xhttp.send();
 }
 
 function statusClear() {

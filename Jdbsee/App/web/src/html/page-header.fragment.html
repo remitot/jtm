@@ -13,7 +13,7 @@
   &emsp;&emsp;&emsp;
   <a class="page-header__menu-item" href="api" target="_blank">API docs</a> <!-- NON-NLS -->
   
-  <div class="page-header__button-logout big-black-button" onclick="logout();">ВЫЙТИ</div> <!-- NON-NLS -->
+  <div class="page-header__button-logout big-black-button" onclick="onLogoutButtonClick();">ВЫЙТИ</div> <!-- NON-NLS -->
 </div>
 
 <style type="text/css">
@@ -80,5 +80,12 @@
       links[i].removeAttribute("href");
       links[i].classList.add("page-header__menu-item_current");
     }
+  }
+  
+  function onLogoutButtonClick() {
+    logout(function(){
+      // because location.reload() not wotking in FF and Chrome
+      window.location.href = window.location.href;
+    });
   }
 </script>
