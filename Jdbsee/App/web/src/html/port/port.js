@@ -1,11 +1,11 @@
 /* @Override from table.js */
 function getJsonItemList(jsonResponse) {
-  return jsonResponse // the response itself is a JSON array of port infos
+  return jsonResponse // the response itself is a JSON array of ports
 }
 
 /* @Override from table.js */
 function getApiListUrl() {
-  return "api/portinfo/list";
+  return "api/port/list";
 }
 
 /* @Override from table.js */

@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.web.portinfo;
+package org.jepria.tomcat.manager.web.port;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -13,14 +13,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.core.TransactionException;
-import org.jepria.tomcat.manager.core.portinfo.TomcatConfPortInfo;
+import org.jepria.tomcat.manager.core.port.TomcatConfPort;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class PortInfoApiServlet extends HttpServlet {
+public class PortApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2791033129244689227L;
 
@@ -86,7 +86,7 @@ public class PortInfoApiServlet extends HttpServlet {
   private Integer getConnectorPort(HttpServletRequest req, String portName) throws TransactionException {
     Environment environment = EnvironmentFactory.get(req);
     
-    TomcatConfPortInfo tomcatConf = new TomcatConfPortInfo(environment.getContextXmlInputStream(), 
+    TomcatConfPort tomcatConf = new TomcatConfPort(environment.getContextXmlInputStream(), 
         environment.getServerXmlInputStream());
     
     String port = tomcatConf.getConnectorPort(portName); 
@@ -102,24 +102,24 @@ public class PortInfoApiServlet extends HttpServlet {
       Integer ajp13port = getConnectorPort(req, "AJP/1.3");
       Integer http11port = getConnectorPort(req, "HTTP/1.1");
       
-      List<Map<String, Object>> portInfos = new ArrayList<>();
+      List<Map<String, Object>> ports = new ArrayList<>();
       
       if (ajp13port != null) {
         Map<String, Object> ajp13portJsonMap = new HashMap<>();
         ajp13portJsonMap.put("type", "AJP/1.3");
         ajp13portJsonMap.put("port", ajp13port);
-        portInfos.add(ajp13portJsonMap);
+        ports.add(ajp13portJsonMap);
       }
       
       if (http11port != null) {
         Map<String, Object> http11portJsonMap = new HashMap<>();
         http11portJsonMap.put("type", "HTTP/1.1");
         http11portJsonMap.put("port", http11port);
-        portInfos.add(http11portJsonMap);
+        ports.add(http11portJsonMap);
       }
       
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      gson.toJson(portInfos, new PrintStream(resp.getOutputStream()));
+      gson.toJson(ports, new PrintStream(resp.getOutputStream()));
     
       resp.setStatus(HttpServletResponse.SC_OK);
       resp.flushBuffer();

@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.core.portinfo;
+package org.jepria.tomcat.manager.core.port;
 
 import java.io.InputStream;
 
@@ -13,9 +13,9 @@ import org.w3c.dom.Node;
 /**
  * Class represents the configuration of Tomcat server for accessing port numbers
  */
-public class TomcatConfPortInfo extends TomcatConfBase {
+public class TomcatConfPort extends TomcatConfBase {
   
-  public TomcatConfPortInfo(InputStream contextXmlInputStream, InputStream serverXmlInputStream)
+  public TomcatConfPort(InputStream contextXmlInputStream, InputStream serverXmlInputStream)
       throws TransactionException {
     super(contextXmlInputStream, serverXmlInputStream);
   }
@@ -35,8 +35,8 @@ public class TomcatConfPortInfo extends TomcatConfBase {
         return null;
       }
       
-      String portNumber = connector.getAttributes().getNamedItem("port").getNodeValue();
-      return portNumber;
+      String port = connector.getAttributes().getNamedItem("port").getNodeValue();
+      return port;
       
     } catch (Throwable e) {
       handleThrowable(e);

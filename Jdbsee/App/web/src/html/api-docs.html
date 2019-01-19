@@ -91,7 +91,7 @@
 
 
   <h2>JDBC</h2>
-  <h3>Get list of connections</h3>
+  <h3>Get list of connection descriptions</h3>
   <table border="1">
     <tbody>
       <tr>
@@ -446,8 +446,8 @@
   
   
   
-  <h2>Port Info</h2>
-  <h3>AJP/1.3 port number</h3>
+  <h2>Ports</h2>
+  <h3>Get AJP/1.3 port description</h3>
   <table border="1">
     <tbody>
       <tr>
@@ -456,7 +456,7 @@
       </tr>
       <tr>
         <td>Url</td>
-        <td><code>/api/portinfo/ajp13</code></td>
+        <td><code>/api/port/ajp13</code></td>
       </tr>
       <tr>
         <td>Request params</td>
@@ -480,7 +480,7 @@
         <th>Response</t>
       </tr>
       <tr>
-        <td><code>/api/portinfo/ajp13</code></td>
+        <td><code>/api/port/ajp13</code></td>
         <td><pre>
 8009</pre>
         </td>
@@ -488,7 +488,7 @@
     </tbody>
   </table>
   
-  <h3>HTTP/1.1 port number</h3>
+  <h3>Get HTTP/1.1 port description</h3>
   <table border="1">
     <tbody>
       <tr>
@@ -497,7 +497,7 @@
       </tr>
       <tr>
         <td>Url</td>
-        <td><code>/api/portinfo/http11</code></td>
+        <td><code>/api/port/http11</code></td>
       </tr>
       <tr>
         <td>Request params</td>
@@ -521,7 +521,7 @@
         <th>Response</t>
       </tr>
       <tr>
-        <td><code>/api/portinfo/http11</code></td>
+        <td><code>/api/port/http11</code></td>
         <td><pre>
 8080</pre>
         </td>
@@ -529,7 +529,7 @@
     </tbody>
   </table>
   
-  <h3>Get list of port infos</h3>
+  <h3>Get list of port descriptions</h3>
   <table border="1">
     <tbody>
       <tr>
@@ -538,7 +538,7 @@
       </tr>
       <tr>
         <td>Url</td>
-        <td><code>/api/portinfo/list</code></td>
+        <td><code>/api/port/list</code></td>
       </tr>
       <tr>
         <td>Request params</td>
@@ -550,7 +550,7 @@
       </tr>
       <tr>
         <td>Response (application/json UTF-8)</td>
-        <td>JSON array of port infos (or else an empty JSON array)</td>
+        <td>JSON array of port descriptions (or else an empty JSON array)</td>
       </tr>
     </tbody>
   </table>
@@ -562,7 +562,7 @@
         <th>Response</t>
       </tr>
       <tr>
-        <td><code>/api/portinfo/list</code></td>
+        <td><code>/api/port/list</code></td>
         <td><pre>
 [
   {

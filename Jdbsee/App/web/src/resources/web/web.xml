@@ -65,22 +65,22 @@
 
 
   <servlet>
-    <servlet-name>PortInfoApiServlet</servlet-name>
-    <servlet-class>org.jepria.tomcat.manager.web.portinfo.PortInfoApiServlet
+    <servlet-name>PortApiServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.port.PortApiServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>PortInfoApiServlet</servlet-name>
-    <url-pattern>/api/portinfo/*</url-pattern>
+    <servlet-name>PortApiServlet</servlet-name>
+    <url-pattern>/api/port/*</url-pattern>
   </servlet-mapping>
   
   <servlet>
-    <servlet-name>PortInfoGui</servlet-name>
-    <jsp-file>/portinfo/portinfo.jsp</jsp-file>
+    <servlet-name>PortGui</servlet-name>
+    <jsp-file>/port/port.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
-    <servlet-name>PortInfoGui</servlet-name>
-    <url-pattern>/portinfo</url-pattern>
+    <servlet-name>PortGui</servlet-name>
+    <url-pattern>/port</url-pattern>
   </servlet-mapping>
   
 
