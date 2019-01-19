@@ -217,6 +217,14 @@ function onCheckboxInput(input) {
 }
 
 function addField(cell, name, value, placeholder) {
+  if (isEditable()) {
+    return addFieldInput(cell, name, value, placeholder);
+  } else {
+    return addFieldLabel(cell, value);    
+  }
+}
+
+function addFieldInput(cell, name, value, placeholder) {
   field = document.createElement("input");
   field.type = "text";
   field.name = name;
@@ -226,6 +234,25 @@ function addField(cell, name, value, placeholder) {
   }
   
   field.oninput = function(event){onFieldInput(event.target)};
+  field.classList.add("field-text");
+  field.classList.add("inactivatible");
+  field.classList.add("deletable");
+  
+  wrapper = wrapCellPad(field);
+  
+  cell.appendChild(wrapper);
+  
+  strike = document.createElement("div");
+  strike.classList.add("strike");
+  cell.appendChild(strike);
+  
+  return field;
+}
+
+function addFieldLabel(cell, value) {
+  field = document.createElement("label");
+  field.innerHTML = value;
+  
   field.classList.add("field-text");
   field.classList.add("inactivatible");
   field.classList.add("deletable");

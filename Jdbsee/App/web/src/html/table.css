@@ -18,6 +18,9 @@
   padding-top: 8px;
   padding-bottom: 4px;
 }
+#table div.cell label { /* magic for labels */
+  line-height: 32px;
+}
 
 #table .flexColumns div.cell > *, #table .strike {
   width: 100%;
@@ -52,6 +55,7 @@
   width: 212px;
 }
 
+/* the same height as row inputs have */
 #table div.cell.column-button-create .big-black-button {
   height: 28px;
 }
@@ -85,10 +89,6 @@
   padding-left: 6px;
 }
 
-#table .header div.cell {
-  height: 20px;
-}
-
 #table .checkbox {
   border-width: 0 0 0 0;
   border-bottom: 2px solid;
@@ -103,7 +103,7 @@
 
 
 /* elements that go opaque when inactive */
-#table .row.inactive input.inactivatible {
+#table .row.inactive .inactivatible {
   color: #888;
 }
 
@@ -123,10 +123,10 @@
 }
 
 
-#table input.field-text.modified, #table .modified {
+#table .modified {
   border-color: #fb8f40;
 }
-
+/* prevents 'input.field-text:focus' from jtm.css from overriding by '.modified' above */
 #table input.field-text.modified:focus {
   border-color: #0089bd;
 }
@@ -135,7 +135,7 @@
   border-color: transparent !important; /* overrides .modified */
 }
 
-#table input.field-text:disabled {
+#table .field-text:disabled {
   border-color: transparent;
 }
 

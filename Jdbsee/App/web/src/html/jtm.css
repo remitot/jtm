@@ -35,7 +35,7 @@ body {
 
 /******* input text *******/
 
-input.field-text {
+.field-text {
   background-color: transparent;
   outline: 0;
   
