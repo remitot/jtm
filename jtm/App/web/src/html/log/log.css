@@ -3,7 +3,15 @@
 }
 
 #table div.cell.column-lastmod {
-  width: 50%;
+  width: 30%;
+}
+
+#table div.cell.column-download {
+  width: 10%;
+}
+
+#table div.cell.column-open {
+  width: 10%;
 }
 
 /* left margin for the leftmost column */

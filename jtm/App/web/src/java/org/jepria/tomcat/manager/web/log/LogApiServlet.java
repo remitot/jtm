@@ -13,8 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.QueryStringParser;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -43,14 +42,14 @@ public class LogApiServlet extends HttpServlet {
       
       // get log by filename
       String queryString = req.getQueryString();
-      if (queryString != null) {
-        Matcher m = Pattern.compile("filename\\=([^&/\\\\]+)").matcher(queryString);
-        if (m.matches()) {
-          String filename = m.group(1);
-          fileContents(req, resp, filename);
-          return;
-          
-        }
+      Map<String, String> queryParams = QueryStringParser.parse(queryString);
+      
+      String filename = queryParams.get("filename");
+      
+      if (filename != null && filename.matches("[^/\\\\]+")) {
+        boolean inline = queryParams.containsKey("inline");
+        fileContents(req, resp, filename, inline);
+        return;
       }
       
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -103,10 +102,16 @@ public class LogApiServlet extends HttpServlet {
   // TODO this value is assumed. But how to determine it? 
   private static final String LOG_FILE_READ_ENCODING = "UTF-8";
   
-  private static final String LOG_FILE_RESPONSE_WRITE_ENCODING = "UTF-8";
-  
+  /**
+   * 
+   * @param req
+   * @param resp
+   * @param filename
+   * @param inline whether to set "Content-Disposition" response header "inline" or "attachment"
+   * @throws IOException
+   */
   private static void fileContents(HttpServletRequest req, HttpServletResponse resp,
-      String filename) throws IOException {
+      String filename, boolean inline) throws IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("text/plain; charset=UTF-8");
@@ -118,9 +123,14 @@ public class LogApiServlet extends HttpServlet {
       File logsDirectory = environment.getLogsDirectory();
       
       Path logFile = logsDirectory.toPath().resolve(filename);
+
       
-      // output encoding
-      resp.setCharacterEncoding(LOG_FILE_RESPONSE_WRITE_ENCODING);
+      if (inline) {
+        resp.setHeader("Content-Disposition", "inline") ;
+      } else {
+        resp.setHeader("Content-Disposition", "attachment; filename=" + filename) ;
+      }
+      
       
       try (Scanner sc = new Scanner(logFile.toFile(), LOG_FILE_READ_ENCODING)) {
         while (sc.hasNextLine()) {
@@ -133,6 +143,7 @@ public class LogApiServlet extends HttpServlet {
         resp.flushBuffer();
         return;
       }
+
       
       /*
       // XXX this solution is for binary file download (no encoding specified):

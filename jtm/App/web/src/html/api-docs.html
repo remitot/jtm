@@ -19,7 +19,7 @@
         </tr>
         <tr>
           <td>Request params</td>
-          <td><code>username=<i>username</i>&password=<i>password</i></code></td>
+          <td><code>username=<i>username</i></code>, <code>password=<i>password</i></code></td>
         </tr>
         <tr>
           <td>Request body</td>
@@ -678,12 +678,16 @@
         </tr>
         <tr>
           <td>Request params</td>
-          <td>filename=<i>filename</i></td>
+          <td><code>filename=<i>filename</i></code>, <code>inline <i>(optional)</i></code></td>
         </tr>
         <tr>
           <td>Response (text/plain UTF-8)</td>
-          <td>log file contents (inline)<br />
+          <td>log file contents<br />
             <br />
+            If the <code>inline</code> request parameter is present, 
+            the response <code>Content-Disposition</code> header will be set to <code>inline</code>,
+            otherwise to <code>attachment</code>.
+            <br/><br/>
             If the <code>filename</code> request parameter is empty, 
             the 400 status will be returned.
             <br/><br/>
@@ -704,7 +708,7 @@
           <th>Response</t>
         </tr>
         <tr>
-          <td><code>/api/log?filename=localhost_access_log.2001-01-01.txt</code></td>
+          <td><code>/api/log?filename=localhost_access_log.2001-01-01.txt&inline</code></td>
           <td>
             <pre>
 127.0.0.1 - admin [01/Jan/2000:00:00:00 +0300] "GET /application HTTP/1.1" 200 1000
