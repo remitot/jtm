@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,21 +40,7 @@ public class LogApiServlet extends HttpServlet {
       return;
       
     } else if (path == null || "/".equals(path)) {
-      
-      // get log by filename
-      String queryString = req.getQueryString();
-      Map<String, String> queryParams = QueryStringParser.parse(queryString);
-      
-      String filename = queryParams.get("filename");
-      
-      if (filename != null && filename.matches("[^/\\\\]+")) {
-        boolean inline = queryParams.containsKey("inline");
-        fileContents(req, resp, filename, inline);
-        return;
-      }
-      
-      resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-      resp.flushBuffer();
+      fileContents(req, resp);
       return;
       
     } else {
@@ -65,11 +52,91 @@ public class LogApiServlet extends HttpServlet {
     }
   }
   
-  private static void list(HttpServletRequest req, HttpServletResponse resp) 
+  private static <T> Comparator<T> subsequentComparator(List<Comparator<T>> sequence) {
+    return new Comparator<T>() {
+      @Override
+      public int compare(T o1, T o2) {
+        int cmpResult = 0;
+        for (Comparator<T> cmp: sequence) {
+          cmpResult = cmp.compare(o1, o2);
+          if (cmpResult != 0) {
+            break;
+          }
+        }
+        return cmpResult;
+      }
+    };
+  }
+  
+  private static Comparator<LogDto> filenameComparator(int order) {
+    return new Comparator<LogDto>() {
+      @Override
+      public int compare(LogDto o1, LogDto o2) {
+        final int cmpResult = o1.getName().compareTo(o2.getName());
+        return order < 0 ? -cmpResult : cmpResult;
+      }
+    };
+  }
+  
+  private static Comparator<LogDto> lastModifiedComparator(int order) {
+    return new Comparator<LogDto>() {
+      @Override
+      public int compare(LogDto o1, LogDto o2) {
+        final int cmpResult = (o1.getLastModifiedDate() + o1.getLastModifiedTime())
+            .compareTo(o2.getLastModifiedDate() + o2.getLastModifiedTime());
+        return order < 0 ? -cmpResult : cmpResult;
+      }
+    };
+  }
+  
+  private static void list(HttpServletRequest req, HttpServletResponse resp)
       throws IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
+    
+    
+    // parse query params
+    final String queryString = req.getQueryString();
+    final Map<String, String> queryParams = QueryStringParser.parse(queryString);
+    
+    // 'sort' request parameter
+    final String sort = queryParams.get("sort");
+    final List<String> sortColumns = new ArrayList<>();
+    if (sort != null) {
+      for (String column: sort.split(",")) {
+        if (!"".equals(column)) {
+          while(sortColumns.remove(column));// remove same values added before
+          sortColumns.add(column);
+        }
+      }
+    }
+    final List<Comparator<LogDto>> comparatorSequence = new ArrayList<>();
+    if (sortColumns.isEmpty()) {
+      // default value
+      comparatorSequence.add(lastModifiedComparator(-1));
+      comparatorSequence.add(filenameComparator(1));
+    } else {
+      for (String column: sortColumns) {
+        if ("+filename".equals(column) || "filename".equals(column)) {
+          comparatorSequence.add(filenameComparator(1));
+        } else if ("-filename".equals(column)) {
+          comparatorSequence.add(filenameComparator(-1));
+        } else if ("+lastModified".equals(column) || "lastModified".equals(column)) {
+          comparatorSequence.add(lastModifiedComparator(1));
+        } else if ("-lastModified".equals(column)) {
+          comparatorSequence.add(lastModifiedComparator(-1));
+        } else {
+          // invalid sort value
+          resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          resp.flushBuffer();
+          return;
+        }
+      }
+    }
+    final Comparator<LogDto> sortComparator = subsequentComparator(comparatorSequence);
+    
+    
     
     try {
       
@@ -79,6 +146,11 @@ public class LogApiServlet extends HttpServlet {
       
       List<LogDto> logs = getLogs(logsDirectory);
 
+      
+      // sort the list
+      Collections.sort(logs, sortComparator);
+      
+      
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("_list", logs);
       
@@ -103,18 +175,36 @@ public class LogApiServlet extends HttpServlet {
   private static final String LOG_FILE_READ_ENCODING = "UTF-8";
   
   /**
-   * 
    * @param req
    * @param resp
    * @param filename
    * @param inline whether to set "Content-Disposition" response header "inline" or "attachment"
    * @throws IOException
    */
-  private static void fileContents(HttpServletRequest req, HttpServletResponse resp,
-      String filename, boolean inline) throws IOException {
+  private static void fileContents(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("text/plain; charset=UTF-8");
+    
+    
+    // parse query params
+    String queryString = req.getQueryString();
+    Map<String, String> queryParams = QueryStringParser.parse(queryString);
+    
+    
+    // 'filename' request parameter
+    final String filename = queryParams.get("filename");
+    if (filename == null || !filename.matches("[^/\\\\]+")) {
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      resp.flushBuffer();
+      return;
+    }
+
+    
+    // 'inline' request parameter
+    final boolean inline = queryParams.containsKey("inline");
+    
     
     try {
       
@@ -192,11 +282,6 @@ public class LogApiServlet extends HttpServlet {
         logs.add(log);
       }
     }
-    
-    // sort by last modified date and time
-    Collections.sort(logs, (log1, log2) -> 
-        -(log1.getLastModifiedDate() + log1.getLastModifiedTime())
-            .compareTo(log2.getLastModifiedDate() + log2.getLastModifiedTime()));
     
     return logs;
   }

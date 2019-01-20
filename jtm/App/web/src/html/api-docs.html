@@ -616,11 +616,29 @@
         </tr>
         <tr>
           <td>Request params</td>
-          <td>none</td>
+          <td><code>sort=<i>column1,column2,... (optional)</i></code></td>
         </tr>
         <tr>
           <td>Response (application/json UTF-8)</td>
-          <td>list of log files</td>
+          <td>list of log files
+            <br /><br />
+            The <code>sort</code> parameter defines the order of items in the response list.
+            The parameter allows a single value or multiple values, comma separated.
+            Sorting by multiple columns will be applied subsequently,
+            in the order the values are specified. 
+            The valid values are: 
+            <ul>
+              <li><code>+filename</code> or <code>filename</code>: sort ascending by file name</li>
+              <li><code>-filename</code>: sort descending by file name</li>
+              <li><code>+lastModified</code> or <code>lastModified</code>: sort ascending by the last file modification timestamp</li>
+              <li><code>-lastModified</code>: sort descending by the last file modification timestamp</li>
+            </ul>
+            Missing <code>sort</code> parameter or the empty value equals to 
+            <code>sort=-lastModified,+filename</code> parameter. 
+            If the invalid <code>sort</code> parameter value provided,
+            or the error occures while parsing the values, 
+            the 400 status will be returned.
+          </td>
         </tr>
       </tbody>
     </table>
@@ -682,9 +700,10 @@
         </tr>
         <tr>
           <td>Response (text/plain UTF-8)</td>
-          <td>log file contents<br />
-            <br />
-            If the <code>inline</code> request parameter is present, 
+          <td>log file contents
+            <br /><br />
+            The <code>inline</code> parameter is boolean: it may have (but does not require) any value.
+            If the parameter is present, 
             the response <code>Content-Disposition</code> header will be set to <code>inline</code>,
             otherwise to <code>attachment</code>.
             <br/><br/>
