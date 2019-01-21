@@ -17,7 +17,7 @@
     
   </head>
   
-  <body onload="reload()">
+  <body onload="table_reload();jtm_onload();">
     
     <%@ include file="../page-header.fragment.html" %>
      

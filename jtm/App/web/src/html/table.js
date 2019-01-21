@@ -36,7 +36,10 @@ function getJsonItemList(jsonResponse) {
   return jsonResponse._list;
 }
 
-function reloadTable() {
+/**
+  * Public API
+  */
+function table_reload() {
   
   setControlButtonsEnabled(false);
   
@@ -59,10 +62,10 @@ function reloadTable() {
     
         raiseLoginForm(function() {
           hideLoginForm();
-          reloadTable();  
+          table_reload();  
         });
       } else if (this.status == 403) {
-        statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"logout(reloadTable);\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
+        statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"logout(table_reload);\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
         
       } else {
         statusError("Сетевая ошибка " + this.status); // NON-NLS
@@ -114,6 +117,8 @@ function createRowButtonCreate() {
   buttonCreate.classList.add("big-black-button");
   buttonCreate.innerHTML = "НОВАЯ ЗАПИСЬ"; // NON-NLS
   buttonCreate.onclick = function(event){onButtonCreateClick();};
+  
+  addHoverForBigBlackButton(buttonCreate);
   
   addHoverForBigBlackButton(buttonCreate);
   
@@ -542,7 +547,7 @@ function onSaveButtonClick() {
       
           raiseLoginForm(function() {
             hideLoginForm();
-            reloadTable();  
+            table_reload();  
           });
           
         } else if (this.status == 403) {

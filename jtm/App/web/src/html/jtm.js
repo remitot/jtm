@@ -1,37 +1,36 @@
 /**
- * Adds graphical hovering for a button of a class 'big-black-button'
+ * Adds hover style for .big-black-button
  */
-function addHoverForBigBlackButton(button) {
-  if (button.classList.contains("big-black-button")) {
+function addHoverForBigBlackButton(bigBlackButton) {
+  if (bigBlackButton.classList.contains("big-black-button")) {
   
-    button.onfocus = function(event){
-      var button = event.target;
-      button.classList.add("hovered");
+    bigBlackButton.onfocus = function(event){
+      event.target.classList.add("hovered");
     }
-    button.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
-      var button = event.target;
-      button.classList.remove("hovered");
+    bigBlackButton.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
+      event.target.classList.remove("hovered");
     });
     
-    button.onmouseover = function(event) {
-      var button = event.target;
-      button.classList.add("hovered");
+    bigBlackButton.onmouseover = function(event) {
+      event.target.classList.add("hovered");
     }
-    button.addEventListener("mouseout", function(event) { // .onmouseout not working in some browsers
-      var button = event.target;
-      button.classList.remove("hovered");
+    bigBlackButton.addEventListener("mouseout", function(event) { // .onmouseout not working in some browsers
+      event.target.classList.remove("hovered");
     });
   }
 }
 
-function reload() {
-  reloadTable();
+/**
+  * Public API.
+  */
+function jtm_onload() {
   
-  bbbs = document.getElementsByClassName("big-black-button");
-  for (var i = 0; i < bbbs.length; i++) {
-    bbb = bbbs[i];
-    addHoverForBigBlackButton(bbb);
+  // add .big-black-button hover style
+  bigBlackButtons = document.getElementsByClassName("big-black-button");
+  for (var i = 0; i < bigBlackButtons.length; i++) {
+    addHoverForBigBlackButton(bigBlackButtons[i]);
   }
+  
 }
 
 function logout(afterLogoutCallback) {
