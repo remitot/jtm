@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
-import org.jepria.tomcat.manager.web.QueryStringParser;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -96,12 +95,8 @@ public class LogApiServlet extends HttpServlet {
     resp.setContentType("application/json; charset=UTF-8");
     
     
-    // parse query params
-    final String queryString = req.getQueryString();
-    final Map<String, String> queryParams = QueryStringParser.parse(queryString);
-    
     // 'sort' request parameter
-    final String sort = queryParams.get("sort");
+    final String sort = req.getParameter("sort");
     final List<String> sortColumns = new ArrayList<>();
     if (sort != null) {
       for (String column: sort.split(",")) {
@@ -188,13 +183,8 @@ public class LogApiServlet extends HttpServlet {
     resp.setContentType("text/plain; charset=UTF-8");
     
     
-    // parse query params
-    String queryString = req.getQueryString();
-    Map<String, String> queryParams = QueryStringParser.parse(queryString);
-    
-    
     // 'filename' request parameter
-    final String filename = queryParams.get("filename");
+    final String filename = req.getParameter("filename");
     if (filename == null || !filename.matches("[^/\\\\]+")) {
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
       resp.flushBuffer();
@@ -203,7 +193,7 @@ public class LogApiServlet extends HttpServlet {
 
     
     // 'inline' request parameter
-    final boolean inline = queryParams.containsKey("inline");
+    final boolean inline = req.getParameter("inline") != null;
     
     
     try {
