@@ -103,12 +103,14 @@
     <url-pattern>/log</url-pattern>
   </servlet-mapping>
   
+  
   <servlet>
-    <servlet-name>LogMonitorGui</servlet-name>
-    <jsp-file>/log-monitor/log-monitor.jsp</jsp-file>
+    <servlet-name>LogMonitorServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet
+    </servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>LogMonitorGui</servlet-name>
+    <servlet-name>LogMonitorServlet</servlet-name>
     <url-pattern>/log-monitor</url-pattern>
   </servlet-mapping>
   
@@ -130,6 +132,7 @@
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
       <url-pattern>/api/*</url-pattern>
+      <url-pattern>/log-monitor</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>

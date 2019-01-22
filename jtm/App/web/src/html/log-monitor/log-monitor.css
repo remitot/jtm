@@ -1,3 +1,19 @@
 body {
   margin: 0px;
 }
+
+.lines {
+  padding-left: 8px;
+  padding-right: 8px;
+  
+  font-family: monospace;
+}
+
+.lines_after-anchor {
+  background-color: #E3FFC6;
+}
+
+div.hf {
+  width: 100%;
+  dispplay: inline-block;
+}
