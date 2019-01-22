@@ -1,6 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.jepria.tomcat.manager.web.logmonitor.LogMonitorStaticJavaApi" %>
+<%@ page import="org.jepria.tomcat.manager.web.logmonitor.InitMonitorResultDto" %>
+<%@ page import="org.jepria.tomcat.manager.web.logmonitor.MonitorResultDto" %>
 
 <!DOCTYPE html>
 <html>
@@ -11,7 +13,6 @@
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
     
     <link rel="stylesheet" href="log-monitor/log-monitor.css">
-    <script type="text/javascript" src="log-monitor/log-monitor.js"></script>
     
   </head>
   
@@ -19,17 +20,24 @@
 <% 
 // 'filename' request parameter
 final String filename = request.getParameter("filename");
-if (filename == null || !filename.matches("[^/\\\\]+")) {
+
+if (filename == null) {
   // no log file specified for monitoring
-%>
-    no log file specified for monitoring
+  
+  %>TODO no log file specified for monitoring<%
     
-    <script type="text/javascript">
-      function loadNext() {}
-    </script>
-<%  
+} else  if (!filename.matches("[^/\\\\]+")) {
+  // invalid 'filename' value
+  
+  %>TODO invalid 'filename' value<%
+  
 } else {
-  final String anchorStr = request.getParameter("anchor");
+  final String anchor = request.getParameter("anchor");
+  
+
+  // TODO maybe to forward to another jsp?
+
+  //////////////////////////////  
   
   int LINES = 10;//TODO
   
@@ -48,50 +56,124 @@ if (filename == null || !filename.matches("[^/\\\\]+")) {
   
   int bufferSize = 10;//TODO
   
+  //////////////////////////////
 
-  int anchor;  
-  if (anchorStr == null) {
+  List<String> contentLinesBeforeAnchor = null;
+  List<String> contentLinesAfterAnchor = null;
+
+  int anchorLine;  
+  if (anchor == null) {
+    // anchor-undefined (initial) monitor request
   
-    int[] anchorRef = new int[1];
-    
-    List<String> contentLines = LogMonitorStaticJavaApi.initMonitor(
-        request, filename, LINES, anchorRef);
+    InitMonitorResultDto monitor = LogMonitorStaticJavaApi.initMonitor(
+        request, filename, lines);
     // TODO handle Exceptions
+
+    // define the anchor    
+    anchorLine = monitor.getAnchorLine();
     
-    anchor = anchorRef[0];
-    
-    for (String line: contentLines) {
-      out.println("<label>" + line + "</label><br/>");//TODO      
-    }
+    contentLinesBeforeAnchor = monitor.getContentLinesBeforeAnchor();
     
   } else {
-  
+    // anchor-defined (repetitive) monitor request
+    
     try {
-      anchor = Integer.parseInt(anchorStr);
+      anchorLine = Integer.parseInt(anchor);//TODO validate anchorLine value
     } catch (java.lang.NumberFormatException e) {
       response.sendError(400); return; // TODO GUI
     }
     
-    List<String> contentLines = LogMonitorStaticJavaApi.monitor(
-      request, filename, anchor, lines);
+    MonitorResultDto monitor = LogMonitorStaticJavaApi.monitor(
+        request, filename, anchorLine, lines);
     // TODO handle Exceptions
-    for (String line: contentLines) {
-      out.println("<label>" + line + "</label><br/>");//TODO      
-    } 
+    
+    contentLinesBeforeAnchor = monitor.getContentLinesBeforeAnchor();
+    contentLinesAfterAnchor = monitor.getContentLinesAfterAnchor();
   }
-
+  
+%>
+    <div id="content">
+      <div id="linesBeforeAnchor" class="lines">
+<%
+  if (contentLinesBeforeAnchor != null) {
+    for (String line: contentLinesBeforeAnchor) {
+      out.println("<label>" + line + "</label><br/>");//TODO      
+    }
+  }
+%>
+      </div>
+      <div class="lines">
+<%
+  if (contentLinesAfterAnchor != null) {
+    for (String line: contentLinesAfterAnchor) {
+      out.println("<label style=\"color: green;\">" + line + "</label><br/>");//TODO      
+    }
+  }
+%>
+      </div>
+    </div>
+<%    
   
   String url = "http://localhost:8081/jtm/log-monitor?"
       + "filename=" + filename
-      + "&anchor=" + anchor
+      + "&anchor=" + anchorLine
       + "&lines=" + (lines + bufferSize);
       
 %>
     <script type="text/javascript">
-      function loadNext() {
-        // because location.reload() not wotking in FF and Chrome
-        window.location.href = "<% out.print(url); %>"
-            + "#" + document.body.scrollHeight;
+      var linesBeforeAnchor = document.getElementById("linesBeforeAnchor");
+      
+      /**
+       * Returns scroll offset (the viewport position) from the bottom of the page, in pixels
+       */
+      function getOffset() {
+        var offset = window.location.hash.substring(1);
+        if (offset) {
+          return offset;
+        } else {
+          return null;
+        }
+      }
+      
+      function logmonitor_onload() {
+        // scroll to the offset
+        
+        var offset = getOffset();
+        if (offset) {
+          scrTo(linesBeforeAnchor.clientHeight - offset);
+        } else {
+          if (document.getElementById("content").clientHeight <= window.innerHeight) {
+            scrTo(10);
+          } else {
+            scrTo(document.getElementById("content").clientHeight - window.innerHeight);
+          }        
+        }
+      }
+      
+      
+      function scrTo(y) {
+        if (document.body.scrollHeight < window.innerHeight + y) {
+          // adjust scrollHeight
+          document.body.style.height = (window.innerHeight + y) + "px";
+        }
+        window.scrollTo(0, y);
+      }
+
+    
+      window.onscroll = function() {
+        var scrolled = window.pageYOffset || document.documentElement.scrollTop;
+
+        var offset = linesBeforeAnchor.clientHeight - scrolled;    
+             
+        window.location.hash = "#" + offset; 
+        
+        if (scrolled == 0) {
+          // top reached
+          
+          // because location.reload() not wotking in FF and Chrome
+          window.location.href = "<% out.print(url); %>"
+             + "#" + offset;
+        }
       }
     </script>
 <%

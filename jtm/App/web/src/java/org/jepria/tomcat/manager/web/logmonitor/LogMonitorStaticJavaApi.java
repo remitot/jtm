@@ -20,8 +20,8 @@ public class LogMonitorStaticJavaApi {
   //TODO this value is assumed. But how to determine it? 
   private static final String LOG_FILE_READ_ENCODING = "UTF-8";
 
-  public static List<String> initMonitor(HttpServletRequest request,
-      String filename, int lines, int[] anchorRef) throws FileNotFoundException {
+  public static InitMonitorResultDto initMonitor(HttpServletRequest request,
+      String filename, int lines) throws FileNotFoundException {
 
     try {
 
@@ -31,16 +31,18 @@ public class LogMonitorStaticJavaApi {
 
       Path logFile = logsDirectory.toPath().resolve(filename);
 
-      LinkedList<String> contentLines = new LinkedList<>();
+      LinkedList<String> contentLinesBeforeAnchor = new LinkedList<>();
 
       int lineCount = 0;
 
       try (Scanner sc = new Scanner(logFile.toFile(), LOG_FILE_READ_ENCODING)) {
         while (sc.hasNextLine()) {
-          contentLines.add(sc.nextLine());
+          final String line = sc.nextLine();
+          
+          contentLinesBeforeAnchor.add(line);
 
-          if (contentLines.size() > lines) {
-            contentLines.removeFirst();
+          if (contentLinesBeforeAnchor.size() > lines) {
+            contentLinesBeforeAnchor.removeFirst();
           }
 
           lineCount++;
@@ -49,16 +51,14 @@ public class LogMonitorStaticJavaApi {
         throw e;
       }// TODO catch also non-readable file excepiton
 
+      
+      final int anchorLine = lineCount > 0 ? lineCount - 1 : 0;
+      
+      InitMonitorResultDto ret = new InitMonitorResultDto();
+      ret.setAnchorLine(anchorLine);
+      ret.setContentLinesBeforeAnchor(contentLinesBeforeAnchor);
 
-      if (anchorRef != null && anchorRef.length > 0) {
-        if (lineCount > 0) {
-          anchorRef[0] = lineCount - 1;
-        } else {
-          anchorRef[0] = 0;
-        }
-      }
-
-      return contentLines;
+      return ret;
 
     } catch (Throwable e) {
       e.printStackTrace();
@@ -74,7 +74,7 @@ public class LogMonitorStaticJavaApi {
    * @param lines total number of lines to load (counting back from the anchor, including it)
    * @return
    */
-  public static List<String> monitor(HttpServletRequest request,
+  public static MonitorResultDto monitor(HttpServletRequest request,
       String filename, int anchor, int lines) 
           throws FileNotFoundException {
 
@@ -86,18 +86,23 @@ public class LogMonitorStaticJavaApi {
 
       Path logFile = logsDirectory.toPath().resolve(filename);
 
-      LinkedList<String> contentLines = new LinkedList<>();
+      LinkedList<String> contentLinesBeforeAnchor = new LinkedList<>();
+      List<String> contentLinesAfterAnchor = new LinkedList<>();
 
       int lineIndex = 0;
 
       try (Scanner sc = new Scanner(logFile.toFile(), LOG_FILE_READ_ENCODING)) {
         while (sc.hasNextLine()) {
-          contentLines.add(sc.nextLine());
-
+          final String line = sc.nextLine();
+          
           if (lineIndex <= anchor) {
-            if (contentLines.size() > lines) {
-              contentLines.removeFirst();
+            contentLinesBeforeAnchor.add(line);
+            
+            if (contentLinesBeforeAnchor.size() > lines) {
+              contentLinesBeforeAnchor.removeFirst();
             }
+          } else {
+            contentLinesAfterAnchor.add(line);
           }
 
           lineIndex++;
@@ -107,7 +112,11 @@ public class LogMonitorStaticJavaApi {
       }// TODO catch also non-readable file excepiton
 
 
-      return contentLines;
+      MonitorResultDto ret = new MonitorResultDto();
+      ret.setContentLinesBeforeAnchor(contentLinesBeforeAnchor);
+      ret.setContentLinesAfterAnchor(contentLinesAfterAnchor);
+      
+      return ret;
 
     } catch (Throwable e) {
       e.printStackTrace();
