@@ -1,5 +1,5 @@
 #table div.cell.column-name {
-  width: 50%;
+  width: 40%;
 }
 
 #table div.cell.column-lastmod {
@@ -11,6 +11,10 @@
 }
 
 #table div.cell.column-open {
+  width: 10%;
+}
+
+#table div.cell.column-monitor {
   width: 10%;
 }
 

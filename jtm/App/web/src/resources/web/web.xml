@@ -103,6 +103,15 @@
     <url-pattern>/log</url-pattern>
   </servlet-mapping>
   
+  <servlet>
+    <servlet-name>LogMonitorGui</servlet-name>
+    <jsp-file>/log-monitor/log-monitor.jsp</jsp-file>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LogMonitorGui</servlet-name>
+    <url-pattern>/log-monitor</url-pattern>
+  </servlet-mapping>
+  
 
   <servlet>
     <servlet-name>ApiDocs</servlet-name>

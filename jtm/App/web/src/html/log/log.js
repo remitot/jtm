@@ -33,6 +33,8 @@ function createHeader() {
   
   cell = createCell(div, "column-open");
   
+  cell = createCell(div, "column-monitor");
+  
   row.appendChild(div);
   
   return row;
@@ -69,9 +71,15 @@ function createRow(listItem) {
   
   cell = createCell(div, "column-open");
   cell.classList.add("cell-field");
-  cellValue = "<a href=\"api/log?filename=" + listItem.name 
-      + "&inline\" target=\"_blank\" title=\"Открыть в новой вкладке браузера\">Посмотреть</a>"; // NON-NLS // NON-NLS
+  cellValue = "<a href=\"api/log?filename=" + listItem.name + "&inline\""
+      + " target=\"_blank\" title=\"Открыть в новой вкладке браузера\">Посмотреть</a>"; // NON-NLS // NON-NLS
   field = addField(cell, "open", cellValue, null);
+  
+  cell = createCell(div, "column-monitor");
+  cell.classList.add("cell-monitor");
+  cellValue = "<a href=\"log-monitor?filename=" + listItem.name + "\""
+      + " target=\"_blank\" title=\"Открыть в читалке\">Отслеживать</a>"; // NON-NLS // NON-NLS
+  field = addField(cell, "monitor", cellValue, null);
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   

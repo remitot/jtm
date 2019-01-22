@@ -170,78 +170,75 @@ public class LogApiServlet extends HttpServlet {
   private static final String LOG_FILE_READ_ENCODING = "UTF-8";
   
   /**
-   * @param req
-   * @param resp
+   * @param request
+   * @param response
    * @param filename
    * @param inline whether to set "Content-Disposition" response header "inline" or "attachment"
    * @throws IOException
    */
-  private static void fileContents(HttpServletRequest req, HttpServletResponse resp)
+  private static void fileContents(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     
     // the content type is defined for the entire method
-    resp.setContentType("text/plain; charset=UTF-8");
+    response.setContentType("text/plain; charset=UTF-8");
     
     
     // 'filename' request parameter
-    final String filename = req.getParameter("filename");
+    final String filename = request.getParameter("filename");
     if (filename == null || !filename.matches("[^/\\\\]+")) {
-      resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-      resp.flushBuffer();
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      response.flushBuffer();
       return;
     }
 
     
     // 'inline' request parameter
-    final boolean inline = req.getParameter("inline") != null;
-    
+    if (request.getParameter("inline") != null) {
+      response.setHeader("Content-Disposition", "inline") ;
+    } else {
+      response.setHeader("Content-Disposition", "attachment; filename=" + filename) ;
+    }
+
     
     try {
       
-      Environment environment = EnvironmentFactory.get(req);
+      Environment environment = EnvironmentFactory.get(request);
 
       File logsDirectory = environment.getLogsDirectory();
       
       Path logFile = logsDirectory.toPath().resolve(filename);
 
-      
-      if (inline) {
-        resp.setHeader("Content-Disposition", "inline") ;
-      } else {
-        resp.setHeader("Content-Disposition", "attachment; filename=" + filename) ;
-      }
-      
-      
       try (Scanner sc = new Scanner(logFile.toFile(), LOG_FILE_READ_ENCODING)) {
         while (sc.hasNextLine()) {
-          resp.getWriter().println(sc.nextLine());
+          response.getWriter().println(sc.nextLine());
         }
       } catch (FileNotFoundException e) {
         e.printStackTrace();
         
-        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-        resp.flushBuffer();
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        response.flushBuffer();
         return;
-      }
+      }// TODO catch also non-readable file excepiton
 
       
       /*
-      // XXX this solution is for binary file download (no encoding specified):
+      // XXX consider the simple solution
+      //(but it copies byte-by-byte and hence does not consider encoding):
       try (OutputStream out = resp.getOutputStream()) {
         Files.copy(logFile, out);
       }
        */
       
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.flushBuffer();
+      response.setStatus(HttpServletResponse.SC_OK);
+      response.flushBuffer();
       return;
       
     } catch (Throwable e) {
       e.printStackTrace();
 
       // response body must either be empty or match the declared content type
-      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      resp.flushBuffer();
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.flushBuffer();
       return;
     }
   }
