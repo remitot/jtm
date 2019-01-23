@@ -11,40 +11,47 @@
     <link rel="stylesheet" href="log-monitor/log-monitor.css">
   </head> 
 
+  <%
+    List<String> contentLinesBeforeAnchor = (List<String>) request.getAttribute("contentLinesBeforeAnchor");
+    List<String> contentLinesAfterAnchor = (List<String>) request.getAttribute("contentLinesAfterAnchor");
+    boolean isLinesBefore = contentLinesBeforeAnchor != null && !contentLinesBeforeAnchor.isEmpty();
+    boolean isLinesAfter = contentLinesAfterAnchor != null && !contentLinesAfterAnchor.isEmpty();
+  %>
+
   <body onload="logmonitor_onload();">
-    <div id="content">
-    <%
-      List<String> contentLinesBeforeAnchor = (List<String>)request.getAttribute("contentLinesBeforeAnchor");
-      if (contentLinesBeforeAnchor != null && !contentLinesBeforeAnchor.isEmpty()) { 
-    %>
-      <div class="lines lines_before-anchor">
+    
+    <div class="anchor-area">
+    <% if (isLinesBefore) { %>
+      <div class="anchor-area__panel top">&nbsp;</div>
+    <% } %>
+    <% if (isLinesAfter) { %>
+      <div class="anchor-area__panel bottom">&nbsp;</div>
+    <% } %>
+    </div>
+    
+    <div class="content-area">
+    <% if (isLinesBefore) { %>
+      <div class="content-area__lines top">
         <%
           for (String line: contentLinesBeforeAnchor) {
-            out.println("<div class=\"line\">" + line + "</div>");      
+            out.println(line + "<br/>");      
           }
         %>
       </div>
-    <% 
-      } 
-    %>
-    <%
-      List<String> contentLinesAfterAnchor = (List<String>)request.getAttribute("contentLinesAfterAnchor");
-      if (contentLinesAfterAnchor != null && !contentLinesAfterAnchor.isEmpty()) { 
-    %>
-      <div class="lines lines_after-anchor">
+    <% } %>
+    <% if (isLinesAfter) { %>
+      <div class="content-area__lines bottom">
         <%
           for (String line: contentLinesAfterAnchor) {
-            out.println("<div class=\"line\">" + line + "</div>");      
+            out.println(line + "<br/>");      
           }
         %>
       </div>
-    <% 
-      } 
-    %>
+    <% } %>
     </div>
 
     <script type="text/javascript">
-      var linesBeforeAnchor = document.getElementsByClassName("lines_before-anchor")[0];
+      var linesTop = document.querySelectorAll(".content-area__lines.top")[0];
        
       /** 
        * Returns scroll offset (the viewport position) from the bottom of the page, in pixels 
@@ -63,17 +70,29 @@
         
         var offset = getOffset(); 
         if (offset) { 
-          scrTo(linesBeforeAnchor.clientHeight - offset); 
+          scrTo(linesTop.clientHeight - offset); 
         } else {
-          content = document.getElementById("content");
-          if (content.clientHeight <= window.innerHeight) {
-            if (content.clientHeight > 0) {
+          contentArea = document.getElementsByClassName("content-area")[0];
+          if (contentArea.clientHeight <= window.innerHeight) {
+            if (contentArea.clientHeight > 0) {
               scrTo(1); 
             }
           } else { 
-            scrTo(document.getElementById("content").clientHeight - window.innerHeight); 
+            scrTo(contentArea.clientHeight - window.innerHeight); 
           } 
-        } 
+        }
+        
+        
+        /* set anchor-area size */
+        var anchorAreaTop = document.querySelectorAll(".anchor-area__panel.top")[0];
+        anchorAreaTop.style.height = linesTop.clientHeight + "px";
+        
+        var anchorAreaBottom = document.querySelectorAll(".anchor-area__panel.bottom")[0];
+        if (anchorAreaBottom) {
+          var linesBottom = document.querySelectorAll(".content-area__lines.bottom")[0];
+          anchorAreaBottom.style.height = linesBottom.clientHeight + "px";
+        }
+        
       } 
       
       
@@ -89,7 +108,7 @@
       window.onscroll = function() { 
         var scrolled = window.pageYOffset || document.documentElement.scrollTop; 
         
-        var offset = linesBeforeAnchor.clientHeight - scrolled; 
+        var offset = linesTop.clientHeight - scrolled; 
         
         window.location.hash = "#" + offset; 
         

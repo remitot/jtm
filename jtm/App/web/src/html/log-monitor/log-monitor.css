@@ -2,21 +2,26 @@ body {
   margin: 0px;
 }
 
-.lines {
-  padding-left: 8px;
-  padding-right: 8px;
-  
-  font-family: monospace;
+.anchor-area {
+  float: left;
+  width: 15px;
 }
 
-.lines_after-anchor {
+.content-area {
+  margin-left: 15px;
+
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.content-area__lines {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.bottom {
   background-color: #E3FFC6;
   
   border-top: 1px solid;
   border-color: #B8D29F;
-}
-
-.line {
-  width: 100%;
-  dispplay: inline-block;
 }
