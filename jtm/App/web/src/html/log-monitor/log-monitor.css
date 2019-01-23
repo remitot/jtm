@@ -11,9 +11,12 @@ body {
 
 .lines_after-anchor {
   background-color: #E3FFC6;
+  
+  border-top: 1px solid;
+  border-color: #B8D29F;
 }
 
-div.hf {
+.line {
   width: 100%;
   dispplay: inline-block;
 }

@@ -13,26 +13,34 @@
 
   <body onload="logmonitor_onload();">
     <div id="content">
+    <%
+      List<String> contentLinesBeforeAnchor = (List<String>)request.getAttribute("contentLinesBeforeAnchor");
+      if (contentLinesBeforeAnchor != null && !contentLinesBeforeAnchor.isEmpty()) { 
+    %>
       <div class="lines lines_before-anchor">
         <%
-        List<String> contentLinesBeforeAnchor = (List<String>)request.getAttribute("contentLinesBeforeAnchor");
-        if (contentLinesBeforeAnchor != null) {
           for (String line: contentLinesBeforeAnchor) {
-            out.println("<div class=\"hf\">" + line + "</div><br/>");      
+            out.println("<div class=\"line\">" + line + "</div>");      
           }
-        }
         %>
       </div>
+    <% 
+      } 
+    %>
+    <%
+      List<String> contentLinesAfterAnchor = (List<String>)request.getAttribute("contentLinesAfterAnchor");
+      if (contentLinesAfterAnchor != null && !contentLinesAfterAnchor.isEmpty()) { 
+    %>
       <div class="lines lines_after-anchor">
         <%
-        List<String> contentLinesAfterAnchor = (List<String>)request.getAttribute("contentLinesAfterAnchor");
-        if (contentLinesAfterAnchor != null) {
           for (String line: contentLinesAfterAnchor) {
-            out.println("<div class=\"hf\">" + line + "</div><br/>");      
+            out.println("<div class=\"line\">" + line + "</div>");      
           }
-        }
         %>
       </div>
+    <% 
+      } 
+    %>
     </div>
 
     <script type="text/javascript">
