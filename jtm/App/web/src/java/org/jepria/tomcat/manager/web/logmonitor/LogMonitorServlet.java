@@ -1,12 +1,14 @@
 package org.jepria.tomcat.manager.web.logmonitor;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -24,6 +26,8 @@ public class LogMonitorServlet extends HttpServlet {
     public List<String> contentLinesBeforeAnchor;
     public List<String> contentLinesAfterAnchor;
   }
+  
+  private static final long LOAD_LIMIT = 1000000;
   
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -57,6 +61,10 @@ public class LogMonitorServlet extends HttpServlet {
         try {
           lines = Integer.parseInt(linesStr);
         } catch (java.lang.NumberFormatException e) {
+          response.sendError(400); return; // TODO GUI
+        }
+        
+        if (lines < 1) {
           response.sendError(400); return; // TODO GUI
         }
       } else {
@@ -113,7 +121,7 @@ public class LogMonitorServlet extends HttpServlet {
   
   //TODO this value is assumed. But how to determine it? 
   
-  private static final int FRAME_SIZE = 100; //TODO extract?
+  private static final int FRAME_SIZE = 200; //TODO extract?
   
   
   //TODO this value is assumed. But how to determine it? 
@@ -132,9 +140,8 @@ public class LogMonitorServlet extends HttpServlet {
 
       int lineCount = 0;
 
-      try (Scanner sc = new Scanner(logFile.toFile(), LOG_FILE_READ_ENCODING)) {
-        while (sc.hasNextLine()) {
-          sc.nextLine();
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile.toFile()), LOG_FILE_READ_ENCODING))) {
+        while (reader.readLine() != null) {
           lineCount++;
         }
       } catch (FileNotFoundException e) {
@@ -160,13 +167,17 @@ public class LogMonitorServlet extends HttpServlet {
    * @param filename
    * @param anchor index of the anchor line in the file 
    * (index of the last line loaded on the {@link #initMonitor} request), from 0 
-   * @param lines total number of lines to load (counting back from the anchor, including it)
+   * @param lines > 0, total number of lines to load (counting back from the anchor, including it)
    * @return
    */
   public static MonitorResultDto monitor(HttpServletRequest request,
       String filename, int anchor, int lines) 
           throws FileNotFoundException {
 
+    if (lines < 1) {
+      throw new IllegalArgumentException();
+    }
+    
     try {
 
       Environment environment = EnvironmentFactory.get(request);
@@ -178,29 +189,56 @@ public class LogMonitorServlet extends HttpServlet {
       LinkedList<String> contentLinesBeforeAnchor = new LinkedList<>();
       List<String> contentLinesAfterAnchor = new LinkedList<>();
 
+      // total char count
+      long charCount = 0;
+      
       int lineIndex = 0;
-
-      try (Scanner sc = new Scanner(logFile.toFile(), LOG_FILE_READ_ENCODING)) {
-        while (sc.hasNextLine()) {
-          final String line = sc.nextLine();
+      
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile.toFile()), LOG_FILE_READ_ENCODING))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
           
           if (lineIndex <= anchor) {
             contentLinesBeforeAnchor.add(line);
+            charCount += line.length();
             
             if (contentLinesBeforeAnchor.size() > lines) {
-              contentLinesBeforeAnchor.removeFirst();
+              String removed = contentLinesBeforeAnchor.removeFirst();
+              charCount -= removed.length();
             }
           } else {
             contentLinesAfterAnchor.add(line);
+            charCount += line.length();
           }
 
           lineIndex++;
         }
+        
+        
+        // count all newlines as single chars
+        if (contentLinesBeforeAnchor.size() > 1) {
+          charCount += contentLinesBeforeAnchor.size() - 1;
+        }
+        if (!contentLinesBeforeAnchor.isEmpty() && !contentLinesAfterAnchor.isEmpty()) {
+          charCount++;
+        }
+        if (contentLinesAfterAnchor.size() > 1) {
+          charCount += contentLinesAfterAnchor.size() - 1;
+        }
+        
+        
       } catch (FileNotFoundException e) {
         throw e;
       }// TODO catch also non-readable file excepiton
 
-
+      
+      // check load limit
+      if (charCount > LOAD_LIMIT) {
+        // TODO return error of crop the load against the limit?
+        throw new RuntimeException("Load limit overflow");
+      }
+      
+      
       MonitorResultDto ret = new MonitorResultDto();
       ret.contentLinesBeforeAnchor = contentLinesBeforeAnchor;
       ret.contentLinesAfterAnchor = contentLinesAfterAnchor;
