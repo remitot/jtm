@@ -61,9 +61,9 @@
     <% if (isLinesAfter && resetAnchorUrl != null) { %>
       <button 
           onclick="resetAnchor();" 
-          class="control-button_reset-anchor control-button big-black-button"
-          style="display: none;" 
-          >СБРОСИТЬ ЯКОРЬ</button> <!-- NON-NLS -->
+          class="control-button_reset-anchor control-button big-black-button hidden"
+          title="Снять подсветку с новых записей"
+          >ПРОЧИТАНО</button> <!-- NON-NLS -->
           
     <% } %>
     </div>
