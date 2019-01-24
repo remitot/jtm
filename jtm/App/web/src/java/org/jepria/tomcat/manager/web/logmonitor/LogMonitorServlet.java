@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,14 +24,14 @@ public class LogMonitorServlet extends HttpServlet {
   private static final long serialVersionUID = -4404438014956108762L;
   
   private static class MonitorResultDto {
-    public final List<String> contentLinesBeforeAnchor;
-    public final List<String> contentLinesAfterAnchor;
+    public final List<String> contentLinesTop;
+    public final List<String> contentLinesBottom;
     public final boolean fileBeginReached;
     
-    public MonitorResultDto(List<String> contentLinesBeforeAnchor, List<String> contentLinesAfterAnchor,
+    public MonitorResultDto(List<String> contentLinesTop, List<String> contentLinesBottom,
         boolean fileBeginReached) {
-      this.contentLinesBeforeAnchor = contentLinesBeforeAnchor;
-      this.contentLinesAfterAnchor = contentLinesAfterAnchor;
+      this.contentLinesTop = contentLinesTop;
+      this.contentLinesBottom = contentLinesBottom;
       this.fileBeginReached = fileBeginReached;
     }
   }
@@ -105,6 +106,11 @@ public class LogMonitorServlet extends HttpServlet {
           return;
         }
         
+        
+        
+        final URL url = new URL(request.getRequestURL().toString());
+        final String host = url.getHost() + (url.getPort() == 80 ? "" : (":" + url.getPort()));
+            
         final MonitorResultDto monitor = monitor(request, filename, anchor, lines);
         // TODO handle Exceptions
         
@@ -114,22 +120,28 @@ public class LogMonitorServlet extends HttpServlet {
             + "&lines=" + (lines + FRAME_SIZE);
 
         final String resetAnchorUrl;
-        if (monitor.contentLinesAfterAnchor != null && monitor.contentLinesAfterAnchor.size() > 0) {
+        if (monitor.contentLinesBottom != null && monitor.contentLinesBottom.size() > 0) {
           resetAnchorUrl = request.getRequestURL().toString()
               + "?filename=" + filename
-              + "&anchor=" + (anchor + monitor.contentLinesAfterAnchor.size())
+              + "&anchor=" + (anchor + monitor.contentLinesBottom.size())
               + "&lines=" + lines;
         } else {
           resetAnchorUrl = null;
         }
         
 
-        // set all attributes for including jsp and include
-        request.setAttribute("contentLinesBeforeAnchor", monitor.contentLinesBeforeAnchor);
-        request.setAttribute("contentLinesAfterAnchor", monitor.contentLinesAfterAnchor);
-        request.setAttribute("fileBeginReached", monitor.fileBeginReached);
-        request.setAttribute("loadMoreLinesUrl", loadMoreLinesUrl);
-        request.setAttribute("resetAnchorUrl", resetAnchorUrl);
+        // set gui params for including jsp
+        MonitorGuiParams monitorGuiParams = new MonitorGuiParams(
+            filename, 
+            host, 
+            monitor.contentLinesTop, 
+            monitor.contentLinesBottom,
+            monitor.fileBeginReached, 
+            loadMoreLinesUrl, 
+            resetAnchorUrl);
+        
+        request.setAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams", 
+            monitorGuiParams);
         
         request.getRequestDispatcher("log-monitor/log-monitor.jsp").include(request, response);
         
@@ -206,8 +218,8 @@ public class LogMonitorServlet extends HttpServlet {
       Path logFile = logsDirectory.toPath().resolve(filename);
 
       boolean fileBeginReached = true;
-      LinkedList<String> contentLinesBeforeAnchor = new LinkedList<>();
-      List<String> contentLinesAfterAnchor = new LinkedList<>();
+      LinkedList<String> contentLinesTop = new LinkedList<>();
+      List<String> contentLinesBottom = new LinkedList<>();
       
       // total char count
       long charCount = 0;
@@ -219,16 +231,16 @@ public class LogMonitorServlet extends HttpServlet {
         while ((line = reader.readLine()) != null) {
           
           if (lineIndex <= anchor) {
-            contentLinesBeforeAnchor.add(line);
+            contentLinesTop.add(line);
             charCount += line.length();
             
-            if (contentLinesBeforeAnchor.size() > lines) {
-              String removed = contentLinesBeforeAnchor.removeFirst();
+            if (contentLinesTop.size() > lines) {
+              String removed = contentLinesTop.removeFirst();
               charCount -= removed.length();
               fileBeginReached = false;
             }
           } else {
-            contentLinesAfterAnchor.add(line);
+            contentLinesBottom.add(line);
             charCount += line.length();
           }
 
@@ -237,14 +249,14 @@ public class LogMonitorServlet extends HttpServlet {
         
         
         // count all newlines as single chars
-        if (contentLinesBeforeAnchor.size() > 1) {
-          charCount += contentLinesBeforeAnchor.size() - 1;
+        if (contentLinesTop.size() > 1) {
+          charCount += contentLinesTop.size() - 1;
         }
-        if (!contentLinesBeforeAnchor.isEmpty() && !contentLinesAfterAnchor.isEmpty()) {
+        if (!contentLinesTop.isEmpty() && !contentLinesBottom.isEmpty()) {
           charCount++;
         }
-        if (contentLinesAfterAnchor.size() > 1) {
-          charCount += contentLinesAfterAnchor.size() - 1;
+        if (contentLinesBottom.size() > 1) {
+          charCount += contentLinesBottom.size() - 1;
         }
         
         
@@ -261,8 +273,8 @@ public class LogMonitorServlet extends HttpServlet {
       
       
       final MonitorResultDto ret = new MonitorResultDto(
-          contentLinesBeforeAnchor,
-          contentLinesAfterAnchor,
+          contentLinesTop,
+          contentLinesBottom,
           fileBeginReached);
       
       return ret;

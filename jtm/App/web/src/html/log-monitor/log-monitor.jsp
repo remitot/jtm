@@ -1,9 +1,21 @@
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+
 <%@ page import="java.util.List" %>
+<%@page import="org.jepria.tomcat.manager.web.logmonitor.MonitorGuiParams"%>
+
 <!DOCTYPE html> 
 <html> 
+
+<%
+  // read gui params
+  MonitorGuiParams guiParams = (MonitorGuiParams)request.getAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams");
+  
+  final boolean hasLinesTop = !guiParams.getContentLinesTop().isEmpty();
+  final boolean hasLinesBottom = !guiParams.getContentLinesBottom().isEmpty();
+%>
+  
   <head> 
-    <title>Tomcat manager: логи</title> <!-- NON-NLS --> 
+    <title><% out.print(guiParams.getFilename()); %> — <% out.print(guiParams.getHost()); %></title> <!-- NON-NLS --> 
   
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" /> 
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
@@ -14,44 +26,31 @@
     <link rel="stylesheet" href="log-monitor/log-monitor.css">
   </head> 
 
-  <%
-    // read all attributes
-    final boolean fileBeginReached = Boolean.TRUE.equals(request.getAttribute("fileBeginReached"));
-    final List<String> contentLinesBeforeAnchor = (List<String>) request.getAttribute("contentLinesBeforeAnchor");
-    final List<String> contentLinesAfterAnchor = (List<String>) request.getAttribute("contentLinesAfterAnchor");
-    final String loadMoreLinesUrl = (String)request.getAttribute("loadMoreLinesUrl");
-    final String resetAnchorUrl = (String)request.getAttribute("resetAnchorUrl");
-    //
-    
-    boolean isLinesBefore = contentLinesBeforeAnchor != null && !contentLinesBeforeAnchor.isEmpty();
-    boolean isLinesAfter = contentLinesAfterAnchor != null && !contentLinesAfterAnchor.isEmpty();
-  %>
-
   <body onload="logmonitor_onload();">
     
     <div class="anchor-area">
-    <% if (isLinesBefore) { %>
+    <% if (hasLinesTop) { %>
       <div class="anchor-area__panel top">&nbsp;</div>
     <% } %>
-    <% if (isLinesAfter) { %>
+    <% if (hasLinesBottom) { %>
       <div class="anchor-area__panel bottom">&nbsp;</div>
     <% } %>
     </div>
     
     <div class="content-area">
-    <% if (isLinesBefore) { %>
+    <% if (hasLinesTop) { %>
       <div class="content-area__lines top">
         <%
-          for (String line: contentLinesBeforeAnchor) {
+          for (String line: guiParams.getContentLinesTop()) {
             out.println(line + "<br/>");      
           }
         %>
       </div>
     <% } %>
-    <% if (isLinesAfter) { %>
+    <% if (hasLinesBottom) { %>
       <div class="content-area__lines bottom">
         <%
-          for (String line: contentLinesAfterAnchor) {
+          for (String line: guiParams.getContentLinesBottom()) {
             out.println(line + "<br/>");      
           }
         %>
@@ -59,7 +58,7 @@
     <% } %>
     </div>
     
-  <% if (isLinesAfter && resetAnchorUrl != null) { %>
+  <% if (hasLinesBottom && guiParams.getResetAnchorUrl() != null) { %>
     <button 
         onclick="resetAnchor();" 
         class="control-button_reset-anchor control-button big-black-button hidden"
@@ -147,13 +146,13 @@
         if (scrolled <= linesTop.offsetTop) { 
           /* top reached */
           
-        <% if (!fileBeginReached && loadMoreLinesUrl != null) { %>
+        <% if (!guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null) { %>
           /* because location.reload() not wotking in FF and Chrome */ 
-          window.location.href = "<% out.print(loadMoreLinesUrl); %>" + "#" + offset;
+          window.location.href = "<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset;
         <% } %>
         } 
         
-        <% if (isLinesAfter) { %>
+        <% if (hasLinesBottom) { %>
         if (scrolled + window.innerHeight == getDocHeight()) {
           document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
         } else {
@@ -162,13 +161,13 @@
         <% } %>
       }
       
-      <% if (isLinesAfter && resetAnchorUrl != null) { %>
+      <% if (hasLinesBottom && guiParams.getResetAnchorUrl() != null) { %>
       function resetAnchor() {
         var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
         window.location.hash = "#" + offset;
         
         /* because location.reload() not wotking in FF and Chrome */
-        window.location.href = "<% out.print(resetAnchorUrl); %>" + "#" + offset;
+        window.location.href = "<% out.print(guiParams.getResetAnchorUrl()); %>" + "#" + offset;
       } 
       <% } %>
     </script>
