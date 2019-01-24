@@ -23,9 +23,16 @@ public class LogMonitorServlet extends HttpServlet {
   private static final long serialVersionUID = -4404438014956108762L;
   
   private static class MonitorResultDto {
-    public List<String> contentLinesBeforeAnchor;
-    public List<String> contentLinesAfterAnchor;
-    public boolean fileBeginReached;
+    public final List<String> contentLinesBeforeAnchor;
+    public final List<String> contentLinesAfterAnchor;
+    public final boolean fileBeginReached;
+    
+    public MonitorResultDto(List<String> contentLinesBeforeAnchor, List<String> contentLinesAfterAnchor,
+        boolean fileBeginReached) {
+      this.contentLinesBeforeAnchor = contentLinesBeforeAnchor;
+      this.contentLinesAfterAnchor = contentLinesAfterAnchor;
+      this.fileBeginReached = fileBeginReached;
+    }
   }
   
   private static final long LOAD_LIMIT = 1000000;
@@ -106,10 +113,23 @@ public class LogMonitorServlet extends HttpServlet {
             + "&anchor=" + anchor
             + "&lines=" + (lines + FRAME_SIZE);
 
+        final String resetAnchorUrl;
+        if (monitor.contentLinesAfterAnchor != null && monitor.contentLinesAfterAnchor.size() > 0) {
+          resetAnchorUrl = request.getRequestURL().toString()
+              + "?filename=" + filename
+              + "&anchor=" + (anchor + monitor.contentLinesAfterAnchor.size())
+              + "&lines=" + lines;
+        } else {
+          resetAnchorUrl = null;
+        }
+        
+
+        // set all attributes for including jsp and include
         request.setAttribute("contentLinesBeforeAnchor", monitor.contentLinesBeforeAnchor);
         request.setAttribute("contentLinesAfterAnchor", monitor.contentLinesAfterAnchor);
         request.setAttribute("fileBeginReached", monitor.fileBeginReached);
         request.setAttribute("loadMoreLinesUrl", loadMoreLinesUrl);
+        request.setAttribute("resetAnchorUrl", resetAnchorUrl);
         
         request.getRequestDispatcher("log-monitor/log-monitor.jsp").include(request, response);
         
@@ -240,10 +260,10 @@ public class LogMonitorServlet extends HttpServlet {
       }
       
       
-      final MonitorResultDto ret = new MonitorResultDto();
-      ret.contentLinesBeforeAnchor = contentLinesBeforeAnchor;
-      ret.contentLinesAfterAnchor = contentLinesAfterAnchor;
-      ret.fileBeginReached = fileBeginReached;
+      final MonitorResultDto ret = new MonitorResultDto(
+          contentLinesBeforeAnchor,
+          contentLinesAfterAnchor,
+          fileBeginReached);
       
       return ret;
 

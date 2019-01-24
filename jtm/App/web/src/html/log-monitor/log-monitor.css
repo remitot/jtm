@@ -32,16 +32,11 @@ body {
 }
 
 .bottom {
-  padding-bottom: 8px;
-}
-/* disable for anchor-area__panel */
-.bottom.anchor-area__panel {
-  padding-bottom: 0px;
+  background-color: #E3FFC6;
 }
 
-.bottom {
-  background-color: #E3FFC6;
-  
-  border-top: 1px solid;
-  border-color: #B8D29F;
+.control-button_reset-anchor {
+  position: fixed;
+  bottom: 0px;
+  right: 18px; /* = 14px + magic_4px */
 }

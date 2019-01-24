@@ -8,6 +8,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" /> 
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
 
+    <link rel="stylesheet" href="jtm.css">
+    <script type="text/javascript" src="jtm.js"></script>
+    
     <link rel="stylesheet" href="log-monitor/log-monitor.css">
   </head> 
 
@@ -17,6 +20,7 @@
     final List<String> contentLinesBeforeAnchor = (List<String>) request.getAttribute("contentLinesBeforeAnchor");
     final List<String> contentLinesAfterAnchor = (List<String>) request.getAttribute("contentLinesAfterAnchor");
     final String loadMoreLinesUrl = (String)request.getAttribute("loadMoreLinesUrl");
+    final String resetAnchorUrl = (String)request.getAttribute("resetAnchorUrl");
     //
     
     boolean isLinesBefore = contentLinesBeforeAnchor != null && !contentLinesBeforeAnchor.isEmpty();
@@ -53,8 +57,17 @@
         %>
       </div>
     <% } %>
+    
+    <% if (isLinesAfter && resetAnchorUrl != null) { %>
+      <button 
+          onclick="resetAnchor();" 
+          class="control-button_reset-anchor control-button big-black-button"
+          style="display: none;" 
+          >СБРОСИТЬ ЯКОРЬ</button> <!-- NON-NLS -->
+          
+    <% } %>
     </div>
-
+    
     <script type="text/javascript">
 
       var linesTop = document.querySelectorAll(".content-area__lines.top")[0];
@@ -69,7 +82,7 @@
       function getOffset() { 
         var offset = window.location.hash.substring(1); 
         if (offset) { 
-          return offset; 
+          return Number(offset); 
         } else { 
           return null; 
         } 
@@ -103,6 +116,9 @@
           anchorAreaBottom.style.height = linesBottom.clientHeight + "px";
         }
         
+        
+        addHoverForBigBlackButton(document.getElementsByClassName("big-black-button")[0]);
+        
       } 
       
       
@@ -114,6 +130,13 @@
         window.scrollTo(0, y); 
       } 
       
+      function getDocHeight() {
+        return Math.max(
+            document.body.scrollHeight, document.documentElement.scrollHeight,
+            document.body.offsetHeight, document.documentElement.offsetHeight,
+            document.body.clientHeight, document.documentElement.clientHeight
+        );
+      }
       
       window.onscroll = function() { 
         var scrolled = window.pageYOffset || document.documentElement.scrollTop; 
@@ -129,7 +152,25 @@
           window.location.href = "<% out.print(loadMoreLinesUrl); %>" + "#" + offset;
         <% } %>
         } 
+        
+        <% if (isLinesAfter) { %>
+        if (scrolled + window.innerHeight == getDocHeight()) {
+          document.getElementsByClassName("control-button_reset-anchor")[0].style.display = "block";
+        } else {
+          document.getElementsByClassName("control-button_reset-anchor")[0].style.display = "none";
+        }
+        <% } %>
+      }
+      
+      <% if (isLinesAfter && resetAnchorUrl != null) { %>
+      function resetAnchor() {
+        var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
+        window.location.hash = "#" + offset;
+        
+        /* because location.reload() not wotking in FF and Chrome */
+        window.location.href = "<% out.print(resetAnchorUrl); %>" + "#" + offset;
       } 
+      <% } %>
     </script>
     
   </body>
