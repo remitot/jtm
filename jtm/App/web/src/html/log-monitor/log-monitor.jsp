@@ -57,16 +57,16 @@
         %>
       </div>
     <% } %>
-    
-    <% if (isLinesAfter && resetAnchorUrl != null) { %>
-      <button 
-          onclick="resetAnchor();" 
-          class="control-button_reset-anchor control-button big-black-button hidden"
-          title="Снять подсветку с новых записей"
-          >ПРОЧИТАНО</button> <!-- NON-NLS -->
-          
-    <% } %>
     </div>
+    
+  <% if (isLinesAfter && resetAnchorUrl != null) { %>
+    <button 
+        onclick="resetAnchor();" 
+        class="control-button_reset-anchor control-button big-black-button hidden"
+        title="Снять подсветку с новых записей"
+        >ПРОЧИТАНО</button> <!-- NON-NLS -->
+        
+  <% } %>
     
     <script type="text/javascript">
 
@@ -155,9 +155,9 @@
         
         <% if (isLinesAfter) { %>
         if (scrolled + window.innerHeight == getDocHeight()) {
-          document.getElementsByClassName("control-button_reset-anchor")[0].style.display = "block";
+          document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
         } else {
-          document.getElementsByClassName("control-button_reset-anchor")[0].style.display = "none";
+          document.getElementsByClassName("control-button_reset-anchor")[0].classList.add("hidden");
         }
         <% } %>
       }

@@ -40,3 +40,7 @@ body {
   bottom: 0px;
   right: 18px; /* = 14px + magic_4px */
 }
+
+.hidden {
+  display: none;
+}
