@@ -12,6 +12,8 @@
   
   final boolean hasLinesTop = !guiParams.getContentLinesTop().isEmpty();
   final boolean hasLinesBottom = !guiParams.getContentLinesBottom().isEmpty();
+  final boolean canLoadTop = !guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null;
+  final boolean canResetAnchor = hasLinesBottom && guiParams.getResetAnchorUrl() != null;
 %>
   
   <head> 
@@ -58,9 +60,9 @@
     <% } %>
     </div>
     
-  <% if (hasLinesBottom && guiParams.getResetAnchorUrl() != null) { %>
+  <% if (canResetAnchor) { %>
     <button 
-        onclick="resetAnchor();" 
+        onclick="onResetAnchorButtonClick();" 
         class="control-button_reset-anchor control-button big-black-button hidden"
         title="Снять подсветку с новых записей"
         >ПРОЧИТАНО</button> <!-- NON-NLS -->
@@ -86,6 +88,14 @@
           return null; 
         } 
       } 
+      
+      function onResetAnchorButtonClick() {
+        var resetAnchorButton = document.getElementsByClassName("control-button_reset-anchor")[0];
+        resetAnchorButton.disabled = true;
+        resetAnchorButton.title = null;
+        
+        resetAnchor();
+      }
       
       function logmonitor_onload() { 
         /* scroll to the offset */ 
@@ -116,8 +126,9 @@
         }
         
         
+        <% if (canResetAnchor) { %>
         addHoverForBigBlackButton(document.getElementsByClassName("big-black-button")[0]);
-        
+        <% } %>
       } 
       
       
@@ -146,13 +157,13 @@
         if (scrolled <= linesTop.offsetTop) { 
           /* top reached */
           
-        <% if (!guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null) { %>
+          <% if (canLoadTop) { %>
           loadTop(offset);
-        <% } %>
+          <% } %>
         
         } 
         
-        <% if (hasLinesBottom) { %>
+        <% if (canResetAnchor) { %>
         if (scrolled + window.innerHeight == getDocHeight()) {
           document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
         } else {
@@ -162,7 +173,7 @@
       }
       
       
-      <% if (!guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null) { %>
+      <% if (canLoadTop) { %>
       // blocks script execution after the first request to prevent repeated client requests if the server hangs up
       blockLoadTop = false;
       
@@ -177,7 +188,7 @@
       <% } %>
       
       
-      <% if (hasLinesBottom && guiParams.getResetAnchorUrl() != null) { %>
+      <% if (canResetAnchor) { %>
       // blocks script execution after the first request to prevent repeated client requests if the server hangs up
       blockResetAnchor = false;
    
