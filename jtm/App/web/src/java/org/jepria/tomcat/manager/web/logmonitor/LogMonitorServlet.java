@@ -25,6 +25,7 @@ public class LogMonitorServlet extends HttpServlet {
   private static class MonitorResultDto {
     public List<String> contentLinesBeforeAnchor;
     public List<String> contentLinesAfterAnchor;
+    public boolean fileBeginReached;
   }
   
   private static final long LOAD_LIMIT = 1000000;
@@ -97,19 +98,17 @@ public class LogMonitorServlet extends HttpServlet {
           return;
         }
         
-        MonitorResultDto monitor = monitor(request, filename, anchor, lines);
+        final MonitorResultDto monitor = monitor(request, filename, anchor, lines);
         // TODO handle Exceptions
         
-        List<String> contentLinesBeforeAnchor = monitor.contentLinesBeforeAnchor;
-        List<String> contentLinesAfterAnchor = monitor.contentLinesAfterAnchor;
-        
-        String loadMoreLinesUrl = request.getRequestURL().toString()
+        final String loadMoreLinesUrl = request.getRequestURL().toString()
             + "?filename=" + filename
             + "&anchor=" + anchor
             + "&lines=" + (lines + FRAME_SIZE);
 
-        request.setAttribute("contentLinesBeforeAnchor", contentLinesBeforeAnchor);
-        request.setAttribute("contentLinesAfterAnchor", contentLinesAfterAnchor);
+        request.setAttribute("contentLinesBeforeAnchor", monitor.contentLinesBeforeAnchor);
+        request.setAttribute("contentLinesAfterAnchor", monitor.contentLinesAfterAnchor);
+        request.setAttribute("fileBeginReached", monitor.fileBeginReached);
         request.setAttribute("loadMoreLinesUrl", loadMoreLinesUrl);
         
         request.getRequestDispatcher("log-monitor/log-monitor.jsp").include(request, response);
@@ -186,9 +185,10 @@ public class LogMonitorServlet extends HttpServlet {
 
       Path logFile = logsDirectory.toPath().resolve(filename);
 
+      boolean fileBeginReached = true;
       LinkedList<String> contentLinesBeforeAnchor = new LinkedList<>();
       List<String> contentLinesAfterAnchor = new LinkedList<>();
-
+      
       // total char count
       long charCount = 0;
       
@@ -205,6 +205,7 @@ public class LogMonitorServlet extends HttpServlet {
             if (contentLinesBeforeAnchor.size() > lines) {
               String removed = contentLinesBeforeAnchor.removeFirst();
               charCount -= removed.length();
+              fileBeginReached = false;
             }
           } else {
             contentLinesAfterAnchor.add(line);
@@ -239,9 +240,10 @@ public class LogMonitorServlet extends HttpServlet {
       }
       
       
-      MonitorResultDto ret = new MonitorResultDto();
+      final MonitorResultDto ret = new MonitorResultDto();
       ret.contentLinesBeforeAnchor = contentLinesBeforeAnchor;
       ret.contentLinesAfterAnchor = contentLinesAfterAnchor;
+      ret.fileBeginReached = fileBeginReached;
       
       return ret;
 

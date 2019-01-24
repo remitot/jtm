@@ -12,8 +12,13 @@
   </head> 
 
   <%
-    List<String> contentLinesBeforeAnchor = (List<String>) request.getAttribute("contentLinesBeforeAnchor");
-    List<String> contentLinesAfterAnchor = (List<String>) request.getAttribute("contentLinesAfterAnchor");
+    // read all attributes
+    final boolean fileBeginReached = Boolean.TRUE.equals(request.getAttribute("fileBeginReached"));
+    final List<String> contentLinesBeforeAnchor = (List<String>) request.getAttribute("contentLinesBeforeAnchor");
+    final List<String> contentLinesAfterAnchor = (List<String>) request.getAttribute("contentLinesAfterAnchor");
+    final String loadMoreLinesUrl = (String)request.getAttribute("loadMoreLinesUrl");
+    //
+    
     boolean isLinesBefore = contentLinesBeforeAnchor != null && !contentLinesBeforeAnchor.isEmpty();
     boolean isLinesAfter = contentLinesAfterAnchor != null && !contentLinesAfterAnchor.isEmpty();
   %>
@@ -51,8 +56,13 @@
     </div>
 
     <script type="text/javascript">
+
       var linesTop = document.querySelectorAll(".content-area__lines.top")[0];
-       
+    
+      function getSplitY() {
+        return linesTop.offsetTop + linesTop.clientHeight;
+      }
+      
       /** 
        * Returns scroll offset (the viewport position) from the bottom of the page, in pixels 
        */ 
@@ -70,7 +80,7 @@
         
         var offset = getOffset(); 
         if (offset) { 
-          scrTo(linesTop.clientHeight - offset); 
+          scrTo(getSplitY() - offset); 
         } else {
           contentArea = document.getElementsByClassName("content-area")[0];
           if (contentArea.clientHeight <= window.innerHeight) {
@@ -108,15 +118,16 @@
       window.onscroll = function() { 
         var scrolled = window.pageYOffset || document.documentElement.scrollTop; 
         
-        var offset = linesTop.clientHeight - scrolled; 
-        
+        var offset = getSplitY() - scrolled; 
         window.location.hash = "#" + offset; 
         
-        if (scrolled == 0) { 
-          /* top reached */ 
+        if (scrolled <= linesTop.offsetTop) { 
+          /* top reached */
           
+        <% if (!fileBeginReached && loadMoreLinesUrl != null) { %>
           /* because location.reload() not wotking in FF and Chrome */ 
-          window.location.href = "<%= (String)request.getAttribute("loadMoreLinesUrl") %>" + "#" + offset; 
+          window.location.href = "<% out.print(loadMoreLinesUrl); %>" + "#" + offset;
+        <% } %>
         } 
       } 
     </script>
