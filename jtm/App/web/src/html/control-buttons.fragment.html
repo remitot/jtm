@@ -1,15 +1,15 @@
-<!-- for correct cyrillic display while including as jsp -->
+<%-- for correct cyrillic display while including as jsp --%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <div class="control-buttons">
   <button 
       onclick="onSaveButtonClick()" 
-      class="control-butons__save big-black-button" 
+      class="control-button_save control-button big-black-button" 
       disabled
       >СОХРАНИТЬ ВСЁ</button> <!-- NON-NLS -->
   <button 
       onclick="table_reload()" 
-      class="control-butons__reset big-black-button" 
+      class="control-button_reset control-button big-black-button" 
       disabled
       >СБРОСИТЬ ВСЁ</button> <!-- NON-NLS -->
       
@@ -19,32 +19,20 @@
   
   /* @Override from table.js */
   function setControlButtonsEnabled(enabled) {
-    // since we work with CSS-classes instead of HTML-ids, 
-    // better to process all elements, not the single 
-    
-    var saveButtons = document.getElementsByClassName("control-butons__save");
-    var resetButtons = document.getElementsByClassName("control-butons__reset");
+    var saveButton = document.getElementsByClassName("control-button_save")[0];
+    var resetButton = document.getElementsByClassName("control-button_reset")[0];
     
     if (enabled) {
-      for (var i = 0; i < saveButtons.length; i++) {
-        saveButtons[i].disabled = false;
-        saveButtons[i].title = "Сохранить все изменения (оранжевые)"; // NON-NLS
-      }  
-      for (var i = 0; i < resetButtons.length; i++) {
-        resetButtons[i].disabled = false;
-        resetButtons[i].title = "Сбросить все изменения (оранжевые) и обновить таблицу"; // NON-NLS
-      }
+      saveButton.disabled = false;
+      saveButton.title = "Сохранить все изменения (оранжевые)"; // NON-NLS
+      resetButton.disabled = false;
+      resetButton.title = "Сбросить все изменения (оранжевые) и обновить таблицу"; // NON-NLS
       
     } else {
-      for (var i = 0; i < saveButtons.length; i++) {
-        saveButtons[i].disabled = true;
-        saveButtons[i].title = "Изменений нет"; // NON-NLS
-      }  
-      for (var i = 0; i < resetButtons.length; i++) {
-        resetButtons[i].disabled = true;
-        resetButtons[i].title = "Изменений нет"; // NON-NLS
-      }
-      
+      saveButton.disabled = true;
+      saveButton.title = "Изменений нет"; // NON-NLS
+      resetButton.disabled = true;
+      resetButton.title = "Изменений нет"; // NON-NLS
     }
   }
 </script>
