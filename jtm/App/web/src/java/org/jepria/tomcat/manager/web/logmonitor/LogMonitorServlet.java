@@ -121,10 +121,15 @@ public class LogMonitorServlet extends HttpServlet {
 
         final String resetAnchorUrl;
         if (monitor.contentLinesBottom != null && monitor.contentLinesBottom.size() > 0) {
+          
+          // increase by number of bottom lines
+          final int newAnchor = anchor + monitor.contentLinesBottom.size();
+          final int newLines = lines + monitor.contentLinesBottom.size(); 
+          
           resetAnchorUrl = request.getRequestURL().toString()
               + "?filename=" + filename
-              + "&anchor=" + (anchor + monitor.contentLinesBottom.size())
-              + "&lines=" + lines;
+              + "&anchor=" + newAnchor
+              + "&lines=" + newLines;
         } else {
           resetAnchorUrl = null;
         }
