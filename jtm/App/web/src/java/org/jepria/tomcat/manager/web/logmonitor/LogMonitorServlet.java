@@ -42,7 +42,7 @@ public class LogMonitorServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     
- // the content type is defined for the entire method
+    // the content type is defined for the entire method
     response.setContentType("text/html; charset=UTF-8");
     
     

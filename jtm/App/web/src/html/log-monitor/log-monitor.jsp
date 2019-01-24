@@ -147,9 +147,9 @@
           /* top reached */
           
         <% if (!guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null) { %>
-          /* because location.reload() not wotking in FF and Chrome */ 
-          window.location.href = "<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset;
+          loadTop(offset);
         <% } %>
+        
         } 
         
         <% if (hasLinesBottom) { %>
@@ -161,13 +161,36 @@
         <% } %>
       }
       
+      
+      <% if (!guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null) { %>
+      // blocks script execution after the first request to prevent repeated client requests if the server hangs up
+      blockLoadTop = false;
+      
+      function loadTop(offset) {
+        if (!blockLoadTop) {
+          blockLoadTop = true;
+          
+          /* because location.reload() not wotking in FF and Chrome */ 
+          window.location.href = "<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset;
+        }
+      }
+      <% } %>
+      
+      
       <% if (hasLinesBottom && guiParams.getResetAnchorUrl() != null) { %>
+      // blocks script execution after the first request to prevent repeated client requests if the server hangs up
+      blockResetAnchor = false;
+   
       function resetAnchor() {
-        var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
-        window.location.hash = "#" + offset;
-        
-        /* because location.reload() not wotking in FF and Chrome */
-        window.location.href = "<% out.print(guiParams.getResetAnchorUrl()); %>" + "#" + offset;
+        if (!blockResetAnchor) {
+          blockResetAnchor = true;
+
+          var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
+          window.location.hash = "#" + offset;
+          
+          /* because location.reload() not wotking in FF and Chrome */
+          window.location.href = "<% out.print(guiParams.getResetAnchorUrl()); %>" + "#" + offset;
+        }
       } 
       <% } %>
     </script>
