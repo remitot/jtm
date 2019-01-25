@@ -44,7 +44,7 @@
       <div class="content-area__lines top">
         <%
           for (String line: guiParams.getContentLinesTop()) {
-            out.println(line + "<br/>");      
+            out.println(line.replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;") + "<br/>");      
           }
         %>
       </div>
@@ -53,7 +53,7 @@
       <div class="content-area__lines bottom">
         <%
           for (String line: guiParams.getContentLinesBottom()) {
-            out.println(line + "<br/>");      
+            out.println(line.replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;") + "<br/>");      
           }
         %>
       </div>
