@@ -155,5 +155,9 @@
       <form-error-page>/WEB-INF/security/login.jsp</form-error-page>
     </form-login-config>
   </login-config>
-
+  
+  <error-page>
+    <error-code>401</error-code>
+    <location>/WEB-INF/security/error.jsp</location>
+  </error-page>
 </web-app>
