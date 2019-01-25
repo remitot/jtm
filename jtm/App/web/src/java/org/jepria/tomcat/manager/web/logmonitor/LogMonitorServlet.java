@@ -50,12 +50,16 @@ public class LogMonitorServlet extends HttpServlet {
     final String filename = request.getParameter("filename");
     if (filename == null) {
       // no log file specified for monitoring
-      out(response, "no log file specified for monitoring");// TODO gui
+      
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      response.flushBuffer();
       return;
       
     } else if (!filename.matches("[^/\\\\]+")) {
       // invalid 'filename' value
-      out(response, "400: invalid 'filename' value");// TODO gui
+      
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      response.flushBuffer();
       return;
       
     } else {
@@ -69,12 +73,19 @@ public class LogMonitorServlet extends HttpServlet {
       if (linesStr != null) {
         try {
           lines = Integer.parseInt(linesStr);
-        } catch (java.lang.NumberFormatException e) {
-          response.sendError(400); return; // TODO GUI
+        } catch (NumberFormatException e) {
+          e.printStackTrace();
+          
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          response.flushBuffer();
+          return;
         }
         
         if (lines < 1) {
-          response.sendError(400); return; // TODO GUI
+          
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          response.flushBuffer();
+          return;
         }
       } else {
         lines = FRAME_SIZE;
@@ -87,8 +98,15 @@ public class LogMonitorServlet extends HttpServlet {
       if (anchorStr == null) {
         // anchor-undefined (initial) monitor request
       
-        anchor = getAnchorLine(request, filename);
-        // TODO handle Exceptions
+        try {
+          anchor = getAnchorLine(request, filename);
+        } catch (FileNotFoundException e) {
+          e.printStackTrace();
+          
+          response.sendError(HttpServletResponse.SC_NOT_FOUND);
+          response.flushBuffer();
+          return;
+        }
 
         response.sendRedirect("?filename=" + filename 
             + "&anchor=" + anchor + "&lines=" + lines);
@@ -101,8 +119,10 @@ public class LogMonitorServlet extends HttpServlet {
         try {
           anchor = Integer.parseInt(anchorStr);//TODO validate anchor value (int range)
         } catch (NumberFormatException e) {
-          // invalid 'anchor' value
-          out(response, "400: invalid 'anchor' value");// TODO gui
+          e.printStackTrace();
+          
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          response.flushBuffer();
           return;
         }
         
@@ -111,7 +131,16 @@ public class LogMonitorServlet extends HttpServlet {
         final URL url = new URL(request.getRequestURL().toString());
         final String host = url.getHost() + (url.getPort() == 80 ? "" : (":" + url.getPort()));
             
-        final MonitorResultDto monitor = monitor(request, filename, anchor, lines);
+        final MonitorResultDto monitor;
+        try {
+          monitor = monitor(request, filename, anchor, lines);
+        } catch (FileNotFoundException e) {
+          e.printStackTrace();
+          
+          response.sendError(HttpServletResponse.SC_NOT_FOUND);
+          response.flushBuffer();
+          return;
+        }
         // TODO handle Exceptions
         
         final String loadMoreLinesUrl = request.getRequestURL().toString()
@@ -155,8 +184,6 @@ public class LogMonitorServlet extends HttpServlet {
     }
   }
   
-  //TODO this value is assumed. But how to determine it? 
-  
   private static final int FRAME_SIZE = 200; //TODO extract?
   
   
@@ -192,11 +219,6 @@ public class LogMonitorServlet extends HttpServlet {
 
       throw new RuntimeException(e);
     }
-  }
-  
-  private static void out(HttpServletResponse response, String str) 
-      throws IOException {
-    response.getWriter().println(str);
   }
   
   /**
