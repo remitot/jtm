@@ -36,7 +36,14 @@ public class LogMonitorServlet extends HttpServlet {
     }
   }
   
+  // TODO extract?
   private static final long LOAD_LIMIT = 1000000;
+  //TODO extract?
+  private static final boolean RESET_LINES_ON_ANCHOR_RESET = true;
+  //TODO extract?
+  private static final int FRAME_SIZE = 200; //TODO extract?
+  //TODO this value is assumed. But how to determine it? 
+  private static final String LOG_FILE_READ_ENCODING = "UTF-8";
   
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -109,7 +116,8 @@ public class LogMonitorServlet extends HttpServlet {
         }
 
         response.sendRedirect("?filename=" + filename 
-            + "&anchor=" + anchor + "&lines=" + lines);
+            + "&anchor=" + anchor 
+            + "&lines=" + lines);
         response.flushBuffer();
         return;
         
@@ -153,7 +161,7 @@ public class LogMonitorServlet extends HttpServlet {
           
           // increase by number of bottom lines
           final int newAnchor = anchor + monitor.contentLinesBottom.size();
-          final int newLines = lines + monitor.contentLinesBottom.size(); 
+          final int newLines = RESET_LINES_ON_ANCHOR_RESET ? FRAME_SIZE : (lines + monitor.contentLinesBottom.size()); 
           
           resetAnchorUrl = request.getRequestURL().toString()
               + "?filename=" + filename
@@ -183,12 +191,6 @@ public class LogMonitorServlet extends HttpServlet {
       } 
     }
   }
-  
-  private static final int FRAME_SIZE = 200; //TODO extract?
-  
-  
-  //TODO this value is assumed. But how to determine it? 
-  private static final String LOG_FILE_READ_ENCODING = "UTF-8";
   
   public static int getAnchorLine(HttpServletRequest request,
       String filename) throws FileNotFoundException {
