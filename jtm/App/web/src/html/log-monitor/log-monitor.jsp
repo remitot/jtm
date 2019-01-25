@@ -97,19 +97,23 @@
         resetAnchor();
       }
       
+      // a little user-visible scroll, px 
+      var initialScroll = 3;
+      
       function logmonitor_onload() { 
         /* scroll to the offset */ 
         
         var offset = getOffset(); 
-        if (offset) { 
+        if (offset) {
           scrTo(getSplitY() - offset); 
         } else {
           contentArea = document.getElementsByClassName("content-area")[0];
           if (contentArea.clientHeight <= window.innerHeight) {
             if (contentArea.clientHeight > 0) {
-              scrTo(1); 
+              scrTo(initialScroll);
             }
-          } else { 
+          } else {
+            // scroll to the very bottom
             scrTo(contentArea.clientHeight - window.innerHeight); 
           } 
         }
@@ -132,11 +136,12 @@
       } 
       
       
-      function scrTo(y) { 
-        if (document.body.scrollHeight < window.innerHeight + y) { 
-          /* adjust scrollHeight */ 
-          document.body.style.height = (window.innerHeight + y) + "px"; 
-        } 
+      function scrTo(y) {
+        if (document.body.scrollHeight <= window.innerHeight + y) {
+          // adjust body height to the requested scroll, but at least the initial scroll
+          adjustScroll = Math.max(y, initialScroll);
+          document.body.style.height = (window.innerHeight + adjustScroll) + "px";
+        }
         window.scrollTo(0, y); 
       } 
       
