@@ -2,6 +2,7 @@
 
 <%@ page import="java.util.List" %>
 <%@page import="org.jepria.tomcat.manager.web.logmonitor.MonitorGuiParams"%>
+<%@page import="org.jepria.tomcat.manager.web.logmonitor.HtmlEscaper"%>
 
 <!DOCTYPE html> 
 <html> 
@@ -50,7 +51,8 @@
       <div class="content-area__lines top">
         <%
           for (String line: guiParams.getContentLinesTop()) {
-            out.println(line.replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;") + "<br/>");      
+            HtmlEscaper.escapeAndWrite(line, out);
+            out.println("<br/>");      
           }
         %>
       </div>
@@ -59,7 +61,8 @@
       <div class="content-area__lines bottom">
         <%
           for (String line: guiParams.getContentLinesBottom()) {
-            out.println(line.replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;") + "<br/>");      
+            HtmlEscaper.escapeAndWrite(line, out);
+            out.println("<br/>");
           }
         %>
       </div>
