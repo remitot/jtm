@@ -10,6 +10,12 @@
   // read gui params
   MonitorGuiParams guiParams = (MonitorGuiParams)request.getAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams");
   
+  if (guiParams == null) {
+    // Probably the page has been accessed directly through the URL, but must have been included from LogMonitorServlet
+    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+    return;
+  }
+  
   final boolean hasLinesTop = !guiParams.getContentLinesTop().isEmpty();
   final boolean hasLinesBottom = !guiParams.getContentLinesBottom().isEmpty();
   final boolean canLoadTop = !guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null;
