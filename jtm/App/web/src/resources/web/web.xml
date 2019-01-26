@@ -111,7 +111,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>LogMonitorServlet</servlet-name>
-    <url-pattern>/log-monitor</url-pattern>
+    <url-pattern>/log-monitor-entry</url-pattern>
   </servlet-mapping>
   
 
@@ -132,7 +132,7 @@
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
       <url-pattern>/api/*</url-pattern>
-      <url-pattern>/log-monitor</url-pattern>
+      <url-pattern>/log-monitor-entry</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>
@@ -142,7 +142,7 @@
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Public resources</web-resource-name>
-      <url-pattern>/api</url-pattern>
+      <url-pattern>/api</url-pattern><!-- ApiDocs -->
       <url-pattern>/api/login/*</url-pattern>
       <url-pattern>/api/logout/*</url-pattern>
     </web-resource-collection>

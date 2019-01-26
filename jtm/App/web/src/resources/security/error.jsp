@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=utf-8"%>
+<%@ page language="java"%>
 <%
   String requestUri = (String)request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
   if (requestUri != null) {
@@ -8,22 +8,10 @@
       if (index != -1) {
         String path = requestUri.substring(index + contextPath.length());
       
-        if ("/log-monitor".equals(path)) {
-          %>
-            <html>
-              <head>
-              </head>
-              <body>
-                <h1>Unauthorized</h1>
-                <h2>Only authorized users can monitor logs.<br/>
-                <a href="log" target="_blank">Login</a> then reload this page to continue monitoring.</h2>
-              </body>
-            </html>  
-          <%
+        if ("/log-monitor-entry".equals(path)) {
+          request.getRequestDispatcher("/log-monitor/log-monitor-error.jsp").include(request, response);
         }
       }
     }
   }
-  
-  response.setStatus(401);
 %>
