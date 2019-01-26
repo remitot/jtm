@@ -8,8 +8,8 @@
       if (index != -1) {
         String path = requestUri.substring(index + contextPath.length());
       
-        if ("/log-monitor-entry".equals(path)) {
-          request.getRequestDispatcher("/log-monitor/log-monitor-error.jsp").forward(request, response);
+        if ("/log-monitor".equals(path)) {
+          request.getRequestDispatcher("/gui/log-monitor/log-monitor-error.jsp").forward(request, response);
         }
       }
     }

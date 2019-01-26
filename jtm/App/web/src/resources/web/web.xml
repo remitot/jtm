@@ -36,7 +36,7 @@
 
   <servlet>
     <servlet-name>JdbcGui</servlet-name>
-    <jsp-file>/jdbc/jdbc.jsp</jsp-file>
+    <jsp-file>/gui/jdbc/jdbc.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
     <servlet-name>JdbcGui</servlet-name>
@@ -56,7 +56,7 @@
 
   <servlet>
     <servlet-name>ModJkGui</servlet-name>
-    <jsp-file>/modjk/modjk.jsp</jsp-file>
+    <jsp-file>/gui/modjk/modjk.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
     <servlet-name>ModJkGui</servlet-name>
@@ -76,7 +76,7 @@
   
   <servlet>
     <servlet-name>PortGui</servlet-name>
-    <jsp-file>/port/port.jsp</jsp-file>
+    <jsp-file>/gui/port/port.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
     <servlet-name>PortGui</servlet-name>
@@ -96,7 +96,7 @@
   
   <servlet>
     <servlet-name>LogGui</servlet-name>
-    <jsp-file>/log/log.jsp</jsp-file>
+    <jsp-file>/gui/log/log.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
     <servlet-name>LogGui</servlet-name>
@@ -111,7 +111,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>LogMonitorServlet</servlet-name>
-    <url-pattern>/log-monitor-entry</url-pattern>
+    <url-pattern>/log-monitor</url-pattern>
   </servlet-mapping>
   
 
@@ -132,7 +132,7 @@
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
       <url-pattern>/api/*</url-pattern>
-      <url-pattern>/log-monitor-entry</url-pattern>
+      <url-pattern>/log-monitor</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>
@@ -145,6 +145,7 @@
       <url-pattern>/api</url-pattern><!-- ApiDocs -->
       <url-pattern>/api/login/*</url-pattern>
       <url-pattern>/api/logout/*</url-pattern>
+      <url-pattern>/gui/*</url-pattern>
     </web-resource-collection>
   </security-constraint>
 

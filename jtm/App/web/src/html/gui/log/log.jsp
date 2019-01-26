@@ -7,25 +7,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
     
-    <link rel="stylesheet" href="jtm.css">
-    <link rel="stylesheet" href="table.css">
-    <script type="text/javascript" src="jtm.js"></script>
-    <script type="text/javascript" src="table.js"></script>
+    <link rel="stylesheet" href="gui/jtm.css">
+    <link rel="stylesheet" href="gui/table.css">
+    <script type="text/javascript" src="gui/jtm.js"></script>
+    <script type="text/javascript" src="gui/table.js"></script>
     
-    <link rel="stylesheet" href="log/log.css">
-    <script type="text/javascript" src="log/log.js"></script>
+    <link rel="stylesheet" href="gui/log/log.css">
+    <script type="text/javascript" src="gui/log/log.js"></script>
     
   </head>
   
   <body onload="table_reload();jtm_onload();">
     
-    <%@ include file="../page-header.fragment.html" %>
+    <%@ include file="/gui/page-header.fragment.html" %>
      
     <div id="statusBar" class="statusBar statusBar-none"></div>
   
     <div id="table" style="width:100%"></div>
     
-    <%@ include file="../login.fragment.html" %>    
+    <%@ include file="/gui/login.fragment.html" %>    
     
   </body>
 </html>

@@ -185,7 +185,7 @@ public class LogMonitorServlet extends HttpServlet {
         request.setAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams", 
             monitorGuiParams);
         
-        request.getRequestDispatcher("log-monitor/log-monitor.jsp").include(request, response);
+        request.getRequestDispatcher("/gui/log-monitor/log-monitor.jsp").include(request, response);
         
         return;
       } 

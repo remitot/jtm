@@ -7,14 +7,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
     
-    <link rel="stylesheet" href="jtm.css">
-    <script type="text/javascript" src="jtm.js"></script>
+    <link rel="stylesheet" href="gui/jtm.css">
+    <script type="text/javascript" src="gui/jtm.js"></script>
     
   </head>
   
   <body onload="jtm_onload();logMonitorError_onload();">
   
-    <%@ include file="../login.fragment.html" %>    
+    <%@ include file="/gui/login.fragment.html" %>    
     
     <script type="text/javascript">
       function logMonitorError_onload() {

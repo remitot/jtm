@@ -28,10 +28,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" /> 
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
 
-    <link rel="stylesheet" href="jtm.css">
-    <script type="text/javascript" src="jtm.js"></script>
+    <link rel="stylesheet" href="gui/jtm.css">
+    <script type="text/javascript" src="gui/jtm.js"></script>
     
-    <link rel="stylesheet" href="log-monitor/log-monitor.css">
+    <link rel="stylesheet" href="gui/log-monitor/log-monitor.css">
   </head> 
 
   <body onload="logmonitor_onload();">

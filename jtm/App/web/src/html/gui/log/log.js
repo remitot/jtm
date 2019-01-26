@@ -77,7 +77,7 @@ function createRow(listItem) {
   
   cell = createCell(div, "column-monitor");
   cell.classList.add("cell-monitor");
-  cellValue = "<a href=\"log-monitor-entry?filename=" + listItem.name + "\""
+  cellValue = "<a href=\"log-monitor?filename=" + listItem.name + "\""
       + " target=\"_blank\" title=\"Открыть в читалке\">Отслеживать</a>"; // NON-NLS // NON-NLS
   field = addField(cell, "monitor", cellValue, null);
   
