@@ -95,8 +95,7 @@
   
   function onLogoutButtonClick() {
     logout(function(){
-      // because location.reload() not wotking in FF and Chrome
-      window.location.href = window.location.href;
+      windowReload();
     });
   }
 </script>

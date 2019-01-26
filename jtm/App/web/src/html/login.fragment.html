@@ -1,4 +1,4 @@
-<!-- for correct cyrillic display while including as jsp -->
+<%-- for correct cyrillic display while including as jsp --%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 
 <div id="loginScreen" class="loginForm-hidden">
@@ -143,8 +143,10 @@
   function raiseLoginForm(onLoginSuccessCallback) {
     document.getElementById("loginScreen").className = "loginForm-raised";
     
-    // assume the buitton-logout is the one on the page
-    document.getElementsByClassName("page-header__button-logout")[0].classList.add("hidden");
+    var buttonLogout = document.getElementsByClassName("page-header__button-logout")[0];
+    if (buttonLogout) {// the might be no logout button
+      buttonLogout.classList.add("hidden");
+    }
     
     // init fields
     fieldUsername = document.getElementById("fieldUsername");

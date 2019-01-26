@@ -185,9 +185,7 @@
       function loadTop(offset) {
         if (!blockLoadTop) {
           blockLoadTop = true;
-          
-          /* because location.reload() not wotking in FF and Chrome */ 
-          window.location.href = "<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset;
+          windowReload("<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset);
         }
       }
       <% } %>
@@ -202,10 +200,8 @@
           blockResetAnchor = true;
 
           var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
-          window.location.hash = "#" + offset;
-          
-          /* because location.reload() not wotking in FF and Chrome */
-          window.location.href = "<% out.print(guiParams.getResetAnchorUrl()); %>" + "#" + offset;
+          window.location.hash = "#" + offset;// TODO remove this action? (The window will be reloaded immediately anyway)
+          windowReload("<% out.print(guiParams.getResetAnchorUrl()); %>" + "#" + offset);
         }
       } 
       <% } %>
