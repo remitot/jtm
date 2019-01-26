@@ -138,6 +138,7 @@
         
         <% if (canResetAnchor) { %>
         addHoverForBigBlackButton(document.getElementsByClassName("big-black-button")[0]);
+        adjustResetAnchorButtonVisiblity();
         <% } %>
       } 
       
@@ -151,6 +152,10 @@
         window.scrollTo(0, y); 
       } 
       
+      function getScrolled() {
+        return window.pageYOffset || document.documentElement.scrollTop;
+      }
+      
       function getDocHeight() {
         return Math.max(
             document.body.scrollHeight, document.documentElement.scrollHeight,
@@ -160,12 +165,11 @@
       }
       
       window.onscroll = function() { 
-        var scrolled = window.pageYOffset || document.documentElement.scrollTop; 
         
-        var offset = getSplitY() - scrolled; 
+        var offset = getSplitY() - getScrolled(); 
         window.location.hash = "#" + offset; 
         
-        if (scrolled <= linesTop.offsetTop) { 
+        if (getScrolled() <= linesTop.offsetTop) { 
           /* top reached */
           
           <% if (canLoadTop) { %>
@@ -175,13 +179,23 @@
         } 
         
         <% if (canResetAnchor) { %>
-        if (scrolled + window.innerHeight == getDocHeight()) {
-          document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
-        } else {
-          document.getElementsByClassName("control-button_reset-anchor")[0].classList.add("hidden");
-        }
+        adjustResetAnchorButtonVisiblity();
         <% } %>
       }
+      
+      
+      <% if (canResetAnchor) { %>
+      function adjustResetAnchorButtonVisiblity() {
+        var linesBottom = document.querySelectorAll(".content-area__lines.bottom")[0];
+        if (linesBottom) {
+          if (getScrolled() + window.innerHeight >= linesBottom.offsetTop + initialScroll) {
+            document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
+          } else {
+            document.getElementsByClassName("control-button_reset-anchor")[0].classList.add("hidden");
+          }
+        }
+      }
+      <% } %>
       
       
       <% if (canLoadTop) { %>
