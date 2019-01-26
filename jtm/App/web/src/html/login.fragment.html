@@ -107,9 +107,11 @@
   }
   
   function onLoginSuccess() {
-    
-    // assume the buitton-logout is the one on the page
-    document.getElementsByClassName("page-header__button-logout")[0].classList.remove("hidden");
+
+    var buttonLogout = document.getElementsByClassName("page-header__button-logout")[0];
+    if (buttonLogout) {// the might be no logout button
+      buttonLogout.classList.remove("hidden");
+    }
   
     if (onLoginSuccessCallback0 != null) {
       onLoginSuccessCallback0();
