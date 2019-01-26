@@ -26,6 +26,11 @@
     
     padding-left: 28px;
   }
+  
+  /* the page header affects the login screen on the same page (if the one is present) */
+  .page-header ~ #loginScreen {
+     top: 45px; /* same with height of the page-header */
+  }
 
   .page-header__menu-item {
     font-family: serif;
