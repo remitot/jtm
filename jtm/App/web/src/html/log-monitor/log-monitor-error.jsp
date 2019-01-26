@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Tomcat manager: датасорсы (JDBC)</title> <!-- NON-NLS -->
+    <title>Tomcat manager: логи</title> <!-- NON-NLS -->
     
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 

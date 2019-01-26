@@ -1,4 +1,4 @@
-<%@ page language="java"%>
+<%@ page language="java" pageEncoding="utf-8"%>
 <%
   String requestUri = (String)request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
   if (requestUri != null) {
@@ -9,7 +9,7 @@
         String path = requestUri.substring(index + contextPath.length());
       
         if ("/log-monitor-entry".equals(path)) {
-          request.getRequestDispatcher("/log-monitor/log-monitor-error.jsp").include(request, response);
+          request.getRequestDispatcher("/log-monitor/log-monitor-error.jsp").forward(request, response);
         }
       }
     }

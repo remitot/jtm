@@ -71,7 +71,7 @@
         onclick="onResetAnchorButtonClick();" 
         class="control-button_reset-anchor control-button big-black-button hidden"
         title="Снять подсветку с новых записей"
-        >ПРОЧИТАНО</button> <!-- NON-NLS -->
+        >ПРОЧИТАНО</button> <!-- NON-NLS --> <!-- NON-NLS -->
         
   <% } %>
     
