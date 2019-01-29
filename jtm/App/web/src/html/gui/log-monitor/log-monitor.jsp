@@ -45,17 +45,19 @@
     <div class="content-area">
       <div class="content-area__lines top">
         <% if (hasLinesTop) {
-          for (String line: guiParams.getContentLinesTop()) {
-            HtmlEscaper.escapeAndWrite(line, out);
-            out.println("<br/>");      
-          }
+            for (String line: guiParams.getContentLinesTop()) {
+              HtmlEscaper.escapeAndWrite(line, out);
+              out.println("<br/>");      
+            }
+          }            
         %>
       </div>
       <div class="content-area__lines bottom">
         <% if (hasLinesBottom) {
-          for (String line: guiParams.getContentLinesBottom()) {
-            HtmlEscaper.escapeAndWrite(line, out);
-            out.println("<br/>");
+            for (String line: guiParams.getContentLinesBottom()) {
+              HtmlEscaper.escapeAndWrite(line, out);
+              out.println("<br/>");
+            }
           }
         %>
       </div>
