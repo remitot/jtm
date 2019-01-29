@@ -38,56 +38,49 @@
   <body onload="logmonitor_onload();">
     
     <div class="anchor-area">
-    <% if (hasLinesTop) { %>
       <div class="anchor-area__panel top">&nbsp;</div>
-    <% } %>
-    <% if (hasLinesBottom) { %>
       <div class="anchor-area__panel bottom">&nbsp;</div>
-    <% } %>
     </div>
     
     <div class="content-area">
-    <% if (hasLinesTop) { %>
       <div class="content-area__lines top">
-        <%
+        <% if (hasLinesTop) {
           for (String line: guiParams.getContentLinesTop()) {
             HtmlEscaper.escapeAndWrite(line, out);
             out.println("<br/>");      
           }
         %>
       </div>
-    <% } %>
-    <% if (hasLinesBottom) { %>
       <div class="content-area__lines bottom">
-        <%
+        <% if (hasLinesBottom) {
           for (String line: guiParams.getContentLinesBottom()) {
             HtmlEscaper.escapeAndWrite(line, out);
             out.println("<br/>");
           }
         %>
       </div>
-    <% } %>
     </div>
+
     
-  <% if (canResetAnchor) { %>
     <button 
         onclick="onResetAnchorButtonClick();" 
         class="control-button_reset-anchor control-button big-black-button hidden"
         title="Снять подсветку с новых записей"
         >ПРОЧИТАНО</button> <!-- NON-NLS --> <!-- NON-NLS -->
         
-  <% } %>
     
     <script type="text/javascript">
 
+      // always present
       var linesTop = document.querySelectorAll(".content-area__lines.top")[0];
-    
+      var linesBottom = document.querySelectorAll(".content-area__lines.bottom")[0];
+      
       function getSplitY() {
         return linesTop.offsetTop + linesTop.clientHeight;
       }
       
       /** 
-       * Returns scroll offset (the viewport position) from the bottom of the page, in pixels 
+       * Returns scroll offset (the viewport position) from the split position, in pixels 
        */ 
       function getOffset() { 
         var offset = window.location.hash.substring(1); 
@@ -114,16 +107,16 @@
         
         var offset = getOffset(); 
         if (offset) {
-          scrTo(getSplitY() - offset); 
+          requestScroll(getSplitY() - offset); 
         } else {
           contentArea = document.getElementsByClassName("content-area")[0];
           if (contentArea.clientHeight <= window.innerHeight) {
             if (contentArea.clientHeight > 0) {
-              scrTo(initialScroll);
+              requestScroll(initialScroll);
             }
           } else {
             // scroll to the very bottom
-            scrTo(contentArea.clientHeight - window.innerHeight); 
+            requestScroll(contentArea.clientHeight - window.innerHeight); 
           } 
         }
         
@@ -134,18 +127,17 @@
         
         var anchorAreaBottom = document.querySelectorAll(".anchor-area__panel.bottom")[0];
         if (anchorAreaBottom) {
-          var linesBottom = document.querySelectorAll(".content-area__lines.bottom")[0];
           anchorAreaBottom.style.height = linesBottom.clientHeight + "px";
         }
         
-        
-        <% if (canResetAnchor) { %>
+  
         addHoverForBigBlackButton(document.getElementsByClassName("big-black-button")[0]);
-        <% } %>
+                
+        adjustResetAnchorButtonVisiblity();
       } 
       
       
-      function scrTo(y) {
+      function requestScroll(y) {
         if (document.body.scrollHeight <= window.innerHeight + y) {
           // adjust body height to the requested scroll, but at least the initial scroll
           adjustScroll = Math.max(y, initialScroll);
@@ -153,6 +145,10 @@
         }
         window.scrollTo(0, y); 
       } 
+      
+      function getScrolled() {
+        return window.pageYOffset || document.documentElement.scrollTop;
+      }
       
       function getDocHeight() {
         return Math.max(
@@ -163,22 +159,24 @@
       }
       
       window.onscroll = function() { 
-        var scrolled = window.pageYOffset || document.documentElement.scrollTop; 
         
-        var offset = getSplitY() - scrolled; 
+        var offset = getSplitY() - getScrolled(); 
         window.location.hash = "#" + offset; 
         
-        if (scrolled <= linesTop.offsetTop) { 
+        if (getScrolled() <= linesTop.offsetTop) { 
           /* top reached */
-          
-          <% if (canLoadTop) { %>
-          loadTop(offset);
-          <% } %>
-        
+          onHitTop();
         } 
         
+        
+        
+        adjustResetAnchorButtonVisiblity();
+      }
+      
+      
+      function adjustResetAnchorButtonVisiblity() {
         <% if (canResetAnchor) { %>
-        if (scrolled + window.innerHeight == getDocHeight()) {
+        if (getScrolled() + window.innerHeight >= linesBottom.offsetTop + initialScroll) {
           document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
         } else {
           document.getElementsByClassName("control-button_reset-anchor")[0].classList.add("hidden");
@@ -187,33 +185,31 @@
       }
       
       
-      <% if (canLoadTop) { %>
-      // blocks script execution after the first request to prevent repeated client requests if the server hangs up
-      blockLoadTop = false;
       
-      function loadTop(offset) {
-        if (!blockLoadTop) {
-          blockLoadTop = true;
+      // blocks script execution after the first request to prevent repeated client requests if the server hangs up
+      blockHitTop = <% if (canLoadTop) { %>false<% } else {%>true<% } %>;
+      
+      function onHitTop() {
+        if (!blockHitTop) {
+          blockHitTop = true;
+          var offset = getSplitY() - getScrolled();
           windowReload("<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset);
         }
       }
-      <% } %>
       
       
-      <% if (canResetAnchor) { %>
       // blocks script execution after the first request to prevent repeated client requests if the server hangs up
-      blockResetAnchor = false;
+      blockResetAnchor = <% if (canResetAnchor) { %>false<% } else { %>true<% } %>;
    
       function resetAnchor() {
         if (!blockResetAnchor) {
           blockResetAnchor = true;
-
           var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
           window.location.hash = "#" + offset;// TODO remove this action? (The window will be reloaded immediately anyway)
           windowReload("<% out.print(guiParams.getResetAnchorUrl()); %>" + "#" + offset);
         }
-      } 
-      <% } %>
+      }
+       
     </script>
     
   </body>
