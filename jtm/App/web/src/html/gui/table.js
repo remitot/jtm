@@ -297,7 +297,7 @@ function addFieldDelete(cell) {
 
   button = document.createElement("input");
   button.type = "image";
-  button.src = "img/delete.png";
+  button.src = "gui/img/delete.png";
   button.title = "Удалить"; // NON-NLS
   button.onclick = function(event){onDeleteButtonClick(event.target);};
   
@@ -369,7 +369,7 @@ function onDeleteButtonClick(button) {
     row.classList.add("deleted");
     
     // button changes image
-    button.src = "img/undelete.png";
+    button.src = "gui/img/undelete.png";
     button.title = "Не удалять"; // NON-NLS
     
     for (var i = 0; i < rowInputs.length; i++) {
@@ -386,7 +386,7 @@ function onDeleteButtonClick(button) {
     row.classList.remove("deleted");
     
     // button changes image
-    button.src = "img/delete.png";
+    button.src = "gui/img/delete.png";
     button.title = "Удалить"; // NON-NLS
     
     for (var i = 0; i < rowInputs.length; i++) {
