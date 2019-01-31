@@ -1,0 +1,387 @@
+package org.jepria.catalina.suspender;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.ServletException;
+
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.connector.Request;
+import org.apache.catalina.connector.Response;
+import org.apache.catalina.valves.ValveBase;
+
+public class SuspenderValve extends ValveBase {
+
+  private static void log(String msg) {
+    System.out.println(SuspenderValve.class.getCanonicalName() + " " + new java.util.Date() + ": " + msg);
+  }
+  
+  private static void err(String msg) {
+    System.err.println(SuspenderValve.class.getCanonicalName() + " " + new java.util.Date() + ": " + msg);
+  }
+  
+  /**
+   * Initial server.xml Valve attribute value, not used regularly (on start only)
+   */
+  private String webappsPathStr = null;
+  
+  private Environment environment = null;
+  
+  /**
+   * server.xml Valve attribute
+   */
+  public void setWebappsPath(String webappsPath) {
+    this.webappsPathStr = webappsPath;
+  }
+  
+  
+  /**
+   * Initial server.xml Valve attribute value, not used regularly (on start only)
+   */
+  private String periodStr = null;
+  
+  // in minutes
+  private int period = 1440; // 24h
+  
+  /**
+   * server.xml Valve attribute
+   */
+  public void setPeriod(String period) {
+    this.periodStr = period;
+  }
+  
+  
+  private boolean disabled = false;
+  
+  /**
+   * server.xml Valve attribute
+   */
+  public void setDisabled(String disabled) {
+    this.disabled = "true".equals(disabled);
+  }
+  
+  
+  
+  /**
+   * Initial server.xml Valve attribute value, not used regularly (on start only)
+   */
+  private String ignoreAppsStr = null;
+  
+  private final Set<String> ignoreApps = new HashSet<>();
+  
+  /**
+   * server.xml Valve attribute
+   */
+  public void setIgnoreApps(String ignoreApps) {
+    this.ignoreAppsStr = ignoreApps;
+  }
+  
+  
+  
+  /**
+   * Initial server.xml Valve attribute value, not used regularly (on start only)
+   */
+  private String startStr = null;
+  
+  private Calendar start = Calendar.getInstance();
+  
+  /**
+   * server.xml Valve attribute
+   */
+  public void setStart(String start) {
+    this.startStr = start;
+  }
+
+  
+  @Override
+  public void invoke(Request request, Response response) throws IOException, ServletException {
+    
+    if (!disabled) {
+      
+      final String contextAppName = new File(request.getServletContext().getRealPath("")).getName();
+      
+      // request to 'ROOT' means 'non-existing application'
+      final boolean appDeployed = !"ROOT".equals(contextAppName);
+      
+      if (!appDeployed) {
+        // the application is not deployed
+        
+        final String appContextName = request.getRequestURI().split("/")[1];
+        
+        if (unsuspendApp(appContextName)) {
+          
+          try {
+            ContextLoadAwaiter.await(appContextName, 30);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+            // no crash, further redirect is OK
+          }
+          
+          // tell the client to repeat the same request
+          String requestQS = request.getQueryString();
+          String requestURLQS = request.getRequestURL() + (requestQS != null ? ("?" + requestQS) : "");
+          response.sendRedirect(requestURLQS);
+          
+          return;
+          
+        } else {
+          err("Failed to unsuspend app " + appContextName);
+        }
+        
+      } else {
+        // the application is deployed
+        
+        synchronized (accessedApps) {
+          accessedApps.add(contextAppName);
+        }
+        
+      }
+    }
+    
+    getNext().invoke(request, response);
+  }
+  
+  @Override
+  protected synchronized void startInternal() throws LifecycleException {
+    
+    if (!initAttributes()) {
+      err("Failed to initialize critical attributes, the valve will be disabled");
+      disabled = true;
+    }
+    
+    if (!disabled) {
+      initTimer();
+    }
+    
+    super.startInternal();
+  }
+  
+  /**
+   * 
+   * @return true if initialization of attributes succeeded, false otherwise
+   */
+  private boolean initAttributes() {
+    // validate 'webappsPath' attribute
+    if (webappsPathStr == null || "".equals(webappsPathStr)) {
+      err("Missing mandatory attribute 'webappsPath'");
+      return false;
+    }
+    Path webappsPath = Paths.get(webappsPathStr);
+    if (!Files.isDirectory(webappsPath)) {
+      err("Illegal value [" + webappsPath + "] of the 'webappsPath' attribute: the path does not exist or is not a directory");
+      return false;
+    }
+    this.environment = EnvironmentFactory.get(webappsPath);
+    
+    
+    // validate 'period' attribute
+    if (periodStr == null) {
+      log("'period' attribute is missing, will use default value: " + period);
+      
+    } else {
+      try {
+        period = Integer.parseInt(periodStr);
+      } catch (NumberFormatException e) {
+        err("Incorrect 'period' attribute value: " + periodStr + ", will use default: " + period);
+      }
+    }
+    
+    
+    // validate 'start' attribute
+    if (startStr == null) {
+      log("'start' attribute is missing, the first suspension will be performed immediately after the server startup");
+      
+    } else {
+      Matcher m = Pattern.compile("(\\d\\d):(\\d\\d)").matcher(startStr);
+      if (m.matches()) {
+        int startH = Integer.parseInt(m.group(1));
+        int startM = Integer.parseInt(m.group(2));
+        
+        start.set(Calendar.HOUR_OF_DAY, startH);
+        start.set(Calendar.MINUTE, startM);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
+        
+        // if the time is in the past today, start tomorrow
+        if (start.before(Calendar.getInstance())) {
+          start.add(Calendar.DATE, 1);
+        }
+        
+        
+        // log
+        Calendar now = Calendar.getInstance();
+        long secLeft = ChronoUnit.SECONDS.between(now.toInstant(), start.toInstant()) % 60;
+        long minLeft = ChronoUnit.MINUTES.between(now.toInstant(), start.toInstant()) % 60;
+        long hrsLeft = ChronoUnit.HOURS.between(now.toInstant(), start.toInstant());
+        String remainsStr = String.format("%02d:%02d:%02d", hrsLeft, minLeft, secLeft);
+        log("'start' attribute value is [" + startStr + "], time remains before the first suspension: " + remainsStr);
+        
+      } else {
+        err("Illegal 'start' attribute value: " + startStr + ", the first suspension will be performed immediately after the server startup");
+      }
+    }
+    
+    
+    // validate 'ignoreApps' attribute
+    if (ignoreAppsStr != null) {
+      String[] ignoreAppsSplitted = ignoreAppsStr.split(";");
+      if (ignoreAppsSplitted != null && ignoreAppsSplitted.length > 0) {
+        for (String ignoreApp: ignoreAppsSplitted) {
+          if (ignoreApp != null && ignoreApp.length() > 0) {
+            ignoreApps.add(ignoreApp);
+          }
+        }
+      }
+      
+      log("'ignoreApps' attribute value is [" + ignoreAppsStr + "], parsed: " + ignoreApps);
+    }
+    
+    return true;
+  }
+  
+  
+  ////////////////////// SUSPENSION SCHEDULING ///////////////////// 
+  
+  /**
+   * Application names (context names) accessed since the last suspension iteration
+   */
+  private final Set<String> accessedApps = new HashSet<>();
+  
+  private final Timer timer = new Timer();
+  
+  private final TimerTask task = new TimerTask() {
+    @Override
+    public void run() {
+      
+      List<Path> wars = environment.listWars();
+      
+      synchronized (accessedApps) {
+        for (Path war: wars) {
+          
+          String warName = war.getFileName().toString();
+          assert (warName.endsWith(".war"));
+          
+          String appName = warName.substring(0, warName.length() - ".war".length());
+          
+          if (!accessedApps.contains(appName) && !ignoreApp(appName)) {
+            if (suspendApp(appName)) {
+              log("Suspended app " + appName);
+            } else {
+              err("Failed to suspend app " + appName);
+            }
+          }
+        }
+        
+        accessedApps.clear();
+      }
+    }
+  };
+  
+  
+  private boolean ignoreApp(String appName) {
+    for (String ignoreApp: ignoreApps) {
+      if (appName.matches(ignoreApp)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  private void initTimer() {
+    timer.schedule(task, start.getTime(), period * 60 * 1000);
+  }
+  
+  @Override
+  protected synchronized void stopInternal() throws LifecycleException {
+
+    // Critical! Otherwise the tomcat service stopping will hang for a while
+    if (timer != null) {
+      timer.cancel();
+      timer.purge();
+    }
+    
+    
+    super.stopInternal();
+  }
+  
+  /**
+   * 
+   * @param appContextName
+   * @return {@code true} if suspension succeeded, {@code false} otherwise
+   */
+  private boolean suspendApp(String appContextName) {
+    
+    // rename war
+    final Path war = environment.getWar(appContextName);
+    
+    if (Files.isRegularFile(war)) {
+      final File warSus = environment.getWarSus(appContextName).toFile();
+      if (warSus.exists()) {
+        // if deletion of the existing suspended war file fails, still try to replace it further
+        warSus.delete();
+      }
+      boolean renameResult = war.toFile().renameTo(warSus);
+      if (!renameResult) {
+        return false;
+      }
+    }
+    
+    
+    // remove deployed app (necessary for immediate suspension on server startup only)
+    final Path deployedApp = environment.getDeployedApp(appContextName);
+    
+    if (Files.isDirectory(deployedApp)) {
+      try {
+        deleteDirectory(deployedApp);
+      } catch (IOException e) {
+        e.printStackTrace();
+        return false;
+      }
+    }
+    
+    return true;
+  }
+  
+  private static void deleteDirectory(Path path) throws IOException {
+    if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+      try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
+        for (Path entry : entries) {
+          deleteDirectory(entry);
+        }
+      }
+    }
+    Files.delete(path);
+  }
+  
+  /**
+   * 
+   * @param appContextName
+   * @return {@code true} if unsuspension succeeded, {@code false} otherwise
+   */
+  private boolean unsuspendApp(String appContextName) {
+    
+    final Path warSus = environment.getWarSus(appContextName);
+    
+    if (Files.isRegularFile(warSus)) {
+      final Path war = environment.getWar(appContextName);
+      return warSus.toFile().renameTo(war.toFile());
+    }
+    
+    return false;
+  }
+  
+}

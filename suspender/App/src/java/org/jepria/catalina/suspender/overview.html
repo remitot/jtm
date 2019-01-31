@@ -1,0 +1,85 @@
+<html>
+<head>
+</head>
+<body>
+
+  Компонент-расширение для tomcat, позволяющий суспендить
+  (временно сворачивать) неиспользуемые развёрнутые приложения
+  <br />
+
+  <h2>Содержание</h2>
+
+  <ul>
+    <li><a href="#about">Описание</a></li>
+    <li><a href="#installation">Установка</a></li>
+    <li><a href="#settings">Настройка</a></li>
+    <li><a href="#todo">Доработки</a></li>
+    <li><a href="#releaseNotes">Замечания к версиям</a></li>
+  </ul>
+
+  <h3>
+    <a name="about">Описание</a>
+  </h3>
+  Компонент периодически сворачивает развёрнутые war-приложения (простым
+  переименованием файлов
+  <code>app.war</code>
+  в
+  <code>app.war.suspended</code>
+  ), к которым не поступают сетевые запросы. Развёрнутые приложения, к
+  которым поступают запросы, поддерживаются развёрнутыми (не
+  сворачиваются). Свёрнутые приложения, к которым поступают запросы,
+  разворачиваются (простым переименованием файлов
+  <code>app.war.suspended</code>
+  в
+  <code>app.war</code>
+  ).
+  <h3>
+    <a name="installation">Установка</a>
+  </h3>
+  Для установки компонента необходимо:
+  <ol>
+    <li>Поместить файл <code>jepria-suspender.jar</code>, содержащий Валв и слушатель
+      контекста, в папку &lt;TOMCAT_HOME&gt;/lib сервера</li>
+    <li>Объявить Валв в файле &lt;TOMCAT_HOME&gt;/conf/server.xml в
+      секции Host: <pre>
+&lt;Valve className="org.jepria.catalina.suspender.SuspenderValve" webappsPath="C:\apache-tomcat\webapps" period="1440" start="00:00" ignoreApps="Pattern1;Pattern2"/&gt;
+</pre> 
+    </li>
+    <li>Объявить слушатель контекста в файле
+      &lt;TOMCAT_HOME&gt;/conf/web.xml: <pre>
+&lt;listener&gt;
+    &lt;listener-class&gt;org.jepria.catalina.suspender.ContextLoadListener&lt;/listener-class&gt;
+&lt;/listener&gt;
+</pre>
+    </li>
+  </ol>
+  После отключения ранее включённого суспендера, автоматическое восстановление отключённых приложений после отключения Валва не производится,
+      нужно переименовать необходимые файлы из <code>*.war.suspended</code> в <code>*.war</code> вручную.</li>
+  <h3>
+    <a name="settings">Настройка</a>
+  </h3>
+  Атрибуты Валва <code>&lt;Valve className="org.jepria.catalina.suspender.SuspenderValve"&gt;</code> в файле &lt;TOMCAT_HOME&gt;/conf/server.xml:
+    <ul>
+      <li><code>webappsPath</code> &mdash; абсолютный путь до
+        директории webapps для развертывания war-приложений</li>
+      <li><code>period</code> &mdash; период повтора ретрификации
+        в минутах. Если атрибут отсутствует, используется
+        значение по умолчанию 1440 (1 сутки)</li>
+      <li><code>start</code> &mdash; время первой (ближайшей)
+        ретрификации в формате HH:MM. Если атрибут отсутствует,
+        первая ретрификация производится немедленно после применения настроек</li>
+      <li><code>ignoreApps</code> &mdash; список regex-паттернов,
+        разделенных символом <code>;</code>, для названий приложений,
+        которые следует игнорировать</li>
+    </ul>
+  <h3>
+    <a name="todo">Доработки</a>
+  </h3>
+  <br />
+  <h3>
+    <a name="releaseNotes">Замечания к версиям</a>
+  </h3>
+  <h4>Версии</h4>
+  <br />
+</body>
+</html>
