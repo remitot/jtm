@@ -3,7 +3,7 @@ package org.jepria.tomcat.manager.web;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Factory that produces appropriate Environment instances.
+ * Factory producing appropriate {@link Environment} instances.
  * <br/><br/>
  * A general accessor method (factory method) 
  * helps to easily control the environment 
