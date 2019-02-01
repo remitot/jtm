@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.Timer;
@@ -97,48 +96,83 @@ public class SuspenderValve extends ValveBase {
   
   @Override
   public void invoke(Request request, Response response) throws IOException, ServletException {
-    
-    final String contextAppName = new File(request.getServletContext().getRealPath("")).getName();
-    
-    // request to 'ROOT' means 'non-existing application'
-    final boolean appDeployed = !"ROOT".equals(contextAppName);
-    
-    if (!appDeployed) {
-      // the application is not deployed
+  
+    String requestUri = request.getRequestURI();
+    if (requestUri != null) {
+      if (requestUri.startsWith("/")) {
+        requestUri = requestUri.substring(1);
+      }
       
-      final String appContextName = request.getRequestURI().split("/")[1];
+      System.out.println("///uri:"+requestUri);
       
-      if (unsuspendApp(appContextName)) {
-        
-        try {
-          ContextLoadAwaiter.await(appContextName, 30);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-          // no crash, further redirect is OK
+      String matchingDeployedAppContext = environment.getMatchingDeployedAppContext(requestUri);
+      String matchingWarSuspendedAppContext = environment.getMatchingWarSuspendedAppContext(requestUri);
+  
+      System.out.println("///match(dep,sus):"+matchingDeployedAppContext + "," + matchingWarSuspendedAppContext);
+      
+      // priority the appContext
+      final String appContext;
+      if (matchingWarSuspendedAppContext != null) {
+        if (matchingDeployedAppContext != null) {
+          if (matchingWarSuspendedAppContext.length() > matchingDeployedAppContext.length()) {
+            // found both suspended and deployed app contexts, prefer suspended due to the stricter (longer) match
+            appContext = matchingWarSuspendedAppContext;
+          } else {
+            // found both suspended and deployed app contexts, prefer deployed due to the stricter (longer) match
+            appContext = matchingDeployedAppContext;
+          }
+        } else {
+          // no deployed app context, found suspended app context
+          appContext = matchingWarSuspendedAppContext;
+        }
+      } else {
+        if (matchingDeployedAppContext != null) {
+          // no suspended app context, found deployed app context
+          appContext = matchingDeployedAppContext;
+        } else {
+          // neither suspended nor deployed app context found
+          appContext = null;
+        }
+      }
+      
+      if (appContext != null) {
+        if (appContext == matchingDeployedAppContext) {
+          // access the deployed app context
+          
+          synchronized (accessedAppContexts) {
+            accessedAppContexts.add(appContext);
+          }
+          
+        } else if (appContext == matchingWarSuspendedAppContext) {
+          // unsuspend and access the suspended app context
+          
+          if (unsuspendAppContext(appContext)) {
+            
+            try {
+              ContextLoadAwaiter.await(appContext, 30);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+              // no crash, further redirect is OK
+            }
+            
+            // tell the client to repeat the same request
+            String requestQS = request.getQueryString();
+            String requestURLQS = request.getRequestURL() + (requestQS != null ? ("?" + requestQS) : "");
+            response.sendRedirect(requestURLQS);
+            
+            return;
+            
+          } else {
+            err("Failed to unsuspend app " + appContext);
+          }
         }
         
-        // tell the client to repeat the same request
-        String requestQS = request.getQueryString();
-        String requestURLQS = request.getRequestURL() + (requestQS != null ? ("?" + requestQS) : "");
-        response.sendRedirect(requestURLQS);
-        
-        return;
-        
-      } else {
-        err("Failed to unsuspend app " + appContextName);
       }
-      
-    } else {
-      // the application is deployed
-      
-      synchronized (accessedApps) {
-        accessedApps.add(contextAppName);
-      }
-      
     }
     
     getNext().invoke(request, response);
   }
+  
   
   @Override
   protected synchronized void startInternal() throws LifecycleException {
@@ -168,7 +202,7 @@ public class SuspenderValve extends ValveBase {
       err("Illegal value [" + webappsPath + "] of the 'webappsPath' attribute: the path does not exist or is not a directory");
       return false;
     }
-    this.environment = EnvironmentFactory.get(webappsPath);
+    this.environment = EnvironmentFactory.get(webappsPath.toFile());
     
     
     // validate 'period' attribute
@@ -228,7 +262,7 @@ public class SuspenderValve extends ValveBase {
   /**
    * Application names (context names) accessed since the last suspension iteration
    */
-  private final Set<String> accessedApps = new HashSet<>();
+  private final Set<String> accessedAppContexts = new HashSet<>();
   
   private final Timer timer = new Timer();
   
@@ -236,35 +270,30 @@ public class SuspenderValve extends ValveBase {
     @Override
     public void run() {
       
-      final List<Path> wars = environment.listWars();
-      final Set<String> ignoreApps = getIgnoreApps();
+      final Set<String> warAppContexts = environment.getWarAppContexts();
+      final Set<String> ignoreAppContexts = getIgnoreAppContexts();
       
-      synchronized (accessedApps) {
-        for (Path war: wars) {
-          
-          String warName = war.getFileName().toString();
-          assert (warName.endsWith(".war"));// TODO
-          
-          String appName = warName.substring(0, warName.length() - ".war".length());
+      synchronized (accessedAppContexts) {
+        for (String warAppContext: warAppContexts) {
           
           boolean ignore = false;
-          for (String ignoreApp: ignoreApps) {
-            if (appName.matches(ignoreApp)) {
+          for (String ignoreAppContext: ignoreAppContexts) {
+            if (warAppContext.matches(ignoreAppContext)) {
               ignore = true;
               break;
             }
           }
           
-          if (!accessedApps.contains(appName) && !ignore) {
-            if (suspendApp(appName)) {
-              log("Suspended app " + appName);
+          if (!accessedAppContexts.contains(warAppContext) && !ignore) {
+            if (suspendAppContext(warAppContext)) {
+              log("Suspended app " + warAppContext);
             } else {
-              err("Failed to suspend app " + appName);
+              err("Failed to suspend app " + warAppContext);
             }
           }
         }
         
-        accessedApps.clear();
+        accessedAppContexts.clear();
       }
     }
   };
@@ -273,7 +302,7 @@ public class SuspenderValve extends ValveBase {
   /**
    * Reads the suspender.ignore configuration file and get the application context patterns to ignore
    */
-  private Set<String> getIgnoreApps() {
+  private Set<String> getIgnoreAppContexts() {
     final Set<String> ret = new HashSet<>();
     
     // re-read the file each time
@@ -318,21 +347,21 @@ public class SuspenderValve extends ValveBase {
   
   /**
    * 
-   * @param appContextName
+   * @param warAppContext
    * @return {@code true} if suspension succeeded, {@code false} otherwise
    */
-  private boolean suspendApp(String appContextName) {
+  private boolean suspendAppContext(String warAppContext) {
     
     // rename war
-    final Path war = environment.getWar(appContextName);
+    final File war = environment.getWar(warAppContext);
     
-    if (Files.isRegularFile(war)) {
-      final File warSus = environment.getWarSus(appContextName).toFile();
+    if (war != null && war.isFile()) {
+      final File warSus = environment.getWarSuspended(warAppContext);
       if (warSus.exists()) {
         // if deletion of the existing suspended war file fails, still try to replace it further
         warSus.delete();
       }
-      boolean renameResult = war.toFile().renameTo(warSus);
+      boolean renameResult = war.renameTo(warSus);
       if (!renameResult) {
         return false;
       }
@@ -340,11 +369,11 @@ public class SuspenderValve extends ValveBase {
     
     
     // remove deployed app (necessary for immediate suspension on server startup only)
-    final Path deployedApp = environment.getDeployedApp(appContextName);
+    final File deployedApp = environment.getDeployedDirectory(warAppContext);
     
-    if (Files.isDirectory(deployedApp)) {
+    if (deployedApp != null && deployedApp.isDirectory()) {
       try {
-        deleteDirectory(deployedApp);
+        deleteDirectory(deployedApp.toPath());
       } catch (IOException e) {
         e.printStackTrace();
         return false;
@@ -367,16 +396,16 @@ public class SuspenderValve extends ValveBase {
   
   /**
    * 
-   * @param appContextName
+   * @param suspendedAppContext
    * @return {@code true} if unsuspension succeeded, {@code false} otherwise
    */
-  private boolean unsuspendApp(String appContextName) {
+  private boolean unsuspendAppContext(String suspendedAppContext) {
     
-    final Path warSus = environment.getWarSus(appContextName);
+    final File warSus = environment.getWarSuspended(suspendedAppContext);
     
-    if (Files.isRegularFile(warSus)) {
-      final Path war = environment.getWar(appContextName);
-      return warSus.toFile().renameTo(war.toFile());
+    if (warSus != null && warSus.isFile()) {
+      final File war = environment.getWar(suspendedAppContext);
+      return warSus.renameTo(war);
     }
     
     return false;

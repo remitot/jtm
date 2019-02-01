@@ -1,33 +1,38 @@
 package org.jepria.catalina.suspender;
 
-import java.nio.file.Path;
-import java.util.List;
+import java.io.File;
+import java.util.Set;
 
 /**
  * Environment-dependent configuration parameters
  */
 public interface Environment {
   
-  /**
-   * @param appContextName
-   * @return a war for the application context name (possibly non-existing yet)
-   */
-  Path getWar(String appContextName);
+  Set<String> getDeployedAppContexts();
+  
+  Set<String> getWarAppContexts();
+  
+  Set<String> getWarSuspendedAppContexts();
+  
+  String getMatchingDeployedAppContext(String requestUri);
+  
+  String getMatchingWarSuspendedAppContext(String requestUri);
   
   /**
-   * @param appContextName
-   * @return a suspended war for the application context name (possibly non-existing yet)
+   * @param appContext
+   * @return may not exist
    */
-  Path getWarSus(String appContextName);
+  File getWar(String appContext);
   
   /**
-   * @param appContextName
-   * @return a deployed application folder for the application context name (possibly non-existing yet)
+   * @param appContext
+   * @return may not exist
    */
-  Path getDeployedApp(String appContextName);
+  File getWarSuspended(String appContext);
   
   /**
-   * @return list of Paths for all {@code .war} files within the the war-folder, or an empty list
+   * @param appContext
+   * @return may not exist
    */
-  List<Path> listWars();
+  File getDeployedDirectory(String appContext);
 }

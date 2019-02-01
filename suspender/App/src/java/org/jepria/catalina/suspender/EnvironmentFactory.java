@@ -1,6 +1,6 @@
 package org.jepria.catalina.suspender;
 
-import java.nio.file.Path;
+import java.io.File;
 
 /**
  * Factory producing appropriate {@link Environment} instances.
@@ -13,7 +13,7 @@ public final class EnvironmentFactory {
   
   private EnvironmentFactory() {}
   
-  public static Environment get(Path webapps) {
+  public static Environment get(File webapps) {
     return new BasicEnvironment(webapps);
   }
 }
