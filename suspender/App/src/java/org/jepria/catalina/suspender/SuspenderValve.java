@@ -283,7 +283,7 @@ public class SuspenderValve extends ValveBase {
         try (Scanner sc = new Scanner(suspenderIgnorePath)) {
           while (sc.hasNextLine()) {
             String line = sc.nextLine();
-            if (line != null && line.length() > 0) {
+            if (line != null && line.length() > 0 && line.charAt(0) != '#') {
               ret.add(line);
             }              
           }
