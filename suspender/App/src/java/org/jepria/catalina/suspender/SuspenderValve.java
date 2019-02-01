@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -65,29 +66,16 @@ public class SuspenderValve extends ValveBase {
   }
   
   
-  private boolean disabled = false;
-  
-  /**
-   * server.xml Valve attribute
-   */
-  public void setDisabled(String disabled) {
-    this.disabled = "true".equals(disabled);
-  }
-  
-  
-  
   /**
    * Initial server.xml Valve attribute value, not used regularly (on start only)
    */
-  private String ignoreAppsStr = null;
-  
-  private final Set<String> ignoreApps = new HashSet<>();
+  private String suspenderIgnorePathStr = null;
   
   /**
    * server.xml Valve attribute
    */
-  public void setIgnoreApps(String ignoreApps) {
-    this.ignoreAppsStr = ignoreApps;
+  public void setSuspenderIgnorePath(String suspenderIgnorePath) {
+    this.suspenderIgnorePathStr = suspenderIgnorePath;
   }
   
   
@@ -110,46 +98,43 @@ public class SuspenderValve extends ValveBase {
   @Override
   public void invoke(Request request, Response response) throws IOException, ServletException {
     
-    if (!disabled) {
+    final String contextAppName = new File(request.getServletContext().getRealPath("")).getName();
+    
+    // request to 'ROOT' means 'non-existing application'
+    final boolean appDeployed = !"ROOT".equals(contextAppName);
+    
+    if (!appDeployed) {
+      // the application is not deployed
       
-      final String contextAppName = new File(request.getServletContext().getRealPath("")).getName();
+      final String appContextName = request.getRequestURI().split("/")[1];
       
-      // request to 'ROOT' means 'non-existing application'
-      final boolean appDeployed = !"ROOT".equals(contextAppName);
-      
-      if (!appDeployed) {
-        // the application is not deployed
+      if (unsuspendApp(appContextName)) {
         
-        final String appContextName = request.getRequestURI().split("/")[1];
-        
-        if (unsuspendApp(appContextName)) {
-          
-          try {
-            ContextLoadAwaiter.await(appContextName, 30);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-            // no crash, further redirect is OK
-          }
-          
-          // tell the client to repeat the same request
-          String requestQS = request.getQueryString();
-          String requestURLQS = request.getRequestURL() + (requestQS != null ? ("?" + requestQS) : "");
-          response.sendRedirect(requestURLQS);
-          
-          return;
-          
-        } else {
-          err("Failed to unsuspend app " + appContextName);
+        try {
+          ContextLoadAwaiter.await(appContextName, 30);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+          // no crash, further redirect is OK
         }
+        
+        // tell the client to repeat the same request
+        String requestQS = request.getQueryString();
+        String requestURLQS = request.getRequestURL() + (requestQS != null ? ("?" + requestQS) : "");
+        response.sendRedirect(requestURLQS);
+        
+        return;
         
       } else {
-        // the application is deployed
-        
-        synchronized (accessedApps) {
-          accessedApps.add(contextAppName);
-        }
-        
+        err("Failed to unsuspend app " + appContextName);
       }
+      
+    } else {
+      // the application is deployed
+      
+      synchronized (accessedApps) {
+        accessedApps.add(contextAppName);
+      }
+      
     }
     
     getNext().invoke(request, response);
@@ -159,13 +144,10 @@ public class SuspenderValve extends ValveBase {
   protected synchronized void startInternal() throws LifecycleException {
     
     if (!initAttributes()) {
-      err("Failed to initialize critical attributes, the valve will be disabled");
-      disabled = true;
+      throw new LifecycleException("Failed to initialize critical attributes");
     }
     
-    if (!disabled) {
-      initTimer();
-    }
+    initTimer();
     
     super.startInternal();
   }
@@ -175,6 +157,7 @@ public class SuspenderValve extends ValveBase {
    * @return true if initialization of attributes succeeded, false otherwise
    */
   private boolean initAttributes() {
+    
     // validate 'webappsPath' attribute
     if (webappsPathStr == null || "".equals(webappsPathStr)) {
       err("Missing mandatory attribute 'webappsPath'");
@@ -236,20 +219,6 @@ public class SuspenderValve extends ValveBase {
     }
     
     
-    // validate 'ignoreApps' attribute
-    if (ignoreAppsStr != null) {
-      String[] ignoreAppsSplitted = ignoreAppsStr.split(";");
-      if (ignoreAppsSplitted != null && ignoreAppsSplitted.length > 0) {
-        for (String ignoreApp: ignoreAppsSplitted) {
-          if (ignoreApp != null && ignoreApp.length() > 0) {
-            ignoreApps.add(ignoreApp);
-          }
-        }
-      }
-      
-      log("'ignoreApps' attribute value is [" + ignoreAppsStr + "], parsed: " + ignoreApps);
-    }
-    
     return true;
   }
   
@@ -267,17 +236,26 @@ public class SuspenderValve extends ValveBase {
     @Override
     public void run() {
       
-      List<Path> wars = environment.listWars();
+      final List<Path> wars = environment.listWars();
+      final Set<String> ignoreApps = getIgnoreApps();
       
       synchronized (accessedApps) {
         for (Path war: wars) {
           
           String warName = war.getFileName().toString();
-          assert (warName.endsWith(".war"));
+          assert (warName.endsWith(".war"));// TODO
           
           String appName = warName.substring(0, warName.length() - ".war".length());
           
-          if (!accessedApps.contains(appName) && !ignoreApp(appName)) {
+          boolean ignore = false;
+          for (String ignoreApp: ignoreApps) {
+            if (appName.matches(ignoreApp)) {
+              ignore = true;
+              break;
+            }
+          }
+          
+          if (!accessedApps.contains(appName) && !ignore) {
             if (suspendApp(appName)) {
               log("Suspended app " + appName);
             } else {
@@ -292,13 +270,33 @@ public class SuspenderValve extends ValveBase {
   };
   
   
-  private boolean ignoreApp(String appName) {
-    for (String ignoreApp: ignoreApps) {
-      if (appName.matches(ignoreApp)) {
-        return true;
+  /**
+   * Reads the suspender.ignore configuration file and get the application context patterns to ignore
+   */
+  private Set<String> getIgnoreApps() {
+    final Set<String> ret = new HashSet<>();
+    
+    // re-read the file each time
+    if (suspenderIgnorePathStr != null) {
+      Path suspenderIgnorePath = Paths.get(suspenderIgnorePathStr);
+      if (Files.isRegularFile(suspenderIgnorePath)) {
+        try (Scanner sc = new Scanner(suspenderIgnorePath)) {
+          while (sc.hasNextLine()) {
+            String line = sc.nextLine();
+            if (line != null && line.length() > 0) {
+              ret.add(line);
+            }              
+          }
+        } catch (IOException e) {
+          // TODO log but no fail
+          e.printStackTrace();
+        }
+      } else {
+        // TODO log but no fail
       }
     }
-    return false;
+    
+    return ret;
   }
   
   private void initTimer() {
