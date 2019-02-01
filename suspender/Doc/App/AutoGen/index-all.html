@@ -127,8 +127,6 @@
 <dl>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#deleteDirectory-java.nio.file.Path-">deleteDirectory(Path)</a></span> - Static method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#disabled">disabled</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
-<dd>&nbsp;</dd>
 </dl>
 <a name="I:E">
 <!--   -->
@@ -163,6 +161,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getDeployedApp-java.lang.String-">getDeployedApp(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#getIgnoreApps--">getIgnoreApps()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
+<dd>
+<div class="block">Reads the suspender.ignore configuration file and get the application context patterns to ignore</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/ContextLoadAwaiter.ApplicationLatchMap.html#getInstance--">getInstance()</a></span> - Static method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/ContextLoadAwaiter.ApplicationLatchMap.html" title="class in org.jepria.catalina.suspender">ContextLoadAwaiter.ApplicationLatchMap</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getWar-java.lang.String-">getWar(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
@@ -179,14 +181,6 @@
 </a>
 <h2 class="title">I</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#ignoreApp-java.lang.String-">ignoreApp(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#ignoreApps">ignoreApps</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#ignoreAppsStr">ignoreAppsStr</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
-<dd>
-<div class="block">Initial server.xml Valve attribute value, not used regularly (on start only)</div>
-</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#initAttributes--">initAttributes()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#initTimer--">initTimer()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
@@ -243,19 +237,15 @@
 <dl>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/ContextLoadAwaiter.ApplicationLatchMap.html#serialVersionUID">serialVersionUID</a></span> - Static variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/ContextLoadAwaiter.ApplicationLatchMap.html" title="class in org.jepria.catalina.suspender">ContextLoadAwaiter.ApplicationLatchMap</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#setDisabled-java.lang.String-">setDisabled(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
-<dd>
-<div class="block">server.xml Valve attribute</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#setIgnoreApps-java.lang.String-">setIgnoreApps(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
-<dd>
-<div class="block">server.xml Valve attribute</div>
-</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#setPeriod-java.lang.String-">setPeriod(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>
 <div class="block">server.xml Valve attribute</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#setStart-java.lang.String-">setStart(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
+<dd>
+<div class="block">server.xml Valve attribute</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#setSuspenderIgnorePath-java.lang.String-">setSuspenderIgnorePath(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>
 <div class="block">server.xml Valve attribute</div>
 </dd>
@@ -275,6 +265,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#suspendApp-java.lang.String-">suspendApp(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#suspenderIgnorePathStr">suspenderIgnorePathStr</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
+<dd>
+<div class="block">Initial server.xml Valve attribute value, not used regularly (on start only)</div>
+</dd>
 <dt><a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender"><span class="typeNameLink">SuspenderValve</span></a> - Class in <a href="org/jepria/catalina/suspender/package-summary.html">org.jepria.catalina.suspender</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#SuspenderValve--">SuspenderValve()</a></span> - Constructor for class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>

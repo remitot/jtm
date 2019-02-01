@@ -42,7 +42,7 @@
       контекста, в папку &lt;TOMCAT_HOME&gt;/lib сервера</li>
     <li>Объявить Валв в файле &lt;TOMCAT_HOME&gt;/conf/server.xml в
       секции Host: <pre>
-&lt;Valve className="org.jepria.catalina.suspender.SuspenderValve" webappsPath="C:\apache-tomcat\webapps" period="1440" start="00:00" ignoreApps="Pattern1;Pattern2"/&gt;
+&lt;Valve className="org.jepria.catalina.suspender.SuspenderValve" webappsPath="C:\apache-tomcat\webapps" period="1440" start="00:00"/&gt;
 </pre> 
     </li>
     <li>Объявить слушатель контекста в файле
@@ -51,6 +51,16 @@
     &lt;listener-class&gt;org.jepria.catalina.suspender.ContextLoadListener&lt;/listener-class&gt;
 &lt;/listener&gt;
 </pre>
+    </li>
+    <li>При необходимости исключить суспензию для некоторых контекстов, создать файл <code>suspender.ignore</code> со списком регулярных выражений, 
+    соответствующих исключаемым контекстам (предпочтительно в директории с прочими конфигурационными файлами сервера <code>conf</code>): <pre>
+# application context regexes to be ignored by the suspender
+Foo.*
+Bar\d+
+Buzz
+</pre> и указать путь созданного файла в атрибуте Валва <code>webappsPath="C:\apache-tomcat\conf\suspender.ignore"</code>.
+      <br/>
+      Изменения в файле <code>suspender.ignore</code> применяются при следующей итерации суспензии.
     </li>
   </ol>
   После отключения ранее включённого суспендера, автоматическое восстановление отключённых приложений после отключения Валва не производится,
@@ -68,9 +78,6 @@
       <li><code>start</code> &mdash; время первой (ближайшей)
         ретрификации в формате HH:MM. Если атрибут отсутствует,
         первая ретрификация производится немедленно после применения настроек</li>
-      <li><code>ignoreApps</code> &mdash; список regex-паттернов,
-        разделенных символом <code>;</code>, для названий приложений,
-        которые следует игнорировать</li>
     </ul>
   <h3>
     <a name="todo">Доработки</a>

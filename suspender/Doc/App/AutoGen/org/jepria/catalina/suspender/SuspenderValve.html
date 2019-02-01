@@ -18,7 +18,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":9,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10};
+var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":9,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -169,40 +169,32 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>private boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#disabled">disabled</a></span></code>&nbsp;</td>
-</tr>
-<tr class="altColor">
 <td class="colFirst"><code>private <a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#environment">environment</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
-<td class="colFirst"><code>private java.util.Set&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#ignoreApps">ignoreApps</a></span></code>&nbsp;</td>
-</tr>
 <tr class="altColor">
-<td class="colFirst"><code>private java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#ignoreAppsStr">ignoreAppsStr</a></span></code>
-<div class="block">Initial server.xml Valve attribute value, not used regularly (on start only)</div>
-</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><code>private int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#period">period</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>private java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#periodStr">periodStr</a></span></code>
 <div class="block">Initial server.xml Valve attribute value, not used regularly (on start only)</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>private java.util.Calendar</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#start">start</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>private java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#startStr">startStr</a></span></code>
+<div class="block">Initial server.xml Valve attribute value, not used regularly (on start only)</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>private java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#suspenderIgnorePathStr">suspenderIgnorePathStr</a></span></code>
 <div class="block">Initial server.xml Valve attribute value, not used regularly (on start only)</div>
 </td>
 </tr>
@@ -282,8 +274,10 @@ extends org.apache.catalina.valves.ValveBase</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#err-java.lang.String-">err</a></span>(java.lang.String&nbsp;msg)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>private boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#ignoreApp-java.lang.String-">ignoreApp</a></span>(java.lang.String&nbsp;appName)</code>&nbsp;</td>
+<td class="colFirst"><code>private java.util.Set&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#getIgnoreApps--">getIgnoreApps</a></span>()</code>
+<div class="block">Reads the suspender.ignore configuration file and get the application context patterns to ignore</div>
+</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>private boolean</code></td>
@@ -304,47 +298,41 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setDisabled-java.lang.String-">setDisabled</a></span>(java.lang.String&nbsp;disabled)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setPeriod-java.lang.String-">setPeriod</a></span>(java.lang.String&nbsp;period)</code>
 <div class="block">server.xml Valve attribute</div>
 </td>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setIgnoreApps-java.lang.String-">setIgnoreApps</a></span>(java.lang.String&nbsp;ignoreApps)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setStart-java.lang.String-">setStart</a></span>(java.lang.String&nbsp;start)</code>
 <div class="block">server.xml Valve attribute</div>
 </td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setPeriod-java.lang.String-">setPeriod</a></span>(java.lang.String&nbsp;period)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setSuspenderIgnorePath-java.lang.String-">setSuspenderIgnorePath</a></span>(java.lang.String&nbsp;suspenderIgnorePath)</code>
 <div class="block">server.xml Valve attribute</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setStart-java.lang.String-">setStart</a></span>(java.lang.String&nbsp;start)</code>
-<div class="block">server.xml Valve attribute</div>
-</td>
-</tr>
-<tr id="i11" class="rowColor">
-<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#setWebappsPath-java.lang.String-">setWebappsPath</a></span>(java.lang.String&nbsp;webappsPath)</code>
 <div class="block">server.xml Valve attribute</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#startInternal--">startInternal</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#stopInternal--">stopInternal</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>private boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#suspendApp-java.lang.String-">suspendApp</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>private boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#unsuspendApp-java.lang.String-">unsuspendApp</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
 </tr>
@@ -429,32 +417,14 @@ extends org.apache.catalina.valves.ValveBase</pre>
 <pre>private&nbsp;int period</pre>
 </li>
 </ul>
-<a name="disabled">
+<a name="suspenderIgnorePathStr">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>disabled</h4>
-<pre>private&nbsp;boolean disabled</pre>
-</li>
-</ul>
-<a name="ignoreAppsStr">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>ignoreAppsStr</h4>
-<pre>private&nbsp;java.lang.String ignoreAppsStr</pre>
+<h4>suspenderIgnorePathStr</h4>
+<pre>private&nbsp;java.lang.String suspenderIgnorePathStr</pre>
 <div class="block">Initial server.xml Valve attribute value, not used regularly (on start only)</div>
-</li>
-</ul>
-<a name="ignoreApps">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>ignoreApps</h4>
-<pre>private final&nbsp;java.util.Set&lt;java.lang.String&gt; ignoreApps</pre>
 </li>
 </ul>
 <a name="startStr">
@@ -567,23 +537,13 @@ extends org.apache.catalina.valves.ValveBase</pre>
 <div class="block">server.xml Valve attribute</div>
 </li>
 </ul>
-<a name="setDisabled-java.lang.String-">
+<a name="setSuspenderIgnorePath-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setDisabled</h4>
-<pre>public&nbsp;void&nbsp;setDisabled(java.lang.String&nbsp;disabled)</pre>
-<div class="block">server.xml Valve attribute</div>
-</li>
-</ul>
-<a name="setIgnoreApps-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setIgnoreApps</h4>
-<pre>public&nbsp;void&nbsp;setIgnoreApps(java.lang.String&nbsp;ignoreApps)</pre>
+<h4>setSuspenderIgnorePath</h4>
+<pre>public&nbsp;void&nbsp;setSuspenderIgnorePath(java.lang.String&nbsp;suspenderIgnorePath)</pre>
 <div class="block">server.xml Valve attribute</div>
 </li>
 </ul>
@@ -647,13 +607,14 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </dl>
 </li>
 </ul>
-<a name="ignoreApp-java.lang.String-">
+<a name="getIgnoreApps--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>ignoreApp</h4>
-<pre>private&nbsp;boolean&nbsp;ignoreApp(java.lang.String&nbsp;appName)</pre>
+<h4>getIgnoreApps</h4>
+<pre>private&nbsp;java.util.Set&lt;java.lang.String&gt;&nbsp;getIgnoreApps()</pre>
+<div class="block">Reads the suspender.ignore configuration file and get the application context patterns to ignore</div>
 </li>
 </ul>
 <a name="initTimer--">
