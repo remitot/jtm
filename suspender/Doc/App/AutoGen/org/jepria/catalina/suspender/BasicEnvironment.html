@@ -18,8 +18,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -135,9 +135,9 @@ implements <a href="../../../../org/jepria/catalina/suspender/Environment.html" 
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>private java.nio.file.Path</code></td>
+<td class="colFirst"><code>private java.io.File</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#webapps">webapps</a></span></code>
-<div class="block">Path to 'webapps' war-deployment folder</div>
+<div class="block">'webapps' server folder</div>
 </td>
 </tr>
 </table>
@@ -155,7 +155,7 @@ implements <a href="../../../../org/jepria/catalina/suspender/Environment.html" 
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#BasicEnvironment-java.nio.file.Path-">BasicEnvironment</a></span>(java.nio.file.Path&nbsp;webapps)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#BasicEnvironment-java.io.File-">BasicEnvironment</a></span>(java.io.File&nbsp;webapps)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -167,26 +167,39 @@ implements <a href="../../../../org/jepria/catalina/suspender/Environment.html" 
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.nio.file.Path</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getDeployedApp-java.lang.String-">getDeployedApp</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colFirst"><code>java.io.File</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getDeployedDirectory-java.lang.String-">getDeployedDirectory</a></span>(java.lang.String&nbsp;appContext)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.nio.file.Path</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getWar-java.lang.String-">getWar</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colFirst"><code>private static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getMatchingAppContext-java.lang.String-java.util.Set-">getMatchingAppContext</a></span>(java.lang.String&nbsp;requestUri,
+                     java.util.Set&lt;java.lang.String&gt;&nbsp;appContexts)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>java.nio.file.Path</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getWarSus-java.lang.String-">getWarSus</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getMatchingDeployedAppContext-java.lang.String-">getMatchingDeployedAppContext</a></span>(java.lang.String&nbsp;requestUri)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.List&lt;java.nio.file.Path&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#listWars--">listWars</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getMatchingWarSuspendedAppContext-java.lang.String-">getMatchingWarSuspendedAppContext</a></span>(java.lang.String&nbsp;requestUri)</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>java.io.File</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getWar-java.lang.String-">getWar</a></span>(java.lang.String&nbsp;appContext)</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>java.util.Set&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getWarAppContexts--">getWarAppContexts</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>java.io.File</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/BasicEnvironment.html#getWarSuspended-java.lang.String-">getWarSuspended</a></span>(java.lang.String&nbsp;appContext)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -216,8 +229,8 @@ implements <a href="../../../../org/jepria/catalina/suspender/Environment.html" 
 <ul class="blockListLast">
 <li class="blockList">
 <h4>webapps</h4>
-<pre>private final&nbsp;java.nio.file.Path webapps</pre>
-<div class="block">Path to 'webapps' war-deployment folder</div>
+<pre>private final&nbsp;java.io.File webapps</pre>
+<div class="block">'webapps' server folder</div>
 </li>
 </ul>
 </li>
@@ -228,13 +241,13 @@ implements <a href="../../../../org/jepria/catalina/suspender/Environment.html" 
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="BasicEnvironment-java.nio.file.Path-">
+<a name="BasicEnvironment-java.io.File-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>BasicEnvironment</h4>
-<pre>public&nbsp;BasicEnvironment(java.nio.file.Path&nbsp;webapps)</pre>
+<pre>public&nbsp;BasicEnvironment(java.io.File&nbsp;webapps)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>webapps</code> - Path to 'webapps' war-deployment folder</dd>
@@ -249,63 +262,97 @@ implements <a href="../../../../org/jepria/catalina/suspender/Environment.html" 
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getWarAppContexts--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getWarAppContexts</h4>
+<pre>public&nbsp;java.util.Set&lt;java.lang.String&gt;&nbsp;getWarAppContexts()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWarAppContexts--">getWarAppContexts</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getMatchingDeployedAppContext-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMatchingDeployedAppContext</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getMatchingDeployedAppContext(java.lang.String&nbsp;requestUri)</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getMatchingDeployedAppContext-java.lang.String-">getMatchingDeployedAppContext</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getMatchingWarSuspendedAppContext-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMatchingWarSuspendedAppContext</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getMatchingWarSuspendedAppContext(java.lang.String&nbsp;requestUri)</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getMatchingWarSuspendedAppContext-java.lang.String-">getMatchingWarSuspendedAppContext</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getMatchingAppContext-java.lang.String-java.util.Set-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMatchingAppContext</h4>
+<pre>private static&nbsp;java.lang.String&nbsp;getMatchingAppContext(java.lang.String&nbsp;requestUri,
+                                                      java.util.Set&lt;java.lang.String&gt;&nbsp;appContexts)</pre>
+</li>
+</ul>
 <a name="getWar-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getWar</h4>
-<pre>public&nbsp;java.nio.file.Path&nbsp;getWar(java.lang.String&nbsp;appContextName)</pre>
+<pre>public&nbsp;java.io.File&nbsp;getWar(java.lang.String&nbsp;appContext)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWar-java.lang.String-">getWar</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a war for the application context name (possibly non-existing yet)</dd>
+<dd>may not exist</dd>
 </dl>
 </li>
 </ul>
-<a name="getWarSus-java.lang.String-">
+<a name="getWarSuspended-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getWarSus</h4>
-<pre>public&nbsp;java.nio.file.Path&nbsp;getWarSus(java.lang.String&nbsp;appContextName)</pre>
+<h4>getWarSuspended</h4>
+<pre>public&nbsp;java.io.File&nbsp;getWarSuspended(java.lang.String&nbsp;appContext)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWarSus-java.lang.String-">getWarSus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
+<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWarSuspended-java.lang.String-">getWarSuspended</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a suspended war for the application context name (possibly non-existing yet)</dd>
+<dd>may not exist</dd>
 </dl>
 </li>
 </ul>
-<a name="getDeployedApp-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDeployedApp</h4>
-<pre>public&nbsp;java.nio.file.Path&nbsp;getDeployedApp(java.lang.String&nbsp;appContextName)</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getDeployedApp-java.lang.String-">getDeployedApp</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a deployed application folder for the application context name (possibly non-existing yet)</dd>
-</dl>
-</li>
-</ul>
-<a name="listWars--">
+<a name="getDeployedDirectory-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>listWars</h4>
-<pre>public&nbsp;java.util.List&lt;java.nio.file.Path&gt;&nbsp;listWars()</pre>
+<h4>getDeployedDirectory</h4>
+<pre>public&nbsp;java.io.File&nbsp;getDeployedDirectory(java.lang.String&nbsp;appContext)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#listWars--">listWars</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
+<dd><code><a href="../../../../org/jepria/catalina/suspender/Environment.html#getDeployedDirectory-java.lang.String-">getDeployedDirectory</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>list of Paths for all <code>.war</code> files within the the war-folder, or an empty list</dd>
+<dd>may not exist</dd>
 </dl>
 </li>
 </ul>

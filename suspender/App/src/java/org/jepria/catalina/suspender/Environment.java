@@ -8,11 +8,7 @@ import java.util.Set;
  */
 public interface Environment {
   
-  Set<String> getDeployedAppContexts();
-  
   Set<String> getWarAppContexts();
-  
-  Set<String> getWarSuspendedAppContexts();
   
   String getMatchingDeployedAppContext(String requestUri);
   

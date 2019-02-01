@@ -103,13 +103,9 @@ public class SuspenderValve extends ValveBase {
         requestUri = requestUri.substring(1);
       }
       
-      System.out.println("///uri:"+requestUri);
-      
       String matchingDeployedAppContext = environment.getMatchingDeployedAppContext(requestUri);
       String matchingWarSuspendedAppContext = environment.getMatchingWarSuspendedAppContext(requestUri);
   
-      System.out.println("///match(dep,sus):"+matchingDeployedAppContext + "," + matchingWarSuspendedAppContext);
-      
       // priority the appContext
       final String appContext;
       if (matchingWarSuspendedAppContext != null) {
@@ -312,7 +308,7 @@ public class SuspenderValve extends ValveBase {
         try (Scanner sc = new Scanner(suspenderIgnorePath)) {
           while (sc.hasNextLine()) {
             String line = sc.nextLine();
-            if (line != null && line.length() > 0 && line.charAt(0) != '#') {
+            if (line != null && line.length() > 0 && line.startsWith("--")) {
               ret.add(line);
             }              
           }

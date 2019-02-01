@@ -18,7 +18,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6,"i3":6};
+var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -125,20 +125,28 @@ var activeTableTab = "activeTableTab";
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.nio.file.Path</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getDeployedApp-java.lang.String-">getDeployedApp</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colFirst"><code>java.io.File</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getDeployedDirectory-java.lang.String-">getDeployedDirectory</a></span>(java.lang.String&nbsp;appContext)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.nio.file.Path</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWar-java.lang.String-">getWar</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getMatchingDeployedAppContext-java.lang.String-">getMatchingDeployedAppContext</a></span>(java.lang.String&nbsp;requestUri)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>java.nio.file.Path</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWarSus-java.lang.String-">getWarSus</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getMatchingWarSuspendedAppContext-java.lang.String-">getMatchingWarSuspendedAppContext</a></span>(java.lang.String&nbsp;requestUri)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.List&lt;java.nio.file.Path&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#listWars--">listWars</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.io.File</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWar-java.lang.String-">getWar</a></span>(java.lang.String&nbsp;appContext)</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>java.util.Set&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWarAppContexts--">getWarAppContexts</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>java.io.File</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/Environment.html#getWarSuspended-java.lang.String-">getWarSuspended</a></span>(java.lang.String&nbsp;appContext)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -155,61 +163,75 @@ var activeTableTab = "activeTableTab";
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getWarAppContexts--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getWarAppContexts</h4>
+<pre>java.util.Set&lt;java.lang.String&gt;&nbsp;getWarAppContexts()</pre>
+</li>
+</ul>
+<a name="getMatchingDeployedAppContext-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMatchingDeployedAppContext</h4>
+<pre>java.lang.String&nbsp;getMatchingDeployedAppContext(java.lang.String&nbsp;requestUri)</pre>
+</li>
+</ul>
+<a name="getMatchingWarSuspendedAppContext-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMatchingWarSuspendedAppContext</h4>
+<pre>java.lang.String&nbsp;getMatchingWarSuspendedAppContext(java.lang.String&nbsp;requestUri)</pre>
+</li>
+</ul>
 <a name="getWar-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getWar</h4>
-<pre>java.nio.file.Path&nbsp;getWar(java.lang.String&nbsp;appContextName)</pre>
+<pre>java.io.File&nbsp;getWar(java.lang.String&nbsp;appContext)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>appContextName</code> - </dd>
+<dd><code>appContext</code> - </dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a war for the application context name (possibly non-existing yet)</dd>
+<dd>may not exist</dd>
 </dl>
 </li>
 </ul>
-<a name="getWarSus-java.lang.String-">
+<a name="getWarSuspended-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getWarSus</h4>
-<pre>java.nio.file.Path&nbsp;getWarSus(java.lang.String&nbsp;appContextName)</pre>
+<h4>getWarSuspended</h4>
+<pre>java.io.File&nbsp;getWarSuspended(java.lang.String&nbsp;appContext)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>appContextName</code> - </dd>
+<dd><code>appContext</code> - </dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a suspended war for the application context name (possibly non-existing yet)</dd>
+<dd>may not exist</dd>
 </dl>
 </li>
 </ul>
-<a name="getDeployedApp-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDeployedApp</h4>
-<pre>java.nio.file.Path&nbsp;getDeployedApp(java.lang.String&nbsp;appContextName)</pre>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>appContextName</code> - </dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a deployed application folder for the application context name (possibly non-existing yet)</dd>
-</dl>
-</li>
-</ul>
-<a name="listWars--">
+<a name="getDeployedDirectory-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>listWars</h4>
-<pre>java.util.List&lt;java.nio.file.Path&gt;&nbsp;listWars()</pre>
+<h4>getDeployedDirectory</h4>
+<pre>java.io.File&nbsp;getDeployedDirectory(java.lang.String&nbsp;appContext)</pre>
 <dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>appContext</code> - </dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>list of Paths for all <code>.war</code> files within the the war-folder, or an empty list</dd>
+<dd>may not exist</dd>
 </dl>
 </li>
 </ul>

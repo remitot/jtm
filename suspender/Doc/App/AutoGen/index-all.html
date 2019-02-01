@@ -73,7 +73,7 @@
 </a>
 <h2 class="title">A</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#accessedApps">accessedApps</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#accessedAppContexts">accessedAppContexts</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>
 <div class="block">Application names (context names) accessed since the last suspension iteration</div>
 </dd>
@@ -93,7 +93,7 @@
 <dd>
 <div class="block">Basic production environment</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#BasicEnvironment-java.nio.file.Path-">BasicEnvironment(Path)</a></span> - Constructor for class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#BasicEnvironment-java.io.File-">BasicEnvironment(File)</a></span> - Constructor for class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a name="I:C">
@@ -153,27 +153,41 @@
 </a>
 <h2 class="title">G</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/EnvironmentFactory.html#get-java.nio.file.Path-">get(Path)</a></span> - Static method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/EnvironmentFactory.html" title="class in org.jepria.catalina.suspender">EnvironmentFactory</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/EnvironmentFactory.html#get-java.io.File-">get(File)</a></span> - Static method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/EnvironmentFactory.html" title="class in org.jepria.catalina.suspender">EnvironmentFactory</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/ContextLoadListener.html#getAppContextName-javax.servlet.ServletContextEvent-">getAppContextName(ServletContextEvent)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/ContextLoadListener.html" title="class in org.jepria.catalina.suspender">ContextLoadListener</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getDeployedApp-java.lang.String-">getDeployedApp(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getDeployedDirectory-java.lang.String-">getDeployedDirectory(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getDeployedApp-java.lang.String-">getDeployedApp(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getDeployedDirectory-java.lang.String-">getDeployedDirectory(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#getIgnoreApps--">getIgnoreApps()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#getIgnoreAppContexts--">getIgnoreAppContexts()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>
 <div class="block">Reads the suspender.ignore configuration file and get the application context patterns to ignore</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/ContextLoadAwaiter.ApplicationLatchMap.html#getInstance--">getInstance()</a></span> - Static method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/ContextLoadAwaiter.ApplicationLatchMap.html" title="class in org.jepria.catalina.suspender">ContextLoadAwaiter.ApplicationLatchMap</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getMatchingAppContext-java.lang.String-java.util.Set-">getMatchingAppContext(String, Set&lt;String&gt;)</a></span> - Static method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getMatchingDeployedAppContext-java.lang.String-">getMatchingDeployedAppContext(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getMatchingDeployedAppContext-java.lang.String-">getMatchingDeployedAppContext(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getMatchingWarSuspendedAppContext-java.lang.String-">getMatchingWarSuspendedAppContext(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getMatchingWarSuspendedAppContext-java.lang.String-">getMatchingWarSuspendedAppContext(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getWar-java.lang.String-">getWar(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getWar-java.lang.String-">getWar(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getWarSus-java.lang.String-">getWarSus(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getWarAppContexts--">getWarAppContexts()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getWarSus-java.lang.String-">getWarSus(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getWarAppContexts--">getWarAppContexts()</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#getWarSuspended-java.lang.String-">getWarSuspended(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#getWarSuspended-java.lang.String-">getWarSuspended(String)</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a name="I:I">
@@ -195,10 +209,6 @@
 </a>
 <h2 class="title">L</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#listWars--">listWars()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/Environment.html#listWars--">listWars()</a></span> - Method in interface org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/Environment.html" title="interface in org.jepria.catalina.suspender">Environment</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#log-java.lang.String-">log(String)</a></span> - Static method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>&nbsp;</dd>
 </dl>
@@ -263,7 +273,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#stopInternal--">stopInternal()</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#suspendApp-java.lang.String-">suspendApp(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#suspendAppContext-java.lang.String-">suspendAppContext(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#suspenderIgnorePathStr">suspenderIgnorePathStr</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>
@@ -289,7 +299,7 @@
 </a>
 <h2 class="title">U</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#unsuspendApp-java.lang.String-">unsuspendApp(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
+<dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#unsuspendAppContext-java.lang.String-">unsuspendAppContext(String)</a></span> - Method in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a name="I:W">
@@ -299,7 +309,7 @@
 <dl>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/BasicEnvironment.html#webapps">webapps</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/BasicEnvironment.html" title="class in org.jepria.catalina.suspender">BasicEnvironment</a></dt>
 <dd>
-<div class="block">Path to 'webapps' war-deployment folder</div>
+<div class="block">'webapps' server folder</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/jepria/catalina/suspender/SuspenderValve.html#webappsPathStr">webappsPathStr</a></span> - Variable in class org.jepria.catalina.suspender.<a href="org/jepria/catalina/suspender/SuspenderValve.html" title="class in org.jepria.catalina.suspender">SuspenderValve</a></dt>
 <dd>

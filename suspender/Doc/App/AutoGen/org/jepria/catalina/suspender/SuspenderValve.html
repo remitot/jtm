@@ -164,7 +164,7 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>private java.util.Set&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#accessedApps">accessedApps</a></span></code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#accessedAppContexts">accessedAppContexts</a></span></code>
 <div class="block">Application names (context names) accessed since the last suspension iteration</div>
 </td>
 </tr>
@@ -275,7 +275,7 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>private java.util.Set&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#getIgnoreApps--">getIgnoreApps</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#getIgnoreAppContexts--">getIgnoreAppContexts</a></span>()</code>
 <div class="block">Reads the suspender.ignore configuration file and get the application context patterns to ignore</div>
 </td>
 </tr>
@@ -330,11 +330,11 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </tr>
 <tr id="i13" class="rowColor">
 <td class="colFirst"><code>private boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#suspendApp-java.lang.String-">suspendApp</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#suspendAppContext-java.lang.String-">suspendAppContext</a></span>(java.lang.String&nbsp;warAppContext)</code>&nbsp;</td>
 </tr>
 <tr id="i14" class="altColor">
 <td class="colFirst"><code>private boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#unsuspendApp-java.lang.String-">unsuspendApp</a></span>(java.lang.String&nbsp;appContextName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/jepria/catalina/suspender/SuspenderValve.html#unsuspendAppContext-java.lang.String-">unsuspendAppContext</a></span>(java.lang.String&nbsp;suspendedAppContext)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -446,13 +446,13 @@ extends org.apache.catalina.valves.ValveBase</pre>
 <pre>private&nbsp;java.util.Calendar start</pre>
 </li>
 </ul>
-<a name="accessedApps">
+<a name="accessedAppContexts">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>accessedApps</h4>
-<pre>private final&nbsp;java.util.Set&lt;java.lang.String&gt; accessedApps</pre>
+<h4>accessedAppContexts</h4>
+<pre>private final&nbsp;java.util.Set&lt;java.lang.String&gt; accessedAppContexts</pre>
 <div class="block">Application names (context names) accessed since the last suspension iteration</div>
 </li>
 </ul>
@@ -607,13 +607,13 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </dl>
 </li>
 </ul>
-<a name="getIgnoreApps--">
+<a name="getIgnoreAppContexts--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getIgnoreApps</h4>
-<pre>private&nbsp;java.util.Set&lt;java.lang.String&gt;&nbsp;getIgnoreApps()</pre>
+<h4>getIgnoreAppContexts</h4>
+<pre>private&nbsp;java.util.Set&lt;java.lang.String&gt;&nbsp;getIgnoreAppContexts()</pre>
 <div class="block">Reads the suspender.ignore configuration file and get the application context patterns to ignore</div>
 </li>
 </ul>
@@ -642,16 +642,16 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </dl>
 </li>
 </ul>
-<a name="suspendApp-java.lang.String-">
+<a name="suspendAppContext-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>suspendApp</h4>
-<pre>private&nbsp;boolean&nbsp;suspendApp(java.lang.String&nbsp;appContextName)</pre>
+<h4>suspendAppContext</h4>
+<pre>private&nbsp;boolean&nbsp;suspendAppContext(java.lang.String&nbsp;warAppContext)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>appContextName</code> - </dd>
+<dd><code>warAppContext</code> - </dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>true</code> if suspension succeeded, <code>false</code> otherwise</dd>
 </dl>
@@ -671,16 +671,16 @@ extends org.apache.catalina.valves.ValveBase</pre>
 </dl>
 </li>
 </ul>
-<a name="unsuspendApp-java.lang.String-">
+<a name="unsuspendAppContext-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>unsuspendApp</h4>
-<pre>private&nbsp;boolean&nbsp;unsuspendApp(java.lang.String&nbsp;appContextName)</pre>
+<h4>unsuspendAppContext</h4>
+<pre>private&nbsp;boolean&nbsp;unsuspendAppContext(java.lang.String&nbsp;suspendedAppContext)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>appContextName</code> - </dd>
+<dd><code>suspendedAppContext</code> - </dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>true</code> if unsuspension succeeded, <code>false</code> otherwise</dd>
 </dl>

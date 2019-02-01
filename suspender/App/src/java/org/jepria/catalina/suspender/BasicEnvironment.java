@@ -24,12 +24,6 @@ public class BasicEnvironment implements Environment {
   }
   
   @Override
-  public Set<String> getDeployedAppContexts() {
-    return Arrays.stream(webapps.listFiles(file -> file.isDirectory()))
-        .map(file -> file.getName()).collect(Collectors.toSet());
-  }
-  
-  @Override
   public Set<String> getWarAppContexts() {
     return Arrays.stream(webapps.listFiles(file -> file.isFile() && file.getName().endsWith(".war")))
         .map(file -> {
@@ -39,22 +33,20 @@ public class BasicEnvironment implements Environment {
   }
   
   @Override
-  public Set<String> getWarSuspendedAppContexts() {
-    return Arrays.stream(webapps.listFiles(file -> file.isFile() && file.getName().endsWith(".war.suspended")))
-        .map(file -> {
-          String fileName = file.getName();
-          return fileName.substring(0, fileName.length() - ".war.suspended".length());
-        }).collect(Collectors.toSet());
-  }
-  
-  @Override
   public String getMatchingDeployedAppContext(String requestUri) {
-    return getMatchingAppContext(requestUri, getDeployedAppContexts());
+    final Set<String> deployedAppContexts = Arrays.stream(webapps.listFiles(file -> file.isDirectory()))
+        .map(file -> file.getName()).collect(Collectors.toSet());
+    return getMatchingAppContext(requestUri, deployedAppContexts);
   }
   
   @Override
   public String getMatchingWarSuspendedAppContext(String requestUri) {
-    return getMatchingAppContext(requestUri, getWarSuspendedAppContexts());
+    final Set<String> warSuspendedAppContexts = Arrays.stream(webapps.listFiles(file -> file.isFile() && file.getName().endsWith(".war.suspended")))
+        .map(file -> {
+          String fileName = file.getName();
+          return fileName.substring(0, fileName.length() - ".war.suspended".length());
+        }).collect(Collectors.toSet());
+    return getMatchingAppContext(requestUri, warSuspendedAppContexts);
   }
   
   private static String getMatchingAppContext(String requestUri, Set<String> appContexts) {
