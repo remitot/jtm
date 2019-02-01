@@ -20,10 +20,12 @@ public class ContextLoadListener implements ServletContextListener {
   
   private String getAppContextName(ServletContextEvent e) {
     String contextPath = e.getServletContext().getContextPath();
-    if (contextPath.startsWith("/")) {
-      return contextPath.split("/")[1];
-    } else {
-      return "";
+    if (contextPath != null) {
+      if (contextPath.startsWith("/")) {
+        contextPath = contextPath.substring(1);
+        return contextPath.replaceAll("/", "#");
+      }
     }
+    return null;
   }
 }

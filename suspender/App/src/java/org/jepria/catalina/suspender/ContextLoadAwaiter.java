@@ -61,9 +61,11 @@ public class ContextLoadAwaiter {
   }
   
   public static void contextLoaded(String appContextName) {
-    CountDownLatch latch = ApplicationLatchMap.getInstance().remove(appContextName);
-    if (latch != null) {
-      latch.countDown();
+    if (appContextName != null) {
+      CountDownLatch latch = ApplicationLatchMap.getInstance().remove(appContextName);
+      if (latch != null) {
+        latch.countDown();
+      }
     }
   }
   
