@@ -28,6 +28,9 @@
   <path id="libs">
   	<pathelement location="${CATALINA_JAR}" />
   	<pathelement location="${SERVLET-API_LIB}" />
+  	<pathelement location="${TOMCAT-API_LIB}" />
+  	<pathelement location="${TOMCAT-JULI_LIB}" />
+  	<pathelement location="${TOMCAT-UTIL_LIB}" />
   </path>
   
   <fileset dir="build" id="classes-build"/>
