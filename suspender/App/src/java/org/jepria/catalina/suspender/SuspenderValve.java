@@ -144,19 +144,23 @@ public class SuspenderValve extends ValveBase {
           
           if (unsuspendAppContext(appContext)) {
             
+            boolean awaitSuccessful;
             try {
-              ContextLoadAwaiter.await(appContext, 30);
+              awaitSuccessful = ContextLoadAwaiter.await(appContext, 30);
             } catch (InterruptedException e) {
               e.printStackTrace();
-              // no crash, further redirect is OK
+              // no crash, redirect
+              awaitSuccessful = false;
             }
             
-            // tell the client to repeat the same request
-            String requestQS = request.getQueryString();
-            String requestURLQS = request.getRequestURL() + (requestQS != null ? ("?" + requestQS) : "");
-            response.sendRedirect(requestURLQS);
-            
-            return;
+            if (!awaitSuccessful) {
+              // tell the client to repeat the same request
+              String requestQS = request.getQueryString();
+              String requestURLQS = request.getRequestURL() + (requestQS != null ? ("?" + requestQS) : "");
+              response.sendRedirect(requestURLQS);
+              
+              return;
+            }
             
           } else {
             err("Failed to unsuspend app " + appContext);

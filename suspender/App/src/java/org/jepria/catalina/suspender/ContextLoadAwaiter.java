@@ -49,15 +49,16 @@ public class ContextLoadAwaiter {
    * @param appContextName
    * @param seconds
    * @throws InterruptedException 
+   * @return {@code true} on successful application context load await; {@code false} if the waiting time elapsed
    */
-  public static void await(String appContextName, int seconds) throws InterruptedException {
+  public static boolean await(String appContextName, int seconds) throws InterruptedException {
     CountDownLatch latch = ApplicationLatchMap.getInstance().get(appContextName);
     if (latch == null) {
       latch = new CountDownLatch(1);
       ApplicationLatchMap.getInstance().put(appContextName, latch);
     }
     
-    latch.await(seconds, TimeUnit.SECONDS);
+    return latch.await(seconds, TimeUnit.SECONDS);
   }
   
   public static void contextLoaded(String appContextName) {
