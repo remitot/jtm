@@ -59,6 +59,7 @@ import org.apache.tomcat.InstanceManager;
 import org.apache.tomcat.JarScanner;
 import org.apache.tomcat.util.http.mapper.Mapper;
 
+@SuppressWarnings("deprecation")
 public class ContextWrapper implements Context {
   
   private final Context delegate;
