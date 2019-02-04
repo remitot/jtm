@@ -1,0 +1,46 @@
+body {
+  margin: 0px;
+}
+
+.area_begin-reached {
+  padding-top: 8px; 
+}
+
+.anchor-area {
+  float: left;
+  width: 15px;
+}
+
+.content-area {
+  margin-left: 15px;
+
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.content-area__lines {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.top {
+  padding-top: 8px;  
+}
+/* disable for anchor-area__panel */
+.top.anchor-area__panel {
+  padding-top: 0px;
+}
+
+.bottom {
+  background-color: #E3FFC6;
+}
+
+.control-button_reset-anchor {
+  position: fixed;
+  bottom: 0px;
+  right: 18px; /* = 14px + magic_4px */
+}
+
+.hidden {
+  display: none;
+}

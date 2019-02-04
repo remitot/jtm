@@ -1,0 +1,38 @@
+<%-- for correct cyrillic display while including as jsp --%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+
+<div class="control-buttons">
+  <button 
+      onclick="onSaveButtonClick()" 
+      class="control-button_save control-button big-black-button" 
+      disabled
+      >СОХРАНИТЬ ВСЁ</button> <!-- NON-NLS -->
+  <button 
+      onclick="table_reload()" 
+      class="control-button_reset control-button big-black-button" 
+      disabled
+      >СБРОСИТЬ ВСЁ</button> <!-- NON-NLS -->
+      
+</div>    
+    
+<script>
+  
+  /* @Override from table.js */
+  function setControlButtonsEnabled(enabled) {
+    var saveButton = document.getElementsByClassName("control-button_save")[0];
+    var resetButton = document.getElementsByClassName("control-button_reset")[0];
+    
+    if (enabled) {
+      saveButton.disabled = false;
+      saveButton.title = "Сохранить все изменения (оранжевые)"; // NON-NLS
+      resetButton.disabled = false;
+      resetButton.title = "Сбросить все изменения (оранжевые) и обновить таблицу"; // NON-NLS
+      
+    } else {
+      saveButton.disabled = true;
+      saveButton.title = "Изменений нет"; // NON-NLS
+      resetButton.disabled = true;
+      resetButton.title = "Изменений нет"; // NON-NLS
+    }
+  }
+</script>

@@ -1,0 +1,92 @@
+body {
+  margin: 0px;
+}
+
+.big-black-button {
+  background-color: black;
+  border: none;
+  
+  font-family: serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  
+  cursor: pointer;
+}
+
+.big-black-button:disabled {
+  
+  background-color: #888;
+  color: #ddd;
+  cursor: default;
+}
+
+.big-black-button.hovered {
+  background-color: #0089bd
+}
+
+.big-black-button.control-button {
+  width: 200px;
+  height: 44px;
+  
+  margin: 14px;
+  margin-right: -4px; /* magic value */
+}
+
+/******* input text *******/
+
+.field-text {
+  background-color: transparent;
+  outline: 0;
+  
+  border-width: 0 0 2px 0;
+  border-color: #ddd;
+  
+  font-family: monospace;
+  font-size: 13.5px;
+  color: black; 
+  
+  height: 18px;
+  padding-top: 6px;
+  padding-bottom: 2px;
+}
+
+input.field-text:focus {
+  border-color: #0089bd;
+}
+
+input.field-text.readonly {
+  border-color: transparent;
+}
+
+/******* status bar *******/
+
+.statusBar {
+  padding: 14px;
+  
+  font-size: 14px;
+}
+
+.statusBar .span-bold {
+  font-weight: bold;
+}
+
+.statusBar-none {
+  display: none;
+}
+
+.statusBar-success {
+  display: block;
+  background-color: #CFFFC1;
+}
+
+.statusBar-error {
+  display: block;
+  background-color: #FFE6C1;
+}
+
+.statusBar-info {
+  display: block;
+  background-color: #F4F5CF;
+}
+

@@ -1,0 +1,169 @@
+<%-- for correct cyrillic display while including as jsp --%>
+<%@ page contentType="text/html; charset=UTF-8" %>
+
+<div id="loginScreen" class="loginForm-hidden">
+  <div id="loginFrame">
+    <div id="loginStatusBar" class="statusBar statusBar-none"></div>
+    <form id="login-form">
+      <div class="row">
+        <input type="text" class="field-text" id="fieldUsername"
+             placeholder="логин"> <!-- NON-NLS -->
+      </div>
+      <div class="row">
+        <input type="password" class="field-text" id="fieldPassword"
+             placeholder="пароль"> <!-- NON-NLS -->
+      </div>
+      <div class="row">
+        <button type="submit" id="buttonLogin" class="big-black-button" 
+            onclick="onLoginButtonClick(); return false;">ВОЙТИ</button> <!-- NON-NLS -->
+      </div>
+    </form>
+  </div>
+</div>
+
+<style type="text/css">
+  #loginScreen {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    
+    background-color: rgb(40, 40, 40); /* fallback */
+    background-color: rgba(40, 40, 40, 0.85);
+  }
+  
+  #loginScreen #loginFrame {
+    position: fixed;
+    
+    left: 50%;
+    margin-left: -150px;
+    
+    top: 50%;
+    margin-top: -116px;
+    
+    text-align: center;
+    
+    background-color: white;
+  }
+  
+  #loginScreen.loginForm-raised {
+    display: block;
+  }
+  
+  #loginScreen.loginForm-hidden {
+    display: none;
+  }
+
+  #login-form {
+    padding: 40px 40px 20px 40px;
+    background-color: white;
+  }
+  
+  #login-form .row {
+    text-align: center;
+  }
+  
+  #login-form .row .field-text {
+    width: 200px;
+    margin-top: 15px;
+  }
+  
+  #login-form .big-black-button {
+    width: 200px;
+    height: 44px; 
+  
+    margin-top: 40px;
+  }
+</style>
+
+<script type="text/javascript">
+
+  function onLoginButtonClick() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "api/login", true);
+    xhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    var params = "username=" + document.getElementById("fieldUsername").value
+        + "&password=" + document.getElementById("fieldPassword").value;
+    xhttp.send(params);
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          onLoginSuccess();
+        } else {
+          onLoginFailure(this.status);
+        }
+      }
+    };
+  }
+  
+  function resetFields() {
+    fieldUsername = document.getElementById("fieldUsername");
+    fieldUsername.value = "";
+    fieldUsername.focus();
+    
+    fieldPassword = document.getElementById("fieldPassword");
+    fieldPassword.value = "";
+  }
+  
+  function onLoginSuccess() {
+
+    var buttonLogout = document.getElementsByClassName("page-header__button-logout")[0];
+    if (buttonLogout) {// the might be no logout button
+      buttonLogout.classList.remove("hidden");
+    }
+  
+    if (onLoginSuccessCallback0 != null) {
+      onLoginSuccessCallback0();
+    }
+  }
+  
+  function onLoginFailure(httpStatus) {
+    
+    // reset password field
+    fieldPassword = document.getElementById("fieldPassword");
+    fieldPassword.value = "";
+    fieldPassword.focus();
+    //
+    
+  
+    // show status
+    statusBar = document.getElementById("loginStatusBar");
+    statusBar.className = "statusBar statusBar-error";
+    
+    if (httpStatus == 400 || httpStatus == 401) {
+      statusBar.innerHTML = "Неверные данные"; // NON-NLS
+    } else {
+      statusBar.innerHTML = "Ошибка авторизации, попробуйте позже"; // NON-NLS
+    }
+  }
+  
+  var onLoginSuccessCallback0 = null; 
+  
+  function raiseLoginForm(onLoginSuccessCallback) {
+    document.getElementById("loginScreen").className = "loginForm-raised";
+    
+    var buttonLogout = document.getElementsByClassName("page-header__button-logout")[0];
+    if (buttonLogout) {// the might be no logout button
+      buttonLogout.classList.add("hidden");
+    }
+    
+    // init fields
+    fieldUsername = document.getElementById("fieldUsername");
+    fieldUsername.value = "";
+    fieldUsername.focus();
+    fieldPassword = document.getElementById("fieldPassword");
+    fieldPassword.value = "";
+    //    
+
+    statusBar = document.getElementById("loginStatusBar");
+    statusBar.className = "statusBar statusBar-info";
+    statusBar.innerHTML = "Вы — админ сервера?"; // NON-NLS
+
+    onLoginSuccessCallback0 = onLoginSuccessCallback;
+  } 
+  
+  function hideLoginForm() {
+    document.getElementById("loginScreen").className = "loginForm-hidden";
+  }
+</script>
