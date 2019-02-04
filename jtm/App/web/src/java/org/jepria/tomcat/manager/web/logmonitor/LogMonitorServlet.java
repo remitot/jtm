@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.LinkedList;
@@ -44,6 +46,24 @@ public class LogMonitorServlet extends HttpServlet {
   private static final int FRAME_SIZE = 200; //TODO extract?
   //TODO this value is assumed. But how to determine it? 
   private static final String LOG_FILE_READ_ENCODING = "UTF-8";
+  
+  
+  private static Reader readFile(HttpServletRequest request, String filename) 
+      throws FileNotFoundException {
+    
+    Environment environment = EnvironmentFactory.get(request);
+
+    File logsDirectory = environment.getLogsDirectory();
+
+    Path logFile = logsDirectory.toPath().resolve(filename);
+    
+    try {
+      return new InputStreamReader(new FileInputStream(logFile.toFile()), LOG_FILE_READ_ENCODING);
+    } catch (UnsupportedEncodingException e) {
+      // impossible
+      throw new RuntimeException(e);
+    }// TODO catch also non-readable file excepiton (e.g. permission denied)
+  }
   
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -105,8 +125,9 @@ public class LogMonitorServlet extends HttpServlet {
       if (anchorStr == null) {
         // anchor-undefined (initial) monitor request
       
-        try {
-          anchor = getAnchorLine(request, filename);
+        try (Reader fileReader = readFile(request, filename)){
+          anchor = getAnchorLine(fileReader);
+          
         } catch (FileNotFoundException e) {
           e.printStackTrace();
           
@@ -115,6 +136,9 @@ public class LogMonitorServlet extends HttpServlet {
           return;
         }
 
+        
+        
+        
         response.sendRedirect("?filename=" + filename 
             + "&anchor=" + anchor 
             + "&lines=" + lines);
@@ -138,10 +162,13 @@ public class LogMonitorServlet extends HttpServlet {
         
         final URL url = new URL(request.getRequestURL().toString());
         final String host = url.getHost() + (url.getPort() == 80 ? "" : (":" + url.getPort()));
-            
+           
+        
         final MonitorResultDto monitor;
-        try {
-          monitor = monitor(request, filename, anchor, lines);
+        
+        try (Reader fileReader = readFile(request, filename)) {
+          monitor = monitor(fileReader, anchor, lines);
+          
         } catch (FileNotFoundException e) {
           e.printStackTrace();
           
@@ -149,7 +176,7 @@ public class LogMonitorServlet extends HttpServlet {
           response.flushBuffer();
           return;
         }
-        // TODO handle Exceptions
+        
         
         final String loadMoreLinesUrl = request.getRequestURL().toString()
             + "?filename=" + filename
@@ -192,27 +219,17 @@ public class LogMonitorServlet extends HttpServlet {
     }
   }
   
-  public static int getAnchorLine(HttpServletRequest request,
-      String filename) throws FileNotFoundException {
+  public static int getAnchorLine(Reader fileReader) {
     
     try {
 
-      Environment environment = EnvironmentFactory.get(request);
-
-      File logsDirectory = environment.getLogsDirectory();
-
-      Path logFile = logsDirectory.toPath().resolve(filename);
-
       int lineCount = 0;
 
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile.toFile()), LOG_FILE_READ_ENCODING))) {
+      try (BufferedReader reader = new BufferedReader(fileReader)) {
         while (reader.readLine() != null) {
           lineCount++;
         }
-      } catch (FileNotFoundException e) {
-        throw e;
-      }// TODO catch also non-readable file excepiton
-
+      }
       
       return lineCount > 0 ? lineCount - 1 : 0;
 
@@ -224,27 +241,19 @@ public class LogMonitorServlet extends HttpServlet {
   }
   
   /**
-   * @param filename
+   * @param log file reader
    * @param anchor index of the anchor line in the file 
    * (index of the last line loaded on the {@link #initMonitor} request), from 0 
    * @param lines > 0, total number of lines to load (counting back from the anchor, including it)
    * @return
    */
-  public static MonitorResultDto monitor(HttpServletRequest request,
-      String filename, int anchor, int lines) 
-          throws FileNotFoundException {
+  public static MonitorResultDto monitor(Reader fileReader, int anchor, int lines) {
 
     if (lines < 1) {
       throw new IllegalArgumentException();
     }
     
     try {
-
-      Environment environment = EnvironmentFactory.get(request);
-
-      File logsDirectory = environment.getLogsDirectory();
-
-      Path logFile = logsDirectory.toPath().resolve(filename);
 
       boolean fileBeginReached = true;
       LinkedList<String> contentLinesTop = new LinkedList<>();
@@ -255,7 +264,7 @@ public class LogMonitorServlet extends HttpServlet {
       
       int lineIndex = 0;
       
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile.toFile()), LOG_FILE_READ_ENCODING))) {
+      try (BufferedReader reader = new BufferedReader(fileReader)) {
         String line;
         while ((line = reader.readLine()) != null) {
           
@@ -287,11 +296,7 @@ public class LogMonitorServlet extends HttpServlet {
         if (contentLinesBottom.size() > 1) {
           charCount += contentLinesBottom.size() - 1;
         }
-        
-        
-      } catch (FileNotFoundException e) {
-        throw e;
-      }// TODO catch also non-readable file excepiton
+      }
 
       
       // check load limit

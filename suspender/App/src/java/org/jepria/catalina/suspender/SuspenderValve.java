@@ -23,6 +23,7 @@ import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.ValveBase;
+import org.jepria.catalina.suspender.ContextWrapper.GetContextListener;
 
 public class SuspenderValve extends ValveBase {
 
@@ -93,6 +94,7 @@ public class SuspenderValve extends ValveBase {
     this.startStr = start;
   }
 
+  private boolean watchCrossContext = true;
   
   @Override
   public void invoke(Request request, Response response) throws IOException, ServletException {
@@ -169,6 +171,21 @@ public class SuspenderValve extends ValveBase {
         
       }
     }
+
+    
+    if (watchCrossContext) {
+      
+      GetContextListener getContextListener = new GetContextListener() {
+        @Override
+        public void onGetContext(String context) {
+          System.out.println("/// implicit context requested: " + context);
+          // TODO stopped here
+        }
+      };
+      
+      request.setContext(new ContextWrapper(request.getContext(), getContextListener));
+    }
+    
     
     getNext().invoke(request, response);
   }

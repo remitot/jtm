@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Properties;
@@ -33,25 +32,25 @@ public class BasicEnvironment implements Environment {
   
   /**
    * @param request
-   * @return a path to tomcat conf folder
+   * @return tomcat 'conf' directory
    */
-  protected Path getConfPath(HttpServletRequest request) {
-    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf");
+  protected File getConfDirectory(HttpServletRequest request) {
+    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf").toFile();
   }
   
   /**
    * @param request
-   * @return a path to tomcat logs folder
+   * @return tomcat 'logs' directory
    */
-  protected Path getLogsPath(HttpServletRequest request) {
-    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("logs");
+  protected File getLogsDirectory(HttpServletRequest request) {
+    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("logs").toFile();
   }
   
   public BasicEnvironment(HttpServletRequest request) {
-    Path confPath = getConfPath(request);
+    File confDir = getConfDirectory(request);
     
-    contextXml = confPath.resolve("context.xml").toFile();
-    serverXml = confPath.resolve("server.xml").toFile();
+    contextXml = confDir.toPath().resolve("context.xml").toFile();
+    serverXml = confDir.toPath().resolve("server.xml").toFile();
     
     contextResourceDefaultAttrs = new File(request.getServletContext().getRealPath(
         "/WEB-INF/jdbc_connection_default_attrs/context_Resource.default_attrs.properties"));
@@ -60,7 +59,7 @@ public class BasicEnvironment implements Environment {
     serverResourceDefaultAttrs = new File(request.getServletContext().getRealPath(
         "/WEB-INF/jdbc_connection_default_attrs/server_Resource.default_attrs.properties"));
     
-    logsDirectory = getLogsPath(request).toFile();
+    logsDirectory = getLogsDirectory(request);
   }
   
   @Override
