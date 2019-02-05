@@ -65,6 +65,7 @@
     <outofdate>
       <sourcefiles>
         <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
+      	<fileset file="${WEB-COMMON_LIB}" />
       	<fileset file="src/html/**/" />
         <fileset file="src/resources/**/" />
       </sourcefiles>
@@ -87,6 +88,8 @@
           <fileset file="src/resources/jdbc_connection_default_attrs/**/" />
         </copy>
         
+      	<unzip src="${WEB-COMMON_LIB}" dest="temp-war"/>	
+      	
         <copy todir="temp-war">
           <fileset file="src/html/**/" />
         </copy>
