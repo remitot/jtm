@@ -1,14 +1,13 @@
-package org.jepria.tomcat.manager.web.jdbc.dto;
+package org.jepria.ahttpd.manager.web.modjk.dto;
 
 public class ModRequestBodyDto {
   private String action;
   
   /**
-   * Reference to the {@link #data#location} for external {@link ConnectionDto} identification (e.g. in modification requests)
+   * Reference to the {@link #data#location} for external {@link ModjkDto} identification (e.g. in modification requests)
    */
   private String location;
-  
-  private ConnectionDto data;
+  private ModjkDto data;
   
   public ModRequestBodyDto() {
   }
@@ -29,11 +28,11 @@ public class ModRequestBodyDto {
     this.location = location;
   }
 
-  public ConnectionDto getData() {
+  public ModjkDto getData() {
     return data;
   }
 
-  public void setData(ConnectionDto data) {
+  public void setData(ModjkDto data) {
     this.data = data;
   }
   

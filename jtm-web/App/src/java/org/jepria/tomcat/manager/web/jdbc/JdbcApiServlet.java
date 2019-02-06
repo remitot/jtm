@@ -332,7 +332,7 @@ public class JdbcApiServlet extends HttpServlet {
 
         if (connection == null) {
 
-          ret = ModStatus.errConnectionNotFoundByLocation(location);
+          ret = ModStatus.errItemNotFoundByLocation(location);
 
         } else {
           ConnectionDto connectionDto = mreq.getData();
@@ -392,7 +392,7 @@ public class JdbcApiServlet extends HttpServlet {
 
         if (connection == null) {
 
-          ret = ModStatus.errConnectionNotFoundByLocation(location);
+          ret = ModStatus.errItemNotFoundByLocation(location);
 
         } else {
           tomcatConf.delete(location);

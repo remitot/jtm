@@ -2,6 +2,9 @@ package org.jepria.tomcat.manager.web.jdbc.dto;
 
 public class ConnectionDto {
   
+  /**
+   * Location of the connection in a configuration file
+   */
   private String location;
   
   private Boolean active;
