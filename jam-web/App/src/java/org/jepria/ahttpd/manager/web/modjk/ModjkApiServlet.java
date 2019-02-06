@@ -1,13 +1,12 @@
 package org.jepria.ahttpd.manager.web.modjk;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,13 +19,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.ahttpd.manager.conf.modjk.AhttpdConfModjk;
+import org.jepria.ahttpd.manager.core.modjk.AhttpdConfModjk;
+import org.jepria.ahttpd.manager.core.modjk.Binding;
 import org.jepria.ahttpd.manager.web.Environment;
 import org.jepria.ahttpd.manager.web.EnvironmentFactory;
 import org.jepria.ahttpd.manager.web.modjk.dto.ModRequestBodyDto;
 import org.jepria.ahttpd.manager.web.modjk.dto.ModRequestDto;
-import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
-import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.ahttpd.manager.web.modjk.dto.ModjkDto;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -47,22 +46,22 @@ public class ModjkApiServlet extends HttpServlet {
       
       try {
         
-        List<Map<String, Object>> connectionDtos = new ArrayList<>();
-        Map<String, Object> m = new HashMap<>();
-        m.put("appname", "JepriaShowcase");m.put("instance", "vsmlapprfid1:8080");m.put("active", true);m.put("location", "loc-1");
-        connectionDtos.add(m);
-        m = new HashMap<>();
-        m.put("appname", "Application");m.put("instance", "vsmlapprfid1:8081");m.put("active", true);m.put("location", "loc-2");
-        connectionDtos.add(m);
-        m = new HashMap<>();
-        m.put("appname", "SsoUi_01");m.put("instance", "vsmlapprfid1:8080");m.put("active", false);m.put("location", "loc-3");
-        connectionDtos.add(m);
+        Environment environment = EnvironmentFactory.get(req);
         
+        AhttpdConfModjk ahttpdConf = new AhttpdConfModjk(environment.getModjkConfInputStream(), 
+            environment.getWorkerPropertiesInputStream());
+        
+        List<ModjkDto> bindings = getBindings(ahttpdConf);
+
         Map<String, Object> responseJsonMap = new HashMap<>();
-        responseJsonMap.put("_list", connectionDtos);
+        responseJsonMap.put("_list", bindings);
         
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
+        
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.flushBuffer();
+        return;
         
       } catch (Throwable e) {
         e.printStackTrace();
@@ -73,9 +72,6 @@ public class ModjkApiServlet extends HttpServlet {
         return;
       }
 
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.flushBuffer();
-      
     } else {
       
       // TODO set content type for the error case?
@@ -245,30 +241,16 @@ public class ModjkApiServlet extends HttpServlet {
       
       
       if (confModified) {
-        
-        // because the new binding list needed in response, do a fake save (to a temporary storage) and get after-save connections from there
-        ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
-        ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
-        
-        ahttpdConf.save(contextXmlBaos, serverXmlBaos);
-        
-        TomcatConfJdbc tomcatConfAfterSave = new TomcatConfJdbc(
-            new ByteArrayInputStream(contextXmlBaos.toByteArray()),
-            new ByteArrayInputStream(serverXmlBaos.toByteArray()));
-        
-        List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
-        responseJsonMap.put("_list", connectionDtos);
-        
-        saveAndWriteResponse(ahttpdConf, environment, responseJsonMap, resp);
-        
-      } else {
-        // no conf save, just write response
-        List<ConnectionDto> connectionDtos = getConnections(ahttpdConf);
-        responseJsonMap.put("_list", connectionDtos);
-        
-        try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
-          new Gson().toJson(responseJsonMap, osw);
-        }
+        ahttpdConf.save(environment.getModjkConfOutputStream(), environment.getWorkerPropertiesOutputStream());
+      }
+      
+      
+      // no conf save, just write response
+      List<ModjkDto> bindingDtos = getBindings(ahttpdConf);
+      responseJsonMap.put("_list", bindingDtos);
+      
+      try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
+        new Gson().toJson(responseJsonMap, osw);
       }
       
       resp.setStatus(HttpServletResponse.SC_OK);
@@ -284,5 +266,180 @@ public class ModjkApiServlet extends HttpServlet {
       resp.flushBuffer();
       return;
     }
+  }
+  
+  private static ModStatus updateBinding(
+      ModRequestBodyDto mreq, AhttpdConfModjk ahttpdConf) {
+    
+    ModStatus ret;
+    
+    try {
+      String location = mreq.getLocation();
+
+      if (location == null) {
+
+        ret = ModStatus.errLocationIsEmpty();
+            
+      } else {
+
+        Map<String, Binding> bindings = ahttpdConf.getBindings();
+        Binding binding = bindings.get(location);
+
+        if (binding == null) {
+
+          ret = ModStatus.errItemNotFoundByLocation(location);
+
+        } else {
+          ModjkDto bindingDto = mreq.getData();
+
+          if (bindingDto.getActive() != null) {
+            if (!binding.isActive() && bindingDto.getActive()) {
+              binding.onActivate();
+            } else if (binding.isActive() && !bindingDto.getActive()) {
+              binding.onDeactivate();
+            }
+          }
+          
+          if (bindingDto.getAppname() != null) {
+            binding.setAppname(bindingDto.getAppname());
+          }
+          if (bindingDto.getInstance() != null) {
+            binding.setInstance(bindingDto.getInstance());
+          }
+
+          ret = ModStatus.success();
+          
+        }
+      }
+    } catch (Throwable e) {
+      e.printStackTrace();
+      ret = ModStatus.errInternalError();
+    }
+    
+    return ret;
+  }
+  
+  private static ModStatus deleteBinding(
+      ModRequestBodyDto mreq, AhttpdConfModjk ahttpdConf) {
+    
+    ModStatus ret;
+
+    try {
+      String location = mreq.getLocation();
+
+      if (location == null) {
+
+        ret = ModStatus.errLocationIsEmpty();
+
+      } else {
+
+        Map<String, Binding> bindings = ahttpdConf.getBindings();
+        Binding binding = bindings.get(location);
+
+        if (binding == null) {
+
+          ret = ModStatus.errItemNotFoundByLocation(location);
+
+        } else {
+          ahttpdConf.delete(location);
+
+          ret = ModStatus.success();
+        }
+      }
+    } catch (Throwable e) {
+      e.printStackTrace();
+      ret = ModStatus.errInternalError();
+    }
+    
+    return ret;
+  }
+  
+  private static ModStatus createBinding(
+      ModRequestBodyDto mreq, AhttpdConfModjk ahttpdConf) {
+    
+    ModStatus ret;
+
+    try {
+      ModjkDto bindingDto = mreq.getData();
+
+      // check mandatory fields of a new connection
+      List<String> emptyFields = getEmptyMandatoryFields(bindingDto);
+
+      if (!emptyFields.isEmpty()) {
+
+        ret = ModStatus.errMandatoryFieldsEmpty(emptyFields);
+
+      } else {
+
+        Binding newBinding = ahttpdConf.create();
+
+        newBinding.setAppname(bindingDto.getAppname());
+        newBinding.setInstance(bindingDto.getInstance());
+
+        ret = ModStatus.success();
+      }
+    } catch (Throwable e) {
+      e.printStackTrace();
+      ret = ModStatus.errInternalError();
+    }
+    
+    return ret;
+  }
+  
+  /**
+   * 
+   * @param connection
+   * @return or empty list
+   */
+  private static List<String> getEmptyMandatoryFields(ModjkDto bindingDto) {
+    List<String> emptyFields = new ArrayList<>();
+
+    if (bindingDto.getAppname() == null) {
+      emptyFields.add("appname");
+    }
+    if (bindingDto.getInstance() == null) {
+      emptyFields.add("instance");
+    }
+
+    return emptyFields;
+  }
+  
+  private static List<ModjkDto> getBindings(AhttpdConfModjk ahttpdConf) {
+    Map<String, Binding> bindings = ahttpdConf.getBindings();
+
+    // list all bindings
+    return bindings.entrySet().stream().map(
+        entry -> bindingToDto(entry.getKey(), entry.getValue()))
+        .sorted(bindingSorter()).collect(Collectors.toList());
+  }
+  
+  private static ModjkDto bindingToDto(String location, Binding binding) {
+    ModjkDto dto = new ModjkDto();
+    dto.setActive(binding.isActive());
+    dto.setLocation(location);
+    dto.setAppname(binding.getAppname());
+    dto.setInstance(binding.getInstance());
+    return dto;
+  }
+  
+  private static Comparator<ModjkDto> bindingSorter() {
+    return new Comparator<ModjkDto>() {
+      @Override
+      public int compare(ModjkDto o1, ModjkDto o2) {
+        int appnameCmp = o1.getAppname().compareTo(o2.getAppname());
+        if (appnameCmp == 0) {
+          // the active is the first
+          if (o1.getActive() && !o2.getActive()) {
+            return -1;
+          } else if (o2.getActive() && !o1.getActive()) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } else {
+          return appnameCmp;
+        }
+      }
+    };
   }
 }
