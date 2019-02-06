@@ -159,6 +159,6 @@
   
   <error-page>
     <error-code>401</error-code>
-    <location>/WEB-INF/security/error.jsp</location>
+    <location>/WEB-INF/error.jsp</location>
   </error-page>
 </web-app>

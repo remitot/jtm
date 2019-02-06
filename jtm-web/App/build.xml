@@ -95,7 +95,7 @@
         </copy>
         
         <copy todir="temp-war/WEB-INF">
-          <fileset file="src/resources/web/web.xml"/>
+          <fileset dir="src/resources/web"/>
       	</copy>
         
         <copy todir="temp-war/META-INF">
