@@ -89,134 +89,133 @@ public class LogMonitorServlet extends HttpServlet {
       response.flushBuffer();
       return;
       
-    } else {
-      final String anchorStr = request.getParameter("anchor");
-      
-      //////////////////////////////  
-      
-      // 'lines' request parameter
-      final int lines;
-      String linesStr = request.getParameter("lines");
-      if (linesStr != null) {
-        try {
-          lines = Integer.parseInt(linesStr);
-        } catch (NumberFormatException e) {
-          e.printStackTrace();
-          
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-          response.flushBuffer();
-          return;
-        }
+    }
+    
+    //////////////////////////////  
+    
+    // 'lines' request parameter
+    final int lines;
+    String linesStr = request.getParameter("lines");
+    if (linesStr != null) {
+      try {
+        lines = Integer.parseInt(linesStr);
+      } catch (NumberFormatException e) {
+        e.printStackTrace();
         
-        if (lines < 1) {
-          
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-          response.flushBuffer();
-          return;
-        }
-      } else {
-        lines = FRAME_SIZE;
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        response.flushBuffer();
+        return;
+      }
+      
+      if (lines < 1) {
+        
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        response.flushBuffer();
+        return;
+      }
+    } else {
+      lines = FRAME_SIZE;
+    }
+    
+    
+    //////////////////////////////
+
+    final String anchorStr = request.getParameter("anchor");
+    final int anchor;  
+    if (anchorStr == null) {
+      // anchor-undefined (initial) monitor request
+    
+      try (Reader fileReader = readFile(request, filename)){
+        anchor = getAnchorLine(fileReader);
+        
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+        
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        response.flushBuffer();
+        return;
+      }
+
+      
+      
+      
+      response.sendRedirect("?filename=" + filename 
+          + "&anchor=" + anchor 
+          + "&lines=" + lines);
+      response.flushBuffer();
+      return;
+      
+    } else {
+      // anchor-defined (repetitive) monitor request
+      
+      try {
+        anchor = Integer.parseInt(anchorStr);//TODO validate anchor value (int range)
+      } catch (NumberFormatException e) {
+        e.printStackTrace();
+        
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        response.flushBuffer();
+        return;
       }
       
       
-      //////////////////////////////
-
-      final int anchor;  
-      if (anchorStr == null) {
-        // anchor-undefined (initial) monitor request
       
-        try (Reader fileReader = readFile(request, filename)){
-          anchor = getAnchorLine(fileReader);
-          
-        } catch (FileNotFoundException e) {
-          e.printStackTrace();
-          
-          response.sendError(HttpServletResponse.SC_NOT_FOUND);
-          response.flushBuffer();
-          return;
-        }
-
+      final URL url = new URL(request.getRequestURL().toString());
+      final String host = url.getHost() + (url.getPort() == 80 ? "" : (":" + url.getPort()));
+         
+      
+      final MonitorResultDto monitor;
+      
+      try (Reader fileReader = readFile(request, filename)) {
+        monitor = monitor(fileReader, anchor, lines);
         
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
         
-        
-        response.sendRedirect("?filename=" + filename 
-            + "&anchor=" + anchor 
-            + "&lines=" + lines);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
         response.flushBuffer();
         return;
+      }
+      
+      
+      final String loadMoreLinesUrl = request.getRequestURL().toString()
+          + "?filename=" + filename
+          + "&anchor=" + anchor
+          + "&lines=" + (lines + FRAME_SIZE);
+
+      final String resetAnchorUrl;
+      if (monitor.contentLinesBottom != null && monitor.contentLinesBottom.size() > 0) {
         
-      } else {
-        // anchor-defined (repetitive) monitor request
+        // increase by number of bottom lines
+        final int newAnchor = anchor + monitor.contentLinesBottom.size();
+        final int newLines = RESET_LINES_ON_ANCHOR_RESET ? FRAME_SIZE : (lines + monitor.contentLinesBottom.size()); 
         
-        try {
-          anchor = Integer.parseInt(anchorStr);//TODO validate anchor value (int range)
-        } catch (NumberFormatException e) {
-          e.printStackTrace();
-          
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-          response.flushBuffer();
-          return;
-        }
-        
-        
-        
-        final URL url = new URL(request.getRequestURL().toString());
-        final String host = url.getHost() + (url.getPort() == 80 ? "" : (":" + url.getPort()));
-           
-        
-        final MonitorResultDto monitor;
-        
-        try (Reader fileReader = readFile(request, filename)) {
-          monitor = monitor(fileReader, anchor, lines);
-          
-        } catch (FileNotFoundException e) {
-          e.printStackTrace();
-          
-          response.sendError(HttpServletResponse.SC_NOT_FOUND);
-          response.flushBuffer();
-          return;
-        }
-        
-        
-        final String loadMoreLinesUrl = request.getRequestURL().toString()
+        resetAnchorUrl = request.getRequestURL().toString()
             + "?filename=" + filename
-            + "&anchor=" + anchor
-            + "&lines=" + (lines + FRAME_SIZE);
+            + "&anchor=" + newAnchor
+            + "&lines=" + newLines;
+      } else {
+        resetAnchorUrl = null;
+      }
+      
 
-        final String resetAnchorUrl;
-        if (monitor.contentLinesBottom != null && monitor.contentLinesBottom.size() > 0) {
-          
-          // increase by number of bottom lines
-          final int newAnchor = anchor + monitor.contentLinesBottom.size();
-          final int newLines = RESET_LINES_ON_ANCHOR_RESET ? FRAME_SIZE : (lines + monitor.contentLinesBottom.size()); 
-          
-          resetAnchorUrl = request.getRequestURL().toString()
-              + "?filename=" + filename
-              + "&anchor=" + newAnchor
-              + "&lines=" + newLines;
-        } else {
-          resetAnchorUrl = null;
-        }
-        
-
-        // set gui params for including jsp
-        MonitorGuiParams monitorGuiParams = new MonitorGuiParams(
-            filename, 
-            host, 
-            monitor.contentLinesTop, 
-            monitor.contentLinesBottom,
-            monitor.fileBeginReached, 
-            loadMoreLinesUrl, 
-            resetAnchorUrl);
-        
-        request.setAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams", 
-            monitorGuiParams);
-        
-        request.getRequestDispatcher("/gui/log-monitor/log-monitor.jsp").include(request, response);
-        
-        return;
-      } 
-    }
+      // set gui params for including jsp
+      MonitorGuiParams monitorGuiParams = new MonitorGuiParams(
+          filename, 
+          host, 
+          monitor.contentLinesTop, 
+          monitor.contentLinesBottom,
+          monitor.fileBeginReached, 
+          loadMoreLinesUrl, 
+          resetAnchorUrl);
+      
+      request.setAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams", 
+          monitorGuiParams);
+      
+      request.getRequestDispatcher("/gui/log-monitor/log-monitor.jsp").include(request, response);
+      
+      return;
+    } 
   }
   
   public static int getAnchorLine(Reader fileReader) {
