@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.web.port;
+package org.jepria.tomcat.manager.web.port.dto;
 
 public class PortDto {
   private String type;

@@ -28,6 +28,9 @@ import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
