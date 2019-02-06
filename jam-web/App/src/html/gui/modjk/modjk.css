@@ -1,6 +1,6 @@
-#table div.cell.column-pattern {
+#table div.cell.column-appname {
   width: 20%;
 }
-#table div.cell.column-worker {
+#table div.cell.column-instance {
   width: 30%;
 }

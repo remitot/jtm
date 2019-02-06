@@ -21,14 +21,14 @@ function createHeader() {
   div = document.createElement("div");
   div.classList.add("flexColumns");
   
-  cell = createCell(div, "column-pattern");
+  cell = createCell(div, "column-appname");
   label = document.createElement("label");
-  label.innerHTML = "Pattern";
+  label.innerHTML = "Application";
   cell.appendChild(label);
   
-  cell = createCell(div, "column-worker");
+  cell = createCell(div, "column-instance");
   label = document.createElement("label");
-  label.innerHTML = "Worker";
+  label.innerHTML = "Tomcat instance";
   cell.appendChild(label);
   
   row.appendChild(div);
@@ -61,16 +61,16 @@ function createRow(listItem) {
   div = document.createElement("div");
   div.classList.add("flexColumns");
   
-  cell = createCell(div, "column-pattern");
+  cell = createCell(div, "column-appname");
   cell.classList.add("cell-field");
-  field = addField(cell, "pattern", listItem.pattern, null);
-  field.setAttribute("value-original", listItem.pattern);
+  field = addField(cell, "appname", listItem.appname, null);
+  field.setAttribute("value-original", listItem.appname);
   field.tabIndex = tabindex0++;
   
-  cell = createCell(div, "column-worker");
+  cell = createCell(div, "column-instance");
   cell.classList.add("cell-field");
-  field = addField(cell, "worker", listItem.worker, null);
-  field.setAttribute("value-original", listItem.worker);
+  field = addField(cell, "instance", listItem.instance, null);
+  field.setAttribute("value-original", listItem.instance);
   field.tabIndex = tabindex0++;
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
@@ -110,15 +110,15 @@ function createRowCreate() {
   flexColumns = document.createElement("div");
   flexColumns.classList.add("flexColumns");
   
-  cell = createCell(flexColumns, "column-pattern");
+  cell = createCell(flexColumns, "column-appname");
   cell.classList.add("cell-field");
-  field = addField(cell, "pattern", "", "/Application");
+  field = addField(cell, "appname", "", "Application");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
  
-  cell = createCell(flexColumns, "column-worker");
+  cell = createCell(flexColumns, "column-instance");
   cell.classList.add("cell-field");
-  field = addField(cell, "worker", "", "tomcatworker1");
+  field = addField(cell, "instance", "", "tomcat-server:8080");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   

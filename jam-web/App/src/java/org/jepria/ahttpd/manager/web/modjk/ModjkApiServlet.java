@@ -32,13 +32,13 @@ public class ModjkApiServlet extends HttpServlet {
         
         List<Map<String, Object>> connectionDtos = new ArrayList<>();
         Map<String, Object> m = new HashMap<>();
-        m.put("pattern", "App1");m.put("worker", "Server1");m.put("active", true);m.put("location", "loc-1");
+        m.put("appname", "JepriaShowcase");m.put("instance", "vsmlapprfid1:8080");m.put("active", true);m.put("location", "loc-1");
         connectionDtos.add(m);
         m = new HashMap<>();
-        m.put("pattern", "App2");m.put("worker", "Server2");m.put("active", true);m.put("location", "loc-2");
+        m.put("appname", "Application");m.put("instance", "vsmlapprfid1:8081");m.put("active", true);m.put("location", "loc-2");
         connectionDtos.add(m);
         m = new HashMap<>();
-        m.put("pattern", "App3");m.put("worker", "Server3");m.put("active", false);m.put("location", "loc-3");
+        m.put("appname", "SsoUi_01");m.put("instance", "vsmlapprfid1:8080");m.put("active", false);m.put("location", "loc-3");
         connectionDtos.add(m);
         
         Map<String, Object> responseJsonMap = new HashMap<>();
