@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JAM API</title>
+  </head>
+  <body>
+    <h1>API</h1>
+    <h2>General</h2>
+    <h3>Login</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>POST</code> or <code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/login</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td><code>username=<i>username</i></code>, <code>password=<i>password</i></code></td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response</td>
+          <td>empty body
+            <br/><br/>
+            If login succeeds,
+            the 200 status will be returned.
+            <br/><br/>
+            If either <code>username</code> or <code>password</code> request parameter is empty, 
+            the 400 status will be returned.
+            <br/><br/>
+            If authorization fails, 
+            the 401 status will be returned.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+        </tr>
+        <tr>
+          <td><code>/api/login?username=admin&password=admin</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Logout</h3>
+    <table border="1">
+      <tbody>
+        <tr>
+          <td>Method</td>
+          <td><code>POST</code> or <code>GET</code></td>
+        </tr>
+        <tr>
+          <td>Url</td>
+          <td><code>/api/logout</code></td>
+        </tr>
+        <tr>
+          <td>Request params</td>
+          <td>none</td>
+        </tr>
+        <tr>
+          <td>Request body</td>
+          <td>empty body</td>
+        </tr>
+        <tr>
+          <td>Response</td>
+          <td>empty body
+            <br/><br/>
+            If logout succeeds,
+            the 200 status will be returned.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>Example:</h4>
+    <table border="1">
+      <tbody>
+        <tr>
+          <th>Request</th>
+        </tr>
+        <tr>
+          <td><code>/api/logout</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
+

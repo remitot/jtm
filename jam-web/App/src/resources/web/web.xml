@@ -1,0 +1,68 @@
+<web-app>
+
+  <session-config>
+    <session-timeout>10</session-timeout>
+  </session-config>
+
+  <servlet>
+    <servlet-name>LoginServlet</servlet-name>
+    <servlet-class>org.jepria.ahttpd.manager.web.LoginServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LoginServlet</servlet-name>
+    <url-pattern>/api/login/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>LogoutServlet</servlet-name>
+    <servlet-class>org.jepria.ahttpd.manager.web.LogoutServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LogoutServlet</servlet-name>
+    <url-pattern>/api/logout/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ApiDocs</servlet-name>
+    <jsp-file>/api-docs.html</jsp-file>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ApiDocs</servlet-name>
+    <url-pattern>/api</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Protected resources</web-resource-name>
+      <url-pattern>/api/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>manager-gui</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Public resources</web-resource-name>
+      <url-pattern>/api</url-pattern><!-- ApiDocs -->
+      <url-pattern>/api/login/*</url-pattern>
+      <url-pattern>/api/logout/*</url-pattern>
+      <url-pattern>/gui/*</url-pattern>
+    </web-resource-collection>
+  </security-constraint>
+
+  <login-config>
+    <auth-method>FORM</auth-method>
+    <form-login-config>
+      <form-login-page>/WEB-INF/security/login.jsp</form-login-page>
+      <form-error-page>/WEB-INF/security/login.jsp</form-error-page>
+    </form-login-config>
+  </login-config>
+  
+</web-app>
