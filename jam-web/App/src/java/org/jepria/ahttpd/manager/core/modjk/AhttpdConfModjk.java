@@ -5,13 +5,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.jepria.ahttpd.manager.core.TransactionException;
 
@@ -19,7 +15,7 @@ public class AhttpdConfModjk {
   
   protected final List<StringBuilder> modjkConfLines;
   
-  protected final List<String> workerPropertiesLines;
+  protected final List<StringBuilder> workerPropertiesLines;
   
   ///////////////// Methods are analogous to TomcatConfJdbc ///////////////
   
@@ -40,7 +36,7 @@ public class AhttpdConfModjk {
       workerPropertiesLines = new ArrayList<>();
       try (Scanner sc = new Scanner(workerPropertiesInputStream0)) {
         while (sc.hasNextLine()) {
-          workerPropertiesLines.add(sc.nextLine());
+          workerPropertiesLines.add(new StringBuilder(sc.nextLine()));
         }
       }
       
@@ -67,108 +63,90 @@ public class AhttpdConfModjk {
    */
   protected Map<String, Binding> getBaseBindings() {
     if (baseBindings == null) {
-      initBaseBindings();
+      initBindings();
     }
     
     return baseBindings;
   }
   
-  private class JkMount {
-    public JkMount(boolean commented, String workerName, int lineNumber, StringBuilder line) {
-      this.commented = commented;
-      this.workerName = workerName;
-      this.lineNumber = lineNumber;
-      this.line = line;
-    }
-    
-    public final boolean commented;
-    
-    public final String workerName;
-    /**
-     * The number of line in a file
-     */
-    public final int lineNumber;
-    /**
-     * The line itself
-     */
-    public final StringBuilder line;
-  }
   
   /**
    * Lazily initialize (or re-initialize) {@link #baseBindings} map
    */
-  private void initBaseBindings() {
+  private void initBindings() {
     
-    Map<String, Binding> baseBindings0 = new HashMap<>();
-    
+    List<JkMountParser.JkMount> jkMounts = JkMountParser.parse(modjkConfLines.iterator());
+    List<WorkerParser.Worker> workers = WorkerParser.parse(workerPropertiesLines.iterator());
 
-    // collect JkMounts to '/Application'
-    Map<String, JkMount> appRootJkMounts = new HashMap<>();
-    // collect JkMounts to '/Application/*'
-    Map<String, JkMount> appAsterJkMounts = new HashMap<>();
-    
-    
-    for (int i = 0; i < modjkConfLines.size(); i++) {
-      final StringBuilder line = modjkConfLines.get(i);
+    Map<String, Binding> bindings0 = new HashMap<>();
+    for (JkMountParser.JkMount jkMount: jkMounts) {
+      String workerName = jkMount.workerName;
       
-      Matcher m = Pattern.compile("\\s*(#*)\\s*JkMount\\s+([^\\s]+)\\s+([^\\s]+)\\s*").matcher(line);
-      if (m.matches()) {
-        final boolean commented = m.group(1).length() > 0;
-        final String urlPattern = m.group(2);
-        final String workerName = m.group(3);
-        
-        if (urlPattern.startsWith("/")) {
-          if (urlPattern.endsWith("/*")) {
-            appAsterJkMounts.put(urlPattern.substring(1, urlPattern.length() - 2), new JkMount(commented, workerName, i, line));
-          } else {
-            appRootJkMounts.put(urlPattern.substring(1), new JkMount(commented, workerName, i, line));
-          }
+      WorkerParser.Worker worker1 = null;
+      for (WorkerParser.Worker worker0: workers) {
+        if (worker0.name.equals(workerName)) {
+          worker1 = worker0;
+          break;
         }
       }
-    }
-    
-    
-    // filter only JkMounts with both application root and application asterisk mounted to the same worker
-    Set<String> rootAndAsterApps = new HashSet<>(appRootJkMounts.keySet());
-    rootAndAsterApps.retainAll(appAsterJkMounts.keySet());
-    for (String rootAndAsterApp: rootAndAsterApps) {
-      JkMount rootMount = appRootJkMounts.get(rootAndAsterApp);
-      JkMount asterMount = appAsterJkMounts.get(rootAndAsterApp);
-      if (rootMount.workerName.equals(asterMount.workerName) && rootMount.commented == asterMount.commented) {
+      
+      final WorkerParser.Worker worker = worker1;
+      
+      if (worker != null) {
+        String location = jkMount.rootLineNumber + "_" + jkMount.asterLineNumber 
+            + "__" + worker.typeLineNumber + "_" + worker.hostLineNumber + "_" + worker.portLineNumber;
         
-        String location = rootMount.lineNumber + "_" + asterMount.lineNumber;
-        
-        baseBindings0.put(location, new Binding() {
-          @Override
-          public void setInstance(String instance) {
-          }
-          @Override
-          public void setAppname(String appname) {
-          }
-          @Override
-          public void onDeactivate() {
-          }
-          @Override
-          public void onActivate() {
-          }
+        Binding binding = new Binding() {
+
           @Override
           public boolean isActive() {
-            return true;
+            return !jkMount.commented && !worker.commented;
           }
+
           @Override
-          public String getInstance() {
-            return location + ": " + rootMount.workerName;
+          public void onActivate() {
+            // TODO Auto-generated method stub
+            
           }
+
+          @Override
+          public void onDeactivate() {
+            // TODO Auto-generated method stub
+            
+          }
+
           @Override
           public String getAppname() {
-            return rootAndAsterApp;
+            return jkMount.application;
           }
-        });
+
+          @Override
+          public void setAppname(String appname) {
+            // TODO Auto-generated method stub
+            
+          }
+
+          @Override
+          public String getInstance() {
+            return worker.host + ":" + worker.port;
+          }
+
+          @Override
+          public void setInstance(String instance) {
+            // TODO Auto-generated method stub
+            
+          }
+          
+        };
+        
+        bindings0.put(location, binding);
       }
     }
     
-    this.baseBindings = Collections.unmodifiableMap(baseBindings0);
+    
+    this.baseBindings = Collections.unmodifiableMap(bindings0);
   }
+  
   
   public void delete(String location) {
     
