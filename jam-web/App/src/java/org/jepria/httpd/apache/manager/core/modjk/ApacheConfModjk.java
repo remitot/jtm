@@ -123,8 +123,8 @@ public class ApacheConfModjk {
       final Worker worker = worker1;
       
       if (worker != null) {
-        String location = jkMount.rootMountLine().lineNumber() + "_" + jkMount.asteriskMountLine().lineNumber() 
-            + "__" + worker.typePropertyLine().lineNumber() + "_" + worker.hostPropertyLine().lineNumber() + "_" + worker.portPropertyLine().lineNumber();
+        String location = "mod_jk.conf-" + jkMount.rootMountLine().lineNumber() + "-" + jkMount.asteriskMountLine().lineNumber() 
+            + "__workers.properties-" + worker.typePropertyLine().lineNumber() + "-" + worker.hostPropertyLine().lineNumber() + "-" + worker.portPropertyLine().lineNumber();
         
         Binding binding = new Binding() {
 
