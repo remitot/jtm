@@ -134,15 +134,14 @@ public class ApacheConfModjk {
           }
 
           @Override
-          public void onActivate() {
-            // TODO Auto-generated method stub
-            
-          }
-
-          @Override
-          public void onDeactivate() {
-            // TODO Auto-generated method stub
-            
+          public void setActive(boolean active) {
+            if (!isActive() && active) {
+              // on activate
+              // TODO
+            } else if (isActive() && !active) {
+              // on deactivate
+              // TODO
+            }
           }
 
           @Override

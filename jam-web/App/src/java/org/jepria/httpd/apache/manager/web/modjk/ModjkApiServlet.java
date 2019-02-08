@@ -293,13 +293,8 @@ public class ModjkApiServlet extends HttpServlet {
           ModjkDto bindingDto = mreq.getData();
 
           if (bindingDto.getActive() != null) {
-            if (!binding.isActive() && bindingDto.getActive()) {
-              binding.onActivate();
-            } else if (binding.isActive() && !bindingDto.getActive()) {
-              binding.onDeactivate();
-            }
+            binding.setActive(bindingDto.getActive());
           }
-          
           if (bindingDto.getAppname() != null) {
             binding.setAppname(bindingDto.getAppname());
           }
