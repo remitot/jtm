@@ -8,6 +8,9 @@ public interface Binding {
   String getApplication();
   void setApplication(String application);
   
+  String getWorker();
+  void setWorker(String worker);
+  
   String getInstance();
   void setInstance(String instance);
 }

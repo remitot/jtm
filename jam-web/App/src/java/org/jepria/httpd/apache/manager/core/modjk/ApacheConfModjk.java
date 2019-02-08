@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.TransactionException;
 
@@ -78,42 +80,65 @@ public class ApacheConfModjk {
   /**
    * Lazily initialized map of bindings
    */
-  private Map<String, Binding> baseBindings = null;
+  private Map<String, Binding> bindings = null;
   
   /**
-   * @return unmodifiable Map&lt;Location, Connection&gt;
+   * @return unmodifiable Map&lt;Location, Binding&gt;
    */
-  @SuppressWarnings("unchecked")
   public Map<String, Binding> getBindings() {
-    return (Map<String, Binding>)(Map<String, ?>)getBaseBindings();
-  }
-  
-  /**
-   * @return unmodifiable Map&lt;Location, BaseConnection&gt;
-   */
-  protected Map<String, Binding> getBaseBindings() {
-    if (baseBindings == null) {
+    if (bindings == null) {
       initBindings();
     }
     
-    return baseBindings;
+    return bindings;
   }
   
   
   /**
-   * Lazily initialize (or re-initialize) {@link #baseBindings} map
+   * Lazily initialized set of worker names
+   */
+  private Set<String> workerNames = null;
+  
+  /**
+   * @return unmodifiable Set of worker names
+   */
+  public Set<String> getWorkerNames() {
+    if (workerNames == null) {
+      initWorkerNames();
+    }
+    
+    return workerNames;
+  }
+  
+  /**
+   * Lazily initialized list of Workers
+   */
+  private List<Worker> workers = null;
+  
+  /**
+   * @return unmodifiable List of Workers
+   */
+  protected List<Worker> getWorkers() {
+    if (workers == null) {
+      initWorkers();
+    }
+    
+    return workers;
+  }
+  
+  /**
+   * Lazily initialize (or re-initialize) {@link #bindings} map
    */
   private void initBindings() {
     
     List<JkMount> jkMounts = JkMountParser.parse(modjkConfLines.iterator());
-    List<Worker> workers = WorkerParser.parse(workerPropertiesLines.iterator());
 
     Map<String, Binding> bindings0 = new HashMap<>();
     for (JkMount jkMount: jkMounts) {
       String workerName = jkMount.workerName();
       
       Worker worker = null;
-      for (Worker worker0: workers) {
+      for (Worker worker0: getWorkers()) {
         if (worker0.name().equals(workerName)) {
           worker = worker0;
           break;
@@ -127,6 +152,7 @@ public class ApacheConfModjk {
         Binding binding = new BindingImpl(
             !jkMount.isCommented() && !worker.isCommented(),
             jkMount.application(),
+            worker.name(),
             worker.host() + ":" + worker.port());
         
         bindings0.put(location, binding);
@@ -134,17 +160,34 @@ public class ApacheConfModjk {
     }
     
     
-    this.baseBindings = Collections.unmodifiableMap(bindings0);
+    this.bindings = Collections.unmodifiableMap(bindings0);
+  }
+  
+  /**
+   * Lazily initialize (or re-initialize) {@link #workers} list
+   */
+  private void initWorkers() {
+    this.workers = Collections.unmodifiableList(WorkerParser.parse(workerPropertiesLines.iterator()));
+  }
+  
+  /**
+   * Lazily initialize (or re-initialize) {@link #workerNames} set
+   */
+  private void initWorkerNames() {
+    // TODO define the order of items same as the order of the Apache's real workers priority (if re-declared twice)
+    this.workerNames = Collections.unmodifiableSet(getWorkers().stream().map(worker -> worker.name()).collect(Collectors.toSet()));
   }
   
   private static class BindingImpl implements Binding {
     private final boolean active;
     private final String application;
+    private final String worker;
     private final String instance;
     
-    public BindingImpl(boolean active, String application, String instance) {
+    public BindingImpl(boolean active, String application, String worker, String instance) {
       this.active = active;
       this.application = application;
+      this.worker = worker;
       this.instance = instance;
     }
 
@@ -168,6 +211,17 @@ public class ApacheConfModjk {
     public void setApplication(String application) {
       // TODO Auto-generated method stub
       
+    }
+    
+    @Override
+    public void setWorker(String worker) {
+      // TODO Auto-generated method stub
+      
+    }
+    
+    @Override
+    public String getWorker() {
+      return worker;
     }
 
     @Override

@@ -52,7 +52,7 @@ public class ModjkApiServlet extends HttpServlet {
             environment.getWorkerPropertiesInputStream());
         
         List<ModjkDto> bindings = getBindings(apacheConf);
-
+        
         Map<String, Object> responseJsonMap = new HashMap<>();
         responseJsonMap.put("_list", bindings);
         
@@ -72,6 +72,35 @@ public class ModjkApiServlet extends HttpServlet {
         return;
       }
 
+    } else if ("/workers".equals(path)) {
+      
+      try {
+        Environment environment = EnvironmentFactory.get(req);
+        
+        ApacheConfModjk apacheConf = new ApacheConfModjk(environment.getModjkConfInputStream(), 
+            environment.getWorkerPropertiesInputStream());
+        
+        Set<String> workers = apacheConf.getWorkerNames();
+        
+        Map<String, Object> responseJsonMap = new HashMap<>();
+        responseJsonMap.put("_list", workers);
+        
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
+        
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.flushBuffer();
+        return;
+        
+      } catch (Throwable e) {
+        e.printStackTrace();
+
+        resp.getOutputStream().println("Oops! Something went wrong.");//TODO
+        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        resp.flushBuffer();
+        return;
+      }
+      
     } else {
       
       // TODO set content type for the error case?
@@ -413,6 +442,7 @@ public class ModjkApiServlet extends HttpServlet {
     dto.setActive(binding.isActive());
     dto.setLocation(location);
     dto.setApplication(binding.getApplication());
+    dto.setWorker(binding.getWorker());
     dto.setInstance(binding.getInstance());
     return dto;
   }

@@ -10,6 +10,7 @@ public class ModjkDto {
   private Boolean active;
   
   private String application;
+  private String worker;
   private String instance;
   
   public ModjkDto() {
@@ -34,13 +35,16 @@ public class ModjkDto {
   public void setApplication(String application) {
     this.application = application;
   }
+  public String getWorker() {
+    return worker;
+  }
+  public void setWorker(String worker) {
+    this.worker = worker;
+  }
   public String getInstance() {
     return instance;
   }
   public void setInstance(String instance) {
     this.instance = instance;
   }
-  
-  
-  
 }
