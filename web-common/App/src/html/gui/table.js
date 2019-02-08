@@ -22,6 +22,9 @@ function createRow(listItem) {
   return null;
 }
 
+function onAfterRefillGrid() {}
+
+
 
 
 /**
@@ -103,6 +106,7 @@ function refillGrid(jsonItemList, editable) {
     disableGrid();
   }
   
+  onAfterRefillGrid();
 }
 
 function createRowButtonCreate() {
@@ -317,12 +321,16 @@ function createCell(row, columnClass) {
 }
 
 function onFieldInput(field) {
+  onFieldValueChanged(field, field.value);
+}
+
+function onFieldValueChanged(field, newValue) {
   valueOriginal = field.getAttribute("value-original");
   if (typeof valueOriginal === 'undefined') {
     // treat as modified
     field.classList.add("modified");
   } else {
-    if (valueOriginal !== field.value) {
+    if (valueOriginal !== newValue) {
       field.classList.add("modified");
     } else {
       field.classList.remove("modified");
