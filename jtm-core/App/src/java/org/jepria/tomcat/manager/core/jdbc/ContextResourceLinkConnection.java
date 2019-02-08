@@ -24,15 +24,21 @@ import org.w3c.dom.Node;
   }
  
   @Override
-  public void onActivate() {
-    Node uncommented = NodeFoldHelper.moveNodeFromUnfoldedComments(contextResourceLinkNode);
-    contextResourceLinkNode = (Element)uncommented;
-  }
-  
-  @Override
-  public void onDeactivate() {
-    Node commented = NodeFoldHelper.moveNodeToUnfoldedComments(contextResourceLinkNode);
-    contextResourceLinkNode = (Element)commented;
+  public void setActive(boolean active) {
+    if (!this.active && active) {
+      // on activate
+      Node uncommented = NodeFoldHelper.moveNodeFromUnfoldedComments(contextResourceLinkNode);
+      contextResourceLinkNode = (Element)uncommented;
+      
+      this.active = active;
+      
+    } else if (this.active && !active) {
+      // on deactivate
+      Node commented = NodeFoldHelper.moveNodeToUnfoldedComments(contextResourceLinkNode);
+      contextResourceLinkNode = (Element)commented;
+      
+      this.active = active;
+    }
   }
 
   @Override

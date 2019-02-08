@@ -3,17 +3,8 @@ package org.jepria.tomcat.manager.core.jdbc;
 public interface Connection {
   
   boolean isActive();
+  void setActive(boolean active);
   
-  /**
-   * Action for an inactive connection became active
-   */
-  void onActivate();
-  
-  /**
-   * Action for an active connection became inactive
-   */
-  void onDeactivate();
-
   String getName();
   void setName(String connectionName);
 

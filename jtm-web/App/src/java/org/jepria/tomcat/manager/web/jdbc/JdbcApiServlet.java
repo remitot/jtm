@@ -338,11 +338,7 @@ public class JdbcApiServlet extends HttpServlet {
           ConnectionDto connectionDto = mreq.getData();
 
           if (connectionDto.getActive() != null) {
-            if (!connection.isActive() && connectionDto.getActive()) {
-              connection.onActivate();
-            } else if (connection.isActive() && !connectionDto.getActive()) {
-              connection.onDeactivate();
-            }
+            connection.setActive(connectionDto.getActive());
           }
           
           if (connectionDto.getDb() != null) {
@@ -529,13 +525,13 @@ public class JdbcApiServlet extends HttpServlet {
         } else {
 
           // deactivate all active connections with the same name
-          List<Connection> existingConnections = connections.values().stream()
+          List<Connection> existingActiveConnections = connections.values().stream()
               .filter(connection -> connectionDto.getName().equals(connection.getName()) && connection.isActive())
               .collect(Collectors.toList());
           
           
           // check the same existing connection
-          boolean hasExistingSameConnection = existingConnections.stream()
+          boolean hasExistingSameConnection = existingActiveConnections.stream()
               .filter(connection -> connectionsEqual(connectionDto, connection)).findAny().isPresent(); 
               
           if (hasExistingSameConnection) {
@@ -543,8 +539,8 @@ public class JdbcApiServlet extends HttpServlet {
             
           } else {
 
-            for (Connection connection: existingConnections) {
-              connection.onDeactivate();
+            for (Connection connection: existingActiveConnections) {
+              connection.setActive(false);
             }
             
             
@@ -558,7 +554,7 @@ public class JdbcApiServlet extends HttpServlet {
             newConnection.setUser(connectionDto.getUser());
   
             
-            if (existingConnections.isEmpty()) {
+            if (existingActiveConnections.isEmpty()) {
               respStatus = EnsureConnectionResponseStatus.successNoExistCreated();
             } else {
               respStatus = EnsureConnectionResponseStatus.successExistedCreated();
