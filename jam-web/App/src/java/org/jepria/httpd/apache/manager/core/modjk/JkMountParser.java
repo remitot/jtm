@@ -28,38 +28,28 @@ public class JkMountParser {
     public final String workerName;
     
     /**
-     * The number of line with root mount ('/Application') in the containing file
-     */
-    public final int rootLineNumber;
-    /**
      * The line with root mount ('/Application') itself
      */
-    public final StringBuilder rootLine;
+    public final TextLineReference rootLine;
     
-    /**
-     * The number of line with asterisk mount ('/Application/*') in the containing file
-     */
-    public final int asterLineNumber;
     /**
      * The line with asterisk mount ('/Application/*') itself
      */
-    public final StringBuilder asteriskLine;
+    public final TextLineReference asteriskLine;
     
-    public JkMount(boolean commented, String application, String workerName, int rootLineNumber,
-        StringBuilder rootLine, int asterLineNumber, StringBuilder asteriskLine) {
+    public JkMount(boolean commented, String application, String workerName, 
+        TextLineReference rootLine, TextLineReference asteriskLine) {
       this.commented = commented;
       this.application = application;
       this.workerName = workerName;
-      this.rootLineNumber = rootLineNumber;
       this.rootLine = rootLine;
-      this.asterLineNumber = asterLineNumber;
       this.asteriskLine = asteriskLine;
     }
   }
   
   private static final Pattern JK_MOUNT_PATTERN = Pattern.compile("\\s*(#*)\\s*JkMount\\s+([^\\s]+)\\s+([^\\s]+)\\s*");
   
-  public static List<JkMount> parse(Iterator<StringBuilder> lineIterator) {
+  public static List<JkMount> parse(Iterator<TextLineReference> lineIterator) {
     List<JkMount> ret = new ArrayList<>();
     
     if (lineIterator != null) {
@@ -68,10 +58,8 @@ public class JkMountParser {
       // collect asterisk mounts ('/Application/*'), with application names as keys 
       Map<String, JkMountDirective> asterMounts = new HashMap<>();
       
-      int lineNumber = 0;
       while (lineIterator.hasNext()) {
-        final StringBuilder line = lineIterator.next();
-        lineNumber++;
+        final TextLineReference line = lineIterator.next();
         
         Matcher m = JK_MOUNT_PATTERN.matcher(line);
         if (m.matches()) {
@@ -91,7 +79,7 @@ public class JkMountParser {
               targetMap = rootMounts;
             }
           
-            final JkMountDirective mountd = new JkMountDirective(commented, workerName, lineNumber, line);
+            final JkMountDirective mountd = new JkMountDirective(commented, workerName, line);
             
             targetMap.put(application, mountd);
           }
@@ -113,9 +101,7 @@ public class JkMountParser {
               rootMountd.commented || asterMountd.commented,
               application,
               rootMountd.workerName,
-              rootMountd.lineNumber,
               rootMountd.line,
-              asterMountd.lineNumber,
               asterMountd.line);
           
           ret.add(mount);
@@ -139,18 +125,13 @@ public class JkMountParser {
     public final String workerName;
     
     /**
-     * The number of line in the containing file
-     */
-    public final int lineNumber;
-    /**
      * The line with mount itself
      */
-    public final StringBuilder line;
+    public final TextLineReference line;
     
-    public JkMountDirective(boolean commented, String workerName, int lineNumber, StringBuilder line) {
+    public JkMountDirective(boolean commented, String workerName, TextLineReference line) {
       this.commented = commented;
       this.workerName = workerName;
-      this.lineNumber = lineNumber;
       this.line = line;
     }
   }

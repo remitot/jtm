@@ -13,9 +13,9 @@ import org.jepria.httpd.apache.manager.core.TransactionException;
 
 public class ApacheConfModjk {
   
-  protected final List<StringBuilder> modjkConfLines;
+  protected final List<TextLineReference> modjkConfLines;
   
-  protected final List<StringBuilder> workerPropertiesLines;
+  protected final List<TextLineReference> workerPropertiesLines;
   
   ///////////////// Methods are analogous to TomcatConfJdbc ///////////////
   
@@ -27,16 +27,20 @@ public class ApacheConfModjk {
       
       modjkConfLines = new ArrayList<>();
       try (Scanner sc = new Scanner(modjkConfInputStream0)) {
+        int lineNumber = 0;
         while (sc.hasNextLine()) {
-          modjkConfLines.add(new StringBuilder(sc.nextLine()));
+          lineNumber++;
+          modjkConfLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
         }
       }
       
       
       workerPropertiesLines = new ArrayList<>();
       try (Scanner sc = new Scanner(workerPropertiesInputStream0)) {
+        int lineNumber = 0;
         while (sc.hasNextLine()) {
-          workerPropertiesLines.add(new StringBuilder(sc.nextLine()));
+          lineNumber++;
+          workerPropertiesLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
         }
       }
       
@@ -45,6 +49,32 @@ public class ApacheConfModjk {
     }
   }
   
+  private static class TextLineReferenceImpl implements TextLineReference {
+    private final int lineNumber;
+    private CharSequence content;
+    
+    public TextLineReferenceImpl(int lineNumber, String content) {
+      this.lineNumber = lineNumber;
+      this.content = content;
+    }
+    
+    @Override
+    public CharSequence getContent() {
+      return content;
+    }
+    
+    @Override
+    public int lineNumber() {
+      return lineNumber;
+    }
+    
+    @Override
+    public void setContent(CharSequence content) {
+      this.content = content;
+    }
+    
+  }
+   
   /**
    * Lazily initialized map of bindings
    */
@@ -93,8 +123,8 @@ public class ApacheConfModjk {
       final WorkerParser.Worker worker = worker1;
       
       if (worker != null) {
-        String location = jkMount.rootLineNumber + "_" + jkMount.asterLineNumber 
-            + "__" + worker.typeLineNumber + "_" + worker.hostLineNumber + "_" + worker.portLineNumber;
+        String location = jkMount.rootLine.lineNumber() + "_" + jkMount.asteriskLine.lineNumber() 
+            + "__" + worker.typeLine.lineNumber() + "_" + worker.hostLine.lineNumber() + "_" + worker.portLine.lineNumber();
         
         Binding binding = new Binding() {
 
@@ -149,15 +179,16 @@ public class ApacheConfModjk {
   
   
   public void delete(String location) {
-    
+    // TODO
   }
   
   public Binding create() {
     return null;
+ // TODO
   }
   
   public void save(OutputStream modjkConfOutputStream,
       OutputStream workerPropertiesOutputStream) {
-    
+ // TODO
   }
 }

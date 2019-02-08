@@ -26,47 +26,32 @@ public class WorkerParser {
     
     public final String type;
     /**
-     * The number of line with worker.name.type property in the containing file
-     */
-    public final int typeLineNumber;
-    /**
      * The line with worker.name.type property itself
      */
-    public final StringBuilder typeLine;
+    public final TextLineReference typeLine;
     
     public final String host;
     /**
-     * The number of line with worker.name.host property in the containing file
-     */
-    public final int hostLineNumber;
-    /**
      * The line with worker.name.host property itself
      */
-    public final StringBuilder hostLine;
+    public final TextLineReference hostLine;
     
     public final String port;
     /**
-     * The number of line with worker.name.port property in the containing file
-     */
-    public final int portLineNumber;
-    /**
      * The line with worker.name.port property itself
      */
-    public final StringBuilder portLine;
+    public final TextLineReference portLine;
     
     
-    public Worker(boolean commented, String name, String type, int typeLineNumber, StringBuilder typeLine, String host,
-        int hostLineNumber, StringBuilder hostLine, String port, int portLineNumber, StringBuilder portLine) {
+    public Worker(boolean commented, String name, String type, TextLineReference typeLine, 
+        String host, TextLineReference hostLine, String port, TextLineReference portLine) {
       this.commented = commented;
       this.name = name;
       this.type = type;
-      this.typeLineNumber = typeLineNumber;
       this.typeLine = typeLine;
       this.host = host;
-      this.hostLineNumber = hostLineNumber;
       this.hostLine = hostLine;
       this.port = port;
-      this.portLineNumber = portLineNumber;
       this.portLine = portLine;
     }
   }
@@ -76,7 +61,7 @@ public class WorkerParser {
   private static final Pattern HOST_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.host\\=([^\\s]+)\\s*");
   private static final Pattern PORT_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.port\\=([^\\s]+)\\s*"); 
   
-  public static List<Worker> parse(Iterator<StringBuilder> lineIterator) {
+  public static List<Worker> parse(Iterator<TextLineReference> lineIterator) {
     List<Worker> ret = new ArrayList<>();
     
     if (lineIterator != null) {
@@ -87,10 +72,8 @@ public class WorkerParser {
       // collect worker.name.port properties, with worker names as keys
       Map<String, WorkerProperty> portProperties = new HashMap<>();
       
-      int lineNumber = 0;
       while (lineIterator.hasNext()) {
-        final StringBuilder line = lineIterator.next();
-        lineNumber++;
+        final TextLineReference line = lineIterator.next();
         
         final Map<String, WorkerProperty> targetMap;
         Matcher m;
@@ -118,7 +101,7 @@ public class WorkerParser {
           final String name = m.group(2);
           final String value = m.group(3);
           
-          final WorkerProperty workerp = new WorkerProperty(commented, value, lineNumber, line);
+          final WorkerProperty workerp = new WorkerProperty(commented, value, line);
           
           targetMap.put(name, workerp);
         }
@@ -139,13 +122,10 @@ public class WorkerParser {
             typeWorkerp.commented || hostWorkerp.commented || portWorkerp.commented,
             name,
             typeWorkerp.value,
-            typeWorkerp.lineNumber,
             typeWorkerp.line, 
             hostWorkerp.value,
-            hostWorkerp.lineNumber,
             hostWorkerp.line,
             portWorkerp.value,
-            portWorkerp.lineNumber,
             portWorkerp.line);
         
         ret.add(worker);
@@ -168,18 +148,13 @@ public class WorkerParser {
     public final String value;
     
     /**
-     * The number of line in the containing file
-     */
-    public final int lineNumber;
-    /**
      * The line with property itself
      */
-    public final StringBuilder line;
+    public final TextLineReference line;
     
-    public WorkerProperty(boolean commented, String value, int lineNumber, StringBuilder line) {
+    public WorkerProperty(boolean commented, String value, TextLineReference line) {
       this.commented = commented;
       this.value = value;
-      this.lineNumber = lineNumber;
       this.line = line;
     }
   }
