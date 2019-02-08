@@ -9,7 +9,7 @@ public class ModjkDto {
   
   private Boolean active;
   
-  private String appname;
+  private String application;
   private String instance;
   
   public ModjkDto() {
@@ -28,11 +28,11 @@ public class ModjkDto {
   public void setActive(Boolean active) {
     this.active = active;
   }
-  public String getAppname() {
-    return appname;
+  public String getApplication() {
+    return application;
   }
-  public void setAppname(String appname) {
-    this.appname = appname;
+  public void setApplication(String application) {
+    this.application = application;
   }
   public String getInstance() {
     return instance;

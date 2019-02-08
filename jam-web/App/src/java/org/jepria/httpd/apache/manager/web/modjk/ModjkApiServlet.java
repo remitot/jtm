@@ -295,8 +295,8 @@ public class ModjkApiServlet extends HttpServlet {
           if (bindingDto.getActive() != null) {
             binding.setActive(bindingDto.getActive());
           }
-          if (bindingDto.getAppname() != null) {
-            binding.setAppname(bindingDto.getAppname());
+          if (bindingDto.getApplication() != null) {
+            binding.setApplication(bindingDto.getApplication());
           }
           if (bindingDto.getInstance() != null) {
             binding.setInstance(bindingDto.getInstance());
@@ -368,7 +368,7 @@ public class ModjkApiServlet extends HttpServlet {
 
         Binding newBinding = apacheConf.create();
 
-        newBinding.setAppname(bindingDto.getAppname());
+        newBinding.setApplication(bindingDto.getApplication());
         newBinding.setInstance(bindingDto.getInstance());
 
         ret = ModStatus.success();
@@ -389,8 +389,8 @@ public class ModjkApiServlet extends HttpServlet {
   private static List<String> getEmptyMandatoryFields(ModjkDto bindingDto) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (bindingDto.getAppname() == null) {
-      emptyFields.add("appname");
+    if (bindingDto.getApplication() == null) {
+      emptyFields.add("application");
     }
     if (bindingDto.getInstance() == null) {
       emptyFields.add("instance");
@@ -412,7 +412,7 @@ public class ModjkApiServlet extends HttpServlet {
     ModjkDto dto = new ModjkDto();
     dto.setActive(binding.isActive());
     dto.setLocation(location);
-    dto.setAppname(binding.getAppname());
+    dto.setApplication(binding.getApplication());
     dto.setInstance(binding.getInstance());
     return dto;
   }
@@ -421,8 +421,8 @@ public class ModjkApiServlet extends HttpServlet {
     return new Comparator<ModjkDto>() {
       @Override
       public int compare(ModjkDto o1, ModjkDto o2) {
-        int appnameCmp = o1.getAppname().toLowerCase().compareTo(o2.getAppname().toLowerCase());
-        if (appnameCmp == 0) {
+        int applicationCmp = o1.getApplication().toLowerCase().compareTo(o2.getApplication().toLowerCase());
+        if (applicationCmp == 0) {
           // the active is the first
           if (o1.getActive() && !o2.getActive()) {
             return -1;
@@ -432,7 +432,7 @@ public class ModjkApiServlet extends HttpServlet {
             return 0;
           }
         } else {
-          return appnameCmp;
+          return applicationCmp;
         }
       }
     };

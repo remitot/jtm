@@ -21,7 +21,7 @@ function createHeader() {
   div = document.createElement("div");
   div.classList.add("flexColumns");
   
-  cell = createCell(div, "column-appname");
+  cell = createCell(div, "column-application");
   label = document.createElement("label");
   label.innerHTML = "Application";
   cell.appendChild(label);
@@ -61,10 +61,10 @@ function createRow(listItem) {
   div = document.createElement("div");
   div.classList.add("flexColumns");
   
-  cell = createCell(div, "column-appname");
+  cell = createCell(div, "column-application");
   cell.classList.add("cell-field");
-  field = addField(cell, "appname", listItem.appname, null);
-  field.setAttribute("value-original", listItem.appname);
+  field = addField(cell, "application", listItem.application, null);
+  field.setAttribute("value-original", listItem.application);
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-instance");
@@ -110,9 +110,9 @@ function createRowCreate() {
   flexColumns = document.createElement("div");
   flexColumns.classList.add("flexColumns");
   
-  cell = createCell(flexColumns, "column-appname");
+  cell = createCell(flexColumns, "column-application");
   cell.classList.add("cell-field");
-  field = addField(cell, "appname", "", "Application");
+  field = addField(cell, "application", "", "Application");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
  

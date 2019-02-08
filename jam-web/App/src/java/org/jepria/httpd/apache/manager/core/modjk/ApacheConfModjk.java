@@ -112,61 +112,22 @@ public class ApacheConfModjk {
     for (JkMount jkMount: jkMounts) {
       String workerName = jkMount.workerName();
       
-      Worker worker1 = null;
+      Worker worker = null;
       for (Worker worker0: workers) {
         if (worker0.name().equals(workerName)) {
-          worker1 = worker0;
+          worker = worker0;
           break;
         }
       }
-      
-      final Worker worker = worker1;
       
       if (worker != null) {
         String location = "mod_jk.conf-" + jkMount.rootMountLine().lineNumber() + "-" + jkMount.asteriskMountLine().lineNumber() 
             + "__workers.properties-" + worker.typePropertyLine().lineNumber() + "-" + worker.hostPropertyLine().lineNumber() + "-" + worker.portPropertyLine().lineNumber();
         
-        Binding binding = new Binding() {
-
-          @Override
-          public boolean isActive() {
-            return !jkMount.isCommented() && !worker.isCommented();
-          }
-
-          @Override
-          public void setActive(boolean active) {
-            if (!isActive() && active) {
-              // on activate
-              // TODO
-            } else if (isActive() && !active) {
-              // on deactivate
-              // TODO
-            }
-          }
-
-          @Override
-          public String getAppname() {
-            return jkMount.application();
-          }
-
-          @Override
-          public void setAppname(String appname) {
-            // TODO Auto-generated method stub
-            
-          }
-
-          @Override
-          public String getInstance() {
-            return worker.host() + ":" + worker.port();
-          }
-
-          @Override
-          public void setInstance(String instance) {
-            // TODO Auto-generated method stub
-            
-          }
-          
-        };
+        Binding binding = new BindingImpl(
+            !jkMount.isCommented() && !worker.isCommented(),
+            jkMount.application(),
+            worker.host() + ":" + worker.port());
         
         bindings0.put(location, binding);
       }
@@ -174,6 +135,51 @@ public class ApacheConfModjk {
     
     
     this.baseBindings = Collections.unmodifiableMap(bindings0);
+  }
+  
+  private static class BindingImpl implements Binding {
+    private final boolean active;
+    private final String application;
+    private final String instance;
+    
+    public BindingImpl(boolean active, String application, String instance) {
+      this.active = active;
+      this.application = application;
+      this.instance = instance;
+    }
+
+    @Override
+    public boolean isActive() {
+      return active;
+    }
+
+    @Override
+    public void setActive(boolean active) {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public String getApplication() {
+      return application;
+    }
+
+    @Override
+    public void setApplication(String application) {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public String getInstance() {
+      return instance;
+    }
+
+    @Override
+    public void setInstance(String instance) {
+      // TODO Auto-generated method stub
+    }
+    
   }
   
   

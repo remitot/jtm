@@ -5,8 +5,8 @@ public interface Binding {
   boolean isActive();
   void setActive(boolean active);
 
-  String getAppname();
-  void setAppname(String appname);
+  String getApplication();
+  void setApplication(String application);
   
   String getInstance();
   void setInstance(String instance);
