@@ -4,5 +4,5 @@
  * A part of the application for mapping applications
  * through Apache HTTPD mod_jk.conf
  */
-package org.jepria.ahttpd.manager.web.modjk;
+package org.jepria.httpd.apache.manager.web.modjk;
 

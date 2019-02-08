@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.core.modjk;
+package org.jepria.httpd.apache.manager.core.modjk;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import org.jepria.ahttpd.manager.core.TransactionException;
+import org.jepria.httpd.apache.manager.core.TransactionException;
 
-public class AhttpdConfModjk {
+public class ApacheConfModjk {
   
   protected final List<StringBuilder> modjkConfLines;
   
@@ -19,7 +19,7 @@ public class AhttpdConfModjk {
   
   ///////////////// Methods are analogous to TomcatConfJdbc ///////////////
   
-  public AhttpdConfModjk(InputStream modjkConfInputStream,
+  public ApacheConfModjk(InputStream modjkConfInputStream,
       InputStream workerPropertiesInputStream) throws TransactionException {
     
     try (InputStream modjkConfInputStream0 = modjkConfInputStream;

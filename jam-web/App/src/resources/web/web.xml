@@ -6,7 +6,7 @@
 
   <servlet>
     <servlet-name>LoginServlet</servlet-name>
-    <servlet-class>org.jepria.ahttpd.manager.web.LoginServlet
+    <servlet-class>org.jepria.httpd.apache.manager.web.LoginServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
@@ -16,7 +16,7 @@
 
   <servlet>
     <servlet-name>LogoutServlet</servlet-name>
-    <servlet-class>org.jepria.ahttpd.manager.web.LogoutServlet
+    <servlet-class>org.jepria.httpd.apache.manager.web.LogoutServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
@@ -27,7 +27,7 @@
 
   <servlet>
     <servlet-name>ModjkApiServlet</servlet-name>
-    <servlet-class>org.jepria.ahttpd.manager.web.modjk.ModjkApiServlet
+    <servlet-class>org.jepria.httpd.apache.manager.web.modjk.ModjkApiServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>

@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.core;
+package org.jepria.httpd.apache.manager.core;
 
 public class TransactionException extends Exception {
 

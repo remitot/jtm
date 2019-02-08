@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.web.modjk.dto;
+package org.jepria.httpd.apache.manager.web.modjk.dto;
 
 public class ModRequestBodyDto {
   private String action;

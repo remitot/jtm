@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.core.modjk;
+package org.jepria.httpd.apache.manager.core.modjk;
 
 import java.util.ArrayList;
 import java.util.HashMap;

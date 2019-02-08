@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.web.modjk;
+package org.jepria.httpd.apache.manager.web.modjk;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,13 +19,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.ahttpd.manager.core.modjk.AhttpdConfModjk;
-import org.jepria.ahttpd.manager.core.modjk.Binding;
-import org.jepria.ahttpd.manager.web.Environment;
-import org.jepria.ahttpd.manager.web.EnvironmentFactory;
-import org.jepria.ahttpd.manager.web.modjk.dto.ModRequestBodyDto;
-import org.jepria.ahttpd.manager.web.modjk.dto.ModRequestDto;
-import org.jepria.ahttpd.manager.web.modjk.dto.ModjkDto;
+import org.jepria.httpd.apache.manager.core.modjk.ApacheConfModjk;
+import org.jepria.httpd.apache.manager.core.modjk.Binding;
+import org.jepria.httpd.apache.manager.web.Environment;
+import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
+import org.jepria.httpd.apache.manager.web.modjk.dto.ModRequestBodyDto;
+import org.jepria.httpd.apache.manager.web.modjk.dto.ModRequestDto;
+import org.jepria.httpd.apache.manager.web.modjk.dto.ModjkDto;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -48,10 +48,10 @@ public class ModjkApiServlet extends HttpServlet {
         
         Environment environment = EnvironmentFactory.get(req);
         
-        AhttpdConfModjk ahttpdConf = new AhttpdConfModjk(environment.getModjkConfInputStream(), 
+        ApacheConfModjk apacheConf = new ApacheConfModjk(environment.getModjkConfInputStream(), 
             environment.getWorkerPropertiesInputStream());
         
-        List<ModjkDto> bindings = getBindings(ahttpdConf);
+        List<ModjkDto> bindings = getBindings(apacheConf);
 
         Map<String, Object> responseJsonMap = new HashMap<>();
         responseJsonMap.put("_list", bindings);
@@ -146,7 +146,7 @@ public class ModjkApiServlet extends HttpServlet {
       
       final Environment environment = EnvironmentFactory.get(req);
       
-      final AhttpdConfModjk ahttpdConf = new AhttpdConfModjk(environment.getModjkConfInputStream(), 
+      final ApacheConfModjk apacheConf = new ApacheConfModjk(environment.getModjkConfInputStream(), 
           environment.getWorkerPropertiesInputStream());
 
       // collect processed modRequests
@@ -166,7 +166,7 @@ public class ModjkApiServlet extends HttpServlet {
         if ("update".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = updateBinding(mreq, ahttpdConf);
+          ModStatus modStatus = updateBinding(mreq, apacheConf);
           if (modStatus.code == ModStatus.CODE_SUCCESS) {
             confModified = true;
           }
@@ -183,7 +183,7 @@ public class ModjkApiServlet extends HttpServlet {
         if ("delete".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = deleteBinding(mreq, ahttpdConf);
+          ModStatus modStatus = deleteBinding(mreq, apacheConf);
           if (modStatus.code == ModStatus.CODE_SUCCESS) {
             confModified = true;
           }
@@ -200,7 +200,7 @@ public class ModjkApiServlet extends HttpServlet {
         if ("create".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = createBinding(mreq, ahttpdConf);
+          ModStatus modStatus = createBinding(mreq, apacheConf);
           if (modStatus.code == ModStatus.CODE_SUCCESS) {
             confModified = true;
           }
@@ -241,12 +241,12 @@ public class ModjkApiServlet extends HttpServlet {
       
       
       if (confModified) {
-        ahttpdConf.save(environment.getModjkConfOutputStream(), environment.getWorkerPropertiesOutputStream());
+        apacheConf.save(environment.getModjkConfOutputStream(), environment.getWorkerPropertiesOutputStream());
       }
       
       
       // no conf save, just write response
-      List<ModjkDto> bindingDtos = getBindings(ahttpdConf);
+      List<ModjkDto> bindingDtos = getBindings(apacheConf);
       responseJsonMap.put("_list", bindingDtos);
       
       try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
@@ -269,7 +269,7 @@ public class ModjkApiServlet extends HttpServlet {
   }
   
   private static ModStatus updateBinding(
-      ModRequestBodyDto mreq, AhttpdConfModjk ahttpdConf) {
+      ModRequestBodyDto mreq, ApacheConfModjk apacheConf) {
     
     ModStatus ret;
     
@@ -282,7 +282,7 @@ public class ModjkApiServlet extends HttpServlet {
             
       } else {
 
-        Map<String, Binding> bindings = ahttpdConf.getBindings();
+        Map<String, Binding> bindings = apacheConf.getBindings();
         Binding binding = bindings.get(location);
 
         if (binding == null) {
@@ -320,7 +320,7 @@ public class ModjkApiServlet extends HttpServlet {
   }
   
   private static ModStatus deleteBinding(
-      ModRequestBodyDto mreq, AhttpdConfModjk ahttpdConf) {
+      ModRequestBodyDto mreq, ApacheConfModjk apacheConf) {
     
     ModStatus ret;
 
@@ -333,7 +333,7 @@ public class ModjkApiServlet extends HttpServlet {
 
       } else {
 
-        Map<String, Binding> bindings = ahttpdConf.getBindings();
+        Map<String, Binding> bindings = apacheConf.getBindings();
         Binding binding = bindings.get(location);
 
         if (binding == null) {
@@ -341,7 +341,7 @@ public class ModjkApiServlet extends HttpServlet {
           ret = ModStatus.errItemNotFoundByLocation(location);
 
         } else {
-          ahttpdConf.delete(location);
+          apacheConf.delete(location);
 
           ret = ModStatus.success();
         }
@@ -355,7 +355,7 @@ public class ModjkApiServlet extends HttpServlet {
   }
   
   private static ModStatus createBinding(
-      ModRequestBodyDto mreq, AhttpdConfModjk ahttpdConf) {
+      ModRequestBodyDto mreq, ApacheConfModjk apacheConf) {
     
     ModStatus ret;
 
@@ -371,7 +371,7 @@ public class ModjkApiServlet extends HttpServlet {
 
       } else {
 
-        Binding newBinding = ahttpdConf.create();
+        Binding newBinding = apacheConf.create();
 
         newBinding.setAppname(bindingDto.getAppname());
         newBinding.setInstance(bindingDto.getInstance());
@@ -404,8 +404,8 @@ public class ModjkApiServlet extends HttpServlet {
     return emptyFields;
   }
   
-  private static List<ModjkDto> getBindings(AhttpdConfModjk ahttpdConf) {
-    Map<String, Binding> bindings = ahttpdConf.getBindings();
+  private static List<ModjkDto> getBindings(ApacheConfModjk apacheConf) {
+    Map<String, Binding> bindings = apacheConf.getBindings();
 
     // list all bindings
     return bindings.entrySet().stream().map(
@@ -426,7 +426,7 @@ public class ModjkApiServlet extends HttpServlet {
     return new Comparator<ModjkDto>() {
       @Override
       public int compare(ModjkDto o1, ModjkDto o2) {
-        int appnameCmp = o1.getAppname().compareTo(o2.getAppname());
+        int appnameCmp = o1.getAppname().toLowerCase().compareTo(o2.getAppname().toLowerCase());
         if (appnameCmp == 0) {
           // the active is the first
           if (o1.getActive() && !o2.getActive()) {

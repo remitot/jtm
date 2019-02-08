@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.web.modjk;
+package org.jepria.httpd.apache.manager.web.modjk;
 
 import java.util.List;
 

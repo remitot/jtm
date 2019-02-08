@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.web;
+package org.jepria.httpd.apache.manager.web;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,7 +22,7 @@ public class BasicEnvironment implements Environment {
    * @return Apache HTTPD 'conf' directory
    */
   protected File getConfDirectory(HttpServletRequest request) {
-    return new File(request.getServletContext().getInitParameter("org.jepria.ahttpd.manager.web.apacheHttpdConfDirectory"));
+    return new File(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.apacheHttpdConfDirectory"));
   }
   
   public BasicEnvironment(HttpServletRequest request) {

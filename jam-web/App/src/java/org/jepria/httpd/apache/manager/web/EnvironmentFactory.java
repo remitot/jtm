@@ -1,4 +1,4 @@
-package org.jepria.ahttpd.manager.web;
+package org.jepria.httpd.apache.manager.web;
 
 import javax.servlet.http.HttpServletRequest;
 
