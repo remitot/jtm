@@ -1,0 +1,4 @@
+<context-param>
+    <param-name>org.jepria.httpd.apache.manager.web.apacheHttpdConfDirectory</param-name>
+    <param-value>C:\\pseudoapache</param-value>
+  </context-param>
