@@ -105,32 +105,32 @@ public class ApacheConfModjk {
    */
   private void initBindings() {
     
-    List<JkMountParser.JkMount> jkMounts = JkMountParser.parse(modjkConfLines.iterator());
-    List<WorkerParser.Worker> workers = WorkerParser.parse(workerPropertiesLines.iterator());
+    List<JkMount> jkMounts = JkMountParser.parse(modjkConfLines.iterator());
+    List<Worker> workers = WorkerParser.parse(workerPropertiesLines.iterator());
 
     Map<String, Binding> bindings0 = new HashMap<>();
-    for (JkMountParser.JkMount jkMount: jkMounts) {
-      String workerName = jkMount.workerName;
+    for (JkMount jkMount: jkMounts) {
+      String workerName = jkMount.workerName();
       
-      WorkerParser.Worker worker1 = null;
-      for (WorkerParser.Worker worker0: workers) {
-        if (worker0.name.equals(workerName)) {
+      Worker worker1 = null;
+      for (Worker worker0: workers) {
+        if (worker0.name().equals(workerName)) {
           worker1 = worker0;
           break;
         }
       }
       
-      final WorkerParser.Worker worker = worker1;
+      final Worker worker = worker1;
       
       if (worker != null) {
-        String location = jkMount.rootLine.lineNumber() + "_" + jkMount.asteriskLine.lineNumber() 
-            + "__" + worker.typeLine.lineNumber() + "_" + worker.hostLine.lineNumber() + "_" + worker.portLine.lineNumber();
+        String location = jkMount.rootMountLine().lineNumber() + "_" + jkMount.asteriskMountLine().lineNumber() 
+            + "__" + worker.typePropertyLine().lineNumber() + "_" + worker.hostPropertyLine().lineNumber() + "_" + worker.portPropertyLine().lineNumber();
         
         Binding binding = new Binding() {
 
           @Override
           public boolean isActive() {
-            return !jkMount.commented && !worker.commented;
+            return !jkMount.isCommented() && !worker.isCommented();
           }
 
           @Override
@@ -147,7 +147,7 @@ public class ApacheConfModjk {
 
           @Override
           public String getAppname() {
-            return jkMount.application;
+            return jkMount.application();
           }
 
           @Override
@@ -158,7 +158,7 @@ public class ApacheConfModjk {
 
           @Override
           public String getInstance() {
-            return worker.host + ":" + worker.port;
+            return worker.host() + ":" + worker.port();
           }
 
           @Override

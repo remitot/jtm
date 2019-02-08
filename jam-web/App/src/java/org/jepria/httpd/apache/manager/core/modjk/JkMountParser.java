@@ -12,39 +12,49 @@ import java.util.regex.Pattern;
 
 public class JkMountParser {
 
-  /**
-   * Class representing a mount with a pair of JkMount directives: 
-   * root mount ('/Application') and asterisk mounting ('/Application/*')
-   */
-  public static class JkMount {
-    public final boolean commented;
-    /**
-     * The common application for both root and asterisk mounts
-     */
-    public final String application;
-    /**
-     * The common worker name for both root and asterisk mounts
-     */
-    public final String workerName;
+  private static class JkMountImpl implements JkMount {
+    private final boolean commented;
+    private final String application;
+    private final String workerName;
+    private final TextLineReference rootMountLine;
+    private final TextLineReference asteriskMountLine;
     
-    /**
-     * The line with root mount ('/Application') itself
-     */
-    public final TextLineReference rootLine;
-    
-    /**
-     * The line with asterisk mount ('/Application/*') itself
-     */
-    public final TextLineReference asteriskLine;
-    
-    public JkMount(boolean commented, String application, String workerName, 
-        TextLineReference rootLine, TextLineReference asteriskLine) {
+    public JkMountImpl(boolean commented, String application, String workerName, 
+        TextLineReference rootMountLine, TextLineReference asteriskMountLine) {
       this.commented = commented;
       this.application = application;
       this.workerName = workerName;
-      this.rootLine = rootLine;
-      this.asteriskLine = asteriskLine;
+      this.rootMountLine = rootMountLine;
+      this.asteriskMountLine = asteriskMountLine;
     }
+
+    @Override
+    public boolean isCommented() {
+      return commented;
+    }
+    
+    @Override
+    public String application() {
+      return application;
+    }
+
+    @Override
+    public TextLineReference rootMountLine() {
+      return rootMountLine;
+    }
+
+    @Override
+    public TextLineReference asteriskMountLine() {
+      // TODO Auto-generated method stub
+      return asteriskMountLine;
+    }
+
+    @Override
+    public String workerName() {
+      return workerName;
+    }
+    
+    
   }
   
   private static final Pattern JK_MOUNT_PATTERN = Pattern.compile("\\s*(#*)\\s*JkMount\\s+([^\\s]+)\\s+([^\\s]+)\\s*");
@@ -97,7 +107,7 @@ public class JkMountParser {
         
         if (rootMountd.workerName.equals(asterMountd.workerName)) {
           
-          JkMount mount = new JkMount(
+          JkMount mount = new JkMountImpl(
               rootMountd.commented || asterMountd.commented,
               application,
               rootMountd.workerName,

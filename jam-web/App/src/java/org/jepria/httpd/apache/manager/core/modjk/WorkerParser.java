@@ -12,47 +12,66 @@ import java.util.regex.Pattern;
 
 public class WorkerParser {
   
-  /**
-   * Class representing a worker with three worker properties: 
-   * worker.name.type, worker.name.host and worker.name.port
-   */
-  public static class Worker {
-    public final boolean commented;
-
-    /**
-     * The common worker name for all three properties
-     */
-    public final String name;
+  private static class WorkerImpl implements Worker {
+    private final boolean commented;
+    private final String name;
+    private final String type;
+    private final TextLineReference typePropertyLine;
+    private final String host;
+    private final TextLineReference hostPropertyLine;
+    private final String port;
+    private final TextLineReference portPropertyLine;
     
-    public final String type;
-    /**
-     * The line with worker.name.type property itself
-     */
-    public final TextLineReference typeLine;
-    
-    public final String host;
-    /**
-     * The line with worker.name.host property itself
-     */
-    public final TextLineReference hostLine;
-    
-    public final String port;
-    /**
-     * The line with worker.name.port property itself
-     */
-    public final TextLineReference portLine;
-    
-    
-    public Worker(boolean commented, String name, String type, TextLineReference typeLine, 
-        String host, TextLineReference hostLine, String port, TextLineReference portLine) {
+    public WorkerImpl(boolean commented, String name, String type, TextLineReference typePropertyLine, 
+        String host, TextLineReference hostPropertyLine, String port, TextLineReference portPropertyLine) {
       this.commented = commented;
       this.name = name;
       this.type = type;
-      this.typeLine = typeLine;
+      this.typePropertyLine = typePropertyLine;
       this.host = host;
-      this.hostLine = hostLine;
+      this.hostPropertyLine = hostPropertyLine;
       this.port = port;
-      this.portLine = portLine;
+      this.portPropertyLine = portPropertyLine;
+    }
+
+    @Override
+    public boolean isCommented() {
+      return commented;
+    }
+
+    @Override
+    public String name() {
+      return name;
+    }
+
+    @Override
+    public String type() {
+      return type;
+    }
+
+    @Override
+    public TextLineReference typePropertyLine() {
+      return typePropertyLine;
+    }
+
+    @Override
+    public String host() {
+      return host;
+    }
+
+    @Override
+    public TextLineReference hostPropertyLine() {
+      return hostPropertyLine;
+    }
+
+    @Override
+    public String port() {
+      return port;
+    }
+
+    @Override
+    public TextLineReference portPropertyLine() {
+      return portPropertyLine;
     }
   }
   
@@ -118,7 +137,7 @@ public class WorkerParser {
         WorkerProperty hostWorkerp = hostProperties.get(name);
         WorkerProperty portWorkerp = portProperties.get(name);
         
-        Worker worker = new Worker(
+        Worker worker = new WorkerImpl(
             typeWorkerp.commented || hostWorkerp.commented || portWorkerp.commented,
             name,
             typeWorkerp.value,
