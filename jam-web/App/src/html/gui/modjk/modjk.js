@@ -49,6 +49,9 @@ function onAfterRefillGrid() {
   loadWorkerOptions();
 }
 
+// loaded asynchronously
+var workerNames;
+
 function loadWorkerOptions() {
 
   var xhttp = new XMLHttpRequest();
@@ -57,9 +60,14 @@ function loadWorkerOptions() {
       if (this.status == 200) {
       
         jsonResponse = JSON.parse(this.responseText);
-        jsonItemList = getJsonItemList(jsonResponse); 
+        workerNames = getJsonItemList(jsonResponse); 
         
-        setWorkerOptions(jsonItemList);
+        var selects = document.querySelectorAll("#table .column-worker select");
+        
+        for (var j = 0; j < selects.length; j++) {
+          var select = selects[j];
+          setWorkerSelectOptions(select);
+        }
         
       } else if (this.status == 401) {
         statusError("Требуется авторизация"); // NON-NLS
@@ -80,26 +88,20 @@ function loadWorkerOptions() {
   xhttp.send();
 }
 
-function setWorkerOptions(workerNames) {
-  var selects = document.querySelectorAll("#table .column-worker select");
+function setWorkerSelectOptions(select) {
+  for (var i = 0; i < workerNames.length; i++) {
+    var workerName = workerNames[i];
+    
+    // create option
+    var option = document.createElement("option");
+    option.innerHTML = workerName;
+    option.value = workerName;
   
-  for (var i = 0; i < jsonItemList.length; i++) {
-    var workerName = jsonItemList[i];
+    select.options.add(option);
     
-    for (var j = 0; j < selects.length; j++) {
-      var select = selects[j];
-      
-      // create option
-      var option = document.createElement("option");
-      option.innerHTML = workerName;
-      option.value = workerName;
-    
-      select.options.add(option);
-      
-      var selectedValue = select.getAttribute("selected-value");
-      if (option.value == selectedValue) {
-        option.selected = "selected";
-      }
+    var selectedValue = select.getAttribute("selected-value");
+    if (option.value == selectedValue) {
+      option.selected = "selected";
     }
   }
 }
@@ -132,7 +134,7 @@ function createRow(listItem) {
   div.classList.add("flexColumns");
   
   var field;
-  var workerInstanceBinding = rowIndex++;
+  var workerInstanceBinding = rowIndex;
   
   cell = createCell(div, "column-application");
   cell.classList.add("cell-field");
@@ -159,6 +161,8 @@ function createRow(listItem) {
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   row.appendChild(div);
+  
+  rowIndex++;
   
   return row;
 }
@@ -254,6 +258,7 @@ function createRowCreate() {
   flexColumns.classList.add("flexColumns");
   
   var field;
+  var workerInstanceBinding = rowIndex;
   
   cell = createCell(flexColumns, "column-application");
   cell.classList.add("cell-field");
@@ -263,19 +268,29 @@ function createRowCreate() {
  
   cell = createCell(flexColumns, "column-worker");
   cell.classList.add("cell-field");
-  field = addField(cell, "worker", "", "tomcat-server:8080");
+  field = addFieldWorker(cell, listItem.worker);
+  field.id = "workerField__" + workerInstanceBinding;
+  field.setAttribute("worker-instance-binding", workerInstanceBinding);
+  field.setAttribute("value-original", listItem.worker);//TODO
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
+  setWorkerSelectOptions(field);
+  
   cell = createCell(flexColumns, "column-instance");
   cell.classList.add("cell-field");
-  field = addField(cell, "instance", "", "tomcat-server:8080");
+  field = addFieldInstance(cell);
+  field.id = "instanceField__" + workerInstanceBinding;
+  field.setAttribute("worker-instance-binding", workerInstanceBinding);
+  field.setAttribute("value-original", "");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   row.appendChild(flexColumns);
+  
+  rowIndex++;
   
   return row;
 }
