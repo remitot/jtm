@@ -49,8 +49,8 @@ function onAfterRefillGrid() {
   loadWorkerOptions();
 }
 
-// loaded asynchronously
-var workerNames;
+// list of worker names to create select options from
+var workers = null;
 
 function loadWorkerOptions() {
 
@@ -60,7 +60,7 @@ function loadWorkerOptions() {
       if (this.status == 200) {
       
         jsonResponse = JSON.parse(this.responseText);
-        workerNames = getJsonItemList(jsonResponse); 
+        workers = getJsonItemList(jsonResponse); 
         
         var selects = document.querySelectorAll("#table .column-worker select");
         
@@ -89,19 +89,34 @@ function loadWorkerOptions() {
 }
 
 function setWorkerSelectOptions(select) {
-  for (var i = 0; i < workerNames.length; i++) {
-    var workerName = workerNames[i];
-    
-    // create option
-    var option = document.createElement("option");
-    option.innerHTML = workerName;
-    option.value = workerName;
+  if (workers && workers.length > 0) {
   
-    select.options.add(option);
+    for (var i = 0; i < workers.length; i++) {
+      var workerName = workers[i];
+      
+      // create option
+      var option = document.createElement("option");
+      option.innerHTML = workerName;
+      option.value = workerName;
     
+      select.options.add(option);
+      
+      var selectedValue = select.getAttribute("selected-value");
+      if (option.value == selectedValue) {
+        option.selected = "selected";
+      }
+    }
+    
+  } else {
+    console.error("Cannot set worker select options: the list of workers has not been loaded yet");
+    
+    // at least create an option from the selected value
     var selectedValue = select.getAttribute("selected-value");
-    if (option.value == selectedValue) {
-      option.selected = "selected";
+    if (selectedValue) {
+      var option = document.createElement("option");
+      option.innerHTML = selectedValue;
+      option.value = selectedValue;
+      select.options.add(option);
     }
   }
 }

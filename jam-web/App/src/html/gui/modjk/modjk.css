@@ -13,6 +13,6 @@ select.field-text {
 }
 
 #table .column-worker select.discarded {
-  border-color: transparent;
+  border-color: #ddd;
   color: #ddd;
 }
