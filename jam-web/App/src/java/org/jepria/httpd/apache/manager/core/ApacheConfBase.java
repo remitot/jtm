@@ -1,6 +1,5 @@
 package org.jepria.httpd.apache.manager.core;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +14,9 @@ import org.jepria.httpd.apache.manager.core.jk.TextLineReference;
  */
 public class ApacheConfBase {
   
+  //TODO this value is assumed. But how to determine it? 
+  private static final String FILE_READ_ENCODING = "UTF-8";
+  
   private final Supplier<InputStream> mod_jk_confInput;
   private final Supplier<InputStream> workers_propertiesInput;
   
@@ -28,6 +30,7 @@ public class ApacheConfBase {
     this.workers_propertiesInput = workers_propertiesInput;
   }
   
+
   
   /**
    * Lazily initialized
@@ -49,18 +52,14 @@ public class ApacheConfBase {
    * Initializes the list
    */
   private void initMod_jk_confLines() {
-    try (InputStream mod_jk_confInputStream = mod_jk_confInput.get()) {
+    try (Scanner sc = new Scanner(mod_jk_confInput.get(), FILE_READ_ENCODING)) {
       mod_jk_confLines = new ArrayList<>();
-      try (Scanner sc = new Scanner(mod_jk_confInputStream)) {
-        int lineNumber = 0;
-        while (sc.hasNextLine()) {
-          lineNumber++;
-          mod_jk_confLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
-        }
+      int lineNumber = 0;
+      while (sc.hasNextLine()) {
+        lineNumber++;
+        mod_jk_confLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    }//TODO catch filenotfound, file not readable
   }
   
   
@@ -84,18 +83,14 @@ public class ApacheConfBase {
    * Initializes the list
    */
   private void initWorkers_propertiesLines() {
-    try (InputStream workers_propertiesInputStream0 = workers_propertiesInput.get()) {
+    try (Scanner sc = new Scanner(workers_propertiesInput.get(), FILE_READ_ENCODING)) {
       workers_propertiesLines = new ArrayList<>();
-      try (Scanner sc = new Scanner(workers_propertiesInputStream0)) {
-        int lineNumber = 0;
-        while (sc.hasNextLine()) {
-          lineNumber++;
-          workers_propertiesLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
-        }
+      int lineNumber = 0;
+      while (sc.hasNextLine()) {
+        lineNumber++;
+        workers_propertiesLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    }//TODO catch filenotfound, file not readable
   }
   
   
@@ -123,6 +118,11 @@ public class ApacheConfBase {
     @Override
     public void setContent(CharSequence content) {
       this.content = content;
+    }
+    
+    @Override
+    public String toString() {
+      return getContent().toString();
     }
   }
 }
