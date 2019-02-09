@@ -38,8 +38,7 @@ public class ApacheConfBase {
   private List<TextLineReference> mod_jk_confLines;
   
   /**
-   * Initializes the list lazily
-   * @return
+   * @return lazily parsed {@code mod_jk.conf} configuration file 
    */
   public List<TextLineReference> getMod_jk_confLines() {
     if (mod_jk_confLines == null) {
@@ -49,7 +48,7 @@ public class ApacheConfBase {
   }
   
   /**
-   * Initializes the list
+   * Parses the file into the list
    */
   private void initMod_jk_confLines() {
     try (Scanner sc = new Scanner(mod_jk_confInput.get(), FILE_READ_ENCODING)) {
@@ -69,8 +68,7 @@ public class ApacheConfBase {
   private List<TextLineReference> workers_propertiesLines;
   
   /**
-   * Initializes the list lazily
-   * @return
+   * @return lazily parsed {@code workers.properties} configuration file 
    */
   public List<TextLineReference> getWorkers_propertiesLines() {
     if (workers_propertiesLines == null) {
@@ -80,7 +78,7 @@ public class ApacheConfBase {
   }
   
   /**
-   * Initializes the list
+   * Parses the file into the list
    */
   private void initWorkers_propertiesLines() {
     try (Scanner sc = new Scanner(workers_propertiesInput.get(), FILE_READ_ENCODING)) {

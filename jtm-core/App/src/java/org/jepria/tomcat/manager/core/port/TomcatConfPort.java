@@ -1,13 +1,13 @@
 package org.jepria.tomcat.manager.core.port;
 
 import java.io.InputStream;
+import java.util.function.Supplier;
 
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import org.jepria.tomcat.manager.core.TomcatConfBase;
-import org.jepria.tomcat.manager.core.TransactionException;
 import org.w3c.dom.Node;
 
 /**
@@ -15,10 +15,12 @@ import org.w3c.dom.Node;
  */
 public class TomcatConfPort extends TomcatConfBase {
   
-  public TomcatConfPort(InputStream contextXmlInputStream, InputStream serverXmlInputStream)
-      throws TransactionException {
-    super(contextXmlInputStream, serverXmlInputStream);
+  
+  public TomcatConfPort(Supplier<InputStream> context_xmlInput,
+      Supplier<InputStream> server_xmlInput) {
+    super(context_xmlInput, server_xmlInput);
   }
+  
 
   /**
    * 
@@ -29,7 +31,7 @@ public class TomcatConfPort extends TomcatConfBase {
     try {
       final XPathExpression connectorExpr = XPathFactory.newInstance().newXPath().compile(
           "Server/Service/Connector[@protocol='" + protocol + "']");
-      Node connector = (Node)connectorExpr.evaluate(serverDoc, XPathConstants.NODE);
+      Node connector = (Node)connectorExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
       
       if (connector == null) {
         return null;

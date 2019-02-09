@@ -37,8 +37,8 @@ public class PortApiServlet extends HttpServlet {
       Environment environment = EnvironmentFactory.get(req);
       
       TomcatConfPort tomcatConf = new TomcatConfPort(
-          environment.getContextXmlInputStream(), 
-          environment.getServerXmlInputStream());
+          () -> environment.getContextXmlInputStream(), 
+          () -> environment.getServerXmlInputStream());
       
       PortDto port = getPort(tomcatConf, type);
 
@@ -100,8 +100,8 @@ public class PortApiServlet extends HttpServlet {
       Environment environment = EnvironmentFactory.get(req);
       
       TomcatConfPort tomcatConf = new TomcatConfPort(
-          environment.getContextXmlInputStream(), 
-          environment.getServerXmlInputStream());
+          () -> environment.getContextXmlInputStream(), 
+          () -> environment.getServerXmlInputStream());
       
       List<PortDto> ports = new ArrayList<>();
       
