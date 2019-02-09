@@ -2,81 +2,24 @@ package org.jepria.httpd.apache.manager.core.jk;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.jepria.httpd.apache.manager.core.TransactionException;
+import org.jepria.httpd.apache.manager.core.ApacheConfBase;
 
-public class ApacheConfJk {
+public class ApacheConfJk extends ApacheConfBase {
   
-  protected final List<TextLineReference> mod_jk_confLines;
-  
-  protected final List<TextLineReference> workers_propertiesLines;
-  
-  ///////////////// Methods are analogous to TomcatConfJdbc ///////////////
-  
-  public ApacheConfJk(InputStream mod_jk_confInputStream,
-      InputStream workers_propertiesInputStream) throws TransactionException {
-    
-    try (InputStream mod_jk_confInputStream0 = mod_jk_confInputStream;
-        InputStream workers_propertiesInputStream0 = workers_propertiesInputStream) {
-      
-      mod_jk_confLines = new ArrayList<>();
-      try (Scanner sc = new Scanner(mod_jk_confInputStream0)) {
-        int lineNumber = 0;
-        while (sc.hasNextLine()) {
-          lineNumber++;
-          mod_jk_confLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
-        }
-      }
-      
-      
-      workers_propertiesLines = new ArrayList<>();
-      try (Scanner sc = new Scanner(workers_propertiesInputStream0)) {
-        int lineNumber = 0;
-        while (sc.hasNextLine()) {
-          lineNumber++;
-          workers_propertiesLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
-        }
-      }
-      
-    } catch (Throwable e) {
-      throw new TransactionException(e);
-    }
+  public ApacheConfJk(Supplier<InputStream> mod_jk_confInput,
+      Supplier<InputStream> workers_propertiesInput) {
+    super(mod_jk_confInput, workers_propertiesInput);
   }
-  
-  private static class TextLineReferenceImpl implements TextLineReference {
-    private final int lineNumber;
-    private CharSequence content;
-    
-    public TextLineReferenceImpl(int lineNumber, String content) {
-      this.lineNumber = lineNumber;
-      this.content = content;
-    }
-    
-    @Override
-    public CharSequence getContent() {
-      return content;
-    }
-    
-    @Override
-    public int lineNumber() {
-      return lineNumber;
-    }
-    
-    @Override
-    public void setContent(CharSequence content) {
-      this.content = content;
-    }
-    
-  }
-   
+
+
   /**
    * Lazily initialized map of bindings
    */
@@ -131,7 +74,7 @@ public class ApacheConfJk {
    */
   private void initBindings() {
     
-    List<JkMount> jkMounts = JkMountParser.parse(mod_jk_confLines.iterator());
+    List<JkMount> jkMounts = JkMountParser.parse(getMod_jk_confLines().iterator());
 
     Map<String, Binding> bindings0 = new HashMap<>();
     for (JkMount jkMount: jkMounts) {
@@ -167,7 +110,8 @@ public class ApacheConfJk {
    * Lazily initialize (or re-initialize) {@link #workers} list
    */
   private void initWorkers() {
-    this.workers = Collections.unmodifiableList(WorkerParser.parse(workers_propertiesLines.iterator()));
+    this.workers = Collections.unmodifiableList(WorkerParser.parse(
+        getWorkers_propertiesLines().iterator()));
   }
   
   /**

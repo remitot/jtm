@@ -48,8 +48,9 @@ public class JkApiServlet extends HttpServlet {
         
         Environment environment = EnvironmentFactory.get(req);
         
-        ApacheConfJk apacheConf = new ApacheConfJk(environment.getMod_jk_confInputStream(), 
-            environment.getWorkers_propertiesInputStream());
+        ApacheConfJk apacheConf = new ApacheConfJk(
+            () -> environment.getMod_jk_confInputStream(), 
+            () -> environment.getWorkers_propertiesInputStream());
         
         List<JkDto> bindings = getBindings(apacheConf);
         
@@ -77,8 +78,9 @@ public class JkApiServlet extends HttpServlet {
       try {
         Environment environment = EnvironmentFactory.get(req);
         
-        ApacheConfJk apacheConf = new ApacheConfJk(environment.getMod_jk_confInputStream(), 
-            environment.getWorkers_propertiesInputStream());
+        ApacheConfJk apacheConf = new ApacheConfJk(
+            () -> environment.getMod_jk_confInputStream(), 
+            () -> environment.getWorkers_propertiesInputStream());
         
         Set<String> workers = apacheConf.getWorkerNames();
         
@@ -175,8 +177,9 @@ public class JkApiServlet extends HttpServlet {
       
       final Environment environment = EnvironmentFactory.get(req);
       
-      final ApacheConfJk apacheConf = new ApacheConfJk(environment.getMod_jk_confInputStream(), 
-          environment.getWorkers_propertiesInputStream());
+      final ApacheConfJk apacheConf = new ApacheConfJk(
+          () -> environment.getMod_jk_confInputStream(), 
+          () -> environment.getWorkers_propertiesInputStream());
 
       // collect processed modRequests
       final Set<String> processedModRequestIds = new HashSet<>();
