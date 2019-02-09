@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -30,7 +28,7 @@ public class PortApiServlet extends HttpServlet {
       String type) throws IOException {
     
     // the content type is defined for the entire method
-    resp.setContentType("application/json; charset=UTF-8");
+    resp.setContentType("text/plain; charset=UTF-8");
     
     try {
       
@@ -48,9 +46,8 @@ public class PortApiServlet extends HttpServlet {
         return;
         
       } else {
-      
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(port, new PrintStream(resp.getOutputStream()));
+        
+        resp.getWriter().print(port.getNumber());
         
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
@@ -144,23 +141,12 @@ public class PortApiServlet extends HttpServlet {
       list(req, resp);
       return;
       
-    } else if (path == null || "/".equals(path)) {
+    } else if ("/http".equals(path)) {
+      port(req, resp, "HTTP/1.1");
+      return;
       
-      // get port by type
-      String queryString = req.getQueryString();
-      if (queryString != null) {
-        Matcher m = Pattern.compile("type\\=([^&]+)").matcher(queryString);
-        if (m.matches()) {
-          String type = m.group(1);
-          
-          port(req, resp, type);
-          return;
-          
-        }
-      }
-      
-      resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-      resp.flushBuffer();
+    } else if ("/ajp".equals(path)) {
+      port(req, resp, "AJP/1.3");
       return;
       
     } else {

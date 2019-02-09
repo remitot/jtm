@@ -142,8 +142,8 @@ public class JdbcApiServlet extends HttpServlet {
       final List<ModRequestDto> modRequests;
       
       try {
-        Type mapType = new TypeToken<ArrayList<ModRequestDto>>(){}.getType();
-        modRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), mapType);
+        Type type = new TypeToken<ArrayList<ModRequestDto>>(){}.getType();
+        modRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
         
       } catch (Throwable e) {
         e.printStackTrace();

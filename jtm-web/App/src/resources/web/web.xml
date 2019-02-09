@@ -125,6 +125,8 @@
       <url-pattern>/api</url-pattern><!-- ApiDocs -->
       <url-pattern>/api/login/*</url-pattern>
       <url-pattern>/api/logout/*</url-pattern>
+      <url-pattern>/api/port/http</url-pattern> <!-- for querying by Apache HTTPD manager -->
+      <url-pattern>/api/port/ajp</url-pattern> <!-- for querying by Apache HTTPD manager -->
       <url-pattern>/gui/*</url-pattern>
     </web-resource-collection>
   </security-constraint>

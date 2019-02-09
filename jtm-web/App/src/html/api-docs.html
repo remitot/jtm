@@ -489,7 +489,7 @@
       </tbody>
     </table>
     <h2>Ports</h2>
-    <h3>Get port description</h3>
+    <h3>Get port number</h3>
     <table border="1">
       <tbody>
         <tr>
@@ -498,19 +498,16 @@
         </tr>
         <tr>
           <td>Url</td>
-          <td><code>/api/port</code></td>
+          <td><code>/api/port/http</code> or <code>/api/port/ajp</code></td>
         </tr>
         <tr>
           <td>Request params</td>
-          <td><code>type=AJP/1.3</code> or <code>type=HTTP/1.1</code></td>
+          <td>none</td>
         </tr>
         <tr>
-          <td>Response (application/json UTF-8)</td>
-          <td>port description<br />
-            <br />
-            If the <code>type</code> request parameter is empty, 
-            the 400 status will be returned.
-            <br/><br/>
+          <td>Response (text/plain UTF-8)</td>
+          <td>port number<br />
+            <br/>
             If the requested <code>type</code> is invalid or no such port defined, 
             the 404 status will be returned.
           </td>
@@ -525,23 +522,15 @@
           <th>Response</t>
         </tr>
         <tr>
-          <td><code>/api/port?type=AJP/1.3</code></td>
+          <td><code>/api/port/http</code></td>
           <td>
-            <pre>
-{
-  "type": "AJP/1.3",
-  "number": 8009
-}       </pre>
+            <pre>8080</pre>
           </td>
         </tr>
         <tr>
-          <td><code>/api/port?type=HTTP/1.1</code></td>
+          <td><code>/api/port/ajp</code></td>
           <td>
-            <pre>
-{
-  "type": "HTTP/1.1",
-  "number": 8080
-}       </pre>
+            <pre>8009</pre>
           </td>
         </tr>
       </tbody>
