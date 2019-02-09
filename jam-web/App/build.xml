@@ -27,7 +27,7 @@
   <path id="libs">
     <pathelement location="${SERVLET-API_LIB}" />
     <pathelement location="${GSON_LIB}" />
-  	<pathelement location="${JRIALLAND-AJP-CLIENT_LIB}" />
+  	<pathelement location="${TOMCAT-COYOTE_AJP_LIB}" />
   </path>
   
   <path id="tomcat-libs">
