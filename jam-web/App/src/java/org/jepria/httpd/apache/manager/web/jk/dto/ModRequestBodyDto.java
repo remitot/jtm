@@ -1,13 +1,13 @@
-package org.jepria.httpd.apache.manager.web.modjk.dto;
+package org.jepria.httpd.apache.manager.web.jk.dto;
 
 public class ModRequestBodyDto {
   private String action;
   
   /**
-   * Reference to the {@link #data#location} for external {@link ModjkDto} identification (e.g. in modification requests)
+   * Reference to the {@link #data#location} for external {@link JkDto} identification (e.g. in modification requests)
    */
   private String location;
-  private ModjkDto data;
+  private JkDto data;
   
   public ModRequestBodyDto() {
   }
@@ -28,11 +28,11 @@ public class ModRequestBodyDto {
     this.location = location;
   }
 
-  public ModjkDto getData() {
+  public JkDto getData() {
     return data;
   }
 
-  public void setData(ModjkDto data) {
+  public void setData(JkDto data) {
     this.data = data;
   }
   

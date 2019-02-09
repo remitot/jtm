@@ -1,11 +1,11 @@
 /* @Override from table.js */
 function getApiListUrl() {
-  return "api/modjk/list";
+  return "api/jk/list";
 }
 
 /* @Override from table.js */
 function getApiModUrl() {
-  return "api/modjk/mod";
+  return "api/jk/mod";
 }
 
 /* @Override from table.js */
@@ -84,7 +84,7 @@ function loadWorkerOptions() {
       }
     }
   };
-  xhttp.open("GET", "api/modjk/workers", true);
+  xhttp.open("GET", "api/jk/workers", true);
   xhttp.send();
 }
 

@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Tomcat manager: mod_jk</title> <!-- NON-NLS -->
+    <title>Tomcat manager: JK</title> <!-- NON-NLS -->
     
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     
@@ -12,8 +12,8 @@
     <script type="text/javascript" src="gui/jtm.js"></script>
     <script type="text/javascript" src="gui/table.js"></script>
     
-    <link rel="stylesheet" href="gui/modjk/modjk.css">
-    <script type="text/javascript" src="gui/modjk/modjk.js"></script>
+    <link rel="stylesheet" href="gui/jk/jk.css">
+    <script type="text/javascript" src="gui/jk/jk.js"></script>
     
   </head>
   

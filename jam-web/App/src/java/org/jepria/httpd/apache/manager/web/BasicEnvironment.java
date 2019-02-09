@@ -14,55 +14,55 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class BasicEnvironment implements Environment {
   
-  private final File modjkConf;
-  private final File workerProperties;
+  private final File mod_jk_conf;
+  private final File workers_properties;
   
   /**
    * @param request
    * @return Apache HTTPD 'conf' directory
    */
   protected File getConfDirectory(HttpServletRequest request) {
-    return new File(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.apacheHttpdConfDirectory"));
+    return new File(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.confDirectory"));
   }
   
   public BasicEnvironment(HttpServletRequest request) {
     File confDir = getConfDirectory(request);
     
-    modjkConf = confDir.toPath().resolve("jk").resolve("mod_jk.conf").toFile();
-    workerProperties = confDir.toPath().resolve("jk").resolve("workers.properties").toFile();
+    mod_jk_conf = confDir.toPath().resolve("jk").resolve("mod_jk.conf").toFile();
+    workers_properties = confDir.toPath().resolve("jk").resolve("workers.properties").toFile();
   }
   
   @Override
-  public OutputStream getModjkConfOutputStream() {
+  public OutputStream getMod_jk_confOutputStream() {
     try {
-      return new FileOutputStream(modjkConf);
+      return new FileOutputStream(mod_jk_conf);
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }
   }
   
   @Override
-  public InputStream getModjkConfInputStream() {
+  public InputStream getMod_jk_confInputStream() {
     try {
-      return new FileInputStream(modjkConf);
+      return new FileInputStream(mod_jk_conf);
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }
   }
   
   @Override
-  public OutputStream getWorkerPropertiesOutputStream() {
+  public OutputStream getWorkers_propertiesOutputStream() {
     try {
-      return new FileOutputStream(workerProperties);
+      return new FileOutputStream(workers_properties);
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }
   }
   
   @Override
-  public InputStream getWorkerPropertiesInputStream() {
+  public InputStream getWorkers_propertiesInputStream() {
     try {
-      return new FileInputStream(workerProperties);
+      return new FileInputStream(workers_properties);
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }

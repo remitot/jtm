@@ -1,4 +1,4 @@
-package org.jepria.httpd.apache.manager.core.modjk;
+package org.jepria.httpd.apache.manager.core.jk;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,36 +13,36 @@ import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.TransactionException;
 
-public class ApacheConfModjk {
+public class ApacheConfJk {
   
-  protected final List<TextLineReference> modjkConfLines;
+  protected final List<TextLineReference> mod_jk_confLines;
   
-  protected final List<TextLineReference> workerPropertiesLines;
+  protected final List<TextLineReference> workers_propertiesLines;
   
   ///////////////// Methods are analogous to TomcatConfJdbc ///////////////
   
-  public ApacheConfModjk(InputStream modjkConfInputStream,
-      InputStream workerPropertiesInputStream) throws TransactionException {
+  public ApacheConfJk(InputStream mod_jk_confInputStream,
+      InputStream workers_propertiesInputStream) throws TransactionException {
     
-    try (InputStream modjkConfInputStream0 = modjkConfInputStream;
-        InputStream workerPropertiesInputStream0 = workerPropertiesInputStream) {
+    try (InputStream mod_jk_confInputStream0 = mod_jk_confInputStream;
+        InputStream workers_propertiesInputStream0 = workers_propertiesInputStream) {
       
-      modjkConfLines = new ArrayList<>();
-      try (Scanner sc = new Scanner(modjkConfInputStream0)) {
+      mod_jk_confLines = new ArrayList<>();
+      try (Scanner sc = new Scanner(mod_jk_confInputStream0)) {
         int lineNumber = 0;
         while (sc.hasNextLine()) {
           lineNumber++;
-          modjkConfLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
+          mod_jk_confLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
         }
       }
       
       
-      workerPropertiesLines = new ArrayList<>();
-      try (Scanner sc = new Scanner(workerPropertiesInputStream0)) {
+      workers_propertiesLines = new ArrayList<>();
+      try (Scanner sc = new Scanner(workers_propertiesInputStream0)) {
         int lineNumber = 0;
         while (sc.hasNextLine()) {
           lineNumber++;
-          workerPropertiesLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
+          workers_propertiesLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
         }
       }
       
@@ -131,7 +131,7 @@ public class ApacheConfModjk {
    */
   private void initBindings() {
     
-    List<JkMount> jkMounts = JkMountParser.parse(modjkConfLines.iterator());
+    List<JkMount> jkMounts = JkMountParser.parse(mod_jk_confLines.iterator());
 
     Map<String, Binding> bindings0 = new HashMap<>();
     for (JkMount jkMount: jkMounts) {
@@ -167,7 +167,7 @@ public class ApacheConfModjk {
    * Lazily initialize (or re-initialize) {@link #workers} list
    */
   private void initWorkers() {
-    this.workers = Collections.unmodifiableList(WorkerParser.parse(workerPropertiesLines.iterator()));
+    this.workers = Collections.unmodifiableList(WorkerParser.parse(workers_propertiesLines.iterator()));
   }
   
   /**
@@ -246,8 +246,8 @@ public class ApacheConfModjk {
  // TODO
   }
   
-  public void save(OutputStream modjkConfOutputStream,
-      OutputStream workerPropertiesOutputStream) {
+  public void save(OutputStream mod_jk_confOutputStream,
+      OutputStream workers_propertiesOutputStream) {
  // TODO
   }
 }

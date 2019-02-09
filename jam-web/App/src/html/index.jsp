@@ -1,3 +1,3 @@
 <% 
-  response.sendRedirect("modjk");
+  response.sendRedirect("jk");
 %>

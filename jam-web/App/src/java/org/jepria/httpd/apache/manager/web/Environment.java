@@ -4,8 +4,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface Environment {
-  InputStream getModjkConfInputStream();
-  InputStream getWorkerPropertiesInputStream();
-  OutputStream getModjkConfOutputStream();
-  OutputStream getWorkerPropertiesOutputStream();
+  InputStream getMod_jk_confInputStream();
+  InputStream getWorkers_propertiesInputStream();
+  OutputStream getMod_jk_confOutputStream();
+  OutputStream getWorkers_propertiesOutputStream();
 }

@@ -1,9 +1,9 @@
-package org.jepria.httpd.apache.manager.web.modjk.dto;
+package org.jepria.httpd.apache.manager.web.jk.dto;
 
-public class ModjkDto {
+public class JkDto {
   
   /**
-   * Location of the modjk binding in a configuration file
+   * Location of the Jk binding in a configuration file
    */
   private String location;
   
@@ -13,7 +13,7 @@ public class ModjkDto {
   private String worker;
   private String instance;
   
-  public ModjkDto() {
+  public JkDto() {
   }
   
   
