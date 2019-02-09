@@ -27,6 +27,7 @@
   <path id="libs">
     <pathelement location="${SERVLET-API_LIB}" />
     <pathelement location="${GSON_LIB}" />
+  	<pathelement location="${JRIALLAND-AJP-CLIENT_LIB}" />
   </path>
   
   <path id="tomcat-libs">
@@ -80,6 +81,11 @@
         <copy todir="temp-war/WEB-INF/lib">
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
           <fileset file="${GSON_LIB}" />
+        	<fileset file="${JRIALLAND-AJP-CLIENT_LIB}" />
+        	<fileset file="${SLF4J-API_LIB}" />
+          <fileset file="${NETTY-ALL_LIB}" />
+        	<fileset file="${POOLNETTY-COMMON_LIB}" />
+        	<fileset file="${POOLNETTY-POOL_LIB}" />
         </copy>
       	
       	<unzip src="${WEB-COMMON_LIB}" dest="temp-war"/>	

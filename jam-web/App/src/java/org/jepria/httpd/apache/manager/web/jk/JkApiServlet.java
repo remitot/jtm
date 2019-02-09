@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
@@ -27,6 +28,7 @@ import org.jepria.httpd.apache.manager.web.jk.dto.JkDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestDto;
 
+import com.github.jrialland.ajpclient.servlet.AjpServletProxy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -103,6 +105,10 @@ public class JkApiServlet extends HttpServlet {
         return;
       }
       
+    } else if ("/ajptest".equals(path)) {
+      
+      AjpServletProxy.forHost("localhost", 8010).forward(request, response, 10, TimeUnit.SECONDS, true);
+      
     } else {
       
       // TODO set content type for the error case?
@@ -111,7 +117,6 @@ public class JkApiServlet extends HttpServlet {
       return;
     }
   }
-  
   
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
