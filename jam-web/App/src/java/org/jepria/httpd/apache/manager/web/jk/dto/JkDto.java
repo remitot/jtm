@@ -6,15 +6,11 @@ public class JkDto {
    * Location of the Jk binding in a configuration file
    */
   private String location;
-  
   private Boolean active;
-  
   private String application;
-  private String worker;
   private String instance;
   
-  public JkDto() {
-  }
+  public JkDto() {}
   
   
   public String getLocation() {
@@ -34,12 +30,6 @@ public class JkDto {
   }
   public void setApplication(String application) {
     this.application = application;
-  }
-  public String getWorker() {
-    return worker;
-  }
-  public void setWorker(String worker) {
-    this.worker = worker;
   }
   public String getInstance() {
     return instance;

@@ -95,8 +95,7 @@ public class ApacheConfJk extends ApacheConfBase {
         Binding binding = new BindingImpl(
             !jkMount.isCommented() && !worker.isCommented(),
             jkMount.application(),
-            worker.name(),
-            worker.host() + ":" + worker.port());
+            worker);
         
         bindings0.put(location, binding);
       }
@@ -125,59 +124,63 @@ public class ApacheConfJk extends ApacheConfBase {
   private static class BindingImpl implements Binding {
     private final boolean active;
     private final String application;
-    private final String worker;
-    private final String instance;
+    private final String workerName;
+    private final String workerHost;
+    private final int workerAjpPort;
     
-    public BindingImpl(boolean active, String application, String worker, String instance) {
+    public BindingImpl(boolean active, String application, Worker worker) {
       this.active = active;
       this.application = application;
-      this.worker = worker;
-      this.instance = instance;
+      this.workerName = worker.name();
+      this.workerHost = worker.host();
+      
+      // TODO how to guarantee the ajp13 type here?
+      if (!"ajp13".equals(worker.type())) {
+        throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.type());
+      }
+      this.workerAjpPort = Integer.parseInt(worker.port());//TODO is this the best place to parse?
     }
 
     @Override
     public boolean isActive() {
       return active;
     }
-
     @Override
     public void setActive(boolean active) {
       // TODO Auto-generated method stub
-      
     }
-
     @Override
     public String getApplication() {
       return application;
     }
-
     @Override
     public void setApplication(String application) {
       // TODO Auto-generated method stub
-      
     }
-    
     @Override
-    public void setWorker(String worker) {
-      // TODO Auto-generated method stub
-      
+    public String getWorkerName() {
+      return workerName;
     }
-    
     @Override
-    public String getWorker() {
-      return worker;
-    }
-
-    @Override
-    public String getInstance() {
-      return instance;
-    }
-
-    @Override
-    public void setInstance(String instance) {
+    public void setWorkerName(String workerName) {
       // TODO Auto-generated method stub
     }
-    
+    @Override
+    public String getWorkerHost() {
+      return workerHost;
+    }
+    @Override
+    public void setWorkerHost(String workerHost) {
+      // TODO Auto-generated method stub
+    }
+    @Override
+    public int getWorkerAjpPort() {
+      return workerAjpPort; 
+    }
+    @Override
+    public void setWorkerAjpPort(int workerAjpPort) {
+      // TODO Auto-generated method stub
+    }
   }
   
   

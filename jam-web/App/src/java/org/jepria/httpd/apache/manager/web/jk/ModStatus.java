@@ -11,6 +11,7 @@ public class ModStatus {
   public static final int CODE_ERR__MANDATORY_FIELDS_EMPTY = 3;
   public static final int CODE_ERR__ILLEGAL_ACTION = 4;
   public static final int CODE_ERR__INTERNAL_ERROR = 5;
+  public static final int CODE_ERR__INVALID_VALUES = 6;
   
   
   public final int code;
@@ -38,6 +39,12 @@ public class ModStatus {
   public static ModStatus errMandatoryFieldsEmpty(List<String> fields) {
     String fieldsStr = fields == null || fields.isEmpty() ? null : fields.toString(); 
     return new ModStatus(CODE_ERR__MANDATORY_FIELDS_EMPTY, "ERROR: mandatory fields in 'data' are empty" + 
+        (fieldsStr == null ? "" : (": " + fieldsStr)));
+  }
+  
+  public static ModStatus errInvalidValues(List<String> fields) {
+    String fieldsStr = fields == null || fields.isEmpty() ? null : fields.toString(); 
+    return new ModStatus(CODE_ERR__INVALID_VALUES, "ERROR: fields in 'data' have invalid values" + 
         (fieldsStr == null ? "" : (": " + fieldsStr)));
   }
 

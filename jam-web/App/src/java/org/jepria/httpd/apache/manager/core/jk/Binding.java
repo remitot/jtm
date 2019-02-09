@@ -4,13 +4,17 @@ public interface Binding {
   
   boolean isActive();
   void setActive(boolean active);
-
+  
   String getApplication();
   void setApplication(String application);
   
-  String getWorker();
-  void setWorker(String worker);
+  String getWorkerName();
+  void setWorkerName(String workerName);
   
-  String getInstance();
-  void setInstance(String instance);
+  String getWorkerHost();
+  void setWorkerHost(String workerHost);
+  
+  // TODO is this legal to bing the name of the method to AJP type?
+  int getWorkerAjpPort();
+  void setWorkerAjpPort(int workerAjpPort);
 }

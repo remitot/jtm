@@ -6,12 +6,15 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
@@ -351,18 +354,7 @@ public class JkApiServlet extends HttpServlet {
         } else {
           JkDto bindingDto = mreq.getData();
 
-          if (bindingDto.getActive() != null) {
-            binding.setActive(bindingDto.getActive());
-          }
-          if (bindingDto.getApplication() != null) {
-            binding.setApplication(bindingDto.getApplication());
-          }
-          if (bindingDto.getInstance() != null) {
-            binding.setInstance(bindingDto.getInstance());
-          }
-
-          ret = ModStatus.success();
-          
+          ret = updateFields(bindingDto, binding);
         }
       }
     } catch (Throwable e) {
@@ -371,6 +363,50 @@ public class JkApiServlet extends HttpServlet {
     }
     
     return ret;
+  }
+  
+  /**
+   * Updates target's fields with source's values
+   * @param sourceDto
+   * @param target non null
+   * @return
+   */
+  private static ModStatus updateFields(JkDto sourceDto, Binding target) {
+    // validate instance field
+    final String instance = sourceDto.getInstance();
+    final String host;
+    final Integer port;
+    
+    if (instance != null) {
+      Matcher m = Pattern.compile("([^:]+):(\\d+)").matcher(instance);
+      if (!m.matches()) {
+        
+        return ModStatus.errInvalidValues(Arrays.asList("instance"));
+        
+      } else {
+        host = m.group(1);
+        port = Integer.parseInt(m.group(2));
+      }
+    } else {
+      host = null;
+      port = null;
+    }
+    
+    if (sourceDto.getActive() != null) {
+      target.setActive(sourceDto.getActive());
+    }
+    if (sourceDto.getApplication() != null) {
+      target.setApplication(sourceDto.getApplication());
+    }
+    if (host != null) {
+      // TODO convert host from http to ajp
+      target.setWorkerHost(host);
+    }
+    if (port != null) {
+      // TODO convert port from http to ajp
+      target.setWorkerAjpPort(port);
+    }
+    return ModStatus.success();
   }
   
   private static ModStatus deleteBinding(
@@ -427,8 +463,7 @@ public class JkApiServlet extends HttpServlet {
 
         Binding newBinding = apacheConf.create();
 
-        newBinding.setApplication(bindingDto.getApplication());
-        newBinding.setInstance(bindingDto.getInstance());
+        updateFields(bindingDto, newBinding);
 
         ret = ModStatus.success();
       }
@@ -472,8 +507,7 @@ public class JkApiServlet extends HttpServlet {
     dto.setActive(binding.isActive());
     dto.setLocation(location);
     dto.setApplication(binding.getApplication());
-    dto.setWorker(binding.getWorker());
-    dto.setInstance(binding.getInstance());
+    dto.setInstance(binding.getWorkerHost() + ":" + binding.getWorkerAjpPort());
     return dto;
   }
   

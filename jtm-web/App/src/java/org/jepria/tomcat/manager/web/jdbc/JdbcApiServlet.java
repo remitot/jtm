@@ -339,28 +339,7 @@ public class JdbcApiServlet extends HttpServlet {
         } else {
           ConnectionDto connectionDto = mreq.getData();
 
-          if (connectionDto.getActive() != null) {
-            connection.setActive(connectionDto.getActive());
-          }
-          
-          if (connectionDto.getDb() != null) {
-            connection.setDb(connectionDto.getDb());
-          }
-          if (connectionDto.getName() != null) {
-            connection.setName(connectionDto.getName());
-          }
-          if (connectionDto.getPassword() != null) {
-            connection.setPassword(connectionDto.getPassword());
-          }
-          if (connectionDto.getServer() != null) {
-            connection.setServer(connectionDto.getServer());
-          }
-          if (connectionDto.getUser() != null) {
-            connection.setUser(connectionDto.getUser());
-          }
-
-          ret = ModStatus.success();
-          
+          ret = updateFields(connectionDto, connection);
         }
       }
     } catch (Throwable e) {
@@ -369,6 +348,34 @@ public class JdbcApiServlet extends HttpServlet {
     }
     
     return ret;
+  }
+  
+  /**
+   * Updates target's fields with source's values
+   * @param sourceDto
+   * @param target non null
+   * @return
+   */
+  private static ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
+    if (sourceDto.getActive() != null) {
+      target.setActive(sourceDto.getActive());
+    }
+    if (sourceDto.getDb() != null) {
+      target.setDb(sourceDto.getDb());
+    }
+    if (sourceDto.getName() != null) {
+      target.setName(sourceDto.getName());
+    }
+    if (sourceDto.getPassword() != null) {
+      target.setPassword(sourceDto.getPassword());
+    }
+    if (sourceDto.getServer() != null) {
+      target.setServer(sourceDto.getServer());
+    }
+    if (sourceDto.getUser() != null) {
+      target.setUser(sourceDto.getUser());
+    }
+    return ModStatus.success();
   }
   
   private static ModStatus deleteConnection(
@@ -547,15 +554,10 @@ public class JdbcApiServlet extends HttpServlet {
             }
             
             
-            // create a new active connection
+            // create a new connection
             Connection newConnection = tomcatConf.create(environment.getJdbcConnectionInitialParams());
   
-            newConnection.setDb(connectionDto.getDb());
-            newConnection.setName(connectionDto.getName());
-            newConnection.setPassword(connectionDto.getPassword());
-            newConnection.setServer(connectionDto.getServer());
-            newConnection.setUser(connectionDto.getUser());
-  
+            updateFields(connectionDto, newConnection);
             
             if (existingActiveConnections.isEmpty()) {
               respStatus = EnsureConnectionResponseStatus.successNoExistCreated();
