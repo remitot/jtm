@@ -23,9 +23,9 @@ import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
 import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
+import org.jepria.httpd.apache.manager.web.jk.dto.JkDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestDto;
-import org.jepria.httpd.apache.manager.web.jk.dto.JkDto;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,17 +36,17 @@ public class JkApiServlet extends HttpServlet {
   private static final long serialVersionUID = -3831454096594936484L;
 
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    resp.setContentType("application/json; charset=UTF-8");
+    response.setContentType("application/json; charset=UTF-8");
     
-    String path = req.getPathInfo();
+    String path = request.getPathInfo();
     
     if ("/list".equals(path)) {
       
       try {
         
-        Environment environment = EnvironmentFactory.get(req);
+        Environment environment = EnvironmentFactory.get(request);
         
         ApacheConfJk apacheConf = new ApacheConfJk(
             () -> environment.getMod_jk_confInputStream(), 
@@ -58,25 +58,25 @@ public class JkApiServlet extends HttpServlet {
         responseJsonMap.put("_list", bindings);
         
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
+        gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
         
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.flushBuffer();
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.flushBuffer();
         return;
         
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.getOutputStream().println("Oops! Something went wrong.");//TODO
-        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        resp.flushBuffer();
+        response.getOutputStream().println("Oops! Something went wrong.");//TODO
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.flushBuffer();
         return;
       }
 
     } else if ("/workers".equals(path)) {
       
       try {
-        Environment environment = EnvironmentFactory.get(req);
+        Environment environment = EnvironmentFactory.get(request);
         
         ApacheConfJk apacheConf = new ApacheConfJk(
             () -> environment.getMod_jk_confInputStream(), 
@@ -88,45 +88,45 @@ public class JkApiServlet extends HttpServlet {
         responseJsonMap.put("_list", workers);
         
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
+        gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
         
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.flushBuffer();
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.flushBuffer();
         return;
         
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.getOutputStream().println("Oops! Something went wrong.");//TODO
-        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        resp.flushBuffer();
+        response.getOutputStream().println("Oops! Something went wrong.");//TODO
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.flushBuffer();
         return;
       }
       
     } else {
       
       // TODO set content type for the error case?
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-      resp.flushBuffer();
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      response.flushBuffer();
       return;
     }
   }
   
   
   @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-    String path = req.getPathInfo();
+    String path = request.getPathInfo();
     
     if ("/mod".equals(path)) {
-      mod(req, resp);
+      mod(request, response);
       return;
       
     } else {
       
       // TODO set content type for the error case?
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-      resp.flushBuffer();
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      response.flushBuffer();
       return;
     }
   }
