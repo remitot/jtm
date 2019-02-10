@@ -99,7 +99,6 @@ function createRow(listItem) {
   cell.classList.add("cell-field");
   field = addFieldHttpPort(cell, rowIndex, listItem.getHttpPortLink, null);
   field.setAttribute("value-original", "");
-  field.tabIndex = tabindex0++;
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
@@ -111,13 +110,13 @@ function createRow(listItem) {
 }
 
 function addFieldAjpPort(cell, rowIndex, value, placeholder) {
-  field = addField(cell, "ajp_port", value, placeholder);
-  field.id = "ajp_portInputField-" + rowIndex;
+  field = addField(cell, "ajpPort", value, placeholder);
+  field.id = "ajpPortInputField-" + rowIndex;
   field.addEventListener("input", function(){
-    var http_portInputField = document.getElementById("http_portInputField-" + rowIndex);
-    http_portInputField.setAttribute("value-original", "");
-    http_portInputField.value = "";
-    onFieldInput(http_portInputField);
+    var httpPortInputField = document.getElementById("httpPortInputField-" + rowIndex);
+    httpPortInputField.setAttribute("value-original", "");
+    httpPortInputField.value = "";
+    onFieldInput(httpPortInputField);
   });
   return field;
 }
@@ -125,17 +124,19 @@ function addFieldAjpPort(cell, rowIndex, value, placeholder) {
 function addFieldHttpPort(cell, rowIndex, getHttpPortLink, placeholder) {
   var div = document.createElement("div");
 
-  var field = createField("http_port", "", placeholder);
-  field.id = "http_portInputField-" + rowIndex;
+  var field = createField("httpPort", "", placeholder);
+  field.id = "httpPortInputField-" + rowIndex;
   field.addEventListener("input", function(){
-    clearAjp_portField(field);
+    clearAjpPortField(rowIndex);
   });
+  field.tabIndex = tabindex0++;
   div.appendChild(field);
   
   if (getHttpPortLink) {
     var button = document.createElement("button");
     setGetHttpPortButtonState(button, 0);
     button.onclick = function(){getHttpPortButtonClick(button, getHttpPortLink);}
+    button.tabIndex = tabindex0++;
     div.appendChild(button);
   }
   
@@ -149,12 +150,11 @@ function addFieldHttpPort(cell, rowIndex, getHttpPortLink, placeholder) {
   return field;
 }
 
-function clearAjp_portField(http_portField) {
-  var rowIndex = http_portField.id.substring("http_portInputField-".length);
-  var ajp_portInputField = document.getElementById("ajp_portInputField-" + rowIndex);
-  ajp_portInputField.setAttribute("value-original", "");
-  ajp_portInputField.value = "";
-  onFieldInput(ajp_portInputField);
+function clearAjpPortField(rowIndex) {
+  var ajpPortInputField = document.getElementById("ajpPortInputField-" + rowIndex);
+  ajpPortInputField.setAttribute("value-original", "");
+  ajpPortInputField.value = "";
+  onFieldInput(ajpPortInputField);
 }
 
 /**
@@ -189,7 +189,12 @@ function getHttpPortButtonClick(button, getHttpPortLink) {
         field.setAttribute("value-original", value);
         field.value = value;
         onFieldInput(field);
-        clearAjp_portField(field);
+        
+        var rowIndex = field.id.substring("httpPortInputField-".length);
+        // clear the ajp port field if it is modified
+        if (document.querySelectorAll("#ajpPortInputField-" + rowIndex + ".modified").length > 0) {
+          clearAjpPortField(rowIndex);
+        }
         
       } else if (this.status == 401) {
         statusError("Требуется авторизация"); // NON-NLS
