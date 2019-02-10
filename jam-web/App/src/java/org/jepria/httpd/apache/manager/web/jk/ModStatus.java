@@ -11,7 +11,7 @@ public class ModStatus {
   public static final int CODE_ERR__MANDATORY_FIELDS_EMPTY = 3;
   public static final int CODE_ERR__ILLEGAL_ACTION = 4;
   public static final int CODE_ERR__INTERNAL_ERROR = 5;
-  public static final int CODE_ERR__INVALID_VALUES = 6;
+  public static final int CODE_ERR__NOT_SINGLE_PORT = 6;
   
   
   public final int code;
@@ -42,12 +42,6 @@ public class ModStatus {
         (fieldsStr == null ? "" : (": " + fieldsStr)));
   }
   
-  public static ModStatus errInvalidValues(List<String> fields) {
-    String fieldsStr = fields == null || fields.isEmpty() ? null : fields.toString(); 
-    return new ModStatus(CODE_ERR__INVALID_VALUES, "ERROR: fields in 'data' have invalid values" + 
-        (fieldsStr == null ? "" : (": " + fieldsStr)));
-  }
-
   public static ModStatus errIllegalAction(String action) {
     return new ModStatus(CODE_ERR__ILLEGAL_ACTION, "ERROR: illegal action" + 
         (action == null ? "" : (": " + action)));
@@ -55,5 +49,9 @@ public class ModStatus {
   
   public static ModStatus errInternalError() {
     return new ModStatus(CODE_ERR__INTERNAL_ERROR, "ERROR: internal error, ask server admin for more info");
+  }
+  
+  public static ModStatus errNotSinglePort() {
+    return new ModStatus(CODE_ERR__NOT_SINGLE_PORT, "ERROR: not single port (ajp or http) specified");
   }
 }

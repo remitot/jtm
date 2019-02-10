@@ -339,36 +339,41 @@ public class JkApiServlet extends HttpServlet {
   private static ModStatus updateBinding(
       ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
     
-    ModStatus ret;
-    
     try {
       String location = mreq.getLocation();
 
       if (location == null) {
-
-        ret = ModStatus.errLocationIsEmpty();
-            
-      } else {
-
-        Map<String, Binding> bindings = apacheConf.getBindings();
-        Binding binding = bindings.get(location);
-
-        if (binding == null) {
-
-          ret = ModStatus.errItemNotFoundByLocation(location);
-
-        } else {
-          JkDto bindingDto = mreq.getData();
-
-          ret = updateFields(bindingDto, binding);
-        }
+        return ModStatus.errLocationIsEmpty();
       }
+
+      Map<String, Binding> bindings = apacheConf.getBindings();
+      Binding binding = bindings.get(location);
+
+      if (binding == null) {
+        return ModStatus.errItemNotFoundByLocation(location);
+      }
+      
+      JkDto bindingDto = mreq.getData();
+      
+      
+      // check mandatory fields of a new connection
+      List<String> emptyMandatoryFields = validateEmptyFields(bindingDto);
+      if (!emptyMandatoryFields.isEmpty()) {
+        return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
+      }
+      // check not single port
+      if (!validateNotSinglePort(bindingDto)) {
+        return ModStatus.errNotSinglePort();
+      }
+      
+
+      return updateFields(bindingDto, binding);
+      
     } catch (Throwable e) {
       e.printStackTrace();
-      ret = ModStatus.errInternalError();
+      
+      return ModStatus.errInternalError();
     }
-    
-    return ret;
   }
   
   /**
@@ -378,6 +383,7 @@ public class JkApiServlet extends HttpServlet {
    * @return
    */
   private static ModStatus updateFields(JkDto sourceDto, Binding target) {
+
     if (sourceDto.getActive() != null) {
       target.setActive(sourceDto.getActive());
     }
@@ -439,21 +445,23 @@ public class JkApiServlet extends HttpServlet {
     try {
       JkDto bindingDto = mreq.getData();
 
+      
       // check mandatory fields of a new connection
-      List<String> emptyFields = getEmptyMandatoryFields(bindingDto);
-
-      if (!emptyFields.isEmpty()) {
-
-        ret = ModStatus.errMandatoryFieldsEmpty(emptyFields);
-
-      } else {
-
-        Binding newBinding = apacheConf.create();
-
-        updateFields(bindingDto, newBinding);
-
-        ret = ModStatus.success();
+      List<String> emptyMandatoryFields = validateEmptyFields(bindingDto);
+      if (!emptyMandatoryFields.isEmpty()) {
+        return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
       }
+      // check not single port
+      if (!validateNotSinglePort(bindingDto)) {
+        return ModStatus.errNotSinglePort();
+      }
+
+      
+      Binding newBinding = apacheConf.create();
+      updateFields(bindingDto, newBinding);
+
+      ret = ModStatus.success();
+        
     } catch (Throwable e) {
       e.printStackTrace();
       ret = ModStatus.errInternalError();
@@ -463,24 +471,38 @@ public class JkApiServlet extends HttpServlet {
   }
   
   /**
-   * 
+   * Validate empty mandatory fields
    * @param connection
-   * @return or empty list
+   * @return list of field names whose values are empty, or else empty list
    */
-  private static List<String> getEmptyMandatoryFields(JkDto bindingDto) {
+  private static List<String> validateEmptyFields(JkDto dto) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (bindingDto.getApplication() == null) {
+    if (empty(dto.getApplication())) {
       emptyFields.add("application");
     }
-    if (bindingDto.getHost() == null) {
+    if (empty(dto.getHost())) {
       emptyFields.add("host");
     }
-    if (bindingDto.getHttpPort() == null) {
+    if (empty(dto.getAjpPort()) && empty(dto.getHttpPort())) {
+      emptyFields.add("ajpPort");
       emptyFields.add("httpPort");
     }
-
+    
     return emptyFields;
+  }
+    
+  /**
+   * Validate not single port specified
+   * @param connection
+   * @return true if valid
+   */
+  private static boolean validateNotSinglePort(JkDto dto) {
+    return empty(dto.getAjpPort()) || empty(dto.getHttpPort());
+  }
+  
+  private static boolean empty(String string) {
+    return string == null || "".equals(string);
   }
   
   private static List<JkDto> getBindings(ApacheConfJk apacheConf) {
