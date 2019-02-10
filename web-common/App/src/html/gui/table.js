@@ -228,13 +228,13 @@ function onCheckboxInput(input) {
 function addField(cell, name, value, placeholder) {
   field = createField(name, value, placeholder);
   
+  wrapper = wrapCellPad(field);
+  cell.appendChild(wrapper);
+
   if (isEditable()) {
     addStrike(cell);
   }
-  
-  wrapper = wrapCellPad(field);
-  cell.appendChild(wrapper);
-  
+    
   return field;
 }
 
