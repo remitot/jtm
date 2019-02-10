@@ -1,18 +1,9 @@
 #table div.cell.column-application {
+  width: 30%;
+}
+#table div.cell.column-host {
   width: 20%;
 }
-#table div.cell.column-worker {
-  width: 15%;
-}
-#table div.cell.column-instance {
-  width: 20%;
-}
-
-select.field-text {
-  height: 28px;
-}
-
-#table .column-worker select.discarded {
-  border-color: #ddd;
-  color: #ddd;
+#table div.cell.column-http_port {
+  width: 10%;
 }

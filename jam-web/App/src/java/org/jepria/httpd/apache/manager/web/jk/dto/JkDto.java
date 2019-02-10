@@ -8,7 +8,19 @@ public class JkDto {
   private String location;
   private Boolean active;
   private String application;
-  private String instance;
+  private String host;
+  /**
+   * Field normally passed from server to client only
+   */
+  private String ajpPort;
+  /**
+   * Field normally passed from client to server only
+   */
+  private String httpPort;
+  /**
+   * Field normally passed from server to client only
+   */
+  private String getHttpPortLink;
   
   public JkDto() {}
   
@@ -31,10 +43,28 @@ public class JkDto {
   public void setApplication(String application) {
     this.application = application;
   }
-  public String getInstance() {
-    return instance;
+  public String getHost() {
+    return host;
   }
-  public void setInstance(String instance) {
-    this.instance = instance;
+  public void setHost(String host) {
+    this.host = host;
+  }
+  public String getAjpPort() {
+    return ajpPort;
+  }
+  public void setAjpPort(String ajpPort) {
+    this.ajpPort = ajpPort;
+  }
+  public String getHttpPort() {
+    return httpPort;
+  }
+  public void setHttpPort(String httpPort) {
+    this.httpPort = httpPort;
+  }
+  public String getGetHttpPortLink() {
+    return getHttpPortLink;
+  }
+  public void setGetHttpPortLink(String getHttpPortLink) {
+    this.getHttpPortLink = getHttpPortLink;
   }
 }

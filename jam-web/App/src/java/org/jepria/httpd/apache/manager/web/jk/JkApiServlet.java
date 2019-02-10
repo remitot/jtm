@@ -6,15 +6,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
@@ -42,101 +39,110 @@ public class JkApiServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    response.setContentType("application/json; charset=UTF-8");
-    
     String path = request.getPathInfo();
     
     if ("/list".equals(path)) {
-      
-      try {
-        
-        Environment environment = EnvironmentFactory.get(request);
-        
-        ApacheConfJk apacheConf = new ApacheConfJk(
-            () -> environment.getMod_jk_confInputStream(), 
-            () -> environment.getWorkers_propertiesInputStream());
-        
-        List<JkDto> bindings = getBindings(apacheConf);
-        
-        Map<String, Object> responseJsonMap = new HashMap<>();
-        responseJsonMap.put("_list", bindings);
-        
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
-        
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.flushBuffer();
-        return;
-        
-      } catch (Throwable e) {
-        e.printStackTrace();
+      list(request, response);
+      return;
 
-        response.getOutputStream().println("Oops! Something went wrong.");//TODO
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        response.flushBuffer();
-        return;
-      }
-
-    } else if ("/workers".equals(path)) {
-      
-      try {
-        Environment environment = EnvironmentFactory.get(request);
-        
-        ApacheConfJk apacheConf = new ApacheConfJk(
-            () -> environment.getMod_jk_confInputStream(), 
-            () -> environment.getWorkers_propertiesInputStream());
-        
-        Set<String> workers = apacheConf.getWorkerNames();
-        
-        Map<String, Object> responseJsonMap = new HashMap<>();
-        responseJsonMap.put("_list", workers);
-        
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
-        
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.flushBuffer();
-        return;
-        
-      } catch (Throwable e) {
-        e.printStackTrace();
-
-        response.getOutputStream().println("Oops! Something went wrong.");//TODO
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        response.flushBuffer();
-        return;
-      }
-      
-    } else if ("/ajptest".equals(path)) {
-      
-      String httpPort = null;
-      
-      try {
-        SimpleAjpConnection connection = SimpleAjpConnection.open(
-            "localhost", 8010, "/manager-ext/api/port/http", 2000);
-        
-        connection.connect();
-        
-        int status = connection.getStatus();
-        if (status == 200) {
-          httpPort = connection.getResponseBody();
-        }
-        
-      } catch (Throwable e) {
-        // access to a protected resource will result java.net.SocketTimeoutException,
-        
-        // log but not rethrow
-        e.printStackTrace();
-      }
-      
-      if (httpPort != null) {
-        response.getWriter().println(httpPort);
-      }
+    } else if ("/get-http-port".equals(path)) {
+      getHttpPort(request, response);
+      return;
       
     } else {
       
       // TODO set content type for the error case?
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      response.flushBuffer();
+      return;
+    }
+  }
+  
+  private static void list(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    
+    // the content type is defined for the entire method
+    response.setContentType("application/json; charset=UTF-8");
+    
+    try {
+      
+      Environment environment = EnvironmentFactory.get(request);
+      
+      ApacheConfJk apacheConf = new ApacheConfJk(
+          () -> environment.getMod_jk_confInputStream(), 
+          () -> environment.getWorkers_propertiesInputStream());
+      
+      List<JkDto> bindings = getBindings(apacheConf);
+      
+      Map<String, Object> responseJsonMap = new HashMap<>();
+      responseJsonMap.put("_list", bindings);
+      
+      Gson gson = new GsonBuilder().setPrettyPrinting().create();
+      gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
+      
+      response.setStatus(HttpServletResponse.SC_OK);
+      response.flushBuffer();
+      return;
+      
+    } catch (Throwable e) {
+      e.printStackTrace();
+
+      response.getOutputStream().println("Oops! Something went wrong.");//TODO
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.flushBuffer();
+      return;
+    }
+  }
+  
+  private static void getHttpPort(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    
+    // the content type is defined for the entire method
+    response.setContentType("text/plain; charset=UTF-8");
+
+    String host = request.getParameter("host");
+    String ajpPort = request.getParameter("ajp-port");
+    
+    if (host == null || ajpPort == null || !ajpPort.matches("\\d+")) {
+      // TODO set content type for the error case?
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      response.flushBuffer();
+      return;
+    }
+    
+    int ajpPortNumber = Integer.parseInt(ajpPort);
+    
+    try {
+      SimpleAjpConnection connection = SimpleAjpConnection.open(
+          host, ajpPortNumber, "/manager-ext/api/port/http", 2000);
+      
+      connection.connect();
+      
+      int status = connection.getStatus();
+      
+      if (status == 200) {
+        String httpPort = connection.getResponseBody();
+        
+        response.getWriter().print(httpPort);
+        
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.flushBuffer();
+        return;
+        
+      } else {
+        
+        response.setStatus(status);
+        response.flushBuffer();
+        return;
+      }
+      
+    } catch (Throwable e) {
+      // access to a protected resource will result java.net.SocketTimeoutException,
+      
+      // log but not rethrow
+      e.printStackTrace();
+      
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       response.flushBuffer();
       return;
     }
@@ -372,39 +378,20 @@ public class JkApiServlet extends HttpServlet {
    * @return
    */
   private static ModStatus updateFields(JkDto sourceDto, Binding target) {
-    // validate instance field
-    final String instance = sourceDto.getInstance();
-    final String host;
-    final Integer port;
-    
-    if (instance != null) {
-      Matcher m = Pattern.compile("([^:]+):(\\d+)").matcher(instance);
-      if (!m.matches()) {
-        
-        return ModStatus.errInvalidValues(Arrays.asList("instance"));
-        
-      } else {
-        host = m.group(1);
-        port = Integer.parseInt(m.group(2));
-      }
-    } else {
-      host = null;
-      port = null;
-    }
-    
     if (sourceDto.getActive() != null) {
       target.setActive(sourceDto.getActive());
     }
     if (sourceDto.getApplication() != null) {
       target.setApplication(sourceDto.getApplication());
     }
-    if (host != null) {
-      // TODO convert host from http to ajp
-      target.setWorkerHost(host);
+    if (sourceDto.getHost() != null) {
+      // TODO convert from http to ajp
+      target.setWorkerHost(sourceDto.getHost());
     }
-    if (port != null) {
-      // TODO convert port from http to ajp
-      target.setWorkerAjpPort(port);
+    if (sourceDto.getHttpPort() != null) {
+      // TODO convert from http to ajp
+      int ajpPort = Integer.parseInt(sourceDto.getHttpPort()); 
+      target.setWorkerAjpPort(ajpPort);
     }
     return ModStatus.success();
   }
@@ -486,8 +473,11 @@ public class JkApiServlet extends HttpServlet {
     if (bindingDto.getApplication() == null) {
       emptyFields.add("application");
     }
-    if (bindingDto.getInstance() == null) {
-      emptyFields.add("instance");
+    if (bindingDto.getHost() == null) {
+      emptyFields.add("host");
+    }
+    if (bindingDto.getHttpPort() == null) {
+      emptyFields.add("httpPort");
     }
 
     return emptyFields;
@@ -507,7 +497,11 @@ public class JkApiServlet extends HttpServlet {
     dto.setActive(binding.isActive());
     dto.setLocation(location);
     dto.setApplication(binding.getApplication());
-    dto.setInstance(binding.getWorkerHost() + ":" + binding.getWorkerAjpPort());
+    String host = binding.getWorkerHost(); 
+    dto.setHost(host);
+    String ajpPort = Integer.toString(binding.getWorkerAjpPort());
+    dto.setAjpPort(ajpPort);
+    dto.setGetHttpPortLink("api/jk/get-http-port?host=" + host + "&ajp-port=" + ajpPort);
     return dto;
   }
   
