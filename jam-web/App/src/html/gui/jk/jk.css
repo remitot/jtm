@@ -4,6 +4,9 @@
 #table div.cell.column-host {
   width: 20%;
 }
+#table div.cell.column-ajp_port {
+  width: 10%;
+}
 #table div.cell.column-http_port {
   width: 10%;
 }

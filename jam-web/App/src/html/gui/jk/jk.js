@@ -34,6 +34,11 @@ function createHeader() {
   label.innerHTML = "Сервер Tomcat"; // NON-NLS
   cell.appendChild(label);
   
+  cell = createCell(div, "column-ajp_port");
+  label = document.createElement("label");
+  label.innerHTML = "AJP порт"; // NON-NLS
+  cell.appendChild(label);
+  
   cell = createCell(div, "column-http_port");
   label = document.createElement("label");
   label.innerHTML = "HTTP порт"; // NON-NLS
@@ -84,6 +89,12 @@ function createRow(listItem) {
   cell.classList.add("cell-field");
   field = addField(cell, "host", listItem.host, null);
   field.setAttribute("value-original", listItem.host);
+  field.tabIndex = tabindex0++;
+  
+  cell = createCell(div, "column-ajp_port");
+  cell.classList.add("cell-field");
+  field = addField(cell, "ajp_port", listItem.ajpPort, null);
+  field.setAttribute("value-original", listItem.ajpPort);
   field.tabIndex = tabindex0++;
   
   var http_portFieldId = "http_portField-" + rowIndex;
@@ -137,7 +148,7 @@ function addField__get_http_port(cell, getHttpPortLink, http_portFieldId) {
 function setGetHttpPortButtonState(button, state) {
   if (state == 0) {
     button.disabled = false;
-    button.innerHTML = "Показать"; // NON-NLS
+    button.innerHTML = "Запросить"; // NON-NLS
     button.title = "Сделать запрос HTTP порта"; 
   } else if (state == 1) {
     button.disabled = true;
@@ -214,6 +225,13 @@ function createRowCreate() {
   cell.classList.add("cell-field");
   field = addField(cell, "host", "", "tomcat-server.com");
   field.setAttribute("value-original", "");
+  field.tabIndex = tabindex0++;
+  onFieldInput(field);// trigger initial event
+  
+  cell = createCell(flexColumns, "column-ajp_port");
+  cell.classList.add("cell-field");
+  field = addField(cell, "ajp_port", "", "8009");
+  field.setAttribute("value-original", 8009);
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
