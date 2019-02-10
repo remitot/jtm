@@ -117,6 +117,7 @@ function addFieldAjpPort(cell, rowIndex, value, placeholder) {
     var http_portInputField = document.getElementById("http_portInputField-" + rowIndex);
     http_portInputField.setAttribute("value-original", "");
     http_portInputField.value = "";
+    onFieldInput(http_portInputField);
   });
   return field;
 }
@@ -124,11 +125,10 @@ function addFieldAjpPort(cell, rowIndex, value, placeholder) {
 function addFieldHttpPort(cell, rowIndex, getHttpPortLink, placeholder) {
   var div = document.createElement("div");
 
-  field = createField("http_port", "", placeholder);
+  var field = createField("http_port", "", placeholder);
   field.id = "http_portInputField-" + rowIndex;
   field.addEventListener("input", function(){
-    var ajp_portInputField = document.getElementById("ajp_portInputField-" + rowIndex);
-    ajp_portInputField.value = "";
+    clearAjp_portField(field);
   });
   div.appendChild(field);
   
@@ -147,6 +147,14 @@ function addFieldHttpPort(cell, rowIndex, getHttpPortLink, placeholder) {
   }
     
   return field;
+}
+
+function clearAjp_portField(http_portField) {
+  var rowIndex = http_portField.id.substring("http_portInputField-".length);
+  var ajp_portInputField = document.getElementById("ajp_portInputField-" + rowIndex);
+  ajp_portInputField.setAttribute("value-original", "");
+  ajp_portInputField.value = "";
+  onFieldInput(ajp_portInputField);
 }
 
 /**
@@ -178,9 +186,19 @@ function getHttpPortButtonClick(button, getHttpPortLink) {
         //TODO resolve the relative path:
         var field = button.parentElement.firstChild;
         var value = this.responseText;
-        field.value = value;
         field.setAttribute("value-original", value);
-        onFieldInput(field);// trigger initial event
+        field.value = value;
+        onFieldInput(field);
+        clearAjp_portField(field);
+        
+      } else if (this.status == 401) {
+        statusError("Требуется авторизация"); // NON-NLS
+    
+        raiseLoginForm(function() {
+          hideLoginForm();
+          table_reload();  
+        });
+        
       } else {
         setGetHttpPortButtonState(button, 2);
       }
