@@ -144,7 +144,7 @@ function createRowCreate() {
  
   cell = createCell(flexColumns, "column-server");
   cell.classList.add("cell-field");
-  field = addField(cell, "server", "", "mydbserver.com:1521");
+  field = addField(cell, "server", "", "db-server.com:1521");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
