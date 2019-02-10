@@ -315,6 +315,37 @@ public class JdbcApiServlet extends HttpServlet {
     }
   }
   
+  /**
+   * Validate empty mandatory fields
+   * @param connection
+   * @return list of field names whose values are empty, or else empty list
+   */
+  private static List<String> validateEmptyFields(ConnectionDto dto) {
+    List<String> emptyFields = new ArrayList<>();
+
+    if (empty(dto.getDb())) {
+      emptyFields.add("db");
+    }
+    if (empty(dto.getName())) {
+      emptyFields.add("name");
+    }
+    if (empty(dto.getPassword())) {
+      emptyFields.add("password");
+    }
+    if (empty(dto.getServer())) {
+      emptyFields.add("server");
+    }
+    if (empty(dto.getUser())) {
+      emptyFields.add("user");
+    }
+    
+    return emptyFields;
+  }
+  
+  private static boolean empty(String string) {
+    return string == null || "".equals(string);
+  }
+  
   private static ModStatus updateConnection(
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
     
@@ -416,37 +447,33 @@ public class JdbcApiServlet extends HttpServlet {
   private static ModStatus createConnection(
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf,
       ConnectionInitialParams connectionInitialParams) {
-    
-    ModStatus ret;
 
     try {
       ConnectionDto connectionDto = mreq.getData();
 
+      
       // check mandatory fields of a new connection
-      List<String> emptyFields = getEmptyMandatoryFields(connectionDto);
-
-      if (!emptyFields.isEmpty()) {
-
-        ret = ModStatus.errMandatoryFieldsEmpty(emptyFields);
-
-      } else {
-
-        Connection newConnection = tomcatConf.create(connectionInitialParams);
-
-        newConnection.setDb(connectionDto.getDb());
-        newConnection.setName(connectionDto.getName());
-        newConnection.setPassword(connectionDto.getPassword());
-        newConnection.setServer(connectionDto.getServer());
-        newConnection.setUser(connectionDto.getUser());
-
-        ret = ModStatus.success();
+      List<String> emptyMandatoryFields = validateEmptyFields(connectionDto);
+      if (!emptyMandatoryFields.isEmpty()) {
+        return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
       }
+      
+
+      Connection newConnection = tomcatConf.create(connectionInitialParams);
+
+      newConnection.setDb(connectionDto.getDb());
+      newConnection.setName(connectionDto.getName());
+      newConnection.setPassword(connectionDto.getPassword());
+      newConnection.setServer(connectionDto.getServer());
+      newConnection.setUser(connectionDto.getUser());
+
+      return ModStatus.success();
+      
     } catch (Throwable e) {
       e.printStackTrace();
-      ret = ModStatus.errInternalError();
+      
+      return ModStatus.errInternalError();
     }
-    
-    return ret;
   }
   
   /**
@@ -511,6 +538,7 @@ public class JdbcApiServlet extends HttpServlet {
         return;
       }
 
+      
       Environment environment = EnvironmentFactory.get(req);
       
       TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
@@ -525,12 +553,11 @@ public class JdbcApiServlet extends HttpServlet {
       
       try {
         
+
         // check mandatory fields of a new connection
-        List<String> emptyFields = getEmptyMandatoryFields(connectionDto);
-
-        if (!emptyFields.isEmpty()) {
-
-          respStatus = EnsureConnectionResponseStatus.errMandatoryFieldsEmpty(emptyFields);
+        List<String> emptyMandatoryFields = validateEmptyFields(connectionDto);
+        if (!emptyMandatoryFields.isEmpty()) {
+          respStatus = EnsureConnectionResponseStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
 
         } else {
 
@@ -635,32 +662,4 @@ public class JdbcApiServlet extends HttpServlet {
       return;
     }
   }
-
-  /**
-   * 
-   * @param connection
-   * @return or empty list
-   */
-  private static List<String> getEmptyMandatoryFields(ConnectionDto connectionDto) {
-    List<String> emptyFields = new ArrayList<>();
-
-    if (connectionDto.getDb() == null) {
-      emptyFields.add("db");
-    }
-    if (connectionDto.getName() == null) {
-      emptyFields.add("name");
-    }
-    if (connectionDto.getPassword() == null) {
-      emptyFields.add("password");
-    }
-    if (connectionDto.getServer() == null) {
-      emptyFields.add("server");
-    }
-    if (connectionDto.getUser() == null) {
-      emptyFields.add("user");
-    }
-
-    return emptyFields;
-  }
-
 }
