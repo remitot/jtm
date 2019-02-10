@@ -46,6 +46,7 @@ function createHeader() {
   return row;
 }
 
+var rowIndex = 0;
 var tabindex0 = 1;
 
 /* @Override from table.js */
@@ -85,34 +86,91 @@ function createRow(listItem) {
   field.setAttribute("value-original", listItem.host);
   field.tabIndex = tabindex0++;
   
+  var http_portFieldId = "http_portField-" + rowIndex;
+  
   cell = createCell(div, "column-http_port");
   cell.classList.add("cell-field");
   field = addField(cell, "http_port", "", null);
+  field.setAttribute("value-original", "");
+  field.id = http_portFieldId;
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-get_http_port");
   cell.classList.add("cell-field");
-  field = addField__get_http_port(cell, "<a href=\"" + listItem.getHttpPortLink + "\">know</a>");
+  field = addField__get_http_port(cell, listItem.getHttpPortLink, http_portFieldId);
   field.tabIndex = tabindex0++;
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   row.appendChild(div);
   
+  rowIndex++;
+  
   return row;
 }
 
-function addField__get_http_port(cell, value) {
-  field = createFieldLabel(value);
+function addField__get_http_port(cell, getHttpPortLink, http_portFieldId) {
+  var button = document.createElement("button");
+  setGetHttpPortButtonState(button, 0);
+  button.onclick = function(){getHttpPortButtonClick(button, getHttpPortLink);}
+  button.setAttribute("http_port-field-id", http_portFieldId);
+  
+  var field = document.createElement("div");
+  field.classList.add("field-text");
+  field.classList.add("inactivatible");
+  field.classList.add("deletable");
+  field.appendChild(button);
+  
+  wrapper = wrapCellPad(field);
+  cell.appendChild(wrapper);
   
   if (isEditable()) {
     addStrike(cell);
   }
   
-  wrapper = wrapCellPad(field);
-  cell.appendChild(wrapper);
-  
   return field;
+}
+
+/**
+ * 0 -- initial state, 1 -- loading state
+ */
+function setGetHttpPortButtonState(button, state) {
+  if (state == 0) {
+    button.disabled = false;
+    button.innerHTML = "Показать"; // NON-NLS
+    button.title = "Сделать запрос HTTP порта"; 
+  } else if (state == 1) {
+    button.disabled = true;
+    button.innerHTML = "Загрузка..."; // NON-NLS
+    button.title = "Запрашивается HTTP порт"; // NON-NLS
+  } else {
+    button.disabled = true;
+    button.innerHTML = "Ошибка"; // NON-NLS
+    button.title = "При запросе HTTP порта возникла ошибка"; // NON-NLS
+  }
+}
+
+function getHttpPortButtonClick(button, getHttpPortLink) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        setGetHttpPortButtonState(button, 0);
+        
+        var http_portField = document.getElementById(button.getAttribute("http_port-field-id"));
+        var value = this.responseText;
+        http_portField.value = value;
+        http_portField.setAttribute("value-original", value);
+        onFieldInput(http_portField);// trigger initial event
+      } else {
+        setGetHttpPortButtonState(button, 2);
+      }
+    }
+  };
+  xhttp.open("GET", getHttpPortLink, true);
+  xhttp.send();
+  
+  setGetHttpPortButtonState(button, 1);
 }
 
 /* @Override from table.js */
