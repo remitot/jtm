@@ -44,8 +44,6 @@ function createHeader() {
   label.innerHTML = "HTTP порт"; // NON-NLS
   cell.appendChild(label);
   
-  cell = createCell(div, "column-get_http_port");
-  
   row.appendChild(div);
   
   return row;
@@ -93,22 +91,14 @@ function createRow(listItem) {
   
   cell = createCell(div, "column-ajp_port");
   cell.classList.add("cell-field");
-  field = addField(cell, "ajp_port", listItem.ajpPort, null);
+  field = addFieldAjpPort(cell, rowIndex, listItem.ajpPort, null);
   field.setAttribute("value-original", listItem.ajpPort);
   field.tabIndex = tabindex0++;
   
-  var http_portFieldId = "http_portField-" + rowIndex;
-  
   cell = createCell(div, "column-http_port");
   cell.classList.add("cell-field");
-  field = addField(cell, "http_port", "", null);
+  field = addFieldHttpPort(cell, rowIndex, listItem.getHttpPortLink, null);
   field.setAttribute("value-original", "");
-  field.id = http_portFieldId;
-  field.tabIndex = tabindex0++;
-  
-  cell = createCell(div, "column-get_http_port");
-  cell.classList.add("cell-field");
-  field = addField__get_http_port(cell, listItem.getHttpPortLink, http_portFieldId);
   field.tabIndex = tabindex0++;
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
@@ -120,25 +110,42 @@ function createRow(listItem) {
   return row;
 }
 
-function addField__get_http_port(cell, getHttpPortLink, http_portFieldId) {
-  var button = document.createElement("button");
-  setGetHttpPortButtonState(button, 0);
-  button.onclick = function(){getHttpPortButtonClick(button, getHttpPortLink);}
-  button.setAttribute("http_port-field-id", http_portFieldId);
+function addFieldAjpPort(cell, rowIndex, value, placeholder) {
+  field = addField(cell, "ajp_port", value, placeholder);
+  field.id = "ajp_portInputField-" + rowIndex;
+  field.addEventListener("input", function(){
+    var http_portInputField = document.getElementById("http_portInputField-" + rowIndex);
+    http_portInputField.setAttribute("value-original", "");
+    http_portInputField.value = "";
+  });
+  return field;
+}
+
+function addFieldHttpPort(cell, rowIndex, getHttpPortLink, placeholder) {
+  var div = document.createElement("div");
+
+  field = createField("http_port", "", placeholder);
+  field.id = "http_portInputField-" + rowIndex;
+  field.addEventListener("input", function(){
+    var ajp_portInputField = document.getElementById("ajp_portInputField-" + rowIndex);
+    ajp_portInputField.value = "";
+  });
+  div.appendChild(field);
   
-  var field = document.createElement("div");
-  field.classList.add("field-text");
-  field.classList.add("inactivatible");
-  field.classList.add("deletable");
-  field.appendChild(button);
+  if (getHttpPortLink) {
+    var button = document.createElement("button");
+    setGetHttpPortButtonState(button, 0);
+    button.onclick = function(){getHttpPortButtonClick(button, getHttpPortLink);}
+    div.appendChild(button);
+  }
   
-  wrapper = wrapCellPad(field);
+  wrapper = wrapCellPad(div);
   cell.appendChild(wrapper);
-  
+
   if (isEditable()) {
     addStrike(cell);
   }
-  
+    
   return field;
 }
 
@@ -168,11 +175,12 @@ function getHttpPortButtonClick(button, getHttpPortLink) {
       if (this.status == 200) {
         setGetHttpPortButtonState(button, 0);
         
-        var http_portField = document.getElementById(button.getAttribute("http_port-field-id"));
+        //TODO resolve the relative path:
+        var field = button.parentElement.firstChild;
         var value = this.responseText;
-        http_portField.value = value;
-        http_portField.setAttribute("value-original", value);
-        onFieldInput(http_portField);// trigger initial event
+        field.value = value;
+        field.setAttribute("value-original", value);
+        onFieldInput(field);// trigger initial event
       } else {
         setGetHttpPortButtonState(button, 2);
       }
@@ -224,21 +232,18 @@ function createRowCreate() {
   cell = createCell(flexColumns, "column-host");
   cell.classList.add("cell-field");
   field = addField(cell, "host", "", "tomcat-server.com");
-  field.setAttribute("value-original", "");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-ajp_port");
   cell.classList.add("cell-field");
-  field = addField(cell, "ajp_port", "", "8009");
-  field.setAttribute("value-original", 8009);
+  field = addFieldAjpPort(cell, rowIndex, "", "8009");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-http_port");
   cell.classList.add("cell-field");
-  field = addField(cell, "http_port", "", "8080");
-  field.setAttribute("value-original", "");
+  field = addFieldHttpPort(cell, rowIndex, null, "8080");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
@@ -247,6 +252,8 @@ function createRowCreate() {
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   row.appendChild(flexColumns);
+  
+  rowIndex++;
   
   return row;
 }

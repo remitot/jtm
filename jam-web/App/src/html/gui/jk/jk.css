@@ -8,18 +8,17 @@
   width: 10%;
 }
 #table div.cell.column-http_port {
-  width: 10%;
+  width: 16%;
 }
-#table div.cell.column-get_http_port {
-  width: 10%;
+
+#table div.cell.column-http_port .field-text {
+  width: 62%;
+}
+#table div.cell.column-http_port button {
+  width: 38%;
+  font-size: 11px;
 }
 
 #table div.cell.column-get_http_port button {
-  height: 18px;
   font-size: 11px;
-  width: 80px; /* button text changes, the width must be constant */
-}
-
-#table div.cell.column-get_http_port div.field-text {
-  padding-bottom: 4px;
 }
