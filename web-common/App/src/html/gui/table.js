@@ -24,6 +24,15 @@ function createRow(listItem) {
 
 function onAfterRefillGrid() {}
 
+/**
+ * Validate a single field value
+ * @param fieldName
+ * @param fieldValue
+ * @returns true or false
+ */
+function validate(fieldName, fieldValue) {
+  return true;
+}
 
 
 
@@ -366,9 +375,9 @@ function setControlButtonsEnabled(enabled) {
 
 function onDeleteButtonClick(button) {
   //TODO resolve the relative path:
-  row = button.parentElement.parentElement.parentElement.parentElement;
+  var row = button.parentElement.parentElement.parentElement.parentElement;
   
-  rowInputs = row.querySelectorAll("input.deletable");
+  var disableableElements = row.querySelectorAll("input.deletable, button.deletable");
   
   if (row.classList.contains("created")) {
     // for newly created rows just remove them from table
@@ -383,12 +392,12 @@ function onDeleteButtonClick(button) {
     button.src = "gui/img/undelete.png";
     button.title = "Не удалять"; // NON-NLS
     
-    for (var i = 0; i < rowInputs.length; i++) {
-      rowInputs[i].disabled = true;
+    for (var i = 0; i < disableableElements.length; i++) {
+      disableableElements[i].disabled = true;
     }
     
     if (!row.classList.contains("created")) {// no change checkboxes for created rows
-      checkboxes = row.getElementsByClassName("checkbox deletable");
+      var checkboxes = row.getElementsByClassName("checkbox deletable");
       for (var i = 0; i < checkboxes.length; i++) {
         setCheckboxEnabled(checkboxes[i], false);
       }
@@ -400,12 +409,12 @@ function onDeleteButtonClick(button) {
     button.src = "gui/img/delete.png";
     button.title = "Удалить"; // NON-NLS
     
-    for (var i = 0; i < rowInputs.length; i++) {
-      rowInputs[i].disabled = false;
+    for (var i = 0; i < disableableElements.length; i++) {
+      disableableElements[i].disabled = false;
     }
     
     if (!row.classList.contains("created")) {// no change checkboxes for created rows
-      checkboxes = row.getElementsByClassName("checkbox deletable");
+      var checkboxes = row.getElementsByClassName("checkbox deletable");
       for (var i = 0; i < checkboxes.length; i++) {
         setCheckboxEnabled(checkboxes[i], true);
       }
@@ -460,10 +469,15 @@ function onButtonCreateClick() {
 // TODO the logic below is almost JDBC-specific! move it into jdbc.js
 function onSaveButtonClick() {
   
-  rowsModified = getRowsModified();
-  rowsDeleted = getRowsDeleted();
-  rowsCreated = getRowsCreated();
+  var rowsModified = getRowsModified();
+  var rowsDeleted = getRowsDeleted();
+  var rowsCreated = getRowsCreated();
   
+  if (!rowsModified.rowsValid || !rowsCreated.rowsValid) {
+    return;
+  }
+  rowsModified = rowsModified.data;
+  rowsCreated = rowsCreated.data;
   
   uiOnSaveBegin();
   
@@ -637,17 +651,25 @@ function uiOnSaveBegin() {
   statusInfo("сохраняем..."); // NON-NLS
 }
 
+/**
+ * Prepare and validate data for rows modified
+ * @return {data: [{itemLocation: string, itemData: {}}, ...], rowsValid: boolean}
+ */
 function getRowsModified() {
   var rows = document.querySelectorAll("#table div.row");
-  rowsModifiedJson = [];
+  var rowsValid = true;
+  var data = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
     if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.getElementsByClassName("modified").length > 0) {
-      rowJson = rowToJson(row);
-      rowsModifiedJson.push({itemLocation: row.getAttribute("item-location"), itemData: rowJson});
+      var rowData = collectRowData(row);
+      data.push({itemLocation: row.getAttribute("item-location"), itemData: rowData.data});
+      if (!rowData.rowValid) {
+        rowsValid = false;
+      }
     }
   }
-  return rowsModifiedJson;
+  return {data: data, rowsValid: rowsValid};
 }
 
 function getRowsDeleted() {
@@ -662,32 +684,55 @@ function getRowsDeleted() {
   return rowsDeletedLocations;
 }
 
+/**
+ * Prepare and validate data for rows modified
+ * @return {data: [{}, ...], rowsValid: boolean}
+ */
 function getRowsCreated() {
   var rows = document.querySelectorAll("#table div.row");
-  rowsCreatedJson = [];
+  var rowsValid = true;
+  var data = [];
   for (var i = 0; i < rows.length; i++) {
-    row = rows[i];
+    var row = rows[i];
     if (row.classList.contains("created") && !row.classList.contains("deleted")) {
-      rowJson = rowToJson(row);
-      rowsCreatedJson.push(rowJson);
+      var rowData = collectRowData(row);
+      data.push(rowData);
+      if (!rowData.rowValid) {
+        rowsValid = false;
+      }
     }
   }
-  return rowsCreatedJson;
+  return {data: data, rowsValid: rowsValid};
 }
 
-function rowToJson(row) {
-  rowJson = {};
-  fields = row.querySelectorAll(".cell-field input");
+/**
+ * Prepare and validate row data
+ * @return {rowValid: boolean, data: {}}
+ */
+function collectRowData(row) {
+  var rowValid = true;
+  var data = {};
+  
+  var fields = row.querySelectorAll(".cell-field input");
   for (var j = 0; j < fields.length; j++) {
-    field = fields[j];
+    var field = fields[j];
+    var fieldValid = true;
     if (field.name === "active") {
       // TODO workaround. If checkbox becomes a class, make its own property 'value'
-      rowJson[field.name] = field.checked;
+      data[field.name] = field.checked;
     } else {
-      rowJson[field.name] = field.value;
+      fieldValid = validate(field.name, field.value);
+      data[field.name] = field.value;
+    }
+    if (!fieldValid) {
+      rowValid = false;
+      field.classList.add("invalid");
+    } else {
+      field.classList.remove("invalid");
     }
   }
-  return rowJson;
+  
+  return {rowValid: rowValid, data: data};
 }
 
 // TODO the function affects the control buttons only. 
