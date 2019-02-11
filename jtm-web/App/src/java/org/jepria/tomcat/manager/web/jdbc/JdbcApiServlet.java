@@ -370,7 +370,9 @@ public class JdbcApiServlet extends HttpServlet {
         } else {
           ConnectionDto connectionDto = mreq.getData();
 
-          ret = updateFields(connectionDto, connection);
+          updateFields(connectionDto, connection);
+          
+          ret = ModStatus.success();
         }
       }
     } catch (Throwable e) {
@@ -387,7 +389,7 @@ public class JdbcApiServlet extends HttpServlet {
    * @param target non null
    * @return
    */
-  private static ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
+  private static void updateFields(ConnectionDto sourceDto, Connection target) {
     if (sourceDto.getActive() != null) {
       target.setActive(sourceDto.getActive());
     }
@@ -406,7 +408,6 @@ public class JdbcApiServlet extends HttpServlet {
     if (sourceDto.getUser() != null) {
       target.setUser(sourceDto.getUser());
     }
-    return ModStatus.success();
   }
   
   private static ModStatus deleteConnection(
@@ -461,11 +462,7 @@ public class JdbcApiServlet extends HttpServlet {
 
       Connection newConnection = tomcatConf.create(connectionInitialParams);
 
-      newConnection.setDb(connectionDto.getDb());
-      newConnection.setName(connectionDto.getName());
-      newConnection.setPassword(connectionDto.getPassword());
-      newConnection.setServer(connectionDto.getServer());
-      newConnection.setUser(connectionDto.getUser());
+      updateFields(connectionDto, newConnection);
 
       return ModStatus.success();
       
