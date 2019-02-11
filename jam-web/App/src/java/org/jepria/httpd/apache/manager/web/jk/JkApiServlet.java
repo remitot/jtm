@@ -24,6 +24,8 @@ import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.ajp.SimpleAjpConnection;
+import org.jepria.httpd.apache.manager.web.jk.dto.AjpRequestDto;
+import org.jepria.httpd.apache.manager.web.jk.dto.AjpResponseDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestDto;
@@ -98,7 +100,7 @@ public class JkApiServlet extends HttpServlet {
       throws IOException {
     
     // the content type is defined for the entire method
-    response.setContentType("text/plain; charset=UTF-8");
+    response.setContentType("application/json; charset=UTF-8");
 
     String host = request.getParameter("host");
     String ajpPort = request.getParameter("ajp-port");
@@ -111,39 +113,49 @@ public class JkApiServlet extends HttpServlet {
     }
     
     int ajpPortNumber = Integer.parseInt(ajpPort);
-    String managerExtUrl = "/manager-ext/api/port/http";
+    String managerExtUri = "/manager-ext/api/port/http";
     
     try {
       SimpleAjpConnection connection = SimpleAjpConnection.open(
-          host, ajpPortNumber, managerExtUrl, 2000);
+          host, ajpPortNumber, managerExtUri, 2000);
       
       connection.connect();
       
-      int status = connection.getStatus();
+      final int status = connection.getStatus();
       
-      if (status / 100 == 2) {
-        // 2xx: ok
-        String httpPort = connection.getResponseBody();
-        
-        response.getWriter().print(httpPort);
-        
-        response.setStatus(status);
-        response.flushBuffer();
-        return;
-        
-      } else {
-        // error
-        
-        response.sendError(status);
-        response.flushBuffer();
-        return;
-      }
+      String statusMessage = connection.getStatusMessage();
+      statusMessage = statusMessage == null ? "" : statusMessage;
+      
+      String responseBody = connection.getResponseBody();
+      responseBody = responseBody == null ? "" : responseBody;
+      
+      // write the response
+      AjpRequestDto ajpRequest = new AjpRequestDto();
+      ajpRequest.setHost(host);
+      ajpRequest.setPort(ajpPortNumber);
+      ajpRequest.setUri(managerExtUri);
+      
+      AjpResponseDto ajpResponse = new AjpResponseDto();
+      ajpResponse.setStatus(status);
+      ajpResponse.setStatusMessage(statusMessage);
+      ajpResponse.setResponseBody(responseBody);
+      
+      Map<String, Object> responseJsonMap = new HashMap<>();
+      responseJsonMap.put("ajpRequest", ajpRequest);
+      responseJsonMap.put("ajpResponse", ajpResponse);
+      
+      Gson gson = new GsonBuilder().setPrettyPrinting().create();
+      gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
+    
+      response.setStatus(HttpServletResponse.SC_OK);
+      response.flushBuffer();
+      return;
       
     } catch (Throwable e) {
       // access to a protected resource will result java.net.SocketTimeoutException,
       
       final RuntimeException detailedException = new RuntimeException(
-          "Failed to perform SimpleAjpConnection request to [" + host + ":" + ajpPortNumber + managerExtUrl + "]", e); 
+          "Failed to perform SimpleAjpConnection request to [" + host + ":" + ajpPortNumber + managerExtUri + "]", e); 
       
       // log but not rethrow
       detailedException.printStackTrace();

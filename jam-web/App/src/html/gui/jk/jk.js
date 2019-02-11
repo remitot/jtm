@@ -133,14 +133,26 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
       if (this.status == 200) {
-        setGetHttpPortButtonState(button, 0);
+        var responseJson = JSON.parse(this.responseText);
         
-        //TODO resolve the relative path:
-        var field = button.parentElement.firstChild;
-        var value = host + ":" + this.responseText;
-        field.setAttribute("value-original", value);
-        field.value = value;
-        onFieldInput(field);
+        if (responseJson.ajpResponse.status == 200) {
+          setGetHttpPortButtonState(button, 0);
+          
+          //TODO resolve the relative path:
+          var field = button.parentElement.firstChild;
+          var value = host + ":" + responseJson.ajpResponse.responseBody;
+          field.setAttribute("value-original", value);
+          field.value = value;
+          onFieldInput(field);
+          
+        } else {
+          // TODO in the error case we do not know the HTTP port only,
+          // but we still know host and ajp port (after the initial /list request)
+          // Better to show at least the information we have?
+          setGetHttpPortButtonState(button, 2);
+          
+          console.error("Get HTTP port error: AJP subrequest error: " + responseJson.ajpResponse.status + " " + responseJson.ajpResponse.statusMessage);
+        }
         
       } else if (this.status == 401) {
         statusError("Требуется авторизация"); // NON-NLS
@@ -151,10 +163,12 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
         });
         
       } else {
-        // TODO in the error case we do not know the HPPT port only,
+        // TODO in the error case we do not know the HTTP port only,
         // but we still know host and ajp port (after the initial /list request)
         // Better to show at least the information we have?
         setGetHttpPortButtonState(button, 2);
+        
+        console.error("Get HTTP port error: " + this.status);
       }
     }
   };
