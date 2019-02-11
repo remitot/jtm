@@ -39,6 +39,19 @@ function createHeader() {
   return row;
 }
 
+/* @Override from table.js */
+function validate(fieldName, fieldValue) {
+  if (fieldName === "application" || fieldName === "instance") {
+    if (!fieldValue) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+
+
 var tabindex0 = 1;
 
 /* @Override from table.js */
