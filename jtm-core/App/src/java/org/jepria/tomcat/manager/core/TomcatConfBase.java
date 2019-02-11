@@ -115,7 +115,7 @@ public class TomcatConfBase {
   
   public void saveServer_xml(OutputStream server_xmlOutputStream) {
     try (OutputStream stream = server_xmlOutputStream) {
-      createTransformer().transform(new DOMSource(getContext_xmlDoc()), new StreamResult(stream));
+      createTransformer().transform(new DOMSource(getServer_xmlDoc()), new StreamResult(stream));
     } catch (TransformerException | IOException e) {
       throw new RuntimeException(e);
     }
