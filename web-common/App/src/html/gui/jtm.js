@@ -33,6 +33,32 @@ function jtm_onload() {
   
 }
 
+
+function statusClear() {
+  statusBar = document.getElementById("statusBar");
+  statusBar.className = "statusBar statusBar-none";
+  statusBar.innerHTML = "";
+}
+
+function statusInfo(message) {
+  statusBar = document.getElementById("statusBar"); 
+  statusBar.className = "statusBar statusBar-info";
+  statusBar.innerHTML = message;
+}
+
+function statusError(message) {
+  statusBar = document.getElementById("statusBar"); 
+  statusBar.className = "statusBar statusBar-error";
+  statusBar.innerHTML = message;
+}
+
+function statusSuccess(message) {
+  statusBar = document.getElementById("statusBar"); 
+  statusBar.className = "statusBar statusBar-success";
+  statusBar.innerHTML = message;
+}
+
+
 function windowReload(newUrl) {
   if (newUrl) {
     /* because location.reload() not working in FF and Chrome */ 

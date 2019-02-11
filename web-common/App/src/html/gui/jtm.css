@@ -82,7 +82,7 @@ input.field-text.readonly {
 
 .statusBar-error {
   display: block;
-  background-color: #FFE6C1;
+  background-color: #ffb59b;
 }
 
 .statusBar-info {

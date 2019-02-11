@@ -48,6 +48,51 @@ function getJsonItemList(jsonResponse) {
   return jsonResponse._list;
 }
 
+function uiOnTableReloadSuccess() {
+  statusClear();
+}
+
+function uiOnTableReloadError(status) {
+  if (status == 401) {
+    statusError("Требуется авторизация"); // NON-NLS
+    
+    raiseLoginForm(function() {
+      hideLoginForm();
+      table_reload();  
+    });
+    
+  } else if (status == 403) {
+    var message = "<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"logout(table_reload);\">Выйти</a> чтобы сменить пользователя"; // NON-NLS // NON-NLS // NON-NLS 
+    statusError(message);
+    
+  } else {
+    statusError("Сетевая ошибка " + this.status); // NON-NLS
+  }
+}
+
+/**
+ * All ModRequests resulted status SUCCESS
+ * @returns
+ */
+function uiOnTableModSuccess() {
+  var message = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
+    + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
+  
+  statusSuccess(message);
+}
+
+/**
+ * Not all ModRequests resulted status SUCCESS
+ * @returns
+ */
+function uiOnTableModSuccessNotAll() {
+  var message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS 
+    + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
+  statusError(message);
+}
+
+
+
 /**
   * Public API
   */
@@ -62,25 +107,15 @@ function table_reload() {
     if (this.readyState == 4) {
       if (this.status == 200) {
       
-        statusClear();
-        
         jsonResponse = JSON.parse(this.responseText);
         jsonItemList = getJsonItemList(jsonResponse); 
         
         refillGrid(jsonItemList, isEditable());
-        
-      } else if (this.status == 401) {
-        statusError("Требуется авторизация"); // NON-NLS
-    
-        raiseLoginForm(function() {
-          hideLoginForm();
-          table_reload();  
-        });
-      } else if (this.status == 403) {
-        statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"logout(table_reload);\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
+
+        uiOnTableReloadSuccess();
         
       } else {
-        statusError("Сетевая ошибка " + this.status); // NON-NLS
+        uiOnTableReloadError(this.status);
       }
     }
   };
@@ -346,6 +381,8 @@ function onFieldValueChanged(field, newValue) {
     }
   }
   
+  field.classList.remove("invalid");
+  
   checkModifications();
 }
 
@@ -474,8 +511,12 @@ function onSaveButtonClick() {
   var rowsCreated = getRowsCreated();
   
   if (!rowsModified.rowsValid || !rowsCreated.rowsValid) {
+    onAfterFieldsValidated(false);
     return;
+  } else {
+    onAfterFieldsValidated(true);
   }
+  
   rowsModified = rowsModified.data;
   rowsCreated = rowsCreated.data;
   
@@ -549,37 +590,19 @@ function onSaveButtonClick() {
             }
           }
           
-          if (!allModStatusOk) {
-            message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS 
-                + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
-            statusError(message);
-            
-          } else {
-            statusBar = document.getElementById("statusBar");
-            statusBar.className = "statusBar statusBar-success";
-            statusBar.innerHTML = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
-                + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
-          }
-          
-          
           jsonItemList = getJsonItemList(jsonResponse); 
           refillGrid(jsonItemList, false);
           
           document.getElementsByClassName("control-buttons")[0].style.display = "none";
           
-        } else if (this.status == 401) {
-          statusError("Требуется авторизация"); // NON-NLS
-      
-          raiseLoginForm(function() {
-            hideLoginForm();
-            table_reload();  
-          });
-          
-        } else if (this.status == 403) {
-          statusError("<span class=\"span-bold\">Доступ запрещён.</span>&emsp;<a href=\"#\" onclick=\"changeUser();\">Выйти</a> чтобы сменить пользователя"); // NON-NLS // NON-NLS // NON-NLS
+          if (!allModStatusOk) {
+            uiOnTableModSuccessNotAll();
+          } else {
+            uiOnTableModSuccess();
+          }
           
         } else {
-          statusError("Сетевая ошибка " + this.status); // NON-NLS
+          uiOnTableReloadError(this.status);
         }
       }
     };
@@ -623,24 +646,6 @@ function disableGrid() {
   for (var i = 0; i < rows.length; i += 2) {
     rows[i].classList.add("even-odd-gray");
   }
-}
-
-function statusClear() {
-  statusBar = document.getElementById("statusBar");
-  statusBar.className = "statusBar statusBar-none";
-  statusBar.innerHTML = "";
-}
-
-function statusInfo(message) {
-  statusBar = document.getElementById("statusBar"); 
-  statusBar.className = "statusBar statusBar-info";
-  statusBar.innerHTML = message;
-}
-
-function statusError(message) {
-  statusBar = document.getElementById("statusBar"); 
-  statusBar.className = "statusBar statusBar-error";
-  statusBar.innerHTML = message;
 }
 
 function uiOnSaveEnd() {
@@ -726,13 +731,26 @@ function collectRowData(row) {
     }
     if (!fieldValid) {
       rowValid = false;
-      field.classList.add("invalid");
-    } else {
-      field.classList.remove("invalid");
     }
+    onAfterFieldValidated(field, fieldValid);
   }
   
   return {rowValid: rowValid, data: data};
+}
+
+function onAfterFieldValidated(field, fieldValid) {
+  if (!fieldValid) {
+    field.classList.add("invalid");
+  } else {
+    field.classList.remove("invalid");
+  }
+}
+
+function onAfterFieldsValidated(fieldsValid) {
+  if (!fieldsValid) {
+    statusError("исправьте некорректные значения полей (выделены красным)"); // NON-NLS
+    window.scrollTo(0, 0);
+  }
 }
 
 // TODO the function affects the control buttons only. 
