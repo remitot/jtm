@@ -29,19 +29,9 @@ function createHeader() {
   label.innerHTML = "Application"; // NON-NLS
   cell.appendChild(label);
   
-  cell = createCell(div, "column-host");
+  cell = createCell(div, "column-instance");
   label = document.createElement("label");
-  label.innerHTML = "Сервер Tomcat"; // NON-NLS
-  cell.appendChild(label);
-  
-  cell = createCell(div, "column-ajp_port");
-  label = document.createElement("label");
-  label.innerHTML = "AJP порт"; // NON-NLS
-  cell.appendChild(label);
-  
-  cell = createCell(div, "column-http_port");
-  label = document.createElement("label");
-  label.innerHTML = "HTTP порт"; // NON-NLS
+  label.innerHTML = "Инстанс Tomcat (по HTTP порту)"; // NON-NLS
   cell.appendChild(label);
   
   row.appendChild(div);
@@ -49,7 +39,6 @@ function createHeader() {
   return row;
 }
 
-var rowIndex = 0;
 var tabindex0 = 1;
 
 /* @Override from table.js */
@@ -83,59 +72,29 @@ function createRow(listItem) {
   field.setAttribute("value-original", listItem.application);
   field.tabIndex = tabindex0++;
   
-  cell = createCell(div, "column-host");
+  cell = createCell(div, "column-instance");
   cell.classList.add("cell-field");
-  field = addField(cell, "host", listItem.host, null);
-  field.setAttribute("value-original", listItem.host);
-  field.tabIndex = tabindex0++;
-  
-  cell = createCell(div, "column-ajp_port");
-  cell.classList.add("cell-field");
-  field = addFieldAjpPort(cell, rowIndex, listItem.ajpPort, null);
-  field.setAttribute("value-original", listItem.ajpPort);
-  field.tabIndex = tabindex0++;
-  
-  cell = createCell(div, "column-http_port");
-  cell.classList.add("cell-field");
-  field = addFieldHttpPort(cell, rowIndex, listItem.getHttpPortLink, null);
+  field = addFieldInstance(cell, listItem.host, listItem.getHttpPortLink, null);
   field.setAttribute("value-original", "");
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   row.appendChild(div);
   
-  rowIndex++;
-  
   return row;
 }
 
-function addFieldAjpPort(cell, rowIndex, value, placeholder) {
-  field = addField(cell, "ajpPort", value, placeholder);
-  field.id = "ajpPortInputField-" + rowIndex;
-  field.addEventListener("input", function(){
-    var httpPortInputField = document.getElementById("httpPortInputField-" + rowIndex);
-    httpPortInputField.setAttribute("value-original", "");
-    httpPortInputField.value = "";
-    onFieldInput(httpPortInputField);
-  });
-  return field;
-}
-
-function addFieldHttpPort(cell, rowIndex, getHttpPortLink, placeholder) {
+function addFieldInstance(cell, host, getHttpPortLink, placeholder) {
   var div = document.createElement("div");
 
-  var field = createField("httpPort", "", placeholder);
-  field.id = "httpPortInputField-" + rowIndex;
-  field.addEventListener("input", function(){
-    clearAjpPortField(rowIndex);
-  });
+  var field = createField("instance", "", placeholder);
   field.tabIndex = tabindex0++;
   div.appendChild(field);
   
   if (getHttpPortLink) {
     var button = document.createElement("button");
     setGetHttpPortButtonState(button, 0);
-    button.onclick = function(){getHttpPortButtonClick(button, getHttpPortLink);}
+    button.onclick = function(){getHttpPortButtonClick(button, host, getHttpPortLink);}
     button.tabIndex = tabindex0++;
     div.appendChild(button);
   }
@@ -148,13 +107,6 @@ function addFieldHttpPort(cell, rowIndex, getHttpPortLink, placeholder) {
   }
     
   return field;
-}
-
-function clearAjpPortField(rowIndex) {
-  var ajpPortInputField = document.getElementById("ajpPortInputField-" + rowIndex);
-  ajpPortInputField.setAttribute("value-original", "");
-  ajpPortInputField.value = "";
-  onFieldInput(ajpPortInputField);
 }
 
 /**
@@ -176,7 +128,7 @@ function setGetHttpPortButtonState(button, state) {
   }
 }
 
-function getHttpPortButtonClick(button, getHttpPortLink) {
+function getHttpPortButtonClick(button, host, getHttpPortLink) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4) {
@@ -185,16 +137,10 @@ function getHttpPortButtonClick(button, getHttpPortLink) {
         
         //TODO resolve the relative path:
         var field = button.parentElement.firstChild;
-        var value = this.responseText;
+        var value = host + ":" + this.responseText;
         field.setAttribute("value-original", value);
         field.value = value;
         onFieldInput(field);
-        
-        var rowIndex = field.id.substring("httpPortInputField-".length);
-        // clear the ajp port field if it is modified
-        if (document.querySelectorAll("#ajpPortInputField-" + rowIndex + ".modified").length > 0) {
-          clearAjpPortField(rowIndex);
-        }
         
       } else if (this.status == 401) {
         statusError("Требуется авторизация"); // NON-NLS
@@ -205,6 +151,9 @@ function getHttpPortButtonClick(button, getHttpPortLink) {
         });
         
       } else {
+        // TODO in the error case we do not know the HPPT port only,
+        // but we still know host and ajp port (after the initial /list request)
+        // Better to show at least the information we have?
         setGetHttpPortButtonState(button, 2);
       }
     }
@@ -252,31 +201,15 @@ function createRowCreate() {
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
  
-  cell = createCell(flexColumns, "column-host");
+  cell = createCell(flexColumns, "column-instance");
   cell.classList.add("cell-field");
-  field = addField(cell, "host", "", "tomcat-server.com");
+  field = addFieldInstance(cell, null, null, "tomcat-server:8080");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
-  
-  cell = createCell(flexColumns, "column-ajp_port");
-  cell.classList.add("cell-field");
-  field = addFieldAjpPort(cell, rowIndex, "", "8009");
-  field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
-  
-  cell = createCell(flexColumns, "column-http_port");
-  cell.classList.add("cell-field");
-  field = addFieldHttpPort(cell, rowIndex, null, "8080");
-  field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
-  
-  cell = createCell(flexColumns, "column-get_http_port");
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   row.appendChild(flexColumns);
-  
-  rowIndex++;
   
   return row;
 }

@@ -1,24 +1,19 @@
 #table div.cell.column-application {
   width: 30%;
 }
-#table div.cell.column-host {
-  width: 20%;
-}
-#table div.cell.column-ajp_port {
-  width: 10%;
-}
-#table div.cell.column-http_port {
-  width: 16%;
+#table div.cell.column-instance {
+  width: 30%;
 }
 
-#table div.cell.column-http_port .field-text {
-  width: 62%;
+#table div.cell.column-instance .field-text {
+  width: 70%;
 }
-#table div.cell.column-http_port button {
-  width: 38%;
+#table div.cell.column-instance button {
+  width: 30%;
+  max-width: 80px;
   font-size: 11px;
 }
 
-#table div.cell.column-get_http_port button {
-  font-size: 11px;
+#table .row.deleted button {
+  display: none;
 }

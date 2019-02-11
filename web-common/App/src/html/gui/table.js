@@ -377,7 +377,7 @@ function onDeleteButtonClick(button) {
   //TODO resolve the relative path:
   var row = button.parentElement.parentElement.parentElement.parentElement;
   
-  var disableableElements = row.querySelectorAll("input.deletable, button.deletable");
+  var disableableElements = row.querySelectorAll("input.deletable");
   
   if (row.classList.contains("created")) {
     // for newly created rows just remove them from table
