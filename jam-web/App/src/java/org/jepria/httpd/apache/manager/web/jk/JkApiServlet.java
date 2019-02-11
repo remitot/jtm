@@ -111,27 +111,30 @@ public class JkApiServlet extends HttpServlet {
     }
     
     int ajpPortNumber = Integer.parseInt(ajpPort);
+    String managerExtUrl = "/manager-ext/api/port/http";
     
     try {
       SimpleAjpConnection connection = SimpleAjpConnection.open(
-          host, ajpPortNumber, "/manager-ext/api/port/http", 2000);
+          host, ajpPortNumber, managerExtUrl, 2000);
       
       connection.connect();
       
       int status = connection.getStatus();
       
-      if (status == 200) {
+      if (status / 100 == 2) {
+        // 2xx: ok
         String httpPort = connection.getResponseBody();
         
         response.getWriter().print(httpPort);
         
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(status);
         response.flushBuffer();
         return;
         
       } else {
+        // error
         
-        response.setStatus(status);
+        response.sendError(status);
         response.flushBuffer();
         return;
       }
@@ -139,10 +142,14 @@ public class JkApiServlet extends HttpServlet {
     } catch (Throwable e) {
       // access to a protected resource will result java.net.SocketTimeoutException,
       
-      // log but not rethrow
-      e.printStackTrace();
+      final RuntimeException detailedException = new RuntimeException(
+          "Failed to perform SimpleAjpConnection request to [" + host + ":" + ajpPortNumber + managerExtUrl + "]", e); 
       
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      // log but not rethrow
+      detailedException.printStackTrace();
+      
+      
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       response.flushBuffer();
       return;
     }
