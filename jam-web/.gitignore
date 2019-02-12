@@ -1,5 +1,6 @@
 App/build/
 App/build-lib/
+App/lib/jam.war
 
 # Created by https://www.gitignore.io/api/java,eclipse,java-web
 
