@@ -3,10 +3,7 @@ package org.jepria.tomcat.manager.web.log.dto;
 public class LogDto {
   private String name;
   private Long lastModified;
-  private String lastModifiedDateLocal;
-  private String lastModifiedTimeLocal;
-  private Long lastModifiedAgo;
-  private Integer lastModifiedAgoVerb;
+  private LocalDto local;
   private Long size;
   
   public LogDto() {}
@@ -27,36 +24,12 @@ public class LogDto {
     this.lastModified = lastModified;
   }
 
-  public String getLastModifiedDateLocal() {
-    return lastModifiedDateLocal;
+  public LocalDto getLocal() {
+    return local;
   }
 
-  public void setLastModifiedDateLocal(String lastModifiedDateLocal) {
-    this.lastModifiedDateLocal = lastModifiedDateLocal;
-  }
-
-  public String getLastModifiedTimeLocal() {
-    return lastModifiedTimeLocal;
-  }
-
-  public void setLastModifiedTimeLocal(String lastModifiedTimeLocal) {
-    this.lastModifiedTimeLocal = lastModifiedTimeLocal;
-  }
-
-  public Long getLastModifiedAgo() {
-    return lastModifiedAgo;
-  }
-
-  public void setLastModifiedAgo(Long lastModifiedAgo) {
-    this.lastModifiedAgo = lastModifiedAgo;
-  }
-  
-  public Integer getLastModifiedAgoVerb() {
-    return lastModifiedAgoVerb;
-  }
-
-  public void setLastModifiedAgoVerb(Integer lastModifiedAgoVerb) {
-    this.lastModifiedAgoVerb = lastModifiedAgoVerb;
+  public void setLocal(LocalDto local) {
+    this.local = local;
   }
 
   public Long getSize() {

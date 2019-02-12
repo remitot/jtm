@@ -7,7 +7,6 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -23,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.log.dto.LocalDto;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
 
 import com.google.gson.Gson;
@@ -134,21 +134,33 @@ public class LogApiServlet extends HttpServlet {
     final Comparator<LogDto> sortComparator = subsequentComparator(comparatorSequence);
     
     
-    // 'tzoffset' request parameter
-    final Integer tzOffsetMins;
-    final String tzoffset = req.getParameter("tzoffset");
-    if (tzoffset != null) {
+    // 'localTzOffset' request parameter
+    final TimeZone clientTimeZone;
+    final String localTzOffsetStr = req.getParameter("localTzOffset");
+    if (localTzOffsetStr != null) {
+      final int localTzOffset;
       try {
-        tzOffsetMins = Integer.parseInt(tzoffset);
+        localTzOffset = Integer.parseInt(localTzOffsetStr);
       } catch (NumberFormatException e) {
         // invalid value
         resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
       }
+      // parse TimeZone
+      String[] availableIds = TimeZone.getAvailableIDs(localTzOffset * 60 * 1000);
+      if (availableIds != null && availableIds.length > 0) {
+        clientTimeZone = TimeZone.getTimeZone(availableIds[0]);
+      } else {
+        // no TimeZone found for such offset
+        resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        resp.flushBuffer();
+        return;
+      }
     } else {
-      tzOffsetMins = null;
+      clientTimeZone = null;
     }
+    
     
     
     try {
@@ -157,29 +169,77 @@ public class LogApiServlet extends HttpServlet {
 
       File logsDirectory = environment.getLogsDirectory();
       
-      List<LogDto> logs = getLogs(logsDirectory);
+      File[] logFiles = logsDirectory.listFiles();
       
-      // fill local date/time fields
-      if (tzOffsetMins != null) {
-        if (logs != null) {
+      List<LogDto> logs = new ArrayList<>();
+      
+      if (logFiles != null) {
+        for (File logFile: logFiles) {
+          LogDto log = new LogDto();
           
-          final LocalDateFormat localDateFormat = new LocalDateFormat(tzOffsetMins);
+          final long lastModified = logFile.lastModified();
+          
+          log.setName(logFile.getName());
+          log.setLastModified(lastModified);
+          log.setSize(logFile.length());
+          
+          logs.add(log);
+        }
+        
+        if (clientTimeZone != null) {
+          // fill local fields
+          
+          final ClientDateFormat localDateFormat = new ClientDateFormat(clientTimeZone);
+          final String todayDateLocal = localDateFormat.formatDate(new Date());
+          final String yesterdayDateLocal = localDateFormat.formatDate(
+              new Date(System.currentTimeMillis() - 86400000));
           
           for (LogDto log: logs) {
+            LocalDto local = new LocalDto();
             
-            // fill local date/time fields
-            Date lastModified = new Date(log.getLastModified());
-            log.setLastModifiedDateLocal(localDateFormat.formatDate(lastModified));
-            log.setLastModifiedTimeLocal(localDateFormat.formatTime(lastModified));
+            final Date lastModified = new Date(log.getLastModified());
+            final String lastModifiedDateLocal = localDateFormat.formatDate(lastModified);
+            local.setLastModifiedDate(lastModifiedDateLocal);
+            local.setLastModifiedTime(localDateFormat.formatTime(lastModified));
             
-            // fill last modified ago verb
-            fillLastModifiedAgoVerbGlobal(log); // global (short ago)
-            if (log.getLastModifiedAgoVerb() == null) { // local (long ago)
-              // TODO stopped here fill with LOCAL 'today' of 'yesterday'
+            final Integer lastModifiedAgoVerb;
+            final long lastModifiedAgo = System.currentTimeMillis() - lastModified.getTime();
+            if (lastModifiedAgo < 10000) {
+              lastModifiedAgoVerb = 1;
+            } else if (lastModifiedAgo < 90000) {
+              lastModifiedAgoVerb = 2;
+            } else if (lastModifiedAgo < 150000) {
+              lastModifiedAgoVerb = 3;
+            } else if (lastModifiedAgo < 210000) {
+              lastModifiedAgoVerb = 4;
+            } else if (lastModifiedAgo < 450000) {
+              lastModifiedAgoVerb = 5;
+            } else if (lastModifiedAgo < 900000) {
+              lastModifiedAgoVerb = 6;
+            } else if (lastModifiedAgo < 2700000) {
+              lastModifiedAgoVerb = 7;
+            } else if (lastModifiedAgo < 5400000) {
+              lastModifiedAgoVerb = 8;
+            } else if (lastModifiedAgo < 9000000) {
+              lastModifiedAgoVerb = 9;
+            } else if (lastModifiedAgo < 12600000) {
+              lastModifiedAgoVerb = 10;
+            } else if (todayDateLocal.equals(lastModifiedDateLocal)) {
+              // modified locally today
+              lastModifiedAgoVerb = 11;
+            } else if (yesterdayDateLocal.equals(lastModifiedDateLocal)) {
+              // modified locally yesterday
+              lastModifiedAgoVerb = 12;
+            } else {
+              lastModifiedAgoVerb = null;
             }
+            local.setLastModifiedAgoVerb(lastModifiedAgoVerb);
+            
+            log.setLocal(local);
           }
         }
       }
+      
       
       // sort the list
       Collections.sort(logs, sortComparator);
@@ -205,62 +265,21 @@ public class LogApiServlet extends HttpServlet {
     }
   }
   
-  private static void fillLastModifiedAgoVerbGlobal(LogDto log) {
-    final long lastModifiedAgo = log.getLastModifiedAgo();
-    final Integer verb;
-    if (lastModifiedAgo < 10) {
-      verb = 1;
-    } else if (lastModifiedAgo < 90) {
-      verb = 2;
-    } else if (lastModifiedAgo < 150) {
-      verb = 3;
-    } else if (lastModifiedAgo < 210) {
-      verb = 4;
-    } else if (lastModifiedAgo < 450) {
-      verb = 5;
-    } else if (lastModifiedAgo < 900) {
-      verb = 6;
-    } else if (lastModifiedAgo < 2700) {
-      verb = 7;
-    } else if (lastModifiedAgo < 5400) {
-      verb = 8;
-    } else if (lastModifiedAgo < 9000) {
-      verb = 9;
-    } else if (lastModifiedAgo < 12600) {
-      verb = 10;
-    } else {
-      verb = null;
-    }
-    log.setLastModifiedAgoVerb(verb);
-  }
-  
-  private static class LocalDateFormat {
+  private static class ClientDateFormat {
     private final SimpleDateFormat dateFormat;
     private final SimpleDateFormat timeFormat;
-    private final TimeZone tz;
     
-    public LocalDateFormat(int tzOffsetMins) {
+    public ClientDateFormat(TimeZone clientTimeZone) {
       dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+      dateFormat.setTimeZone(clientTimeZone);
       timeFormat = new SimpleDateFormat("HH:mm:ss");
-      
-      String[] availableIds = TimeZone.getAvailableIDs(tzOffsetMins * 60 * 1000);
-      if (availableIds != null && availableIds.length > 0) {
-        tz = TimeZone.getTimeZone(availableIds[0]);
-      } else {
-        throw new IllegalStateException("No TimeZone IDs found for offset " + tzOffsetMins + " minutes");
-      }
-      
-      dateFormat.setTimeZone(tz);
-      timeFormat.setTimeZone(tz);
+      timeFormat.setTimeZone(clientTimeZone);
     }
     public String formatDate(Date date) {
       return dateFormat.format(date);
     }
     public String formatTime(Date date) {
       return timeFormat.format(date);
-    }
-    public TimeZone getTimeZone() {
-      return tz;
     }
   }
   
@@ -339,34 +358,5 @@ public class LogApiServlet extends HttpServlet {
       response.flushBuffer();
       return;
     }
-  }
-
-  /**
-   * Does not fill local date fields of the Dtos returned
-   * @param logsDirectory
-   * @return
-   */
-  private static List<LogDto> getLogs(File logsDirectory) {
-    File[] logFiles = logsDirectory.listFiles();
-    
-    List<LogDto> logs = new ArrayList<>();
-    
-    if (logFiles != null) {
-      for (File logFile: logFiles) {
-        LogDto log = new LogDto();
-        
-        final long lastModified = logFile.lastModified();
-        final long lastModifiedAgo = (System.currentTimeMillis() - lastModified) / 1000;
-        
-        log.setName(logFile.getName());
-        log.setLastModified(lastModified);
-        log.setLastModifiedAgo(lastModifiedAgo);
-        log.setSize(logFile.length());
-        
-        logs.add(log);
-      }
-    }
-    
-    return logs;
   }
 }

@@ -417,11 +417,11 @@
             A connection description (all fields are mandatory): 
             <pre>
 {
-  "name": <i>value</i>,
-  "server": <i>value</i>,
-  "db": <i>value</i>,
-  "user": <i>value</i>,
-  "password": <i>value</i>
+  "name": <i>string</i>,
+  "server": <i>string</i>,
+  "db": <i>string</i>,
+  "user": <i>string</i>,
+  "password": <i>string</i>
 }
           </pre>
           </td>
@@ -552,7 +552,17 @@
         </tr>
         <tr>
           <td>Response (application/json UTF-8)</td>
-          <td>list of ports</td>
+          <td>list of ports
+            <br /><br />
+            If there are no connections, the <code>"_list"</code>
+            element will have the value of an empty array:
+            <pre>
+{
+  "_list": []
+}           </pre>
+            <br /> Returning the list under the "_list" key instead of plain JSON array
+            used for maintaining the common response structure with other method responses.
+          </td>
         </tr>
       </tbody>
     </table>
@@ -579,14 +589,6 @@
     }
   ]
 }       </pre>
-            <br /> If there are no connections, the <code>"_list"</code>
-            element will have the value of an empty array:
-            <pre>
-{
-  "_list": []
-}        </pre>
-            <br /> Returning the list under the "_list" key instead of plain JSON array
-            used for maintaining the common response structure with other method responses.
           </td>
         </tr>
       </tbody>
@@ -605,11 +607,30 @@
         </tr>
         <tr>
           <td>Request params</td>
-          <td><code>sort=<i>column1,column2,... (optional)</i></code>, <code>tzoffset=<i>client's local time zone offset in minutes (optional)</i></code></td>
+          <td><code>sort=<i>column1,column2,... (optional)</i></code>, <code>localTzOffset=<i>client's local time zone offset in minutes (optional)</i></code></td>
         </tr>
         <tr>
           <td>Response (application/json UTF-8)</td>
           <td>list of log files
+            <pre>
+{
+  "_list": [
+    {
+      "name": <i>string</i>,
+      "lastModified": <i>file last modification timestamp (milliseconds since 1970)</i>,
+      "size": <i>file size in bytes</i>,
+      "local" : {
+        <i>client's local date and time values, present only if 
+        <code>localTzOffset</code> request parameter was specified</i>
+        "lastModifiedDate": <i>file last modification date in local <code>YYYY-MM-DD</code> format</i>,
+        "lastModifiedTime": <i>file last modification time in local <code>HH:MM:SS</code> format</i>,
+        "lastModifiedAgoVerb": <i>integer ID of the verb describing how long ago 
+        the last file modification happened, from 1 to 12, may be missing (means too long ago)</i>
+      }
+    },...
+  ]
+}
+            </pre>
             <br /><br />
             The <code>sort</code> parameter defines the order of items in the response list.
             The parameter allows a single value or multiple values, comma separated.
@@ -623,10 +644,23 @@
               <li><code>-lastModified</code>: sort descending by the last file modification timestamp</li>
             </ul>
             Missing <code>sort</code> parameter or the empty value equals to 
-            <code>sort=-lastModified,+filename</code> parameter. 
+            <code>sort=-lastModified,+filename</code> parameter.
+            <br/><br/> 
             If the invalid <code>sort</code> parameter value provided,
             or the error occures while parsing the values, 
             the 400 status will be returned.
+            <br/><br/>
+            If the invalid <code>localTzOffset</code> request parameter provided, 
+            or no real TimeZone found by such offset, the 400 status will be returned.
+            <br /><br />
+            If there are no log files, the <code>"_list"</code>
+            element will have the value of an empty array:
+            <pre>
+{
+  "_list": []
+}        </pre>
+            <br /> Returning the list under the "_list" key instead of plain JSON array
+            used for maintaining the common response structure with other method responses.
           </td>
         </tr>
       </tbody>
@@ -639,37 +673,32 @@
           <th>Response</t>
         </tr>
         <tr>
-          <td><code>/api/log/list</code></td>
+          <td><code>/api/log/list?localTzOffset=180</code> 
+          <br/><i>(means GMT+03:00 timezone)</i></td>
           <td>
             <pre>
 {
   "_list": [
     {
-      "name": "localhost_access_log.2000-01-01.txt",
-      "lastModified": 946717200000,
-      "lastModifiedDateLocal": "2000-01-01",
-      "lastModifiedTimeLocal": "12:00:00",
-      "lastModifiedAgo": "31709160",
-      "size": 587
-    },
-    {
       "name": "catalina.out",
       "lastModified": 978426000000,
-      "lastModifiedDateLocal": "2001-01-02",
-      "lastModifiedTimeLocal": "12:00:00",
-      "lastModifiedAgo": "3600",
+      "local": {
+        "lastModifiedDate": "2001-01-02",
+        "lastModifiedTime": "12:00:00"
+      },
       "size": 4197
+    },
+    {
+      "name": "localhost_access_log.2000-01-01.txt",
+      "lastModified": 946717200000,
+      "local": {
+        "lastModifiedDate": "2000-01-01",
+        "lastModifiedTime": "12:00:00"
+      },
+      "size": 587
     }
   ]
-}       </pre>
-            <br /> If there are no log files, the <code>"_list"</code>
-            element will have the value of an empty array:
-            <pre>
-{
-  "_list": []
-}        </pre>
-            <br /> Returning the list under the "_list" key instead of plain JSON array
-            used for maintaining the common response structure with other method responses.
+}           </pre>
           </td>
         </tr>
       </tbody>
@@ -718,7 +747,7 @@
           <th>Response</t>
         </tr>
         <tr>
-          <td><code>/api/log?filename=localhost_access_log.2001-01-01.txt&inline</code></td>
+          <td><code>/api/log?filename=localhost_access_log.2000-01-01.txt&inline</code></td>
           <td>
             <pre>
 127.0.0.1 - admin [01/Jan/2000:00:00:00 +0300] "GET /application HTTP/1.1" 200 1000
