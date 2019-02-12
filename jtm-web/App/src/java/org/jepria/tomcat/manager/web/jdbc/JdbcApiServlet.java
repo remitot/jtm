@@ -316,13 +316,16 @@ public class JdbcApiServlet extends HttpServlet {
   }
   
   /**
-   * Validate empty mandatory fields
-   * @param connection
-   * @return list of field names whose values are empty, or else empty list
+   * Validate mandatory fields
+   * @param dto
+   * @return list of field names whose values are empty (but must not be empty), or else empty list
    */
-  private static List<String> validateEmptyFields(ConnectionDto dto) {
+  private static List<String> validateMandatoryFields(ConnectionDto dto) {
     List<String> emptyFields = new ArrayList<>();
 
+    if (dto.getActive() == null) {
+      emptyFields.add("active");
+    }
     if (empty(dto.getDb())) {
       emptyFields.add("db");
     }
@@ -453,8 +456,8 @@ public class JdbcApiServlet extends HttpServlet {
       ConnectionDto connectionDto = mreq.getData();
 
       
-      // check mandatory fields of a new connection
-      List<String> emptyMandatoryFields = validateEmptyFields(connectionDto);
+      // validate mandatory fields
+      List<String> emptyMandatoryFields = validateMandatoryFields(connectionDto);
       if (!emptyMandatoryFields.isEmpty()) {
         return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
       }
@@ -551,8 +554,8 @@ public class JdbcApiServlet extends HttpServlet {
       try {
         
 
-        // check mandatory fields of a new connection
-        List<String> emptyMandatoryFields = validateEmptyFields(connectionDto);
+        // validate mandatory fields
+        List<String> emptyMandatoryFields = validateMandatoryFields(connectionDto);
         if (!emptyMandatoryFields.isEmpty()) {
           respStatus = EnsureConnectionResponseStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
 
