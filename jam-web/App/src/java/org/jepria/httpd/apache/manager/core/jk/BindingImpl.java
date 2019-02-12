@@ -1,13 +1,21 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
+import java.util.Optional;
+
 /*package*/class BindingImpl implements Binding {
   
   private final JkMount jkMount;
-  private final Worker worker;
+  /**
+   * Not final, may be rebound with {@link #rebind(String, int)}
+   */
+  private Worker worker;
   
-  public BindingImpl(JkMount jkMount, Worker worker) {
+  private final ApacheConfJk apacheConf;
+  
+  public BindingImpl(JkMount jkMount, Worker worker, ApacheConfJk apacheConf) {
     this.jkMount = jkMount;
     this.worker = worker;
+    this.apacheConf = apacheConf;
   }
 
   @Override
@@ -32,41 +40,56 @@ package org.jepria.httpd.apache.manager.core.jk;
   }
   
   @Override
-  public String getWorkerName() {
-    return worker.getName();
-  }
-  
-  @Override
-  public void setWorkerName(String workerName) {
-    jkMount.setWorkerName(workerName);
-    worker.setName(workerName);
-  }
-  
-  @Override
   public String getWorkerHost() {
     return worker.getHost();
   }
   
   @Override
-  public void setWorkerHost(String workerHost) {
-    worker.setHost(workerHost);
-  }
-  
-  @Override
   public int getWorkerAjpPort() {
-    // TODO how to guarantee the ajp13 type here?
-    if (!"ajp13".equals(worker.getType())) {
-      throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.getType());
-    }
+    // TODO assume "ajp13".equals(worker.getType())
     return Integer.parseInt(worker.getPort());//TODO is this the best place to parse? what if exception?; 
   }
   
   @Override
-  public void setWorkerAjpPort(int workerAjpPort) {
-    // TODO how to guarantee the ajp13 type here?
-    if (!"ajp13".equals(worker.getType())) {
-      throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.getType());
+  public void rebind(String host, int ajpPort) {
+    final String ajpPortStr = Integer.toString(ajpPort);
+    
+    final boolean wasActive = isActive();
+    
+    Worker existingWorker = findWorker(host, ajpPortStr);
+    if (existingWorker != null) {
+      worker = existingWorker;
+    } else {
+      final String workerName = getNewWorkerName(host, ajpPortStr);
+      Worker newWorker = apacheConf.createWorker(workerName);
+      newWorker.setActive(wasActive);
+      newWorker.setHost(host);
+      newWorker.setPort(ajpPortStr);
+      worker = newWorker;
     }
-    worker.setPort(Integer.toString(workerAjpPort));
+    
+    jkMount.setWorkerName(worker.getName());
+  }
+  
+  // TODO extract upwards or parametrize
+  private String getNewWorkerName(String host, String ajpPort) {
+    return host + "_" + ajpPort;
+  }
+  
+  /**
+   * Lookup existing worker by host and AJP port
+   * @param host
+   * @param ajpPort
+   * @return or else null
+   */
+  private Worker findWorker(String host, String ajpPort) {
+    Optional<Worker> workerOpt = apacheConf.getWorkers().stream().filter(
+        // TODO assume "ajp13".equals(worker.getType())
+        worker -> host.equals(worker.getHost()) && ajpPort.equals(worker.getPort())).findAny();
+    if (workerOpt.isPresent()) {
+      return workerOpt.get();
+    } else {
+      return null;
+    }
   }
 }

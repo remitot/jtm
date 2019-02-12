@@ -6,9 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.ApacheConfBase;
 
@@ -36,22 +34,6 @@ public class ApacheConfJk extends ApacheConfBase {
     return bindings;
   }
   
-  
-  /**
-   * Lazily initialized set of worker names
-   */
-  private Set<String> workerNames = null;
-  
-  /**
-   * @return unmodifiable Set of worker names
-   */
-  public Set<String> getWorkerNames() {
-    if (workerNames == null) {
-      initWorkerNames();
-    }
-    
-    return workerNames;
-  }
   
   /**
    * Lazily initialized list of Workers
@@ -91,7 +73,7 @@ public class ApacheConfJk extends ApacheConfBase {
       if (worker != null) {
         String location = "mod_jk.conf-" + jkMount.getLocation() + "__workers.properties-" + worker.getLocation();
         
-        Binding binding = new BindingImpl(jkMount, worker);
+        Binding binding = new BindingImpl(jkMount, worker, this);
         
         bindings0.put(location, binding);
       }
@@ -109,14 +91,6 @@ public class ApacheConfJk extends ApacheConfBase {
         getWorkers_propertiesLines().iterator()));
   }
   
-  /**
-   * Lazily initialize (or re-initialize) {@link #workerNames} set
-   */
-  private void initWorkerNames() {
-    // TODO define the order of items same as the order of the Apache's real workers priority (if re-declared twice)
-    this.workerNames = Collections.unmodifiableSet(getWorkers().stream().map(worker -> worker.getName()).collect(Collectors.toSet()));
-  }
-  
   public void delete(String location) {
     // TODO
   }
@@ -124,6 +98,27 @@ public class ApacheConfJk extends ApacheConfBase {
   public Binding create() {
     return null;
  // TODO
+  }
+  
+  protected Worker createWorker(String name) {
+    
+    int lineNumber = getWorkers_propertiesLines().size() + 1;
+    
+    getWorkers_propertiesLines().add(new TextLineReferenceImpl(lineNumber++, ""));// empty line
+    TextLineReference typeWorkerPropertyLine = new TextLineReferenceImpl(lineNumber++, "");
+    getWorkers_propertiesLines().add(typeWorkerPropertyLine);
+    TextLineReference hostWorkerPropertyLine = new TextLineReferenceImpl(lineNumber++, "");
+    getWorkers_propertiesLines().add(hostWorkerPropertyLine);
+    TextLineReference portWorkerPropertyLine = new TextLineReferenceImpl(lineNumber++, "");
+    getWorkers_propertiesLines().add(portWorkerPropertyLine);
+    
+    // add the new worker name into the worker.list
+    List<String> workerNames = WorkerFactory.parseWorkerNames(getWorkers_propertiesLines().iterator());
+    if (!workerNames.contains(name)) {
+      workerNames.add(name);
+    }
+    
+    return WorkerFactory.create(name, typeWorkerPropertyLine, hostWorkerPropertyLine, portWorkerPropertyLine);
   }
   
   public void save(OutputStream mod_jk_confOutputStream,

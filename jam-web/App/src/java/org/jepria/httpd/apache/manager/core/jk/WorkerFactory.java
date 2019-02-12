@@ -1,5 +1,6 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,13 +58,6 @@ public class WorkerFactory {
     }
     
     @Override
-    public void setName(String workerName) {
-      typeWorkerProperty.setWorkerName(workerName); 
-      hostWorkerProperty.setWorkerName(workerName); 
-      portWorkerProperty.setWorkerName(workerName);
-    }
-
-    @Override
     public String getType() {
       return typeWorkerProperty.getValue();
     }
@@ -92,10 +86,103 @@ public class WorkerFactory {
   
   public static final Pattern PROPERTY_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.([^=\\s]+)\\s*\\=\\s*([^\\s]+)\\s*");
   
-  public static List<Worker> parse(Iterator<TextLineReference> lineIterator) {
+  public static final Pattern WORKER_LIST_PATTERN = Pattern.compile("\\s*worker.list\\s*=(.+)");
+  
+  /**
+   * Finds {@code worker.list} property line and parses its value
+   * @param lines of the {@code workers.properties} file
+   * @return or else empty list
+   */
+  public static List<String> parseWorkerNames(Iterator<TextLineReference> lines) {
+    if (lines != null) {
+      while (lines.hasNext()) {
+        final TextLineReference line = lines.next();
+        
+        Matcher m = WORKER_LIST_PATTERN.matcher(line);
+        if (m.matches()) {
+          List<String> list = new ArrayList<>();
+          
+          String workerList = m.group(1);
+          String[] split = workerList.split("\\s*,\\s*");
+          if (split != null) {
+            for (String worker: split) {
+              if (worker != null && !"".equals(worker)) {
+                list.add(worker);
+              }
+            }
+          }
+          
+          return new WorkerNameList(list, line, false);
+        }
+      }
+    }
+    return null;
+  }
+  
+  /**
+   * Controlled modifications
+   */
+  private static class WorkerNameList extends AbstractList<String> {
+    private final List<String> list;
+    private final TextLineReference line;
+    
+    public WorkerNameList(List<String> list, TextLineReference line, boolean rebuild) {
+      this.list = list;
+      this.line = line;
+      
+      if (rebuild) {
+        rebuild();
+      }
+    }
+    
+    @Override
+    public void add(int index, String element) {
+      list.add(index, element);
+      rebuild();
+    }
+    @Override
+    public String remove(int index) {
+      String ret = list.remove(index);
+      rebuild();
+      return ret;
+    }
+    @Override
+    public String get(int index) {
+      return list.get(index);
+    }
+    @Override
+    public int size() {
+      return list.size();
+    }
+    
+    private void rebuild() {
+      StringBuilder content = new StringBuilder();
+      content.append("worker.list=");
+      if (list != null) {
+        boolean first = true;
+        for (String worker: list) {
+          if (!first) {
+            content.append(',');
+          } else {
+            first = false;
+          }
+          content.append(worker);
+        }
+      }
+      
+      line.setContent(content);
+    }
+  }
+  
+  /**
+   * 
+   * @param lines of the {@code workers.properties} file
+   * @return or else empty list
+   */
+  public static List<Worker> parse(Iterator<TextLineReference> lines) {
     List<Worker> ret = new ArrayList<>();
     
-    if (lineIterator != null) {
+    if (lines != null) {
       // collect worker.name.type properties, with worker names as keys
       Map<String, WorkerProperty> typeProperties = new HashMap<>();
       // collect worker.name.host properties, with worker names as keys
@@ -103,8 +190,8 @@ public class WorkerFactory {
       // collect worker.name.port properties, with worker names as keys
       Map<String, WorkerProperty> portProperties = new HashMap<>();
       
-      while (lineIterator.hasNext()) {
-        final TextLineReference line = lineIterator.next();
+      while (lines.hasNext()) {
+        final TextLineReference line = lines.next();
         
         tryParseWorkerProperty(line, 
             m -> typeProperties.put(m.getWorkerName(), m),
@@ -140,7 +227,6 @@ public class WorkerFactory {
     void setCommented(boolean commented);
 
     String getWorkerName();
-    void setWorkerName(String workerName);
     
     /**
      * The property value
@@ -156,17 +242,24 @@ public class WorkerFactory {
   
   private static class WorkerPropertyImpl implements WorkerProperty {
     private boolean commented;
-    private String workerName;
+    /**
+     * final: must not be changed normally
+     */
+    private final String workerName;
     private String workerType;
     private String value;
     private final TextLineReference line;
     
-    public WorkerPropertyImpl(boolean commented, String workerName, String workerType, String value, TextLineReference line) {
+    public WorkerPropertyImpl(boolean commented, String workerName, String workerType, String value, TextLineReference line, boolean rebuild) {
       this.commented = commented;
       this.workerName = workerName;
       this.workerType = workerType;
       this.value = value;
       this.line = line;
+      
+      if (rebuild) {
+        rebuild();
+      }
     }
 
     @Override
@@ -186,12 +279,6 @@ public class WorkerFactory {
     }
 
     @Override
-    public void setWorkerName(String workerName) {
-      this.workerName = workerName;
-      rebuild();
-    }
-
-    @Override
     public String getValue() {
       return value;
     }
@@ -207,7 +294,18 @@ public class WorkerFactory {
       if (commented) {
         content.append("# ");
       }
-      content.append("worker.").append(workerName).append('.').append(workerType).append('=').append(value);
+      content.append("worker.");
+      if (workerName != null) {
+        content.append(workerName);
+      }
+      content.append('.');
+      if (workerType != null) {
+        content.append(workerType);
+      }
+      content.append('=');
+      if (value != null) {
+        content.append(value);
+      }
       
       line.setContent(content);
     }
@@ -217,6 +315,11 @@ public class WorkerFactory {
       return line;
     }
   }
+  
+  /**
+   * {@code worker.name.type} value
+   */
+  public static final String AJP_13_TYPE = "ajp13";// TODO extract?
   
   /**
    * Does nothing if failed to parse the line into a WorkerProperty, 
@@ -240,31 +343,43 @@ public class WorkerFactory {
       final WorkerProperty workerProperty;
       final Consumer<WorkerProperty> targetConsumer;
       
-      switch (workerType) {
-      case "type": {
-        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line);
+      if ("type".equals(workerType) && AJP_13_TYPE.equals(value)) {
+        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line, false);
         targetConsumer = typePropertyConsumer;
-        break;
-      }
-      case "host": {
-        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line);
+      } else if ("host".equals(workerType)) {
+        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line, false);
         targetConsumer = hostPropertyConsumer;
-        break;
-      }
-      case "port": {
-        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line);
+      } else if ("port".equals(workerType)) {
+        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line, false);
         targetConsumer = portPropertyConsumer;
-        break;
-      }
-      default: {
+      } else {
         workerProperty = null;
         targetConsumer = null;
-      }
       }
       
       if (workerProperty != null && targetConsumer != null) {
         targetConsumer.accept(workerProperty);
       }
     }
+  }
+  
+  /**
+   * Creates a new (empty) worker with the name specified
+   * @param name
+   * @param typeWorkerPropertyLine will be reset  
+   * @param hostWorkerPropertyLine will be reset
+   * @param portWorkerPropertyLine will be reset
+   * @return
+   */
+  public static Worker create(String name,
+      TextLineReference typeWorkerPropertyLine,
+      TextLineReference hostWorkerPropertyLine,
+      TextLineReference portWorkerPropertyLine) {
+    
+    WorkerProperty typeWorkerProperty = new WorkerPropertyImpl(false, name, "type", AJP_13_TYPE, typeWorkerPropertyLine, true);
+    WorkerProperty hostWorkerProperty = new WorkerPropertyImpl(false, name, "host", null, hostWorkerPropertyLine, true);
+    WorkerProperty portWorkerProperty = new WorkerPropertyImpl(false, name, "port", null, portWorkerPropertyLine, true); 
+    
+    return new WorkerImpl(typeWorkerProperty, hostWorkerProperty, portWorkerProperty);
   }
 }

@@ -20,7 +20,6 @@ package org.jepria.httpd.apache.manager.core.jk;
    * The common worker name for all three properties
    */
   String getName();
-  void setName(String name);
   
   String getType();
   

@@ -6,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -128,57 +129,88 @@ public class JkApiServlet extends HttpServlet {
     final String uri = "/manager-ext/api/port/http";// TODO extract
     
     
+    
+    
+    final AjpRequestDto ajpRequest = new AjpRequestDto();
+    ajpRequest.setHost(host);
+    ajpRequest.setPort(ajpPortNumber);
+    ajpRequest.setUri(uri);
+    
+    final AjpResponseDto ajpResponse = new AjpResponseDto();
+    
     try {
-      // make AJP request for the HTTP port
+      Response subresponse = subrequestHttpPortByAjp(host, ajpPortNumber, uri);
+      
+      ajpResponse.setStatus(subresponse.status);
+      ajpResponse.setStatusMessage(subresponse.statusMessage);
+      ajpResponse.setResponseBody(subresponse.responseBody);
+      
+    } catch (SubrequestException e) {
+      e.printStackTrace();
+      
+      ajpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      ajpResponse.setStatusMessage(e.getClass().getName() + ": " + e.getMessage());
+    }
+      
+    Map<String, Object> responseJsonMap = new HashMap<>();
+    responseJsonMap.put("ajpRequest", ajpRequest);
+    responseJsonMap.put("ajpResponse", ajpResponse);
+    
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
+  
+    response.setStatus(HttpServletResponse.SC_OK);
+    response.flushBuffer();
+    return;
+      
+  }
+  
+  private static class Response {
+    public int status;
+    public String statusMessage;
+    public String responseBody;
+  }
+  
+  private static class SubrequestException extends Exception {
+    private static final long serialVersionUID = 1177260562719083892L;
+    public SubrequestException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
+  
+  /**
+   * 
+   * @param host
+   * @param ajpPort
+   * @param uri begins with '/'
+   * @return
+   * @throws SubrequestException
+   */
+  private static Response subrequestHttpPortByAjp(String host, int ajpPort, String uri) throws SubrequestException {
+    
+    final Response response = new Response();
+    
+    try {
       SimpleAjpConnection connection = SimpleAjpConnection.open(
-          host, ajpPortNumber, uri, 2000);// TODO extract
+          host, ajpPort, uri, 2000);// TODO extract 2000
       
       connection.connect();
       
-      final int status = connection.getStatus();
+      response.status = connection.getStatus();
+      response.statusMessage = connection.getStatusMessage();
+      response.responseBody = connection.getResponseBody();
       
-      String statusMessage = connection.getStatusMessage();
-      statusMessage = statusMessage == null ? "" : statusMessage;
-      
-      String responseBody = connection.getResponseBody();
-      responseBody = responseBody == null ? "" : responseBody;
-      
-      // write the response
-      AjpRequestDto ajpRequest = new AjpRequestDto();
-      ajpRequest.setHost(host);
-      ajpRequest.setPort(ajpPortNumber);
-      ajpRequest.setUri(uri);
-      
-      AjpResponseDto ajpResponse = new AjpResponseDto();
-      ajpResponse.setStatus(status);
-      ajpResponse.setStatusMessage(statusMessage);
-      ajpResponse.setResponseBody(responseBody);
-      
-      Map<String, Object> responseJsonMap = new HashMap<>();
-      responseJsonMap.put("ajpRequest", ajpRequest);
-      responseJsonMap.put("ajpResponse", ajpResponse);
-      
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
-    
-      response.setStatus(HttpServletResponse.SC_OK);
-      response.flushBuffer();
-      return;
+    } catch (SocketTimeoutException e) {
+      // non-authorized request to a protected resource will result java.net.SocketTimeoutException
+      response.status = HttpServletResponse.SC_GATEWAY_TIMEOUT;
+      response.statusMessage = null;
+      response.responseBody = null;
       
     } catch (Throwable e) {
-      // access to a protected resource will result java.net.SocketTimeoutException,
-      
-      final RuntimeException detailedException = new RuntimeException(
-          "Failed to make AJP request to [" + host + ":" + ajpPortNumber + uri + "]", e); 
-      
-      // log but not rethrow
-      detailedException.printStackTrace();
-      
-      
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      response.flushBuffer();
-      return;
+      throw new SubrequestException("Failed to make subrequest to [" + host + ":" + ajpPort + uri + "]", e);
     }
+    
+    return response;
   }
   
   @Override
@@ -412,12 +444,8 @@ public class JkApiServlet extends HttpServlet {
    */
   private static ModStatus updateFields(JkDto sourceDto, Binding target) {
 
-    if (sourceDto.getActive() != null) {
-      target.setActive(sourceDto.getActive());
-    }
-    if (sourceDto.getApplication() != null) {
-      target.setApplication(sourceDto.getApplication());
-    }
+    // rebinding comes first
+    
     if (sourceDto.getInstance() != null) {
       final InstanceValueParser instanceValueParser;
       try {
@@ -435,54 +463,78 @@ public class JkApiServlet extends HttpServlet {
       
       final int ajpPortNumber;
       try {
-        // make HTTP request for the AJP port
-        final URL url = new URL("http://" + host + ":" + httpPortNumber + uri);
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        connection.setConnectTimeout(2000);// TODO extract
-        connection.connect();
+        Response response = subrequestAjpPortByHttp(host, httpPortNumber, uri);
         
-        final int status = connection.getResponseCode();
-        
-        String statusMessage = connection.getResponseMessage();
-        statusMessage = statusMessage == null ? "" : statusMessage;
-        
-        String responseBody = null;
-        try (Scanner sc = new Scanner(connection.getInputStream())) {
-          sc.useDelimiter("\\Z");
-          if (sc.hasNext()) {
-            responseBody = sc.next();
-          }
-        }
-        responseBody = responseBody == null ? "" : responseBody;
-
-        
-        if (status == 200) {
-          ajpPortNumber = Integer.parseInt(responseBody);
+        if (response.status == 200) {
+          ajpPortNumber = Integer.parseInt(response.responseBody);
         } else {
-          return ModStatus.errGetAjpPortError("HTTP subrequest error: " + status + " " + statusMessage);
+          return ModStatus.errGetAjpPortError("Failed to make subrequest to [" + host + ":" + httpPortNumber + uri + "]:"
+              + " status was not 200 but " + response.status + (response.statusMessage == null ? "" : (" " + response.statusMessage)));
         }
         
+      } catch (SubrequestException e) {
+        e.printStackTrace();
         
-      } catch (Throwable e) {
-        final RuntimeException detailedException = new RuntimeException(
-            "Failed to make HTTP request to [" + host + ":" + httpPortNumber + uri + "]", e); 
-        
-        // log but not rethrow
-        detailedException.printStackTrace();
-        
-        return ModStatus.errGetAjpPortError("Internal server error: " + e.getMessage());
+        return ModStatus.errGetAjpPortError("Failed to make subrequest to [" + host + ":" + httpPortNumber + uri + "]: "
+            + e.getClass().getName() + ": " + e.getMessage());
       }
+        
       
-      
-      
-      target.setWorkerHost(host);
-      target.setWorkerAjpPort(ajpPortNumber);
+      if (!host.equals(target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
+        target.rebind(host, ajpPortNumber);
+        // TODO check rebind succeeded?
+      }
     }
+    
+    
+    if (sourceDto.getActive() != null) {
+      target.setActive(sourceDto.getActive());
+    }
+    if (sourceDto.getApplication() != null) {
+      target.setApplication(sourceDto.getApplication());
+    }
+    
     
     return ModStatus.success();
   }
   
-
+  /**
+   * 
+   * @param host
+   * @param httpPort
+   * @param uri begins with '/'
+   * @return
+   * @throws SubrequestException
+   */
+  private static Response subrequestAjpPortByHttp(String host, int httpPort, String uri) throws SubrequestException {
+    
+    final Response response = new Response();
+    
+    try {
+      final URL url = new URL("http://" + host + ":" + httpPort + uri);
+      HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+      connection.setConnectTimeout(2000);// TODO extract 2000
+      
+      connection.connect();
+      
+      response.status = connection.getResponseCode();
+      response.statusMessage = connection.getResponseMessage();
+      
+      String responseBody = null;
+      try (Scanner sc = new Scanner(connection.getInputStream())) {
+        sc.useDelimiter("\\Z");
+        if (sc.hasNext()) {
+          responseBody = sc.next();
+        }
+      }
+      response.responseBody = responseBody;
+      
+    } catch (Throwable e) {
+      throw new SubrequestException("Failed to make subrequest to [" + host + ":" + httpPort + uri + "]", e);
+    }
+    
+    return response;
+  }
   
   
   private static ModStatus deleteBinding(

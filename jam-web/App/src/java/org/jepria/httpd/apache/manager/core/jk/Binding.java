@@ -12,13 +12,14 @@ public interface Binding {
   String getApplication();
   void setApplication(String application);
   
-  String getWorkerName();
-  void setWorkerName(String workerName);
-  
   String getWorkerHost();
-  void setWorkerHost(String workerHost);
-  
   // TODO is this legal to bing the name of the method to AJP type?
   int getWorkerAjpPort();
-  void setWorkerAjpPort(int workerAjpPort);
+  
+  /**
+   * Rebind to another worker (existing or potentially new).
+   * If rebinding succeeded, the subsequent binding modifications 
+   * will affect the new worker (if they intend), but not the old (which is unbound)  
+   */
+  void rebind(String host, int ajpPort);
 }

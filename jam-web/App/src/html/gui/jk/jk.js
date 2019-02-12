@@ -169,7 +169,8 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
           // Better to show at least the information we have?
           setGetHttpPortButtonState(button, 2);
           
-          console.error("Get HTTP port error: AJP subrequest error: " + responseJson.ajpResponse.status + " " + responseJson.ajpResponse.statusMessage);
+          console.error("Error subrequesting HTTP port by AJP: status " + responseJson.ajpResponse.status 
+              + ", message: " + responseJson.ajpResponse.statusMessage);
         }
         
       } else if (this.status == 401) {

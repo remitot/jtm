@@ -99,10 +99,18 @@ public class ApacheConfBase {
   
   
   
-  private static class TextLineReferenceImpl implements TextLineReference {
+  protected static class TextLineReferenceImpl implements TextLineReference {
+    /**
+     * Begins from 1
+     */
     private final int lineNumber;
     private CharSequence content;
     
+    /**
+     * 
+     * @param lineNumber
+     * @param content not null
+     */
     public TextLineReferenceImpl(int lineNumber, String content) {
       this.lineNumber = lineNumber;
       this.content = content;

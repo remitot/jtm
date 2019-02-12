@@ -74,17 +74,22 @@ public class JkMountFactory {
   
   public static final Pattern JK_MOUNT_PATTERN = Pattern.compile("\\s*(#*)\\s*JkMount\\s+([^\\s]+)\\s+([^\\s]+)\\s*");
   
-  public static List<JkMount> parse(Iterator<TextLineReference> lineIterator) {
+  /**
+   * 
+   * @param lines of the {@code mod_jk.conf} file
+   * @return or else empty list
+   */
+  public static List<JkMount> parse(Iterator<TextLineReference> lines) {
     List<JkMount> ret = new ArrayList<>();
     
-    if (lineIterator != null) {
+    if (lines != null) {
       // collect root mounts ('/Application'), with application names as keys
       Map<String, JkMountDirective> rootMounts = new HashMap<>();
       // collect asterisk mounts ('/Application/*'), with application names as keys 
       Map<String, JkMountDirective> asterMounts = new HashMap<>();
       
-      while (lineIterator.hasNext()) {
-        final TextLineReference line = lineIterator.next();
+      while (lines.hasNext()) {
+        final TextLineReference line = lines.next();
         
         tryParseJkMountDirective(line, 
             m -> rootMounts.put(m.getApplication(), m),
@@ -141,12 +146,16 @@ public class JkMountFactory {
     private String workerName;
     private final TextLineReference line;
     
-    public JkMountDirectiveImpl(boolean commented, String application, boolean asterMount, String workerName, TextLineReference line) {
+    public JkMountDirectiveImpl(boolean commented, String application, boolean asterMount, String workerName, TextLineReference line, boolean rebuild) {
       this.commented = commented;
       this.application = application;
       this.asterMount = asterMount;
       this.workerName = workerName;
       this.line = line;
+      
+      if (rebuild) {
+        rebuild();
+      }
     }
 
     @Override
@@ -187,11 +196,17 @@ public class JkMountFactory {
       if (commented) {
         content.append("# ");
       }
-      content.append("JkMount /").append(application);
-      if (asterMount) {
-        content.append("/*");
+      content.append("JkMount ");
+      if (application != null) {
+        content.append('/').append(application);
+        if (asterMount) {
+          content.append("/*");
+        }
       }
-      content.append(' ').append(workerName);
+      content.append(' ');
+      if (workerName != null) {
+        content.append(workerName);
+      }
       
       line.setContent(content);
     }
@@ -230,7 +245,7 @@ public class JkMountFactory {
           asterMount = false;
         }
       
-        final JkMountDirective mountd = new JkMountDirectiveImpl(commented, application, asterMount, workerName, line);
+        final JkMountDirective mountd = new JkMountDirectiveImpl(commented, application, asterMount, workerName, line, false);
         
         if (asterMount) {
           asterMountConsumer.accept(mountd);
