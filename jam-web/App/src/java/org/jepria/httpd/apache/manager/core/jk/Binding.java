@@ -1,5 +1,9 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
+/**
+ * Facade interface representing a "complete" Jk binding
+ * consisting of {@link JkMount} and {@link Worker}. 
+ */
 public interface Binding {
   
   boolean isActive();

@@ -41,10 +41,14 @@ function createHeader() {
 
 /* @Override from table.js */
 function validate(fieldName, fieldValue) {
-  if (fieldName === "application" || fieldName === "instance") {
+  if (fieldName === "application") {
     if (!fieldValue) {
       return false;
     }
+  }
+  if (fieldName === "instance") { 
+    // tomcat-server:8080
+    return /^[^:]+:\d+$/.test(fieldValue);
   }
   return true;
 }
@@ -58,6 +62,7 @@ var tabindex0 = 1;
 function createRow(listItem) {
   var row = document.createElement("div");
   row.classList.add("row");
+  row.setAttribute("item-location", listItem.location);
   
   // active
   var cell = createCell(row, "column-active");

@@ -1,32 +1,32 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
 /**
- * Class representing a worker
+ * Facade interface representing a "complete" worker
  * consisting of three worker properties: 
- * {@code worker.name.type}, {@code worker.name.host} and {@code worker.name.port}
+ * {@code worker.name.type}, {@code worker.name.host} and {@code worker.name.port}.
  */
 /*package*/interface Worker {
-  boolean isCommented();
+  
+  /**
+   * Service method.
+   * @return JkMount's location to be used as a part of {@link Binding}'s location  
+   */
+  String getLocation();
+  
+  boolean isActive();
+  void setActive(boolean active);
+  
   /**
    * The common worker name for all three properties
    */
-  String name();
+  String getName();
+  void setName(String name);
   
   String type();
-  /**
-   * Reference to the line with {@code worker.name.type} property
-   */
-  TextLineReference typePropertyLine();
   
   String host();
-  /**
-   * Reference to the line with {@code worker.name.host} property
-   */
-  TextLineReference hostPropertyLine();
+  void setHost(String host);
   
   String port();
-  /**
-   * Reference to the line with {@code worker.name.port} property
-   */
-  TextLineReference portPropertyLine();
+  void setPort(String port);
 }

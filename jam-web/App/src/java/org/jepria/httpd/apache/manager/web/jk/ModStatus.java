@@ -11,7 +11,8 @@ public class ModStatus {
   public static final int CODE_ERR__MANDATORY_FIELDS_EMPTY = 3;
   public static final int CODE_ERR__ILLEGAL_ACTION = 4;
   public static final int CODE_ERR__INTERNAL_ERROR = 5;
-  public static final int CODE_ERR__NOT_SINGLE_PORT = 6;
+  public static final int CODE_ERR__INVALID_INSTANCE_VALUE = 6;
+  public static final int CODE_ERR__GET_AJP_PORT_ERROR = 7;
   
   
   public final int code;
@@ -43,15 +44,20 @@ public class ModStatus {
   }
   
   public static ModStatus errIllegalAction(String action) {
-    return new ModStatus(CODE_ERR__ILLEGAL_ACTION, "ERROR: illegal action" + 
-        (action == null ? "" : (": " + action)));
+    return new ModStatus(CODE_ERR__ILLEGAL_ACTION, "ERROR: illegal action"
+        + (action == null ? "" : (": " + action)));
   }
   
   public static ModStatus errInternalError() {
     return new ModStatus(CODE_ERR__INTERNAL_ERROR, "ERROR: internal error, ask server admin for more info");
   }
   
-  public static ModStatus errNotSinglePort() {
-    return new ModStatus(CODE_ERR__NOT_SINGLE_PORT, "ERROR: not single port (ajp or http) specified");
+  public static ModStatus errInvalidInstanceValue() {
+    return new ModStatus(CODE_ERR__INVALID_INSTANCE_VALUE, "ERROR: invalid 'instance' field value");
+  }
+  
+  public static ModStatus errGetAjpPortError(String message) {
+    return new ModStatus(CODE_ERR__GET_AJP_PORT_ERROR, "ERROR: get AJP port error"
+        + (message == null ? "" : (": " + message)));
   }
 }

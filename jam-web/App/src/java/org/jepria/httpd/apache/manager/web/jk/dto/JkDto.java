@@ -14,13 +14,13 @@ public class JkDto {
    */
   private String ajpPort;
   /**
-   * Field normally passed from client to server only
-   */
-  private String httpPort;
-  /**
    * Field normally passed from server to client only
    */
   private String getHttpPortLink;
+  /**
+   * Field normally passed from client to server only (host with HTTP port: "tomcat-server:8080")
+   */
+  private String instance;
   
   public JkDto() {}
   
@@ -55,16 +55,16 @@ public class JkDto {
   public void setAjpPort(String ajpPort) {
     this.ajpPort = ajpPort;
   }
-  public String getHttpPort() {
-    return httpPort;
-  }
-  public void setHttpPort(String httpPort) {
-    this.httpPort = httpPort;
-  }
   public String getGetHttpPortLink() {
     return getHttpPortLink;
   }
   public void setGetHttpPortLink(String getHttpPortLink) {
     this.getHttpPortLink = getHttpPortLink;
+  }
+  public String getInstance() {
+    return instance;
+  }
+  public void setInstance(String instance) {
+    this.instance = instance;
   }
 }

@@ -5,13 +5,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
@@ -112,12 +117,21 @@ public class JkApiServlet extends HttpServlet {
       return;
     }
     
-    int ajpPortNumber = Integer.parseInt(ajpPort);
-    String managerExtUri = "/manager-ext/api/port/http";
+    
+    final int ajpPortNumber;
+    try {
+      ajpPortNumber = Integer.parseInt(ajpPort);
+    } catch (NumberFormatException e) {
+      // impossible
+      throw e;
+    }
+    final String uri = "/manager-ext/api/port/http";// TODO extract
+    
     
     try {
+      // make AJP request for the HTTP port
       SimpleAjpConnection connection = SimpleAjpConnection.open(
-          host, ajpPortNumber, managerExtUri, 2000);
+          host, ajpPortNumber, uri, 2000);// TODO extract
       
       connection.connect();
       
@@ -133,7 +147,7 @@ public class JkApiServlet extends HttpServlet {
       AjpRequestDto ajpRequest = new AjpRequestDto();
       ajpRequest.setHost(host);
       ajpRequest.setPort(ajpPortNumber);
-      ajpRequest.setUri(managerExtUri);
+      ajpRequest.setUri(uri);
       
       AjpResponseDto ajpResponse = new AjpResponseDto();
       ajpResponse.setStatus(status);
@@ -155,7 +169,7 @@ public class JkApiServlet extends HttpServlet {
       // access to a protected resource will result java.net.SocketTimeoutException,
       
       final RuntimeException detailedException = new RuntimeException(
-          "Failed to perform SimpleAjpConnection request to [" + host + ":" + ajpPortNumber + managerExtUri + "]", e); 
+          "Failed to make AJP request to [" + host + ":" + ajpPortNumber + uri + "]", e); 
       
       // log but not rethrow
       detailedException.printStackTrace();
@@ -375,14 +389,9 @@ public class JkApiServlet extends HttpServlet {
       JkDto bindingDto = mreq.getData();
       
       
-      // check mandatory fields of a new connection
-      List<String> emptyMandatoryFields = validateEmptyFields(bindingDto);
-      if (!emptyMandatoryFields.isEmpty()) {
-        return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
-      }
-      // check not single port
-      if (!validateNotSinglePort(bindingDto)) {
-        return ModStatus.errNotSinglePort();
+      // validate 'instance' field value
+      if (!validateInstanceFieldValue(bindingDto)) {
+        return ModStatus.errInvalidInstanceValue();
       }
       
 
@@ -397,7 +406,7 @@ public class JkApiServlet extends HttpServlet {
   
   /**
    * Updates target's fields with source's values
-   * @param sourceDto
+   * @param sourceDto already valid
    * @param target non null
    * @return
    */
@@ -409,17 +418,72 @@ public class JkApiServlet extends HttpServlet {
     if (sourceDto.getApplication() != null) {
       target.setApplication(sourceDto.getApplication());
     }
-    if (sourceDto.getHost() != null) {
-      // TODO convert from http to ajp
-      target.setWorkerHost(sourceDto.getHost());
+    if (sourceDto.getInstance() != null) {
+      final InstanceValueParser instanceValueParser;
+      try {
+        instanceValueParser = new InstanceValueParser(sourceDto.getInstance());
+      } catch (IllegalArgumentException e) {
+        // impossible
+        throw e;
+      }
+      
+      
+      final String host = instanceValueParser.host;
+      final int httpPortNumber = instanceValueParser.port;
+      final String uri = "/manager-ext/api/port/ajp";// TODO extract
+      
+      
+      final int ajpPortNumber;
+      try {
+        // make HTTP request for the AJP port
+        final URL url = new URL("http://" + host + ":" + httpPortNumber + uri);
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setConnectTimeout(2000);// TODO extract
+        connection.connect();
+        
+        final int status = connection.getResponseCode();
+        
+        String statusMessage = connection.getResponseMessage();
+        statusMessage = statusMessage == null ? "" : statusMessage;
+        
+        String responseBody = null;
+        try (Scanner sc = new Scanner(connection.getInputStream())) {
+          sc.useDelimiter("\\Z");
+          if (sc.hasNext()) {
+            responseBody = sc.next();
+          }
+        }
+        responseBody = responseBody == null ? "" : responseBody;
+
+        
+        if (status == 200) {
+          ajpPortNumber = Integer.parseInt(responseBody);
+        } else {
+          return ModStatus.errGetAjpPortError("HTTP subrequest error: " + status + " " + statusMessage);
+        }
+        
+        
+      } catch (Throwable e) {
+        final RuntimeException detailedException = new RuntimeException(
+            "Failed to make HTTP request to [" + host + ":" + httpPortNumber + uri + "]", e); 
+        
+        // log but not rethrow
+        detailedException.printStackTrace();
+        
+        return ModStatus.errGetAjpPortError("Internal server error: " + e.getMessage());
+      }
+      
+      
+      
+      target.setWorkerHost(host);
+      target.setWorkerAjpPort(ajpPortNumber);
     }
-    if (sourceDto.getHttpPort() != null) {
-      // TODO convert from http to ajp
-      int ajpPort = Integer.parseInt(sourceDto.getHttpPort()); 
-      target.setWorkerAjpPort(ajpPort);
-    }
+    
     return ModStatus.success();
   }
+  
+
+  
   
   private static ModStatus deleteBinding(
       ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
@@ -465,14 +529,14 @@ public class JkApiServlet extends HttpServlet {
       JkDto bindingDto = mreq.getData();
 
       
-      // check mandatory fields of a new connection
-      List<String> emptyMandatoryFields = validateEmptyFields(bindingDto);
+      // validate mandatory fields
+      List<String> emptyMandatoryFields = validateMandatoryFields(bindingDto);
       if (!emptyMandatoryFields.isEmpty()) {
         return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
       }
-      // check not single port
-      if (!validateNotSinglePort(bindingDto)) {
-        return ModStatus.errNotSinglePort();
+      // validate 'instance' field value
+      if (!validateInstanceFieldValue(bindingDto)) {
+        return ModStatus.errInvalidInstanceValue();
       }
 
       
@@ -490,34 +554,53 @@ public class JkApiServlet extends HttpServlet {
   }
   
   /**
-   * Validate empty mandatory fields
-   * @param connection
-   * @return list of field names whose values are empty, or else empty list
+   * Validate mandatory fields
+   * @param dto
+   * @return list of field names whose values are empty (but must not be empty), or else empty list
    */
-  private static List<String> validateEmptyFields(JkDto dto) {
+  private static List<String> validateMandatoryFields(JkDto dto) {
     List<String> emptyFields = new ArrayList<>();
 
+    if (dto.getActive() == null) {
+      emptyFields.add("active");
+    }
     if (empty(dto.getApplication())) {
       emptyFields.add("application");
     }
-    if (empty(dto.getHost())) {
-      emptyFields.add("host");
+    if (empty(dto.getInstance())) {
+      emptyFields.add("instance");
     }
-    if (empty(dto.getAjpPort()) && empty(dto.getHttpPort())) {
-      emptyFields.add("ajpPort");
-      emptyFields.add("httpPort");
-    }
-    
     return emptyFields;
   }
     
+  
+  private static class InstanceValueParser {
+    public static final Pattern PATTERN = Pattern.compile("([^:]+):(\\d+)");
+    
+    public static boolean isValid(String instance) {
+      return PATTERN.matcher(instance).matches();
+    }
+    
+    public final String host;
+    public final int port;
+    
+    public InstanceValueParser(String instance) {
+      Matcher m = PATTERN.matcher(instance);
+      if (!m.matches()) {
+        throw new IllegalArgumentException(instance);
+      }
+      host = m.group(1);
+      port = Integer.parseInt(m.group(2));
+    }
+  }
+  
   /**
-   * Validate not single port specified
-   * @param connection
-   * @return true if valid
+   * Validate 'instance' field value
+   * @param dto
+   * @return true if dto has no 'instance' field or the 'instance' field value is not empty and valid 
    */
-  private static boolean validateNotSinglePort(JkDto dto) {
-    return empty(dto.getAjpPort()) || empty(dto.getHttpPort());
+  private static boolean validateInstanceFieldValue(JkDto dto) {
+    return dto.getInstance() == null || InstanceValueParser.isValid(dto.getInstance());
   }
   
   private static boolean empty(String string) {

@@ -74,7 +74,7 @@ public class ApacheConfJk extends ApacheConfBase {
    */
   private void initBindings() {
     
-    List<JkMount> jkMounts = JkMountParser.parse(getMod_jk_confLines().iterator());
+    List<JkMount> jkMounts = JkMountFactory.parse(getMod_jk_confLines().iterator());
 
     Map<String, Binding> bindings0 = new HashMap<>();
     for (JkMount jkMount: jkMounts) {
@@ -82,20 +82,16 @@ public class ApacheConfJk extends ApacheConfBase {
       
       Worker worker = null;
       for (Worker worker0: getWorkers()) {
-        if (worker0.name().equals(workerName)) {
+        if (worker0.getName().equals(workerName)) {
           worker = worker0;
           break;
         }
       }
       
       if (worker != null) {
-        String location = "mod_jk.conf-" + jkMount.rootMountLine().lineNumber() + "-" + jkMount.asteriskMountLine().lineNumber() 
-            + "__workers.properties-" + worker.typePropertyLine().lineNumber() + "-" + worker.hostPropertyLine().lineNumber() + "-" + worker.portPropertyLine().lineNumber();
+        String location = "mod_jk.conf-" + jkMount.getLocation() + "__workers.properties-" + worker.getLocation();
         
-        Binding binding = new BindingImpl(
-            !jkMount.isCommented() && !worker.isCommented(),
-            jkMount.application(),
-            worker);
+        Binding binding = new BindingImpl(jkMount, worker);
         
         bindings0.put(location, binding);
       }
@@ -109,7 +105,7 @@ public class ApacheConfJk extends ApacheConfBase {
    * Lazily initialize (or re-initialize) {@link #workers} list
    */
   private void initWorkers() {
-    this.workers = Collections.unmodifiableList(WorkerParser.parse(
+    this.workers = Collections.unmodifiableList(WorkerFactory.parse(
         getWorkers_propertiesLines().iterator()));
   }
   
@@ -118,71 +114,8 @@ public class ApacheConfJk extends ApacheConfBase {
    */
   private void initWorkerNames() {
     // TODO define the order of items same as the order of the Apache's real workers priority (if re-declared twice)
-    this.workerNames = Collections.unmodifiableSet(getWorkers().stream().map(worker -> worker.name()).collect(Collectors.toSet()));
+    this.workerNames = Collections.unmodifiableSet(getWorkers().stream().map(worker -> worker.getName()).collect(Collectors.toSet()));
   }
-  
-  private static class BindingImpl implements Binding {
-    private final boolean active;
-    private final String application;
-    private final String workerName;
-    private final String workerHost;
-    private final int workerAjpPort;
-    
-    public BindingImpl(boolean active, String application, Worker worker) {
-      this.active = active;
-      this.application = application;
-      this.workerName = worker.name();
-      this.workerHost = worker.host();
-      
-      // TODO how to guarantee the ajp13 type here?
-      if (!"ajp13".equals(worker.type())) {
-        throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.type());
-      }
-      this.workerAjpPort = Integer.parseInt(worker.port());//TODO is this the best place to parse?
-    }
-
-    @Override
-    public boolean isActive() {
-      return active;
-    }
-    @Override
-    public void setActive(boolean active) {
-      // TODO Auto-generated method stub
-    }
-    @Override
-    public String getApplication() {
-      return application;
-    }
-    @Override
-    public void setApplication(String application) {
-      // TODO Auto-generated method stub
-    }
-    @Override
-    public String getWorkerName() {
-      return workerName;
-    }
-    @Override
-    public void setWorkerName(String workerName) {
-      // TODO Auto-generated method stub
-    }
-    @Override
-    public String getWorkerHost() {
-      return workerHost;
-    }
-    @Override
-    public void setWorkerHost(String workerHost) {
-      // TODO Auto-generated method stub
-    }
-    @Override
-    public int getWorkerAjpPort() {
-      return workerAjpPort; 
-    }
-    @Override
-    public void setWorkerAjpPort(int workerAjpPort) {
-      // TODO Auto-generated method stub
-    }
-  }
-  
   
   public void delete(String location) {
     // TODO

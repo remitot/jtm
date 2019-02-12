@@ -1,32 +1,31 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
 /**
- * Interface representing a complete Jk mount
+ * Facade interface representing a "complete" Jk mount
  * consisting of two JkMount directives: 
- * root mount ('/Application') and asterisk mount ('/Application/*')
+ * root mount ('/Application') and asterisk mount ('/Application/*').
  */
 /*package*/interface JkMount {
   
-  boolean isCommented();
+  /**
+   * Service method.
+   * @return JkMount's location to be used as a part of {@link Binding}'s location  
+   */
+  String getLocation();
+  
+  boolean isActive();
+  void setActive(boolean active);
   
   /**
    * Common application for both root and asterisk mounts
    * (a part of url pattern between initial '/' and trailing '/*')
    */
-  String application();
-  
-  /**
-   * Reference to the line with root mount
-   */
-  TextLineReference rootMountLine();
-  
-  /**
-   * Reference to the line with asterisk mount
-   */
-  TextLineReference asteriskMountLine();
+  String getApplication();
+  void setApplication(String application);
   
   /**
    * The common worker name for both root and asterisk mounts
    */
   String workerName();
+  void setWorkerName(String workerName);
 }
