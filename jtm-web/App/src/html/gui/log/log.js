@@ -1,6 +1,6 @@
 /* @Override from table.js */
 function getApiListUrl() {
-  return "api/log/list";
+  return "api/log/list?tzoffset=" + (-new Date().getTimezoneOffset());
 }
 
 /* @Override from table.js */
@@ -60,7 +60,7 @@ function createRow(listItem) {
   
   cell = createCell(div, "column-lastmod");
   cell.classList.add("cell-field");
-  cellValue = listItem.lastModifiedDate + " <b>" + listItem.lastModifiedTime + "</b>";
+  cellValue = createLastModifiedHTML(listItem);
   field = addField(cell, "lastmod", cellValue, null);
   
   cell = createCell(div, "column-download");
@@ -87,6 +87,38 @@ function createRow(listItem) {
   
   
   return row;
+}
+
+function createLastModifiedHTML(listItem) {
+  //TODO what if local values are empty? (if tzoffset request parameter has not been provided)
+  var html = listItem.lastModifiedDateLocal + " " + listItem.lastModifiedTimeLocal;
+  
+  if (listItem.lastModifiedTimeAgoVerb == 1) {
+    html += ", <b>только что</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 2) {
+    html += ", <b>минуту назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 3) {
+    html += ", <b>две минуты назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 4) {
+    html += ", <b>три минуты назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 5) {
+    html += ", <b>5 минут назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 6) {
+    html += ", <b>10 минут назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 7) {
+    html += ", <b>полчаса назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 8) {
+    html += ", <b>час назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 9) {
+    html += ", <b>два часа назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 10) {
+    html += ", <b>три часа назад</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 11) {
+    html += ", <b>сегодня</b>"; // NON-NLS;
+  } else if (listItem.lastModifiedTimeAgoVerb == 12) {
+    html += ", <b>вчера</b>"; // NON-NLS;
+  }
+  return html;
 }
 
 /* @Override from table.js */
