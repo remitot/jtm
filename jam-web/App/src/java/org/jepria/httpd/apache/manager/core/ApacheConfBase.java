@@ -1,6 +1,9 @@
 package org.jepria.httpd.apache.manager.core;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -16,6 +19,8 @@ public class ApacheConfBase {
   
   //TODO this value is assumed. But how to determine it? 
   private static final String FILE_READ_ENCODING = "UTF-8";
+//TODO this value is assumed. But how to determine it? 
+  private static final String FILE_WRITE_ENCODING = "UTF-8";
   
   private final Supplier<InputStream> mod_jk_confInput;
   private final Supplier<InputStream> workers_propertiesInput;
@@ -122,5 +127,35 @@ public class ApacheConfBase {
     public String toString() {
       return getContent().toString();
     }
+  }
+  
+  public void saveMod_jk_conf(OutputStream mod_jk_confOutputStream) {
+    try (PrintStream printStream = new PrintStream(mod_jk_confOutputStream, true, FILE_WRITE_ENCODING)) {
+      if (mod_jk_confLines != null) {
+        for (TextLineReference line: mod_jk_confLines) {
+          printStream.println(line);
+        }
+      } else {
+        // if not initialized, do nothing (means that nothing changed)
+      }
+    } catch (UnsupportedEncodingException e) {
+      // impossible
+      throw new RuntimeException(e);
+    } // TODO catch filenotwritable
+  }
+  
+  public void saveWorkers_properties(OutputStream workers_propertiesOutputStream) {
+    try (PrintStream printStream = new PrintStream(workers_propertiesOutputStream, true, FILE_WRITE_ENCODING)) {
+      if (mod_jk_confLines != null) {
+        for (TextLineReference line: workers_propertiesLines) {
+          printStream.println(line);
+        }
+      } else {
+        // if not initialized, do nothing (means that nothing changed)
+      }
+    } catch (UnsupportedEncodingException e) {
+      // impossible
+      throw new RuntimeException(e);
+    } // TODO catch filenotwritable
   }
 }

@@ -22,11 +22,11 @@ package org.jepria.httpd.apache.manager.core.jk;
   String getName();
   void setName(String name);
   
-  String type();
+  String getType();
   
-  String host();
+  String getHost();
   void setHost(String host);
   
-  String port();
+  String getPort();
   void setPort(String port);
 }

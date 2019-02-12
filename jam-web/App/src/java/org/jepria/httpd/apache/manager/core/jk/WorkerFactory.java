@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,68 +28,69 @@ public class WorkerFactory {
 
     @Override
     public String getLocation() {
-      return typeWorkerProperty.line.lineNumber() + "-" + hostWorkerProperty.line.lineNumber() + "-" + portWorkerProperty.line.lineNumber();
+      return typeWorkerProperty.getLine().lineNumber() + "-" 
+          + hostWorkerProperty.getLine().lineNumber() + "-" 
+          + portWorkerProperty.getLine().lineNumber();
     }
     
     @Override
     public boolean isActive() {
-      return !typeWorkerProperty.commented && !hostWorkerProperty.commented && !portWorkerProperty.commented;
+      return !typeWorkerProperty.isCommented() && !hostWorkerProperty.isCommented() && !portWorkerProperty.isCommented();
     }
     
     @Override
     public void setActive(boolean active) {
-      typeWorkerProperty.commented = 
-          hostWorkerProperty.commented = 
-          portWorkerProperty.commented = !active;
+      typeWorkerProperty.setCommented(!active);
+      hostWorkerProperty.setCommented(!active);
+      portWorkerProperty.setCommented(!active);
     }
 
     @Override
     public String getName() {
       // TODO better place to validate all three properties's name equality? what if not equal?
-      if (!typeWorkerProperty.workerName.equals(hostWorkerProperty.workerName) || !typeWorkerProperty.workerName.equals(portWorkerProperty.workerName)) {
+      if (!typeWorkerProperty.getWorkerName().equals(hostWorkerProperty.getWorkerName()) 
+          || !typeWorkerProperty.getWorkerName().equals(portWorkerProperty.getWorkerName())) {
         throw new IllegalStateException("Expected all the same worker names, but actual: [" 
-            + typeWorkerProperty.workerName + "][" + hostWorkerProperty.workerName + "][" + portWorkerProperty.workerName + "]");
+            + typeWorkerProperty.getWorkerName() + "][" + hostWorkerProperty.getWorkerName() + "][" + portWorkerProperty.getWorkerName() + "]");
       }
-      return typeWorkerProperty.workerName;
+      return typeWorkerProperty.getWorkerName();
     }
     
     @Override
-    public void setName(String name) {
-      typeWorkerProperty.workerName = 
-          hostWorkerProperty.workerName = 
-          portWorkerProperty.workerName = name;
+    public void setName(String workerName) {
+      typeWorkerProperty.setWorkerName(workerName); 
+      hostWorkerProperty.setWorkerName(workerName); 
+      portWorkerProperty.setWorkerName(workerName);
     }
 
     @Override
-    public String type() {
-      return typeWorkerProperty.value;
+    public String getType() {
+      return typeWorkerProperty.getValue();
     }
 
     @Override
-    public String host() {
-      return hostWorkerProperty.value;
+    public String getHost() {
+      return hostWorkerProperty.getValue();
     }
     
     @Override
     public void setHost(String host) {
-      hostWorkerProperty.value = host;
+      hostWorkerProperty.setValue(host);
     }
 
     @Override
-    public String port() {
-      return portWorkerProperty.value;
+    public String getPort() {
+      return portWorkerProperty.getValue();
     }
     
     @Override
     public void setPort(String port) {
-      portWorkerProperty.value = port;
+      portWorkerProperty.setValue(port);
     }
   }
   
   
-  public static final Pattern TYPE_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.type\\=([^\\s]+)\\s*");
-  public static final Pattern HOST_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.host\\=([^\\s]+)\\s*");
-  public static final Pattern PORT_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.port\\=([^\\s]+)\\s*"); 
+  public static final Pattern PROPERTY_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.([^=\\s]+)\\s*\\=\\s*([^\\s]+)\\s*");
   
   public static List<Worker> parse(Iterator<TextLineReference> lineIterator) {
     List<Worker> ret = new ArrayList<>();
@@ -104,36 +106,10 @@ public class WorkerFactory {
       while (lineIterator.hasNext()) {
         final TextLineReference line = lineIterator.next();
         
-        final Map<String, WorkerProperty> targetMap;
-        Matcher m;
-        
-        m = TYPE_PATTERN.matcher(line);
-        if (m.matches()) {
-          targetMap = typeProperties;
-        } else {
-          m = HOST_PATTERN.matcher(line);
-          if (m.matches()) {
-            targetMap = hostProperties;
-          } else {
-            m = PORT_PATTERN.matcher(line);
-            if (m.matches()) {
-              targetMap = portProperties;
-            } else {
-              m = null;
-              targetMap = null;
-            }
-          }
-        }
-        
-        if (targetMap != null && m != null && m.matches()) {
-          final boolean commented = m.group(1).length() > 0;
-          final String name = m.group(2);
-          final String value = m.group(3);
-          
-          final WorkerProperty workerp = new WorkerProperty(commented, name, value, line);
-          
-          targetMap.put(name, workerp);
-        }
+        tryParseWorkerProperty(line, 
+            m -> typeProperties.put(m.getWorkerName(), m),
+            m -> hostProperties.put(m.getWorkerName(), m),
+            m -> portProperties.put(m.getWorkerName(), m));
       }
       
       
@@ -157,29 +133,138 @@ public class WorkerFactory {
   }
   
   /**
-   * Class representing a single worker property
+   * Interface representing a single worker property
    */
-  private static class WorkerProperty {
-    
-    public boolean commented;
+  private static interface WorkerProperty {
+    boolean isCommented();
+    void setCommented(boolean commented);
 
-    public String workerName;
+    String getWorkerName();
+    void setWorkerName(String workerName);
     
     /**
      * The property value
      */
-    public String value;
+    String getValue();
+    void setValue(String value);
     
     /**
-     * The line with property itself
+     * Service method.
      */
-    public TextLineReference line;
+    TextLineReference getLine();
+  }
+  
+  private static class WorkerPropertyImpl implements WorkerProperty {
+    private boolean commented;
+    private String workerName;
+    private String workerType;
+    private String value;
+    private final TextLineReference line;
     
-    public WorkerProperty(boolean commented, String workerName, String value, TextLineReference line) {
+    public WorkerPropertyImpl(boolean commented, String workerName, String workerType, String value, TextLineReference line) {
       this.commented = commented;
       this.workerName = workerName;
+      this.workerType = workerType;
       this.value = value;
       this.line = line;
+    }
+
+    @Override
+    public boolean isCommented() {
+      return commented;
+    }
+    
+    @Override
+    public void setCommented(boolean commented) {
+      this.commented = commented;
+      rebuild();
+    }
+
+    @Override
+    public String getWorkerName() {
+      return workerName;
+    }
+
+    @Override
+    public void setWorkerName(String workerName) {
+      this.workerName = workerName;
+      rebuild();
+    }
+
+    @Override
+    public String getValue() {
+      return value;
+    }
+
+    @Override
+    public void setValue(String value) {
+      this.value = value;
+      rebuild();
+    }
+    
+    private void rebuild() {
+      StringBuilder content = new StringBuilder();
+      if (commented) {
+        content.append("# ");
+      }
+      content.append("worker.").append(workerName).append('.').append(workerType).append('=').append(value);
+      
+      line.setContent(content);
+    }
+    
+    @Override
+    public TextLineReference getLine() {
+      return line;
+    }
+  }
+  
+  /**
+   * Does nothing if failed to parse the line into a WorkerProperty, 
+   * otherwise tells one of the consumers to consume the parsed object.
+   * @param line
+   * @param rootMountConsumer
+   * @param asterMountConsumer
+   */
+  private static void tryParseWorkerProperty(TextLineReference line, 
+      Consumer<WorkerProperty> typePropertyConsumer,
+      Consumer<WorkerProperty> hostPropertyConsumer,
+      Consumer<WorkerProperty> portPropertyConsumer) {
+    
+    Matcher m = PROPERTY_PATTERN.matcher(line);
+    if (m.matches()) {
+      final boolean commented = m.group(1).length() > 0;
+      final String workerName = m.group(2);
+      final String workerType = m.group(3);
+      final String value = m.group(4);
+      
+      final WorkerProperty workerProperty;
+      final Consumer<WorkerProperty> targetConsumer;
+      
+      switch (workerType) {
+      case "type": {
+        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line);
+        targetConsumer = typePropertyConsumer;
+        break;
+      }
+      case "host": {
+        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line);
+        targetConsumer = hostPropertyConsumer;
+        break;
+      }
+      case "port": {
+        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line);
+        targetConsumer = portPropertyConsumer;
+        break;
+      }
+      default: {
+        workerProperty = null;
+        targetConsumer = null;
+      }
+      }
+      
+      if (workerProperty != null && targetConsumer != null) {
+        targetConsumer.accept(workerProperty);
+      }
     }
   }
 }

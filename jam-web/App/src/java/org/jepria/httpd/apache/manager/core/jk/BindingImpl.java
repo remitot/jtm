@@ -44,7 +44,7 @@ package org.jepria.httpd.apache.manager.core.jk;
   
   @Override
   public String getWorkerHost() {
-    return worker.host();
+    return worker.getHost();
   }
   
   @Override
@@ -55,17 +55,17 @@ package org.jepria.httpd.apache.manager.core.jk;
   @Override
   public int getWorkerAjpPort() {
     // TODO how to guarantee the ajp13 type here?
-    if (!"ajp13".equals(worker.type())) {
-      throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.type());
+    if (!"ajp13".equals(worker.getType())) {
+      throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.getType());
     }
-    return Integer.parseInt(worker.port());//TODO is this the best place to parse? what if exception?; 
+    return Integer.parseInt(worker.getPort());//TODO is this the best place to parse? what if exception?; 
   }
   
   @Override
   public void setWorkerAjpPort(int workerAjpPort) {
     // TODO how to guarantee the ajp13 type here?
-    if (!"ajp13".equals(worker.type())) {
-      throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.type());
+    if (!"ajp13".equals(worker.getType())) {
+      throw new IllegalStateException("Expected ajp13 worker type, but actual: " + worker.getType());
     }
     worker.setPort(Integer.toString(workerAjpPort));
   }
