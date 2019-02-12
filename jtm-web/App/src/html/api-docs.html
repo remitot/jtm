@@ -605,7 +605,7 @@
         </tr>
         <tr>
           <td>Request params</td>
-          <td><code>sort=<i>column1,column2,... (optional)</i></code></td>
+          <td><code>sort=<i>column1,column2,... (optional)</i></code>, <code>tzoffset=<i>client's local time zone offset in minutes (optional)</i></code></td>
         </tr>
         <tr>
           <td>Response (application/json UTF-8)</td>
@@ -645,17 +645,19 @@
 {
   "_list": [
     {
-      "name": "localhost_access_log.2001-01-01.txt",
-      "lastModifiedDate": "2000-01-01",
-      "lastModifiedTime": "12:00:00",
-      "lastModifiedTimezone": "+0300",
+      "name": "localhost_access_log.2000-01-01.txt",
+      "lastModified": 946717200000,
+      "lastModifiedDateLocal": "2000-01-01",
+      "lastModifiedTimeLocal": "12:00:00",
+      "lastModifiedAgo": "31709160",
       "size": 587
     },
     {
       "name": "catalina.out",
-      "lastModifiedDate": "2001-01-02",
-      "lastModifiedTime": "12:00:00",
-      "lastModifiedTimezone": "+0300",
+      "lastModified": 978426000000,
+      "lastModifiedDateLocal": "2001-01-02",
+      "lastModifiedTimeLocal": "12:00:00",
+      "lastModifiedAgo": "3600",
       "size": 4197
     }
   ]
