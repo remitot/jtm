@@ -372,14 +372,24 @@ public class JkApiServlet extends HttpServlet {
       responseJsonMap.put("modStatusList", modStatusList);
       
       
+      final List<JkDto> bindingDtos;
+      
       if (confModified) {
         apacheConf.save(environment.getMod_jk_confOutputStream(), 
             environment.getWorkers_propertiesOutputStream());
+        
+        final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(
+            () -> environment.getMod_jk_confInputStream(), 
+            () -> environment.getWorkers_propertiesInputStream());
+        
+        bindingDtos = getBindings(apacheConfAfterSave);
+        
+      } else {
+        
+        bindingDtos = getBindings(apacheConf);
       }
       
       
-      // no conf save, just write response
-      List<JkDto> bindingDtos = getBindings(apacheConf);
       responseJsonMap.put("_list", bindingDtos);
       
       try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
@@ -673,11 +683,16 @@ public class JkApiServlet extends HttpServlet {
     dto.setActive(binding.isActive());
     dto.setLocation(location);
     dto.setApplication(binding.getApplication());
-    String host = binding.getWorkerHost(); 
+    String host = binding.getWorkerHost();
     dto.setHost(host);
-    String ajpPort = Integer.toString(binding.getWorkerAjpPort());
-    dto.setAjpPort(ajpPort);
-    dto.setGetHttpPortLink("api/jk/get-http-port?host=" + host + "&ajp-port=" + ajpPort);
+    Integer ajpPort = binding.getWorkerAjpPort();
+    if (ajpPort != null) {
+      final String ajpPortStr = Integer.toString(binding.getWorkerAjpPort());
+      dto.setAjpPort(ajpPortStr);
+    }
+    if (host != null && ajpPort != null) {
+      dto.setGetHttpPortLink("api/jk/get-http-port?host=" + host + "&ajp-port=" + ajpPort);
+    }
     return dto;
   }
   

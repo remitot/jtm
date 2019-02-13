@@ -134,15 +134,15 @@ function setGetHttpPortButtonState(button, state) {
   if (state == 0) {
     button.disabled = false;
     button.innerHTML = "Запросить"; // NON-NLS
-    button.title = "Сделать запрос HTTP порта"; 
+    button.title = "Сделать запрос: к какому инстансу привязано приложение"; 
   } else if (state == 1) {
     button.disabled = true;
     button.innerHTML = "Загрузка..."; // NON-NLS
-    button.title = "Запрашивается HTTP порт"; // NON-NLS
+    button.title = "Запрашивается инстанс"; // NON-NLS
   } else {
     button.disabled = true;
     button.innerHTML = "Ошибка"; // NON-NLS
-    button.title = "При запросе HTTP порта возникла ошибка"; // NON-NLS
+    button.title = "При запросе инстанса возникла ошибка"; // NON-NLS
   }
 }
 

@@ -10,6 +10,7 @@ import java.util.Scanner;
 import java.util.function.Supplier;
 
 import org.jepria.httpd.apache.manager.core.jk.TextLineReference;
+import org.jepria.httpd.apache.manager.core.jk.TextLineReference.Impl.OnDeleteHandler;
 
 /**
  * Apache HTTPD configuration based on the following configuration files:
@@ -58,10 +59,18 @@ public class ApacheConfBase {
   private void initMod_jk_confLines() {
     try (Scanner sc = new Scanner(mod_jk_confInput.get(), FILE_READ_ENCODING)) {
       mod_jk_confLines = new ArrayList<>();
+      
+      final OnDeleteHandler onDeleteHandler = new OnDeleteHandler() {
+        @Override
+        public void onDelete(TextLineReference line) {
+          mod_jk_confLines.remove(line);
+        }
+      };
+      
       int lineNumber = 0;
       while (sc.hasNextLine()) {
         lineNumber++;
-        mod_jk_confLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
+        mod_jk_confLines.add(new TextLineReference.Impl(lineNumber, sc.nextLine(), onDeleteHandler));
       }
     }//TODO catch filenotfound, file not readable
   }
@@ -88,53 +97,20 @@ public class ApacheConfBase {
   private void initWorkers_propertiesLines() {
     try (Scanner sc = new Scanner(workers_propertiesInput.get(), FILE_READ_ENCODING)) {
       workers_propertiesLines = new ArrayList<>();
+      
+      final OnDeleteHandler onDeleteHandler = new OnDeleteHandler() {
+        @Override
+        public void onDelete(TextLineReference line) {
+          workers_propertiesLines.remove(line);
+        }
+      };
+      
       int lineNumber = 0;
       while (sc.hasNextLine()) {
         lineNumber++;
-        workers_propertiesLines.add(new TextLineReferenceImpl(lineNumber, sc.nextLine()));
+        workers_propertiesLines.add(new TextLineReference.Impl(lineNumber, sc.nextLine(), onDeleteHandler));
       }
     }//TODO catch filenotfound, file not readable
-  }
-  
-  
-  
-  
-  protected static class TextLineReferenceImpl implements TextLineReference {
-    /**
-     * Begins from 1
-     */
-    private final int lineNumber;
-    private CharSequence content;
-    
-    /**
-     * 
-     * @param lineNumber
-     * @param content not null
-     */
-    public TextLineReferenceImpl(int lineNumber, String content) {
-      this.lineNumber = lineNumber;
-      this.content = content;
-    }
-    
-    @Override
-    public CharSequence getContent() {
-      return content;
-    }
-    
-    @Override
-    public int lineNumber() {
-      return lineNumber;
-    }
-    
-    @Override
-    public void setContent(CharSequence content) {
-      this.content = content;
-    }
-    
-    @Override
-    public String toString() {
-      return getContent().toString();
-    }
   }
   
   public void saveMod_jk_conf(OutputStream mod_jk_confOutputStream) {

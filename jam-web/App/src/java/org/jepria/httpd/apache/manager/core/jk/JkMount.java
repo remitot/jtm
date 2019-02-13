@@ -28,4 +28,6 @@ package org.jepria.httpd.apache.manager.core.jk;
    */
   String workerName();
   void setWorkerName(String workerName);
+  
+  void delete();
 }

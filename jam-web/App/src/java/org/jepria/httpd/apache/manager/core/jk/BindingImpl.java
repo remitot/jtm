@@ -2,11 +2,11 @@ package org.jepria.httpd.apache.manager.core.jk;
 
 import java.util.Optional;
 
-/*package*/class BindingImpl implements Binding {
+/*package*/class BindingImpl extends BaseBinding {
   
   private final JkMount jkMount;
   /**
-   * Not final, may be rebound with {@link #rebind(String, int)}
+   * Not final, may be rebound with {@link #rebind(String, int)} or {@code null} in a newly created Binding
    */
   private Worker worker;
   
@@ -20,13 +20,12 @@ import java.util.Optional;
 
   @Override
   public boolean isActive() {
-    return jkMount.isActive() && worker.isActive();
+    return jkMount.isActive();
   }
   
   @Override
   public void setActive(boolean active) {
     jkMount.setActive(active);
-    worker.setActive(active);
   }
   
   @Override
@@ -41,20 +40,26 @@ import java.util.Optional;
   
   @Override
   public String getWorkerHost() {
-    return worker.getHost();
+    if (worker != null) {
+      return worker.getHost();
+    } else {
+      return null;
+    }
   }
   
   @Override
-  public int getWorkerAjpPort() {
-    // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
-    return worker.getPort(); 
+  public Integer getWorkerAjpPort() {
+    if (worker != null) {
+      // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
+      return worker.getPort();
+    } else {
+      return null;
+    }
   }
   
   @Override
   public void rebind(String host, int ajpPort) {
     final String ajpPortStr = Integer.toString(ajpPort);
-    
-    final boolean wasActive = isActive();
     
     Worker existingWorker = findWorker(host, ajpPort);
     if (existingWorker != null) {
@@ -62,7 +67,6 @@ import java.util.Optional;
     } else {
       final String workerName = getNewWorkerName(host, ajpPortStr);
       Worker newWorker = apacheConf.createWorker(workerName);
-      newWorker.setActive(wasActive);
       newWorker.setHost(host);
       newWorker.setPort(ajpPort);
       worker = newWorker;
@@ -91,5 +95,12 @@ import java.util.Optional;
     } else {
       return null;
     }
+  }
+  
+  @Override
+  void delete() {
+    jkMount.delete();
+    
+    // TODO cleanup workers: check whether or not any other jkMount is bound to the same worker, and if none, delete also the worker 
   }
 }

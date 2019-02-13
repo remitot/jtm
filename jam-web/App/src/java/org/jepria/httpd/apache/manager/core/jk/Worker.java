@@ -13,9 +13,6 @@ package org.jepria.httpd.apache.manager.core.jk;
    */
   String getLocation();
   
-  boolean isActive();
-  void setActive(boolean active);
-  
   /**
    * The common worker name for all three properties
    */
@@ -26,6 +23,6 @@ package org.jepria.httpd.apache.manager.core.jk;
   String getHost();
   void setHost(String host);
   
-  int getPort();
-  void setPort(int port);
+  Integer getPort();
+  void setPort(Integer port);
 }

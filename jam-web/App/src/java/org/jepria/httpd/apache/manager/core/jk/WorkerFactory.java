@@ -35,18 +35,6 @@ public class WorkerFactory {
     }
     
     @Override
-    public boolean isActive() {
-      return !typeWorkerProperty.isCommented() && !hostWorkerProperty.isCommented() && !portWorkerProperty.isCommented();
-    }
-    
-    @Override
-    public void setActive(boolean active) {
-      typeWorkerProperty.setCommented(!active);
-      hostWorkerProperty.setCommented(!active);
-      portWorkerProperty.setCommented(!active);
-    }
-
-    @Override
     public String getName() {
       // TODO better place to validate all three properties's name equality? what if not equal?
       if (!typeWorkerProperty.getWorkerName().equals(hostWorkerProperty.getWorkerName()) 
@@ -73,18 +61,23 @@ public class WorkerFactory {
     }
 
     @Override
-    public int getPort() {
-      return Integer.parseInt(portWorkerProperty.getValue());
+    public Integer getPort() {
+      String portStr = portWorkerProperty.getValue();
+      if (portStr != null) {
+        return Integer.parseInt(portStr);
+      } else {
+        return null;
+      }
     }
     
     @Override
-    public void setPort(int port) {
+    public void setPort(Integer port) {
       portWorkerProperty.setValue(Integer.toString(port));
     }
   }
   
   
-  public static final Pattern PROPERTY_PATTERN = Pattern.compile("\\s*(#*)\\s*worker\\.([^\\.]+)\\.([^=\\s]+)\\s*\\=\\s*([^\\s]+)\\s*");
+  public static final Pattern PROPERTY_PATTERN = Pattern.compile("\\s*worker\\.([^\\.]+)\\.([^=\\s]+)\\s*\\=\\s*([^\\s]+)\\s*");
   
   public static final Pattern WORKER_LIST_PATTERN = Pattern.compile("\\s*worker.list\\s*=(.+)");
   
@@ -223,9 +216,6 @@ public class WorkerFactory {
    * Interface representing a single worker property
    */
   private static interface WorkerProperty {
-    boolean isCommented();
-    void setCommented(boolean commented);
-
     String getWorkerName();
     
     /**
@@ -241,7 +231,6 @@ public class WorkerFactory {
   }
   
   private static class WorkerPropertyImpl implements WorkerProperty {
-    private boolean commented;
     /**
      * final: must not be changed normally
      */
@@ -250,8 +239,7 @@ public class WorkerFactory {
     private String value;
     private final TextLineReference line;
     
-    public WorkerPropertyImpl(boolean commented, String workerName, String workerType, String value, TextLineReference line, boolean rebuild) {
-      this.commented = commented;
+    public WorkerPropertyImpl(String workerName, String workerType, String value, TextLineReference line, boolean rebuild) {
       this.workerName = workerName;
       this.workerType = workerType;
       this.value = value;
@@ -260,17 +248,6 @@ public class WorkerFactory {
       if (rebuild) {
         rebuild();
       }
-    }
-
-    @Override
-    public boolean isCommented() {
-      return commented;
-    }
-    
-    @Override
-    public void setCommented(boolean commented) {
-      this.commented = commented;
-      rebuild();
     }
 
     @Override
@@ -291,9 +268,6 @@ public class WorkerFactory {
     
     private void rebuild() {
       StringBuilder content = new StringBuilder();
-      if (commented) {
-        content.append("# ");
-      }
       content.append("worker.");
       if (workerName != null) {
         content.append(workerName);
@@ -335,22 +309,21 @@ public class WorkerFactory {
     
     Matcher m = PROPERTY_PATTERN.matcher(line);
     if (m.matches()) {
-      final boolean commented = m.group(1).length() > 0;
-      final String workerName = m.group(2);
-      final String workerType = m.group(3);
-      final String value = m.group(4);
+      final String workerName = m.group(1);
+      final String workerType = m.group(2);
+      final String value = m.group(3);
       
       final WorkerProperty workerProperty;
       final Consumer<WorkerProperty> targetConsumer;
       
       if ("type".equals(workerType) && AJP_13_TYPE.equals(value)) {
-        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line, false);
+        workerProperty = new WorkerPropertyImpl(workerName, workerType, value, line, false);
         targetConsumer = typePropertyConsumer;
       } else if ("host".equals(workerType)) {
-        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line, false);
+        workerProperty = new WorkerPropertyImpl(workerName, workerType, value, line, false);
         targetConsumer = hostPropertyConsumer;
       } else if ("port".equals(workerType)) {
-        workerProperty = new WorkerPropertyImpl(commented, workerName, workerType, value, line, false);
+        workerProperty = new WorkerPropertyImpl(workerName, workerType, value, line, false);
         targetConsumer = portPropertyConsumer;
       } else {
         workerProperty = null;
@@ -364,7 +337,7 @@ public class WorkerFactory {
   }
   
   /**
-   * Creates a new (empty) worker with the name specified
+   * Creates a new (empty) non-commented worker with the name specified
    * @param name
    * @param typeWorkerPropertyLine will be reset  
    * @param hostWorkerPropertyLine will be reset
@@ -376,9 +349,9 @@ public class WorkerFactory {
       TextLineReference hostWorkerPropertyLine,
       TextLineReference portWorkerPropertyLine) {
     
-    WorkerProperty typeWorkerProperty = new WorkerPropertyImpl(false, name, "type", AJP_13_TYPE, typeWorkerPropertyLine, true);
-    WorkerProperty hostWorkerProperty = new WorkerPropertyImpl(false, name, "host", null, hostWorkerPropertyLine, true);
-    WorkerProperty portWorkerProperty = new WorkerPropertyImpl(false, name, "port", null, portWorkerPropertyLine, true); 
+    WorkerProperty typeWorkerProperty = new WorkerPropertyImpl(name, "type", AJP_13_TYPE, typeWorkerPropertyLine, true);
+    WorkerProperty hostWorkerProperty = new WorkerPropertyImpl(name, "host", null, hostWorkerPropertyLine, true);
+    WorkerProperty portWorkerProperty = new WorkerPropertyImpl(name, "port", null, portWorkerPropertyLine, true); 
     
     return new WorkerImpl(typeWorkerProperty, hostWorkerProperty, portWorkerProperty);
   }

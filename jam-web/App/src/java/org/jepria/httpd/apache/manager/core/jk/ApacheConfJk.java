@@ -19,19 +19,27 @@ public class ApacheConfJk extends ApacheConfBase {
 
 
   /**
-   * Lazily initialized map of bindings
+   * Lazily initialized map of BaseBindings
    */
-  private Map<String, Binding> bindings = null;
+  private Map<String, BaseBinding> baseBindings = null;
+  
+  /**
+   * @return unmodifiable Map&lt;Location, BaseBinding&gt;
+   */
+  protected Map<String, BaseBinding> getBaseBindings() {
+    if (baseBindings == null) {
+      initBaseBindings();
+    }
+    
+    return baseBindings;
+  }
   
   /**
    * @return unmodifiable Map&lt;Location, Binding&gt;
    */
+  @SuppressWarnings("unchecked")
   public Map<String, Binding> getBindings() {
-    if (bindings == null) {
-      initBindings();
-    }
-    
-    return bindings;
+    return (Map<String, Binding>)(Map<String, ?>)getBaseBindings();
   }
   
   
@@ -43,22 +51,22 @@ public class ApacheConfJk extends ApacheConfBase {
   /**
    * @return unmodifiable List of Workers
    */
-  protected List<Worker> getWorkers() {
+  public List<Worker> getWorkers() {
     if (workers == null) {
       initWorkers();
     }
     
-    return workers;
+    return Collections.unmodifiableList(workers);
   }
   
   /**
-   * Lazily initialize (or re-initialize) {@link #bindings} map
+   * Lazily initialize (or re-initialize) {@link #baseBindings} map
    */
-  private void initBindings() {
+  private void initBaseBindings() {
     
     List<JkMount> jkMounts = JkMountFactory.parse(getMod_jk_confLines().iterator());
 
-    Map<String, Binding> bindings0 = new HashMap<>();
+    Map<String, BaseBinding> bindings = new HashMap<>();
     for (JkMount jkMount: jkMounts) {
       String workerName = jkMount.workerName();
       
@@ -73,44 +81,61 @@ public class ApacheConfJk extends ApacheConfBase {
       if (worker != null) {
         String location = "mod_jk.conf-" + jkMount.getLocation() + "__workers.properties-" + worker.getLocation();
         
-        Binding binding = new BindingImpl(jkMount, worker, this);
+        BaseBinding binding = new BindingImpl(jkMount, worker, this);
         
-        bindings0.put(location, binding);
+        bindings.put(location, binding);
       }
     }
     
     
-    this.bindings = Collections.unmodifiableMap(bindings0);
+    this.baseBindings = Collections.unmodifiableMap(bindings);
   }
   
   /**
    * Lazily initialize (or re-initialize) {@link #workers} list
    */
   private void initWorkers() {
-    this.workers = Collections.unmodifiableList(WorkerFactory.parse(
-        getWorkers_propertiesLines().iterator()));
+    this.workers = WorkerFactory.parse(getWorkers_propertiesLines().iterator());
   }
   
+  /**
+   * Delete Binding by location
+   * @param location
+   */
   public void delete(String location) {
-    // TODO
+    BaseBinding binding = getBaseBindings().get(location);
+    
+    if (binding == null) {
+      throw new IllegalArgumentException/*LocationNotExistException /*TODO*/(location);
+    }
+    
+    binding.delete();
   }
   
+  /**
+   * Create new (empty) Binding
+   * @return
+   */
   public Binding create() {
-    return null;
- // TODO
+    
+    TextLineReference.addNewLine(getMod_jk_confLines());// empty line
+    TextLineReference rootMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
+    TextLineReference asterMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
+    
+    JkMount jkMount = JkMountFactory.create(rootMountLine, asterMountLine);
+    
+    return new BindingImpl(jkMount, null, this);// TODO it is bad to pass null as Worker because the 'Binding' entity literally MUST include Worker (otherwise 'binding' to what?)
   }
   
+  /**
+   * Creates a new active worker.
+   */
   protected Worker createWorker(String name) {
     
-    int lineNumber = getWorkers_propertiesLines().size() + 1;
-    
-    getWorkers_propertiesLines().add(new TextLineReferenceImpl(lineNumber++, ""));// empty line
-    TextLineReference typeWorkerPropertyLine = new TextLineReferenceImpl(lineNumber++, "");
-    getWorkers_propertiesLines().add(typeWorkerPropertyLine);
-    TextLineReference hostWorkerPropertyLine = new TextLineReferenceImpl(lineNumber++, "");
-    getWorkers_propertiesLines().add(hostWorkerPropertyLine);
-    TextLineReference portWorkerPropertyLine = new TextLineReferenceImpl(lineNumber++, "");
-    getWorkers_propertiesLines().add(portWorkerPropertyLine);
+    TextLineReference.addNewLine(getWorkers_propertiesLines());// empty line
+    TextLineReference typeWorkerPropertyLine = TextLineReference.addNewLine(getWorkers_propertiesLines());
+    TextLineReference hostWorkerPropertyLine = TextLineReference.addNewLine(getWorkers_propertiesLines());
+    TextLineReference portWorkerPropertyLine = TextLineReference.addNewLine(getWorkers_propertiesLines());
     
     // add the new worker name into the worker.list
     List<String> workerNames = WorkerFactory.parseWorkerNames(getWorkers_propertiesLines().iterator());
@@ -118,7 +143,20 @@ public class ApacheConfJk extends ApacheConfBase {
       workerNames.add(name);
     }
     
-    return WorkerFactory.create(name, typeWorkerPropertyLine, hostWorkerPropertyLine, portWorkerPropertyLine);
+    Worker worker = WorkerFactory.create(name, typeWorkerPropertyLine, hostWorkerPropertyLine, portWorkerPropertyLine);
+
+    
+    // add the new worker to the list
+    
+    // TODO unchecked add! 
+    // Future getWorkers() external access may rely on the new worker presence,
+    // but the new worker is NOT saved to the target file yet (added to the list only instead),
+    // and if the save fails, this may lead to inconsistency 
+    // (because the new 'present' worker will be actually absent)
+    this.workers.add(worker); 
+    
+    
+    return worker;
   }
   
   public void save(OutputStream mod_jk_confOutputStream,

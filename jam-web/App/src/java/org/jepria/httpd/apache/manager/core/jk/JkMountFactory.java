@@ -15,7 +15,7 @@ public class JkMountFactory {
 
   private static class JkMountImpl implements JkMount {
     private final JkMountDirective rootMountDirective;
-    private final  JkMountDirective asterMountDirective;
+    private final JkMountDirective asterMountDirective;
     
     public JkMountImpl(JkMountDirective rootMountDirective, JkMountDirective asterMountDirective) {
       this.rootMountDirective = rootMountDirective;
@@ -68,6 +68,12 @@ public class JkMountFactory {
     public void setWorkerName(String workerName) {
       rootMountDirective.setWorkerName(workerName);
       asterMountDirective.setWorkerName(workerName);
+    }
+    
+    @Override
+    public void delete() {
+      rootMountDirective.delete();
+      asterMountDirective.delete();
     }
     
   }
@@ -132,6 +138,8 @@ public class JkMountFactory {
     
     String getApplication();
     void setApplication(String application);
+    
+    void delete();
     
     /**
      * Service method.
@@ -215,6 +223,11 @@ public class JkMountFactory {
     public TextLineReference getLine() {
       return line;
     }
+    
+    @Override
+    public void delete() {
+      line.delete();
+    }
   }
   
   /**
@@ -254,5 +267,21 @@ public class JkMountFactory {
         }
       }
     }
+  }
+  
+  /**
+   * Creates a new (empty) non-commented JkMount with the name specified
+   * @param name
+   * @param rootMountLine will be reset
+   * @param asterMountLine will be reset
+   * @return
+   */
+  public static JkMount create(TextLineReference rootMountLine,
+      TextLineReference asterMountLine) {
+    
+    JkMountDirective rootMountDirective = new JkMountDirectiveImpl(false, null, false, null, rootMountLine, true);
+    JkMountDirective asterMountDirective = new JkMountDirectiveImpl(false, null, true, null, asterMountLine, true);
+    
+    return new JkMountImpl(rootMountDirective, asterMountDirective);
   }
 }
