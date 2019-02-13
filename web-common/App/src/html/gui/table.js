@@ -757,7 +757,6 @@ function onAfterFieldValidated(field, fieldValid) {
 function onAfterFieldsValidated(fieldsValid) {
   if (!fieldsValid) {
     statusError("исправьте некорректные значения полей (выделены красным)"); // NON-NLS
-    window.scrollTo(0, 0);
   }
 }
 

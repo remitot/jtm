@@ -38,24 +38,32 @@ function statusClear() {
   statusBar = document.getElementById("statusBar");
   statusBar.className = "statusBar statusBar-none";
   statusBar.innerHTML = "";
+  scrollToTop(); // show status in the viewport
 }
 
 function statusInfo(message) {
   statusBar = document.getElementById("statusBar"); 
   statusBar.className = "statusBar statusBar-info";
   statusBar.innerHTML = message;
+  scrollToTop(); // show status in the viewport
 }
 
 function statusError(message) {
   statusBar = document.getElementById("statusBar"); 
   statusBar.className = "statusBar statusBar-error";
   statusBar.innerHTML = message;
+  scrollToTop(); // show status in the viewport
 }
 
 function statusSuccess(message) {
   statusBar = document.getElementById("statusBar"); 
   statusBar.className = "statusBar statusBar-success";
   statusBar.innerHTML = message;
+  scrollToTop(); // show status in the viewport
+}
+
+function scrollToTop() {
+  window.scrollTo(0, 0);
 }
 
 
