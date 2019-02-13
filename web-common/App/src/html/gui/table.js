@@ -252,9 +252,15 @@ function onCheckboxInput(input) {
   if (input.tagName.toLowerCase() == "input") {
     if (input.checked && input.getAttribute("value-original") == "true" 
         || !input.checked && input.getAttribute("value-original") == "false") {
+      // affect both input (to get the modified fields selected by input.modified) 
+      // and label (to graphically display the field modification state)
       input.parentElement.classList.remove("modified");
+      input.classList.remove("modified");
     } else {
+      // affect both input (to get the modified fields selected by input.modified) 
+      // and label (to graphically display the field modification state)
       input.parentElement.classList.add("modified");
+      input.classList.add("modified");
     }
     
     if (!input.checked) {
@@ -711,14 +717,16 @@ function getRowsCreated() {
 }
 
 /**
- * Prepare and validate row data
+ * Prepare and validate row data (modified fields only)
+ * @param row to collect data from
  * @return {rowValid: boolean, data: {}}
  */
 function collectRowData(row) {
   var rowValid = true;
   var data = {};
   
-  var fields = row.querySelectorAll(".cell-field input");
+  var fields = row.querySelectorAll(".cell-field input.modified");
+  
   for (var j = 0; j < fields.length; j++) {
     var field = fields[j];
     var fieldValid = true;
