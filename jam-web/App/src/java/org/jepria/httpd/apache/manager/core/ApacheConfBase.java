@@ -142,4 +142,8 @@ public class ApacheConfBase {
       throw new RuntimeException(e);
     } // TODO catch filenotwritable
   }
+  
+  public void restartApache() {
+    // TODO
+  }
 }
