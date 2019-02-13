@@ -562,7 +562,7 @@ function onSaveButtonClick() {
             modRequestId: ++id,
             modRequestBody: {
               action: "create", 
-              data: rowsCreated[i]
+              data: rowsCreated[i].itemData
             }
           }
       );
@@ -701,7 +701,7 @@ function getRowsCreated() {
     var row = rows[i];
     if (row.classList.contains("created") && !row.classList.contains("deleted")) {
       var rowData = collectRowData(row);
-      data.push(rowData);
+      data.push({itemData: rowData.data});
       if (!rowData.rowValid) {
         rowsValid = false;
       }
