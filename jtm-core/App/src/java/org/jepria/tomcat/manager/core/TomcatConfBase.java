@@ -88,12 +88,6 @@ public class TomcatConfBase {
     }//TODO catch filenotfound, file not readable
   }
   
-  
-      
-  protected void handleThrowable(Throwable e) {
-    e.printStackTrace();
-  }
-  
   protected Transformer createTransformer() throws TransformerConfigurationException {
     TransformerFactory tf = TransformerFactory.newInstance();
     Transformer transformer = tf.newTransformer();

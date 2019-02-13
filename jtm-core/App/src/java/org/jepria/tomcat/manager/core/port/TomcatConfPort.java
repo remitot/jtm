@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.jepria.tomcat.manager.core.TomcatConfBase;
@@ -28,21 +29,20 @@ public class TomcatConfPort extends TomcatConfBase {
    * @return
    */
   public String getConnectorPort(String protocol) {
+    Node connector;
     try {
       final XPathExpression connectorExpr = XPathFactory.newInstance().newXPath().compile(
           "Server/Service/Connector[@protocol='" + protocol + "']");
-      Node connector = (Node)connectorExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
-      
-      if (connector == null) {
-        return null;
-      }
-      
-      String port = connector.getAttributes().getNamedItem("port").getNodeValue();
-      return port;
-      
-    } catch (Throwable e) {
-      handleThrowable(e);
+      connector = (Node)connectorExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
+    } catch (XPathExpressionException e) {
+      throw new RuntimeException(e);
+    }
+    
+    if (connector == null) {
       return null;
     }
+    
+    String port = connector.getAttributes().getNamedItem("port").getNodeValue();
+    return port;
   }
 }

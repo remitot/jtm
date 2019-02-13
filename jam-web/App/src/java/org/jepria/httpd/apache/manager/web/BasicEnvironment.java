@@ -17,19 +17,23 @@ public class BasicEnvironment implements Environment {
   private final File mod_jk_conf;
   private final File workers_properties;
   
+  public static final String CONF_DIRECTORY_CONTEXT_PARAM_NAME = "org.jepria.httpd.apache.manager.web.confDirectory";
+  
   /**
    * @param request
    * @return Apache HTTPD 'conf' directory
    * @throws ConfigurationException 
    */
   protected File getConfDirectory(HttpServletRequest request) {
-    final String confDirectory = request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.confDirectory");
+    final String confDirectory = request.getServletContext().getInitParameter(CONF_DIRECTORY_CONTEXT_PARAM_NAME);
     if (confDirectory == null) {
-      throw new RuntimeException("Misconfiguration exception: org.jepria.httpd.apache.manager.web.confDirectory context-param not specified in web.xml");
+      throw new RuntimeException("Misconfiguration exception: "
+          + CONF_DIRECTORY_CONTEXT_PARAM_NAME + " context-param not specified in web.xml");
     }
     final File confDirectoryFile = new File(confDirectory);
     if (!confDirectoryFile.isDirectory() || !confDirectoryFile.canRead()) {
-      throw new RuntimeException("Misconfiguration exception: org.jepria.httpd.apache.manager.web.confDirectory context-param does not represent an existing readable directory");
+      throw new RuntimeException("Misconfiguration exception: "
+          + CONF_DIRECTORY_CONTEXT_PARAM_NAME + " context-param value does not represent an existing readable directory");
     }
     return new File(confDirectory);
   }
@@ -46,7 +50,7 @@ public class BasicEnvironment implements Environment {
     try {
       return new FileOutputStream(mod_jk_conf);
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+      throw misconfiguration("");
     }
   }
   
@@ -75,5 +79,10 @@ public class BasicEnvironment implements Environment {
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }
+  }
+  
+  protected static RuntimeException misconfiguration(String message) {
+    throw new RuntimeException("Misconfiguration exception" 
+        + (message == null ? "" : (": " + message)));
   }
 }

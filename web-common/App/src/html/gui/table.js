@@ -77,7 +77,7 @@ function uiOnTableReloadError(status) {
     statusError(message);
     
   } else {
-    statusError("Сетевая ошибка " + this.status); // NON-NLS
+    statusError("Ошибка " + status); // NON-NLS
   }
 }
 

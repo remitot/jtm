@@ -5,7 +5,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -168,6 +170,8 @@ public class JkApiServlet extends HttpServlet {
   
   private static class Response {
     public static final String SM_UNKNOWN_HOST = "UNKNOWN_HOST";
+    public static final String SM_CONNECT_EXCEPTION = "CONNECT_EXCEPTION";
+    public static final String SM_SOCKET_EXCEPTION = "SOCKET_EXCEPTION";
     
     public final int status;
     public final String statusMessage;
@@ -463,7 +467,7 @@ public class JkApiServlet extends HttpServlet {
       
       final String host = parseResult.host;
       final int httpPortNumber = parseResult.port;
-      final String uri = "/manager-ext/api/port/ajp";// TODO extract
+      final String uri = "/manager-ext/api/port/ajp";// TODO parametrize 'manager-ext'
       
       
       final int ajpPortNumber;
@@ -473,17 +477,36 @@ public class JkApiServlet extends HttpServlet {
         if (response.status == 200) {
           ajpPortNumber = Integer.parseInt(response.responseBody);
           
-        } else if (response.status == 400 && Response.SM_UNKNOWN_HOST.equals(response.statusMessage)) {
-          Map<String, String> invalidClientData = new HashMap<>();
-          invalidClientData.put("instance", "UNKNOWN_HOST");
-          return ModStatus.errInvalidFieldData(invalidClientData);
+        } else if (response.status == 400 
+            && Response.SM_UNKNOWN_HOST.equals(response.statusMessage)) {
+          Map<String, String> invalidFieldData = new HashMap<>();
+          invalidFieldData.put("instance", "UNKNOWN_HOST");
+          return ModStatus.errInvalidFieldData(invalidFieldData);
+          
+        } else if (response.status == 400 
+            && Response.SM_CONNECT_EXCEPTION.equals(response.statusMessage)) {
+          Map<String, String> invalidFieldData = new HashMap<>();
+          invalidFieldData.put("instance", "CONNECT_EXCEPTION");
+          return ModStatus.errInvalidFieldData(invalidFieldData);
+          
+        } else if (response.status == 400 
+            && Response.SM_SOCKET_EXCEPTION.equals(response.statusMessage)) {
+          Map<String, String> invalidFieldData = new HashMap<>();
+          invalidFieldData.put("instance", "SOCKET_EXCEPTION");
+          return ModStatus.errInvalidFieldData(invalidFieldData);
+          
+        } else if (response.status == 404) {
+          Map<String, String> invalidFieldData = new HashMap<>();
+          String link = "http://" + host + ":" + httpPortNumber + uri;
+          invalidFieldData.put("instance", "JTM_NOT_FOUND:" + link);
+          return ModStatus.errInvalidFieldData(invalidFieldData);
           
         } else {
-          // TODO log this way?
-          System.err.println("Failed to make subrequest to [" + host + ":" + httpPortNumber + uri + "]: status " + response.status 
-              + (response.statusMessage == null ? "" : (" " + response.statusMessage)));
+          Map<String, String> invalidFieldData = new HashMap<>();
+          String link = "http://" + host + ":" + httpPortNumber + uri;
+          invalidFieldData.put("instance", "JTM_BROKEN:" + link);
+          return ModStatus.errInvalidFieldData(invalidFieldData);
           
-          return ModStatus.errServerException();
         }
         
       } catch (SubrequestException e) {
@@ -527,27 +550,35 @@ public class JkApiServlet extends HttpServlet {
       HttpURLConnection connection = (HttpURLConnection)url.openConnection();
       connection.setConnectTimeout(2000);// TODO extract 2000
       
-      connection.connect();
+      try {
+        connection.connect();
+      } catch (UnknownHostException e) {
+        // wrong host
+        return new Response(400, Response.SM_UNKNOWN_HOST, null);
+        
+      } catch (ConnectException e) {
+        // host OK, port is not working at all
+        return new Response(400, Response.SM_CONNECT_EXCEPTION, null);
+      }
       
       int status = connection.getResponseCode();
       String statusMessage = connection.getResponseMessage();
-      
+
       String responseBody = null;
-      try (Scanner sc = new Scanner(connection.getInputStream())) {
-        sc.useDelimiter("\\Z");
-        if (sc.hasNext()) {
-          responseBody = sc.next();
+      if (status == 200) {// TODO or check 2xx?
+        try (Scanner sc = new Scanner(connection.getInputStream())) {
+          sc.useDelimiter("\\Z");
+          if (sc.hasNext()) {
+            responseBody = sc.next();
+          }
         }
       }
       
       return new Response(status, statusMessage, responseBody);
       
-    } catch (UnknownHostException e) {
-      
-      return new Response(
-          HttpServletResponse.SC_BAD_REQUEST,
-          Response.SM_UNKNOWN_HOST,
-          null);
+    } catch (SocketException e) {
+      // host OK, target port is working, but not an HTTP port
+      return new Response(400, Response.SM_SOCKET_EXCEPTION, null);
       
     } catch (Throwable e) {
       throw new SubrequestException("Failed to make subrequest to [" + host + ":" + httpPort + uri + "]", e);

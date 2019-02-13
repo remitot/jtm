@@ -1,5 +1,6 @@
 package org.jepria.tomcat.manager.core.jdbc;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -68,198 +69,205 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     Map<String, BaseConnection> baseConnections0 = new HashMap<>();
     
-    try {
-      // context resources
-      try {
-        List<Node> contextResourceNodes = getContextResourceNodes();
+    // context resources
+    List<Node> contextResourceNodes = getContextResourceNodes();
+    
+    for (int i = 0; i < contextResourceNodes.size(); i++) {
+      Node contextResourceNode = contextResourceNodes.get(i);
+      
+      String location = "Context.Resource-" + i;
+      
+      baseConnections0.put(location, 
+          new ContextResourceConnection(
+              contextResourceNode, 
+              true));
+    }
+    
+
+    
+    // server resources
+    final List<Node> serverResourceNodes = getServerResourceNodes();
+    
+    
+    // context ResourceLinks
+    List<Node> contextResourceLinkNodes = getContextResourceLinkNodes();
+    
+    for (int i = 0; i < contextResourceLinkNodes.size(); i++) {
+      Node contextResourceLinkNode = contextResourceLinkNodes.get(i);
+      int serverResourceIndex = lookupFirstServerResourceIndexForContextResourceLink(serverResourceNodes, contextResourceLinkNode);
+      if (serverResourceIndex != -1) {
+        Node serverResourceNode = serverResourceNodes.get(serverResourceIndex);
         
-        for (int i = 0; i < contextResourceNodes.size(); i++) {
-          Node contextResourceNode = contextResourceNodes.get(i);
+        String location = "Context.ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
+        
+        baseConnections0.put(location, 
+            new ContextResourceLinkConnection(
+                contextResourceLinkNode, 
+                serverResourceNode, 
+                true));
+      } else {
+        // TODO log?
+      }
+    }
+    
+    
+    unfoldContextComments();
+    
+    
+    // context Resources from unfolded comments
+    Map<Integer, List<Node>> contextResourceCommentedNodes = getContextResourceCommentedNodes();
+    
+    for (Integer commentIndex: contextResourceCommentedNodes.keySet()) {
+      List<Node> contextResourceCommentedNodes1 = contextResourceCommentedNodes.get(commentIndex);
+      
+      for (int i = 0; i < contextResourceCommentedNodes1.size(); i++) {
+        Node contextResourceCommentedNode = contextResourceCommentedNodes1.get(i);
+        
+        String location = "Context.comment-" + commentIndex + ".Resource-" + i; 
+        
+        baseConnections0.put(location,
+            new ContextResourceConnection(
+                contextResourceCommentedNode,
+                false));
+      }
+    }
+      
+    
+    
+    // context Resources from unfolded comments
+    Map<Integer, List<Node>> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
+    
+    for (Integer commentIndex: contextResourceLinksCommentedNodes.keySet()) {
+      List<Node> contextResourceLinksCommentedNodes1 = contextResourceLinksCommentedNodes.get(commentIndex);
+      
+      for (int i = 0; i < contextResourceLinksCommentedNodes1.size(); i++) {
+        Node contextResourceLinkCommentedNode = contextResourceLinksCommentedNodes1.get(i);
+        
+        int serverResourceIndex = lookupFirstServerResourceIndexForContextResourceLink(serverResourceNodes, contextResourceLinkCommentedNode);
+        if (serverResourceIndex != -1) {
+          Node serverResourceNode = serverResourceNodes.get(serverResourceIndex);
           
-          String location = "Context.Resource-" + i;
+          String location = "Context.comment-" + commentIndex + ".ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
           
           baseConnections0.put(location, 
-              new ContextResourceConnection(
-                  contextResourceNode, 
-                  true));
+              new ContextResourceLinkConnection(
+                  contextResourceLinkCommentedNode,
+                  serverResourceNode,
+                  false));
+        } else {
+          // TODO log?
         }
-      } catch (Throwable e) {
-        handleThrowable(e);
       }
-      
-
-      
-      // server resources
-      final List<Node> serverResourceNodes = getServerResourceNodes();
-      
-      
-      // context ResourceLinks
-      try {
-        List<Node> contextResourceLinkNodes = getContextResourceLinkNodes();
-        
-        for (int i = 0; i < contextResourceLinkNodes.size(); i++) {
-          Node contextResourceLinkNode = contextResourceLinkNodes.get(i);
-          int serverResourceIndex = lookupFirstServerResourceIndexForContextResourceLink(serverResourceNodes, contextResourceLinkNode);
-          if (serverResourceIndex != -1) {
-            Node serverResourceNode = serverResourceNodes.get(serverResourceIndex);
-            
-            String location = "Context.ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
-            
-            baseConnections0.put(location, 
-                new ContextResourceLinkConnection(
-                    contextResourceLinkNode, 
-                    serverResourceNode, 
-                    true));
-          } else {
-            // TODO log?
-          }
-        }
-      } catch (Throwable e) {
-        handleThrowable(e);
-      }
-      
-      
-      unfoldContextComments();
-      
-      
-      // context Resources from unfolded comments
-      try {
-        Map<Integer, List<Node>> contextResourceCommentedNodes = getContextResourceCommentedNodes();
-        
-        for (Integer commentIndex: contextResourceCommentedNodes.keySet()) {
-          List<Node> contextResourceCommentedNodes1 = contextResourceCommentedNodes.get(commentIndex);
-          
-          for (int i = 0; i < contextResourceCommentedNodes1.size(); i++) {
-            Node contextResourceCommentedNode = contextResourceCommentedNodes1.get(i);
-            
-            String location = "Context.comment-" + commentIndex + ".Resource-" + i; 
-            
-            baseConnections0.put(location,
-                new ContextResourceConnection(
-                    contextResourceCommentedNode,
-                    false));
-          }
-        }
-      } catch (Throwable e) {
-        handleThrowable(e);
-      }
-        
-      
-      
-      // context Resources from unfolded comments
-      try {
-        Map<Integer, List<Node>> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
-        
-        for (Integer commentIndex: contextResourceLinksCommentedNodes.keySet()) {
-          List<Node> contextResourceLinksCommentedNodes1 = contextResourceLinksCommentedNodes.get(commentIndex);
-          
-          for (int i = 0; i < contextResourceLinksCommentedNodes1.size(); i++) {
-            Node contextResourceLinkCommentedNode = contextResourceLinksCommentedNodes1.get(i);
-            
-            int serverResourceIndex = lookupFirstServerResourceIndexForContextResourceLink(serverResourceNodes, contextResourceLinkCommentedNode);
-            if (serverResourceIndex != -1) {
-              Node serverResourceNode = serverResourceNodes.get(serverResourceIndex);
-              
-              String location = "Context.comment-" + commentIndex + ".ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
-              
-              baseConnections0.put(location, 
-                  new ContextResourceLinkConnection(
-                      contextResourceLinkCommentedNode,
-                      serverResourceNode,
-                      false));
-            } else {
-              // TODO log?
-            }
-          }
-        }
-      } catch (Throwable e) {
-        handleThrowable(e);
-      }
-      
-    } catch (Throwable e) {
-      handleThrowable(e);
     }
+      
+      
     
     this.baseConnections = baseConnections0;
   }
   
-  private List<Node> getContextResourceNodes() throws XPathExpressionException {
-    final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-        "Context/Resource");
-    
-    NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-    
-    return NodeUtils.nodeListToList(nodeList);
+  private List<Node> getContextResourceNodes() {
+    try {
+      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
+          "Context/Resource");
+      NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
+      return NodeUtils.nodeListToList(nodeList);
+      
+    } catch (XPathExpressionException e) {
+      // impossible: controlled XPath expression
+      throw new RuntimeException(e);
+    }
   }
   
-  private List<Node> getServerResourceNodes() throws XPathExpressionException {
-    final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-        "Server/GlobalNamingResources/Resource");
-    NodeList nodeList = (NodeList) expr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
-    
-    return NodeUtils.nodeListToList(nodeList);
+  private List<Node> getServerResourceNodes() {
+    try {
+      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
+          "Server/GlobalNamingResources/Resource");
+      NodeList nodeList = (NodeList) expr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
+      
+      return NodeUtils.nodeListToList(nodeList);
+      
+    } catch (XPathExpressionException e) {
+      // impossible: controlled XPath expression
+      throw new RuntimeException(e);
+    }
   }
   
-  private List<Node> getContextResourceLinkNodes() throws XPathExpressionException {
-    final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-        "Context/ResourceLink");
-    NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-    
-    return NodeUtils.nodeListToList(nodeList);
+  private List<Node> getContextResourceLinkNodes() {
+    try {
+      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
+          "Context/ResourceLink");
+      NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
+      
+      return NodeUtils.nodeListToList(nodeList);
+      
+    } catch (XPathExpressionException e) {
+      // impossible: controlled XPath expression
+      throw new RuntimeException(e);
+    }
   }
   
   /**
    * @return Map&lt;index of comment in Context document, List of Resources within the comment&gt;
-   * @throws XPathExpressionException
    */
-  private Map<Integer, List<Node>> getContextResourceCommentedNodes() throws XPathExpressionException {
-    final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
-        "Context/UnfoldedComment");
-    NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-    
-    Map<Integer, List<Node>> res = new HashMap<>();
-    for (int k = 0; k < ucNodeList.getLength(); k++) {
-      Node ucNode = ucNodeList.item(k);
+  private Map<Integer, List<Node>> getContextResourceCommentedNodes() {
+    try {
+      final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
+          "Context/UnfoldedComment");
+      NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
-      
-      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-          "Context/UnfoldedComment[" + (k + 1) + "]/Resource");
-      NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-      
-      if (nodeList.getLength() > 0) {
-        List<Node> res1 = NodeUtils.nodeListToList(nodeList);
-        res.put(ucIndex, res1);
+      Map<Integer, List<Node>> res = new HashMap<>();
+      for (int k = 0; k < ucNodeList.getLength(); k++) {
+        Node ucNode = ucNodeList.item(k);
+        
+        final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
+        
+        final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
+            "Context/UnfoldedComment[" + (k + 1) + "]/Resource");
+        NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
+        
+        if (nodeList.getLength() > 0) {
+          List<Node> res1 = NodeUtils.nodeListToList(nodeList);
+          res.put(ucIndex, res1);
+        }
       }
+      return res;
+      
+    } catch (XPathExpressionException e) {
+      // impossible: controlled XPath expression
+      throw new RuntimeException(e);
     }
-    return res;
   }
   
   /**
    * @return Map&lt;Index of comment in Context document, List of ResourceLinks within the comment&gt;
-   * @throws XPathExpressionException
    */
-  private Map<Integer, List<Node>> getContextResourceLinkCommentedNodes() throws XPathExpressionException {
-    final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
-        "Context/UnfoldedComment");
-    NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-    
-    Map<Integer, List<Node>> res = new HashMap<>();
-    for (int k = 0; k < ucNodeList.getLength(); k++) {
-      Node ucNode = ucNodeList.item(k);
+  private Map<Integer, List<Node>> getContextResourceLinkCommentedNodes() {
+    try {
+      final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
+          "Context/UnfoldedComment");
+      NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
-      
-      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-          "Context/UnfoldedComment[" + (k + 1) + "]/ResourceLink");
-      NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-      
-      if (nodeList.getLength() > 0) {
-        List<Node> res1 = NodeUtils.nodeListToList(nodeList);
-        res.put(ucIndex, res1);
+      Map<Integer, List<Node>> res = new HashMap<>();
+      for (int k = 0; k < ucNodeList.getLength(); k++) {
+        Node ucNode = ucNodeList.item(k);
+        
+        final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
+        
+        final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
+            "Context/UnfoldedComment[" + (k + 1) + "]/ResourceLink");
+        NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
+        
+        if (nodeList.getLength() > 0) {
+          List<Node> res1 = NodeUtils.nodeListToList(nodeList);
+          res.put(ucIndex, res1);
+        }
       }
+      return res;
+      
+    } catch (XPathExpressionException e) {
+      // impossible: controlled XPath expression
+      throw new RuntimeException(e);
     }
-    return res;
   }
   
   private static int lookupFirstServerResourceIndexForContextResourceLink(List<Node> serverResourceNodes, Node contextResourceLinkNode) {
@@ -272,12 +280,12 @@ public class TomcatConfJdbc extends TomcatConfBase {
     return -1;
   }
   
-  private void unfoldContextComments() throws XPathExpressionException {
-    final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Context/comment()");
-    NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-    
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      try {
+  private void unfoldContextComments() {
+    try {
+      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Context/comment()");
+      NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
+      
+      for (int i = 0; i < nodeList.getLength(); i++) {
         Comment comment = (Comment)nodeList.item(i);
         
         // try unfold comment (but may fail to parse comment text as a node)
@@ -288,18 +296,23 @@ public class TomcatConfJdbc extends TomcatConfBase {
         unfolded = getContext_xmlDoc().importNode(unfolded, true);
         comment.getParentNode().insertBefore(unfolded, comment);
         comment.getParentNode().removeChild(comment);
-        
-      } catch (Throwable e) {
-        handleThrowable(e);
       }
+      
+    } catch (XPathExpressionException e) {
+      // impossible: controlled XPath expression
+      throw new RuntimeException(e);
+      
+    } catch (IOException e) {
+      //TODO
+      throw new RuntimeException(e);
     }
   }
   
-  private void foldContextComments() throws XPathExpressionException {
-    final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Context/UnfoldedComment");
-    NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      try {
+  private void foldContextComments() {
+    try {
+      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Context/UnfoldedComment");
+      NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
+      for (int i = 0; i < nodeList.getLength(); i++) {
         Node node = nodeList.item(i);
         
         // try fold comment
@@ -310,10 +323,15 @@ public class TomcatConfJdbc extends TomcatConfBase {
           node.getParentNode().insertBefore(comment, node);
         }
         node.getParentNode().removeChild(node);
-        
-      } catch (Throwable e) {
-        handleThrowable(e);
       }
+      
+    } catch (XPathExpressionException e) {
+      // impossible: controlled XPath expression
+      throw new RuntimeException(e);
+      
+    } catch (IOException e) {
+      //TODO
+      throw new RuntimeException(e);
     }
   }
   
@@ -329,11 +347,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
       deleteDuplicates();
     }
     
-    try {
-      foldContextComments();
-    } catch (XPathExpressionException e) {
-      throw new RuntimeException(e);
-    }
+    foldContextComments();
     
     saveContext_xml(contextXmlOutputStream);
     saveServer_xml(serverXmlOutputStream);
@@ -343,38 +357,32 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * Deletes duplicate context Resources, ResourceLinks and server Resources from the documents
    */
   public void deleteDuplicates() {
-    try {
-      // context Resources
-      List<Node> contextResourceNodes = getContextResourceNodes();
-      Map<Integer, List<Node>> contextResourceCommentedNodes = getContextResourceCommentedNodes();
-      
-      List<Node> allContextResourceNodes = new ArrayList<>();
-      allContextResourceNodes.addAll(contextResourceNodes);
-      contextResourceCommentedNodes.values().forEach(collection -> allContextResourceNodes.addAll(collection));
-      
-      deleteDuplicates(allContextResourceNodes);
-      
-      
-      // context ResourceLinks
-      List<Node> contextResourceLinkNodes = getContextResourceLinkNodes();
-      Map<Integer, List<Node>> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
-      
-      List<Node> allContextResourceLinkNodes = new ArrayList<>();
-      allContextResourceLinkNodes.addAll(contextResourceLinkNodes);
-      contextResourceLinksCommentedNodes.values().forEach(collection -> allContextResourceLinkNodes.addAll(collection));
-      
-      deleteDuplicates(allContextResourceLinkNodes);
-      
-      
-      // server Resources
-      List<Node> serverResourceNodes = getServerResourceNodes();
-      
-      deleteDuplicates(serverResourceNodes);
-      
-      
-    } catch (Throwable e) {
-      handleThrowable(e);
-    }
+    // context Resources
+    List<Node> contextResourceNodes = getContextResourceNodes();
+    Map<Integer, List<Node>> contextResourceCommentedNodes = getContextResourceCommentedNodes();
+    
+    List<Node> allContextResourceNodes = new ArrayList<>();
+    allContextResourceNodes.addAll(contextResourceNodes);
+    contextResourceCommentedNodes.values().forEach(collection -> allContextResourceNodes.addAll(collection));
+    
+    deleteDuplicates(allContextResourceNodes);
+    
+    
+    // context ResourceLinks
+    List<Node> contextResourceLinkNodes = getContextResourceLinkNodes();
+    Map<Integer, List<Node>> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
+    
+    List<Node> allContextResourceLinkNodes = new ArrayList<>();
+    allContextResourceLinkNodes.addAll(contextResourceLinkNodes);
+    contextResourceLinksCommentedNodes.values().forEach(collection -> allContextResourceLinkNodes.addAll(collection));
+    
+    deleteDuplicates(allContextResourceLinkNodes);
+    
+    
+    // server Resources
+    List<Node> serverResourceNodes = getServerResourceNodes();
+    
+    deleteDuplicates(serverResourceNodes);
   }
   
   /**
@@ -476,46 +484,54 @@ public class TomcatConfJdbc extends TomcatConfBase {
       return baseConnection;
       
     } catch (Throwable e) {
-      handleThrowable(e);
       throw new TransactionException(e);
     }
   }
   
-  protected ContextResourceConnection createContextResourceConnection() throws XPathExpressionException {
-    Node contextResourceNode = getContext_xmlDoc().createElement("Resource");
-    
-    final XPathExpression contextResourceRootExpr = XPathFactory.newInstance().newXPath().compile(
-        "Context");
-    Node contextResourceRoot = (Node)contextResourceRootExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODE);
-    contextResourceRoot.appendChild(contextResourceNode);
-    
-    return new ContextResourceConnection(contextResourceNode, true);
+  protected ContextResourceConnection createContextResourceConnection() {
+    try {
+      Node contextResourceNode = getContext_xmlDoc().createElement("Resource");
+      
+      final XPathExpression contextResourceRootExpr = XPathFactory.newInstance().newXPath().compile(
+          "Context");
+      Node contextResourceRoot = (Node)contextResourceRootExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODE);
+      contextResourceRoot.appendChild(contextResourceNode);
+      
+      return new ContextResourceConnection(contextResourceNode, true);
+      
+    } catch (XPathExpressionException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   /**
    * Creates and adds
    * @return
-   * @throws XPathExpressionException 
    */
-  protected ContextResourceLinkConnection createContextResourceLinkConnection() throws XPathExpressionException {
-    // context ResourceLink
-    Node contextResourceLinkNode = getContext_xmlDoc().createElement("ResourceLink");
+  protected ContextResourceLinkConnection createContextResourceLinkConnection() {
+    try {
+      // context ResourceLink
+      Node contextResourceLinkNode = getContext_xmlDoc().createElement("ResourceLink");
+      
+      final XPathExpression contextResourceLinkRootExpr = XPathFactory.newInstance().newXPath().compile(
+          "Context");
+      Node contextResourceLinkRoot = (Node)contextResourceLinkRootExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODE);
+      contextResourceLinkRoot.appendChild(contextResourceLinkNode);
     
-    final XPathExpression contextResourceLinkRootExpr = XPathFactory.newInstance().newXPath().compile(
-        "Context");
-    Node contextResourceLinkRoot = (Node)contextResourceLinkRootExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODE);
-    contextResourceLinkRoot.appendChild(contextResourceLinkNode);
-  
-    
-    // server Resource
-    Node serverResourceNode = getServer_xmlDoc().createElement("Resource");
-    
-    final XPathExpression serverResourceRootExpr = XPathFactory.newInstance().newXPath().compile(
-        "Server/GlobalNamingResources");
-    Node serverResourceRoot = (Node)serverResourceRootExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
-    serverResourceRoot.appendChild(serverResourceNode);
-    
-    return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true); 
+      
+      // server Resource
+      Node serverResourceNode = getServer_xmlDoc().createElement("Resource");
+      
+      final XPathExpression serverResourceRootExpr = XPathFactory.newInstance().newXPath().compile(
+          "Server/GlobalNamingResources");
+      Node serverResourceRoot = (Node)serverResourceRootExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
+      serverResourceRoot.appendChild(serverResourceNode);
+      
+      return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true);
+      
+    } catch (XPathExpressionException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   public void delete(String location) throws TransactionException, LocationNotExistException {

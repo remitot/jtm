@@ -84,8 +84,7 @@ public class LogMonitorServlet extends HttpServlet {
       
     } else if (!filename.matches("[^/\\\\]+")) {
       // invalid 'filename' value
-      
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'filename' parameter value");
       response.flushBuffer();
       return;
       
@@ -100,16 +99,13 @@ public class LogMonitorServlet extends HttpServlet {
       try {
         lines = Integer.parseInt(linesStr);
       } catch (NumberFormatException e) {
-        e.printStackTrace();
-        
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'lines' parameter value");
         response.flushBuffer();
         return;
       }
       
       if (lines < 1) {
-        
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'lines' parameter value");
         response.flushBuffer();
         return;
       }
@@ -129,9 +125,7 @@ public class LogMonitorServlet extends HttpServlet {
         anchor = getAnchorLine(fileReader);
         
       } catch (FileNotFoundException e) {
-        e.printStackTrace();
-        
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "no file found by such 'filename' parameter value");
         response.flushBuffer();
         return;
       }
@@ -151,9 +145,7 @@ public class LogMonitorServlet extends HttpServlet {
       try {
         anchor = Integer.parseInt(anchorStr);//TODO validate anchor value (int range)
       } catch (NumberFormatException e) {
-        e.printStackTrace();
-        
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'anchor' parameter value");
         response.flushBuffer();
         return;
       }
@@ -170,9 +162,7 @@ public class LogMonitorServlet extends HttpServlet {
         monitor = monitor(fileReader, anchor, lines);
         
       } catch (FileNotFoundException e) {
-        e.printStackTrace();
-        
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "no file found by such 'filename' parameter value");
         response.flushBuffer();
         return;
       }
@@ -218,25 +208,16 @@ public class LogMonitorServlet extends HttpServlet {
     } 
   }
   
-  public static int getAnchorLine(Reader fileReader) {
-    
-    try {
+  private static int getAnchorLine(Reader fileReader) throws IOException {
+    int lineCount = 0;
 
-      int lineCount = 0;
-
-      try (BufferedReader reader = new BufferedReader(fileReader)) {
-        while (reader.readLine() != null) {
-          lineCount++;
-        }
+    try (BufferedReader reader = new BufferedReader(fileReader)) {
+      while (reader.readLine() != null) {
+        lineCount++;
       }
-      
-      return lineCount > 0 ? lineCount - 1 : 0;
-
-    } catch (Throwable e) {
-      e.printStackTrace();
-
-      throw new RuntimeException(e);
     }
+    
+    return lineCount > 0 ? lineCount - 1 : 0;
   }
   
   /**

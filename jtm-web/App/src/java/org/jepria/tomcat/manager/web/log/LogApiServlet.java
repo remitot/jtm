@@ -330,9 +330,7 @@ public class LogApiServlet extends HttpServlet {
           response.getWriter().println(sc.nextLine());
         }
       } catch (FileNotFoundException e) {
-        e.printStackTrace();
-        
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         response.flushBuffer();
         return;
       }// TODO catch also non-readable file excepiton

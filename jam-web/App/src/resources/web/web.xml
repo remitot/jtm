@@ -1,5 +1,10 @@
 <web-app>
 
+  <context-param>
+    <param-name>org.jepria.httpd.apache.manager.web.confDirectory</param-name>
+    <param-value></param-value>
+  </context-param>
+  
   <session-config>
     <session-timeout>10</session-timeout>
   </session-config>

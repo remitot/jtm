@@ -63,9 +63,25 @@ function validate(fieldName, fieldValue) {
 
 /* @Override from table.js */
 function getInvalidFieldMessage(field, error) {
-  if (fieldName == "instance" && error == "UNKNOWN_HOST") {
-    return "Неизвестный хост";
-  }
+  if (fieldName == "instance") {
+    if (error) {
+      if (error == "UNKNOWN_HOST") {
+        return "Неизвестный хост";// NON-NLS
+      } else if (error == "CONNECT_EXCEPTION") {
+        return "Не удалось подключиться (порт не работает)";// NON-NLS
+      } else if (error == "SOCKET_EXCEPTION") {
+        return "Не удалось подключиться (порт не HTTP)";// NON-NLS
+      } else if (error.startsWith("JTM_NOT_FOUND:")) {
+        var link = error.substring(14);
+        // TODO parametrize 'manager-ext'
+        return "На инстансе не установлен manager-ext [" + link + "]";// NON-NLS
+      } else if (error.startsWith("JTM_BROKEN:")) {
+        var link = error.substring(11);
+        // TODO parametrize 'manager-ext'
+        return "На инстансе сломан manager-ext [" + link + "]";// NON-NLS
+      }
+    }
+  } 
 }
 
 
