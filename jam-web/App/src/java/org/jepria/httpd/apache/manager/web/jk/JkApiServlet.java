@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -166,9 +167,17 @@ public class JkApiServlet extends HttpServlet {
   }
   
   private static class Response {
-    public int status;
-    public String statusMessage;
-    public String responseBody;
+    public static final String SM_UNKNOWN_HOST = "UNKNOWN_HOST";
+    
+    public final int status;
+    public final String statusMessage;
+    public final String responseBody;
+    
+    public Response(int status, String statusMessage, String responseBody) {
+      this.status = status;
+      this.statusMessage = statusMessage;
+      this.responseBody = responseBody;
+    }
   }
   
   private static class SubrequestException extends Exception {
@@ -188,7 +197,7 @@ public class JkApiServlet extends HttpServlet {
    */
   private static Response subrequestHttpPortByAjp(String host, int ajpPort, String uri) throws SubrequestException {
     
-    final Response response = new Response();
+    if (false) {return new Response(200, null, ""+(ajpPort + 1000));}
     
     try {
       SimpleAjpConnection connection = SimpleAjpConnection.open(
@@ -196,21 +205,21 @@ public class JkApiServlet extends HttpServlet {
       
       connection.connect();
       
-      response.status = connection.getStatus();
-      response.statusMessage = connection.getStatusMessage();
-      response.responseBody = connection.getResponseBody();
+      return new Response(
+          connection.getStatus(), 
+          connection.getStatusMessage(), 
+          connection.getResponseBody());
       
     } catch (SocketTimeoutException e) {
       // non-authorized request to a protected resource will result java.net.SocketTimeoutException
-      response.status = HttpServletResponse.SC_GATEWAY_TIMEOUT;
-      response.statusMessage = null;
-      response.responseBody = null;
+      return new Response(
+          HttpServletResponse.SC_GATEWAY_TIMEOUT,
+          null,
+          null);
       
     } catch (Throwable e) {
       throw new SubrequestException("Failed to make subrequest to [" + host + ":" + ajpPort + uri + "]", e);
     }
-    
-    return response;
   }
   
   @Override
@@ -288,8 +297,8 @@ public class JkApiServlet extends HttpServlet {
       // response map
       final Map<String, ModStatus> modStatusMap = new HashMap<>();
       
-      
-      boolean confModified = false; 
+      // all modifications succeeded
+      boolean allModSuccess = true; 
       
       // 1) perform all updates
       for (String modRequestId: modRequestBodyMap.keySet()) {
@@ -299,8 +308,8 @@ public class JkApiServlet extends HttpServlet {
           processedModRequestIds.add(modRequestId);
 
           ModStatus modStatus = updateBinding(mreq, apacheConf);
-          if (modStatus.code == ModStatus.CODE_SUCCESS) {
-            confModified = true;
+          if (modStatus.code != ModStatus.SC_SUCCESS) {
+            allModSuccess = false;
           }
 
           modStatusMap.put(modRequestId, modStatus);
@@ -316,8 +325,8 @@ public class JkApiServlet extends HttpServlet {
           processedModRequestIds.add(modRequestId);
 
           ModStatus modStatus = deleteBinding(mreq, apacheConf);
-          if (modStatus.code == ModStatus.CODE_SUCCESS) {
-            confModified = true;
+          if (modStatus.code != ModStatus.SC_SUCCESS) {
+            allModSuccess = false;
           }
           
           modStatusMap.put(modRequestId, modStatus);
@@ -333,8 +342,8 @@ public class JkApiServlet extends HttpServlet {
           processedModRequestIds.add(modRequestId);
 
           ModStatus modStatus = createBinding(mreq, apacheConf);
-          if (modStatus.code == ModStatus.CODE_SUCCESS) {
-            confModified = true;
+          if (modStatus.code != ModStatus.SC_SUCCESS) {
+            allModSuccess = false;
           }
           
           modStatusMap.put(modRequestId, modStatus);
@@ -342,55 +351,46 @@ public class JkApiServlet extends HttpServlet {
       }
 
 
-
-      // 4) process illegal actions
-      for (String modRequestId: modRequestBodyMap.keySet()) {
-        if (!processedModRequestIds.contains(modRequestId)) {
-          
-          String action = modRequestBodyMap.get(modRequestId).getAction();
-          ModStatus modStatus = ModStatus.errIllegalAction(action);
-          
-          modStatusMap.put(modRequestId, modStatus);
-        }
-      }
+      // 4) ignore illegal actions
 
 
       // prepare response map
       final Map<String, Object> responseJsonMap = new HashMap<>();
       
-      // convert map to list
-      final List<Map<String, Object>> modStatusList = modStatusMap.entrySet().stream().map(
-          entry -> {
-            Map<String, Object> jsonMap = new HashMap<>();
-            jsonMap.put("modRequestId", entry.getKey());
-            jsonMap.put("modStatusCode", entry.getValue().code);
-            // TODO maybe to check some URL parameter (such as 'verbose=1') and to put or not to put modStatusMessages into a response?
-            jsonMap.put("modStatusMessage", entry.getValue().message);
-            return jsonMap;
-          }).collect(Collectors.toList());
+      // convert map to list of JSON objects
+      List<Map<String, Object>> modStatusList = new ArrayList<>();
+      for (Map.Entry<String, ModStatus> entry: modStatusMap.entrySet()) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("modRequestId", entry.getKey());
+        int code = entry.getValue().code;
+        jsonMap.put("modStatusCode", code);
+        if (code == ModStatus.SC_INVALID_FIELD_DATA) {
+          jsonMap.put("invalidFieldData", entry.getValue().invalidFieldData);
+        }
+        modStatusList.add(jsonMap);
+      }
       
       responseJsonMap.put("modStatusList", modStatusList);
       
       
-      final List<JkDto> bindingDtos;
-      
-      if (confModified) {
+      if (allModSuccess) {
+        // save modifications
+        
         apacheConf.save(environment.getMod_jk_confOutputStream(), 
             environment.getWorkers_propertiesOutputStream());
+        
+        
+        // add the new list to the response
         
         final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(
             () -> environment.getMod_jk_confInputStream(), 
             () -> environment.getWorkers_propertiesInputStream());
         
-        bindingDtos = getBindings(apacheConfAfterSave);
         
-      } else {
-        
-        bindingDtos = getBindings(apacheConf);
+        final List<JkDto> bindingsAfterSave = getBindings(apacheConfAfterSave);
+        responseJsonMap.put("_list", bindingsAfterSave);
       }
       
-      
-      responseJsonMap.put("_list", bindingDtos);
       
       try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
         new Gson().toJson(responseJsonMap, osw);
@@ -425,7 +425,7 @@ public class JkApiServlet extends HttpServlet {
       Binding binding = bindings.get(location);
 
       if (binding == null) {
-        return ModStatus.errItemNotFoundByLocation(location);
+        return ModStatus.errItemNotFoundByLocation();
       }
       
       JkDto bindingDto = mreq.getData();
@@ -433,7 +433,9 @@ public class JkApiServlet extends HttpServlet {
       
       // validate 'instance' field value
       if (!validateInstanceFieldValue(bindingDto)) {
-        return ModStatus.errInvalidInstanceValue();
+        Map<String, String> invalidFieldData = new HashMap<>();
+        invalidFieldData.put("instance", "INVALID");
+        return ModStatus.errInvalidFieldData(invalidFieldData);
       }
       
 
@@ -442,7 +444,7 @@ public class JkApiServlet extends HttpServlet {
     } catch (Throwable e) {
       e.printStackTrace();
       
-      return ModStatus.errInternalError();
+      return ModStatus.errServerException();
     }
   }
   
@@ -457,17 +459,10 @@ public class JkApiServlet extends HttpServlet {
     // rebinding comes first
     
     if (sourceDto.getInstance() != null) {
-      final InstanceValueParser instanceValueParser;
-      try {
-        instanceValueParser = new InstanceValueParser(sourceDto.getInstance());
-      } catch (IllegalArgumentException e) {
-        // impossible
-        throw e;
-      }
+      final InstanceValueParser.ParseResult parseResult = InstanceValueParser.tryParse(sourceDto.getInstance());
       
-      
-      final String host = instanceValueParser.host;
-      final int httpPortNumber = instanceValueParser.port;
+      final String host = parseResult.host;
+      final int httpPortNumber = parseResult.port;
       final String uri = "/manager-ext/api/port/ajp";// TODO extract
       
       
@@ -477,16 +472,24 @@ public class JkApiServlet extends HttpServlet {
         
         if (response.status == 200) {
           ajpPortNumber = Integer.parseInt(response.responseBody);
+          
+        } else if (response.status == 400 && Response.SM_UNKNOWN_HOST.equals(response.statusMessage)) {
+          Map<String, String> invalidClientData = new HashMap<>();
+          invalidClientData.put("instance", "UNKNOWN_HOST");
+          return ModStatus.errInvalidFieldData(invalidClientData);
+          
         } else {
-          return ModStatus.errGetAjpPortError("Failed to make subrequest to [" + host + ":" + httpPortNumber + uri + "]:"
-              + " status was not 200 but " + response.status + (response.statusMessage == null ? "" : (" " + response.statusMessage)));
+          // TODO log this way?
+          System.err.println("Failed to make subrequest to [" + host + ":" + httpPortNumber + uri + "]: status " + response.status 
+              + (response.statusMessage == null ? "" : (" " + response.statusMessage)));
+          
+          return ModStatus.errServerException();
         }
         
       } catch (SubrequestException e) {
         e.printStackTrace();
         
-        return ModStatus.errGetAjpPortError("Failed to make subrequest to [" + host + ":" + httpPortNumber + uri + "]: "
-            + e.getClass().getName() + ": " + e.getMessage());
+        return ModStatus.errServerException();
       }
         
       
@@ -504,7 +507,6 @@ public class JkApiServlet extends HttpServlet {
       target.setApplication(sourceDto.getApplication());
     }
     
-    
     return ModStatus.success();
   }
   
@@ -517,8 +519,8 @@ public class JkApiServlet extends HttpServlet {
    * @throws SubrequestException
    */
   private static Response subrequestAjpPortByHttp(String host, int httpPort, String uri) throws SubrequestException {
-    
-    final Response response = new Response();
+     
+    if (false) {return new Response(200, null, ""+(httpPort - 1000));}
     
     try {
       final URL url = new URL("http://" + host + ":" + httpPort + uri);
@@ -527,8 +529,8 @@ public class JkApiServlet extends HttpServlet {
       
       connection.connect();
       
-      response.status = connection.getResponseCode();
-      response.statusMessage = connection.getResponseMessage();
+      int status = connection.getResponseCode();
+      String statusMessage = connection.getResponseMessage();
       
       String responseBody = null;
       try (Scanner sc = new Scanner(connection.getInputStream())) {
@@ -537,13 +539,19 @@ public class JkApiServlet extends HttpServlet {
           responseBody = sc.next();
         }
       }
-      response.responseBody = responseBody;
+      
+      return new Response(status, statusMessage, responseBody);
+      
+    } catch (UnknownHostException e) {
+      
+      return new Response(
+          HttpServletResponse.SC_BAD_REQUEST,
+          Response.SM_UNKNOWN_HOST,
+          null);
       
     } catch (Throwable e) {
       throw new SubrequestException("Failed to make subrequest to [" + host + ":" + httpPort + uri + "]", e);
     }
-    
-    return response;
   }
   
   
@@ -566,7 +574,7 @@ public class JkApiServlet extends HttpServlet {
 
         if (binding == null) {
 
-          ret = ModStatus.errItemNotFoundByLocation(location);
+          ret = ModStatus.errItemNotFoundByLocation();
 
         } else {
           apacheConf.delete(location);
@@ -576,7 +584,8 @@ public class JkApiServlet extends HttpServlet {
       }
     } catch (Throwable e) {
       e.printStackTrace();
-      ret = ModStatus.errInternalError();
+      
+      ret = ModStatus.errServerException();
     }
     
     return ret;
@@ -585,8 +594,6 @@ public class JkApiServlet extends HttpServlet {
   private static ModStatus createBinding(
       ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
     
-    ModStatus ret;
-
     try {
       JkDto bindingDto = mreq.getData();
 
@@ -594,25 +601,29 @@ public class JkApiServlet extends HttpServlet {
       // validate mandatory fields
       List<String> emptyMandatoryFields = validateMandatoryFields(bindingDto);
       if (!emptyMandatoryFields.isEmpty()) {
-        return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
+        Map<String, String> invalidFieldData = new HashMap<>();
+        for (String fieldName: emptyMandatoryFields) {
+          invalidFieldData.put(fieldName, "MANDATORY_EMPTY");
+        }
+        return ModStatus.errInvalidFieldData(invalidFieldData);
       }
       // validate 'instance' field value
       if (!validateInstanceFieldValue(bindingDto)) {
-        return ModStatus.errInvalidInstanceValue();
+        Map<String, String> invalidFieldData = new HashMap<>();
+        invalidFieldData.put("instance", "INVALID");
+        return ModStatus.errInvalidFieldData(invalidFieldData);
       }
 
       
       Binding newBinding = apacheConf.create();
-      updateFields(bindingDto, newBinding);
+      
+      return updateFields(bindingDto, newBinding);
 
-      ret = ModStatus.success();
-        
     } catch (Throwable e) {
       e.printStackTrace();
-      ret = ModStatus.errInternalError();
+      
+      return ModStatus.errServerException();
     }
-    
-    return ret;
   }
   
   /**
@@ -636,20 +647,32 @@ public class JkApiServlet extends HttpServlet {
   private static class InstanceValueParser {
     public static final Pattern PATTERN = Pattern.compile("([^:]+):(\\d+)");
     
-    public static boolean isValid(String instance) {
-      return PATTERN.matcher(instance).matches();
+    public static ParseResult tryParse(String instance) {
+      if (instance != null) {
+        Matcher m = PATTERN.matcher(instance);
+        if (m.matches()) {
+          try {
+            int port = Integer.parseInt(m.group(2)); 
+            if (port >= 0 && port <= 65535) {
+              return new ParseResult(true, m.group(1), port);
+            } 
+          } catch (NumberFormatException e) {
+          }
+        }
+      }
+      return new ParseResult(false, null, 0);
     }
     
-    public final String host;
-    public final int port;
-    
-    public InstanceValueParser(String instance) {
-      Matcher m = PATTERN.matcher(instance);
-      if (!m.matches()) {
-        throw new IllegalArgumentException(instance);
+    public static class ParseResult {
+      public final boolean success;
+      public final String host;
+      public final int port;
+      
+      private ParseResult(boolean success, String host, int port) {
+        this.success = success;
+        this.host = host;
+        this.port = port;
       }
-      host = m.group(1);
-      port = Integer.parseInt(m.group(2));
     }
   }
   
@@ -659,7 +682,7 @@ public class JkApiServlet extends HttpServlet {
    * @return true if dto has no 'instance' field or the 'instance' field value is not empty and valid 
    */
   private static boolean validateInstanceFieldValue(JkDto dto) {
-    return dto.getInstance() == null || InstanceValueParser.isValid(dto.getInstance());
+    return dto.getInstance() == null || InstanceValueParser.tryParse(dto.getInstance()).success;
   }
   
   private static boolean empty(String string) {

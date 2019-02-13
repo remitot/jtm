@@ -25,13 +25,24 @@ function createRow(listItem) {
 function onAfterRefillGrid() {}
 
 /**
- * Validate a single field value
+ * Validate a single field value before sending to the server in a modification request
  * @param fieldName
  * @param fieldValue
  * @returns true or false
  */
 function validate(fieldName, fieldValue) {
   return true;
+}
+
+/**
+ * After a modification request has been sent to the server and resulted INVALID_FIELD_DATA status,
+ * this method is invoked for all invalid fields
+ * @param field name of the field
+ * @param message error message or a meta tag
+ * @returns message to display on the invalid field
+ */
+function getInvalidFieldMessage(field, error) {
+  return null;
 }
 
 
@@ -71,27 +82,39 @@ function uiOnTableReloadError(status) {
 }
 
 /**
- * All ModRequests resulted status SUCCESS
+ * All ModRequests succeeded, all modifications saved on the server
  * @returns
  */
 function uiOnTableModSuccess() {
-  var message = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
-    + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
+  document.getElementsByClassName("control-buttons")[0].style.display = "none";
   
+  var message = "<span class=\"span-bold\">Все изменения успешно сохранены на сервере.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
+    + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
   statusSuccess(message);
 }
 
 /**
- * Not all ModRequests resulted status SUCCESS
- * @returns
+ * Not all ModRequests succeeded (but possibly some of them), no modifications performed on the server, some ModRequests resulted INVALID_FIELD_DATA status
  */
-function uiOnTableModSuccessNotAll() {
-  var message = "<span class=\"span-bold\">Изменения сохранены, но некоторые из них вызвали ошибки.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS 
-    + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
+function uiOnTableModNotSuccessInvalidFieldData() {
+  var message = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
+      "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
   statusError(message);
 }
 
+/**
+ * Not all ModRequests succeeded (but possibly some of them), no modifications performed on the server
+ */
+function uiOnTableModNotSuccess() {
+  var message = "<span class=\"span-bold\">При попытке сохранить изменения произошла ошибка. На сервере всё осталось без изменений.</span>"; // NON-NLS 
+  statusError(message);
+}
 
+function uiOnAfterFieldsValidated(fieldsValid) {
+  if (!fieldsValid) {
+    statusError("Исправьте некорректные значения полей (выделены красным)"); // NON-NLS
+  }
+}
 
 /**
   * Public API
@@ -387,6 +410,8 @@ function onFieldValueChanged(field, newValue) {
     }
   }
   
+  // clear field 'invalid' state
+  uiOnFieldValidate(field, true, null);
   field.classList.remove("invalid");
   
   checkModifications();
@@ -495,13 +520,17 @@ function removeHeaderIfNeeded() {
   }
 }
 
+var createRowId = 1;
+
 function onButtonCreateClick() {
   
   addHeaderIfNeeded();
   
   var table = document.getElementById("table");
 
-  rowCreate = createRowCreate();
+  var rowCreate = createRowCreate();
+  rowCreate.setAttribute("item-location", "row-create-" + createRowId++);
+  
   table.insertBefore(rowCreate, table.lastChild);
   
   rowCreate.querySelectorAll(".cell input[type='text']")[0].focus(); // focus on the first text input field
@@ -512,31 +541,33 @@ function onButtonCreateClick() {
 // TODO the logic below is almost JDBC-specific! move it into jdbc.js
 function onSaveButtonClick() {
   
+  
+  
   var rowsModified = getRowsModified();
   var rowsDeleted = getRowsDeleted();
   var rowsCreated = getRowsCreated();
   
   if (!rowsModified.rowsValid || !rowsCreated.rowsValid) {
-    onAfterFieldsValidated(false);
+    uiOnAfterFieldsValidated(false);
     return;
   } else {
-    onAfterFieldsValidated(true);
+    uiOnAfterFieldsValidated(true);
   }
+  
+  
+  uiOnSaveBegin();
+  
   
   rowsModified = rowsModified.data;
   rowsCreated = rowsCreated.data;
   
-  uiOnSaveBegin();
-  
   modRequestList = [];
-  
-  var id = 0;
   
   if (rowsModified.length > 0) {
     for (var i = 0; i < rowsModified.length; i++) {
       modRequestList.push(
           {
-            modRequestId: ++id,
+            modRequestId: rowsModified[i].itemLocation, // same as location
             modRequestBody: {
               action: "update", 
               location: rowsModified[i].itemLocation, 
@@ -551,7 +582,7 @@ function onSaveButtonClick() {
     for (var i = 0; i < rowsDeleted.length; i++) {
       modRequestList.push(
           {
-            modRequestId: ++id,
+            modRequestId: rowsDeleted[i], // same as location
             modRequestBody: {
               action: "delete", 
               location: rowsDeleted[i]
@@ -565,7 +596,7 @@ function onSaveButtonClick() {
     for (var i = 0; i < rowsCreated.length; i++) {
       modRequestList.push(
           {
-            modRequestId: ++id,
+            modRequestId: rowsCreated[i].itemLocation, // same as location
             modRequestBody: {
               action: "create", 
               data: rowsCreated[i].itemData
@@ -580,36 +611,50 @@ function onSaveButtonClick() {
     xhttp.onreadystatechange = function() {
         
       if (this.readyState == 4) {
+        
         if (this.status == 200) {
-          uiOnSaveEnd();
+          
           jsonResponse = JSON.parse(this.responseText);
           
           
           modStatusList = jsonResponse.modStatusList;
           
-          // check all modStatus ok
-          var allModStatusOk = true;
+          // check all modifications succeeded
+          var allModSuccess = true;
+          var invalidFieldData = false;
+          
           for (var i = 0; i < modStatusList.length; i++) {
             if (modStatusList[i].modStatusCode != 0) {
-              allModStatusOk = false;
-              break;
+              allModSuccess = false;
+            }
+            if (modStatusList[i].modStatusCode == 1) {
+              // invalid field data
+              invalidFieldData = true;
+              var invalidFieldData = modStatusList[i].invalidFieldData;
+              for (fieldName in invalidFieldData) {
+                onInvalidFieldData(modStatusList[i].modRequestId, fieldName, invalidFieldData[fieldName]);
+              }
             }
           }
           
-          jsonItemList = getJsonItemList(jsonResponse); 
-          refillGrid(jsonItemList, false);
-          
-          document.getElementsByClassName("control-buttons")[0].style.display = "none";
-          
-          if (!allModStatusOk) {
-            uiOnTableModSuccessNotAll();
-          } else {
+          if (allModSuccess) {
+            
             uiOnTableModSuccess();
+            
+            jsonItemList = getJsonItemList(jsonResponse); 
+            refillGrid(jsonItemList, false);
+            
+          } else if (invalidFieldData) {
+            uiOnTableModNotSuccessInvalidFieldData();
+          } else {
+            uiOnTableModNotSuccess();
           }
           
         } else {
           uiOnTableReloadError(this.status);
         }
+        
+        uiOnSaveEnd();
       }
     };
     xhttp.open("POST", getApiModUrl(), true);
@@ -620,6 +665,25 @@ function onSaveButtonClick() {
   } else {
     // TODO report nothing to save
     uiOnSaveEnd();
+  }
+}
+
+function onInvalidFieldData(modRequestId, fieldName, error) {
+  var rows = document.querySelectorAll("#table div.row");
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (row.getAttribute("item-location") == modRequestId) {
+      var fields = row.querySelectorAll("input");
+      for (var j = 0; j < fields.length; j++) {
+        var field = fields[j];
+        if (field.getAttribute("name") == fieldName) {
+          var message = getInvalidFieldMessage(fieldName, error);
+          uiOnFieldValidate(field, false, message);
+          return;
+        }
+      }
+      return;
+    }
   }
 }
 
@@ -655,10 +719,11 @@ function disableGrid() {
 }
 
 function uiOnSaveEnd() {
-  statusClear();
+  setControlButtonsEnabled(true);
 }
 
 function uiOnSaveBegin() {
+  setControlButtonsEnabled(false);
   statusInfo("сохраняем..."); // NON-NLS
 }
 
@@ -707,7 +772,7 @@ function getRowsCreated() {
     var row = rows[i];
     if (row.classList.contains("created") && !row.classList.contains("deleted")) {
       var rowData = collectRowData(row);
-      data.push({itemData: rowData.data});
+      data.push({itemLocation: row.getAttribute("item-location"), itemData: rowData.data});
       if (!rowData.rowValid) {
         rowsValid = false;
       }
@@ -740,23 +805,29 @@ function collectRowData(row) {
     if (!fieldValid) {
       rowValid = false;
     }
-    onAfterFieldValidated(field, fieldValid);
+    uiOnFieldValidate(field, fieldValid, null);
   }
   
   return {rowValid: rowValid, data: data};
 }
 
-function onAfterFieldValidated(field, fieldValid) {
+/**
+ * @param field
+ * @param fieldValid
+ * @param invalidMessage message to display if the field is invalid (currently the input's title)
+ * @returns
+ */
+function uiOnFieldValidate(field, fieldValid, invalidMessage) {
   if (!fieldValid) {
     field.classList.add("invalid");
+    if (invalidMessage) {
+      field.setAttribute("title", invalidMessage);
+    } else {
+      field.removeAttribute("title");
+    }
   } else {
     field.classList.remove("invalid");
-  }
-}
-
-function onAfterFieldsValidated(fieldsValid) {
-  if (!fieldsValid) {
-    statusError("исправьте некорректные значения полей (выделены красным)"); // NON-NLS
+    field.removeAttribute("title");
   }
 }
 
