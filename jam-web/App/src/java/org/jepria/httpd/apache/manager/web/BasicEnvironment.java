@@ -20,9 +20,18 @@ public class BasicEnvironment implements Environment {
   /**
    * @param request
    * @return Apache HTTPD 'conf' directory
+   * @throws ConfigurationException 
    */
   protected File getConfDirectory(HttpServletRequest request) {
-    return new File(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.confDirectory"));
+    final String confDirectory = request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.confDirectory");
+    if (confDirectory == null) {
+      throw new RuntimeException("Misconfiguration exception: org.jepria.httpd.apache.manager.web.confDirectory context-param not specified in web.xml");
+    }
+    final File confDirectoryFile = new File(confDirectory);
+    if (!confDirectoryFile.isDirectory() || !confDirectoryFile.canRead()) {
+      throw new RuntimeException("Misconfiguration exception: org.jepria.httpd.apache.manager.web.confDirectory context-param does not represent an existing readable directory");
+    }
+    return new File(confDirectory);
   }
   
   public BasicEnvironment(HttpServletRequest request) {
