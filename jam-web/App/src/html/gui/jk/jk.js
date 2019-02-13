@@ -9,6 +9,14 @@ function getApiModUrl() {
 }
 
 /* @Override from table.js */
+function uiOnTableModSuccess() {
+  var message = "<span class=\"span-bold\">Изменения успешно сохранены.</span>&emsp;Сейчас Apache HTTPD перезагрузится." // NON-NLS // NON-NLS
+    + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
+  
+  statusSuccess(message);
+}
+
+/* @Override from table.js */
 function createHeader() {
   var row = document.createElement("div");
   row.classList.add("header");
@@ -51,6 +59,13 @@ function validate(fieldName, fieldValue) {
     return /^[^:]+:\d+$/.test(fieldValue);
   }
   return true;
+}
+
+/* @Override from table.js */
+function getInvalidFieldMessage(field, error) {
+  if (fieldName == "instance" && error == "UNKNOWN_HOST") {
+    return "Неизвестный хост";
+  }
 }
 
 

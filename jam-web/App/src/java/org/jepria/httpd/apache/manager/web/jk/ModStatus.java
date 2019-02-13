@@ -1,63 +1,60 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ModStatus {
   
+  /**
+   * Modification succeeded
+   */
+  public static final int SC_SUCCESS = 0;
+  /**
+   * Client field data is invalid (incorrect format or value processing exception)
+   */
+  public static final int SC_INVALID_FIELD_DATA = 1;
+  /**
+   * Any server data processing exception
+   */
+  public static final int SC_SERVER_EXCEPTION = 2;
   
-  public static final int CODE_SUCCESS = 0;
-  public static final int CODE_ERR__ITEM_NOT_FOUND_BY_LOCATION = 1;
-  public static final int CODE_ERR__LOCATION_IS_EMPTY = 2;
-  public static final int CODE_ERR__MANDATORY_FIELDS_EMPTY = 3;
-  public static final int CODE_ERR__ILLEGAL_ACTION = 4;
-  public static final int CODE_ERR__INTERNAL_ERROR = 5;
-  public static final int CODE_ERR__INVALID_INSTANCE_VALUE = 6;
-  public static final int CODE_ERR__GET_AJP_PORT_ERROR = 7;
-  
-  
+  /**
+   * SC_* constant value
+   */
   public final int code;
-  public final String message;
-
-
-  private ModStatus(int code, String message) {
+  /**
+   * if {@link #code} == {@link #SC_INVALID_FIELD_DATA} only: invalid field name mapped to any error message or a meta tag
+   */
+  public final Map<String, String> invalidFieldData;
+  
+  private ModStatus(int code, Map<String, String> invalidFieldData) {
     this.code = code;
-    this.message = message;
+    this.invalidFieldData = invalidFieldData;
   }
 
-  
   public static ModStatus success() {
-    return new ModStatus(CODE_SUCCESS, "SUCCESS"); 
+    return new ModStatus(SC_SUCCESS, null); 
   }
   
-  public static ModStatus errItemNotFoundByLocation(String location) {
-    return new ModStatus(CODE_ERR__ITEM_NOT_FOUND_BY_LOCATION, "ERROR: no item found by location '" + location + "'"); 
+  public static ModStatus errInvalidFieldData(Map<String, String> invalidFieldData) {
+    return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldData); 
   }
+  
+  public static ModStatus errServerException() {
+    return new ModStatus(SC_SERVER_EXCEPTION, null); 
+  }
+  
+  /////////////////////////////////
   
   public static ModStatus errLocationIsEmpty() {
-    return new ModStatus(CODE_ERR__LOCATION_IS_EMPTY, "ERROR: location is empty");
+    Map<String, String> invalidFieldData = new HashMap<>();
+    invalidFieldData.put("location", "EMPTY");
+    return ModStatus.errInvalidFieldData(invalidFieldData);
   }
   
-  public static ModStatus errMandatoryFieldsEmpty(List<String> fields) {
-    String fieldsStr = fields == null || fields.isEmpty() ? null : fields.toString(); 
-    return new ModStatus(CODE_ERR__MANDATORY_FIELDS_EMPTY, "ERROR: mandatory fields in 'data' are empty" + 
-        (fieldsStr == null ? "" : (": " + fieldsStr)));
-  }
-  
-  public static ModStatus errIllegalAction(String action) {
-    return new ModStatus(CODE_ERR__ILLEGAL_ACTION, "ERROR: illegal action"
-        + (action == null ? "" : (": " + action)));
-  }
-  
-  public static ModStatus errInternalError() {
-    return new ModStatus(CODE_ERR__INTERNAL_ERROR, "ERROR: internal error, ask server admin for more info");
-  }
-  
-  public static ModStatus errInvalidInstanceValue() {
-    return new ModStatus(CODE_ERR__INVALID_INSTANCE_VALUE, "ERROR: invalid 'instance' field value");
-  }
-  
-  public static ModStatus errGetAjpPortError(String message) {
-    return new ModStatus(CODE_ERR__GET_AJP_PORT_ERROR, "ERROR: get AJP port error"
-        + (message == null ? "" : (": " + message)));
+  public static ModStatus errItemNotFoundByLocation() {
+    Map<String, String> invalidFieldData = new HashMap<>();
+    invalidFieldData.put("location", "NO_ITEM_FOUND_BY_LOCATION");
+    return ModStatus.errInvalidFieldData(invalidFieldData);
   }
 }
