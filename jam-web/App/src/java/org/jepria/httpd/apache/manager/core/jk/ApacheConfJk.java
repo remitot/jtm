@@ -147,6 +147,7 @@ public class ApacheConfJk extends ApacheConfBase {
 
     
     // add the new worker to the list
+    getWorkers(); // initialize if necessary
     
     // TODO unchecked add! 
     // Future getWorkers() external access may rely on the new worker presence,
