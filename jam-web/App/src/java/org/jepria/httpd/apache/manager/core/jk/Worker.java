@@ -26,6 +26,6 @@ package org.jepria.httpd.apache.manager.core.jk;
   String getHost();
   void setHost(String host);
   
-  String getPort();
-  void setPort(String port);
+  int getPort();
+  void setPort(int port);
 }

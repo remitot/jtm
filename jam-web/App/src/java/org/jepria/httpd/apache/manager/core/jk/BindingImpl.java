@@ -46,8 +46,8 @@ import java.util.Optional;
   
   @Override
   public int getWorkerAjpPort() {
-    // TODO assume "ajp13".equals(worker.getType())
-    return Integer.parseInt(worker.getPort());//TODO is this the best place to parse? what if exception?; 
+    // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
+    return worker.getPort(); 
   }
   
   @Override
@@ -56,7 +56,7 @@ import java.util.Optional;
     
     final boolean wasActive = isActive();
     
-    Worker existingWorker = findWorker(host, ajpPortStr);
+    Worker existingWorker = findWorker(host, ajpPort);
     if (existingWorker != null) {
       worker = existingWorker;
     } else {
@@ -64,7 +64,7 @@ import java.util.Optional;
       Worker newWorker = apacheConf.createWorker(workerName);
       newWorker.setActive(wasActive);
       newWorker.setHost(host);
-      newWorker.setPort(ajpPortStr);
+      newWorker.setPort(ajpPort);
       worker = newWorker;
     }
     
@@ -82,10 +82,10 @@ import java.util.Optional;
    * @param ajpPort
    * @return or else null
    */
-  private Worker findWorker(String host, String ajpPort) {
+  private Worker findWorker(String host, int ajpPort) {
     Optional<Worker> workerOpt = apacheConf.getWorkers().stream().filter(
-        // TODO assume "ajp13".equals(worker.getType())
-        worker -> host.equals(worker.getHost()) && ajpPort.equals(worker.getPort())).findAny();
+        // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
+        worker -> host.equals(worker.getHost()) && ajpPort == worker.getPort()).findAny();
     if (workerOpt.isPresent()) {
       return workerOpt.get();
     } else {
