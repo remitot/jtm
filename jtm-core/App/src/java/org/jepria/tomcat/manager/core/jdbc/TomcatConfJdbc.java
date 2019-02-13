@@ -46,9 +46,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
   /**
    * @return unmodifiable Map&lt;Location, Connection&gt;
    */
-  @SuppressWarnings("unchecked")
   public Map<String, Connection> getConnections() {
-    return (Map<String, Connection>)(Map<String, ?>)getBaseConnections();
+    return Collections.unmodifiableMap(getBaseConnections());
   }
   
   /**
@@ -181,7 +180,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
       handleThrowable(e);
     }
     
-    this.baseConnections = Collections.unmodifiableMap(baseConnections0);
+    this.baseConnections = baseConnections0;
   }
   
   private List<Node> getContextResourceNodes() throws XPathExpressionException {
