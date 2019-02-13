@@ -623,9 +623,6 @@ public class JkApiServlet extends HttpServlet {
   private static List<String> validateMandatoryFields(JkDto dto) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (dto.getActive() == null) {
-      emptyFields.add("active");
-    }
     if (empty(dto.getApplication())) {
       emptyFields.add("application");
     }

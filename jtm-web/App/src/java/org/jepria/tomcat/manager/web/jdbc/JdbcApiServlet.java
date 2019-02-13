@@ -323,9 +323,6 @@ public class JdbcApiServlet extends HttpServlet {
   private static List<String> validateMandatoryFields(ConnectionDto dto) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (dto.getActive() == null) {
-      emptyFields.add("active");
-    }
     if (empty(dto.getDb())) {
       emptyFields.add("db");
     }
