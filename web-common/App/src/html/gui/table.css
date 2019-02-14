@@ -158,6 +158,10 @@
   height: 24px;
 }
 
+#table .row .column-delete input.hidden {
+  display: none;
+}
+
 
 #table .checkbox-disabled {
   cursor: default !important; /* overrides .checkbox */

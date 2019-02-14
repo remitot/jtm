@@ -442,11 +442,22 @@ function setControlButtonsEnabled(enabled) {
   return null;
 }
 
+function setRowDisabled(row, disabled) {
+  var disableableElements = row.querySelectorAll("input.deletable, button.deletable");
+
+  for (var i = 0; i < disableableElements.length; i++) {
+    disableableElements[i].disabled = disabled;
+  }
+  
+  var checkboxes = row.querySelectorAll(".checkbox.deletable");
+  for (var i = 0; i < checkboxes.length; i++) {
+    setCheckboxEnabled(checkboxes[i], !disabled);
+  }
+}
+
 function onDeleteButtonClick(button) {
   //TODO resolve the relative path:
   var row = button.parentElement.parentElement.parentElement.parentElement;
-  
-  var disableableElements = row.querySelectorAll("input.deletable");
   
   if (row.classList.contains("created")) {
     // for newly created rows just remove them from table
@@ -460,17 +471,9 @@ function onDeleteButtonClick(button) {
     // button changes image
     button.src = "gui/img/undelete.png";
     button.title = "Не удалять"; // NON-NLS
+
+    setRowDisabled(row, true);
     
-    for (var i = 0; i < disableableElements.length; i++) {
-      disableableElements[i].disabled = true;
-    }
-    
-    if (!row.classList.contains("created")) {// no change checkboxes for created rows
-      var checkboxes = row.getElementsByClassName("checkbox deletable");
-      for (var i = 0; i < checkboxes.length; i++) {
-        setCheckboxEnabled(checkboxes[i], false);
-      }
-    }
   } else {
     row.classList.remove("deleted");
     
@@ -478,16 +481,7 @@ function onDeleteButtonClick(button) {
     button.src = "gui/img/delete.png";
     button.title = "Удалить"; // NON-NLS
     
-    for (var i = 0; i < disableableElements.length; i++) {
-      disableableElements[i].disabled = false;
-    }
-    
-    if (!row.classList.contains("created")) {// no change checkboxes for created rows
-      var checkboxes = row.getElementsByClassName("checkbox deletable");
-      for (var i = 0; i < checkboxes.length; i++) {
-        setCheckboxEnabled(checkboxes[i], true);
-      }
-    }
+    setRowDisabled(row, false);
   }
   
   checkModifications();
@@ -638,6 +632,8 @@ function onSaveButtonClick() {
             }
           }
           
+          uiOnSaveEnd();
+          
           if (allModSuccess) {
             
             uiOnTableModSuccess();
@@ -652,10 +648,10 @@ function onSaveButtonClick() {
           }
           
         } else {
+          uiOnSaveEnd();
+          
           uiOnTableReloadError(this.status);
         }
-        
-        uiOnSaveEnd();
       }
     };
     xhttp.open("POST", getApiModUrl(), true);
@@ -727,10 +723,32 @@ function disableGrid() {
 }
 
 function uiOnSaveEnd() {
+  // enable all rows
+  var rows = document.querySelectorAll("#table div.row");
+  for (var i = 0; i < rows.length; i++) {
+    setRowDisabled(rows[i], false);
+  }
+  // show all delete buttons
+  var deleteButtons = document.querySelectorAll("#table .row .cell.column-delete input");
+  for (var i = 0; i < deleteButtons.length; i++) {
+    deleteButtons[i].classList.remove("hidden");
+  }
+  
   setControlButtonsEnabled(true);
 }
 
 function uiOnSaveBegin() {
+  // disable all rows
+  var rows = document.querySelectorAll("#table div.row");
+  for (var i = 0; i < rows.length; i++) {
+    setRowDisabled(rows[i], true);
+  }
+  // hide all delete buttons
+  var deleteButtons = document.querySelectorAll("#table .row .cell.column-delete input");
+  for (var i = 0; i < deleteButtons.length; i++) {
+    deleteButtons[i].classList.add("hidden");
+  }
+  
   setControlButtonsEnabled(false);
   statusInfo("сохраняем..."); // NON-NLS
 }
