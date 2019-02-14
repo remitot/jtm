@@ -204,7 +204,7 @@ public class JkApiServlet extends HttpServlet {
     
     try {
       SimpleAjpConnection connection = SimpleAjpConnection.open(
-          host, ajpPort, uri, 2000);// TODO extract 2000
+          host, ajpPort, uri, CONNECT_TIMEOUT_MS);
       
       connection.connect();
       
@@ -523,6 +523,8 @@ public class JkApiServlet extends HttpServlet {
     return ModStatus.success();
   }
   
+  private static final int CONNECT_TIMEOUT_MS = 2000; // TODO parametrize?
+  
   /**
    * 
    * @param host
@@ -540,8 +542,8 @@ public class JkApiServlet extends HttpServlet {
       HttpURLConnection connection = (HttpURLConnection)url.openConnection();
       
       // both timeouts necessary 
-      connection.setConnectTimeout(2000);// TODO extract 2000
-      connection.setReadTimeout(2000);// TODO extract 2000
+      connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+      connection.setReadTimeout(CONNECT_TIMEOUT_MS);
       
       try {
         connection.connect();
