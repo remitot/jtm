@@ -139,6 +139,7 @@ function addFieldInstance(cell, host, getHttpPortLink, placeholder) {
   
   if (getHttpPortLink) {
     var button = document.createElement("button");
+    button.classList.add("deletable");
     setGetHttpPortButtonState(button, 0);
     button.onclick = function(){getHttpPortButtonClick(button, host, getHttpPortLink);}
     button.tabIndex = tabindex0++;
