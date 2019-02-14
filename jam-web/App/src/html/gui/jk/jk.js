@@ -74,6 +74,8 @@ function getInvalidFieldMessage(fieldName, errorCode, errorMessage) {
         return "Похоже, не работает порт";// NON-NLS
       } else if (errorCode == "SOCKET_EXCEPTION" || errorCode == "CONNECT_TIMEOUT") {
         return "Похоже, не http порт";// NON-NLS
+      } else if (errorCode == "UNAUTHORIZED") {
+        return "Похоже, инстанс не в общем кластере с текущим";// NON-NLS
       } else if (errorCode == "LINK_BROKEN__NOT_FOUND" || errorCode == "LINK_BROKEN") {
         return "Похоже, на инстансе сломан менеджер";// NON-NLS
       }

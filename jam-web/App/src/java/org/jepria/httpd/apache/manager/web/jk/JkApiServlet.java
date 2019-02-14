@@ -489,6 +489,9 @@ public class JkApiServlet extends HttpServlet {
               && Response.SM_CONNECT_TIMEOUT.equals(response.statusMessage)) {
             return ModStatus.errInvalidFieldData("instance", "CONNECT_TIMEOUT", errorMessage);
             
+          } else if (response.status == 401) {
+            return ModStatus.errInvalidFieldData("instance", "UNAUTHORIZED", errorMessage);
+            
           } else if (response.status == 404) {
             return ModStatus.errInvalidFieldData("instance", "LINK_BROKEN__NOT_FOUND", errorMessage);
             
