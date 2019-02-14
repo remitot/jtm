@@ -1,5 +1,7 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +16,23 @@ import java.util.regex.Pattern;
 
 public class WorkerFactory {
   
-  private static class WorkerImpl implements Worker {
+  private final String localhostName;
+  
+  public WorkerFactory(boolean renameLocalhost) {
+    String localhostName = "localhost";
+    if (renameLocalhost) {
+      try {
+        localhostName = InetAddress.getLocalHost().getHostName().toLowerCase();
+      } catch (UnknownHostException e) {
+        e.printStackTrace();
+        // TODO fail-fast or fail-safe?
+      }
+    }
+    this.localhostName = localhostName;
+    
+  }
+  
+  private class WorkerImpl implements Worker {
     
     private final WorkerProperty typeWorkerProperty;
     private final WorkerProperty hostWorkerProperty;
@@ -52,11 +70,17 @@ public class WorkerFactory {
 
     @Override
     public String getHost() {
-      return hostWorkerProperty.getValue();
+      // rename 'localhost' on read
+      String host = hostWorkerProperty.getValue();
+      if ("localhost".equals(host)) {
+        host = localhostName;
+      }
+      return host;
     }
     
     @Override
     public void setHost(String host) {
+      // no rename 'localhost' on write
       hostWorkerProperty.setValue(host);
     }
 
@@ -172,7 +196,7 @@ public class WorkerFactory {
    * @param lines of the {@code workers.properties} file
    * @return or else empty list
    */
-  public static List<Worker> parse(Iterator<TextLineReference> lines) {
+  public List<Worker> parse(Iterator<TextLineReference> lines) {
     List<Worker> ret = new ArrayList<>();
     
     if (lines != null) {
@@ -344,7 +368,7 @@ public class WorkerFactory {
    * @param portWorkerPropertyLine will be reset
    * @return
    */
-  public static Worker create(String name,
+  public Worker create(String name,
       TextLineReference typeWorkerPropertyLine,
       TextLineReference hostWorkerPropertyLine,
       TextLineReference portWorkerPropertyLine) {

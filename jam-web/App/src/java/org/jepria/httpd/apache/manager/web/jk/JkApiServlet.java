@@ -77,11 +77,9 @@ public class JkApiServlet extends HttpServlet {
     
     try {
       
-      Environment environment = EnvironmentFactory.get(request);
+      final Environment environment = EnvironmentFactory.get(request);
       
-      ApacheConfJk apacheConf = new ApacheConfJk(
-          () -> environment.getMod_jk_confInputStream(), 
-          () -> environment.getWorkers_propertiesInputStream());
+      final ApacheConfJk apacheConf = new ApacheConfJk(environment);
       
       List<JkDto> bindings = getBindings(apacheConf);
       
@@ -291,9 +289,7 @@ public class JkApiServlet extends HttpServlet {
       
       final Environment environment = EnvironmentFactory.get(req);
       
-      final ApacheConfJk apacheConf = new ApacheConfJk(
-          () -> environment.getMod_jk_confInputStream(), 
-          () -> environment.getWorkers_propertiesInputStream());
+      final ApacheConfJk apacheConf = new ApacheConfJk(environment);
 
       // collect processed modRequests
       final Set<String> processedModRequestIds = new HashSet<>();
@@ -387,9 +383,7 @@ public class JkApiServlet extends HttpServlet {
         
         // add the new list to the response
         
-        final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(
-            () -> environment.getMod_jk_confInputStream(), 
-            () -> environment.getWorkers_propertiesInputStream());
+        final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(environment);
         
         
         final List<JkDto> bindingsAfterSave = getBindings(apacheConfAfterSave);
@@ -512,7 +506,6 @@ public class JkApiServlet extends HttpServlet {
       
       if (!host.equals(target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
         target.rebind(host, ajpPortNumber);
-        // TODO check rebind succeeded?
       }
     }
     

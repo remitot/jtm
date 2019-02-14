@@ -1,20 +1,26 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import org.jepria.httpd.apache.manager.core.ApacheConfBase;
+import org.jepria.httpd.apache.manager.web.Environment;
 
 public class ApacheConfJk extends ApacheConfBase {
   
-  public ApacheConfJk(Supplier<InputStream> mod_jk_confInput,
-      Supplier<InputStream> workers_propertiesInput) {
-    super(mod_jk_confInput, workers_propertiesInput);
+  /**
+   * Application configuration parameter: whether to rename 'localhost' to a real hostname in Bindings passed between server and client
+   */
+  private final boolean renameLocalhost;
+  
+  public ApacheConfJk(Environment environment) {
+    super(() -> environment.getMod_jk_confInputStream(),
+        () -> environment.getWorkers_propertiesInputStream());
+    
+    this.renameLocalhost = environment.renameLocalhost();
   }
 
 
@@ -95,7 +101,7 @@ public class ApacheConfJk extends ApacheConfBase {
    * Lazily initialize (or re-initialize) {@link #workers} list
    */
   private void initWorkers() {
-    this.workers = WorkerFactory.parse(getWorkers_propertiesLines().iterator());
+    this.workers = new WorkerFactory(renameLocalhost).parse(getWorkers_propertiesLines().iterator());
   }
   
   /**
@@ -143,7 +149,7 @@ public class ApacheConfJk extends ApacheConfBase {
       workerNames.add(name);
     }
     
-    Worker worker = WorkerFactory.create(name, typeWorkerPropertyLine, hostWorkerPropertyLine, portWorkerPropertyLine);
+    Worker worker = new WorkerFactory(renameLocalhost).create(name, typeWorkerPropertyLine, hostWorkerPropertyLine, portWorkerPropertyLine);
 
     
     // add the new worker to the list

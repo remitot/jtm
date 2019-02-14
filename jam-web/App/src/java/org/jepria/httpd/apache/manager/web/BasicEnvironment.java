@@ -17,7 +17,7 @@ public class BasicEnvironment implements Environment {
   private final File mod_jk_conf;
   private final File workers_properties;
   
-  public static final String CONF_DIRECTORY_CONTEXT_PARAM_NAME = "org.jepria.httpd.apache.manager.web.confDirectory";
+  private final boolean renameLocalhost;
   
   /**
    * @param request
@@ -25,15 +25,15 @@ public class BasicEnvironment implements Environment {
    * @throws ConfigurationException 
    */
   protected File getConfDirectory(HttpServletRequest request) {
-    final String confDirectory = request.getServletContext().getInitParameter(CONF_DIRECTORY_CONTEXT_PARAM_NAME);
+    final String confDirectory = request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.confDirectory");
     if (confDirectory == null) {
       throw new RuntimeException("Misconfiguration exception: "
-          + CONF_DIRECTORY_CONTEXT_PARAM_NAME + " context-param not specified in web.xml");
+          + "org.jepria.httpd.apache.manager.web.confDirectory context-param not specified in web.xml");
     }
     final File confDirectoryFile = new File(confDirectory);
     if (!confDirectoryFile.isDirectory() || !confDirectoryFile.canRead()) {
       throw new RuntimeException("Misconfiguration exception: "
-          + CONF_DIRECTORY_CONTEXT_PARAM_NAME + " context-param value does not represent an existing readable directory");
+          + "org.jepria.httpd.apache.manager.web.confDirectory context-param value does not represent an existing readable directory");
     }
     return new File(confDirectory);
   }
@@ -43,6 +43,8 @@ public class BasicEnvironment implements Environment {
     
     mod_jk_conf = confDir.toPath().resolve("jk").resolve("mod_jk.conf").toFile();
     workers_properties = confDir.toPath().resolve("jk").resolve("workers.properties").toFile();
+    
+    renameLocalhost = "true".equals(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.renameLocalhost"));
   }
   
   @Override
@@ -84,5 +86,10 @@ public class BasicEnvironment implements Environment {
   protected static RuntimeException misconfiguration(String message) {
     throw new RuntimeException("Misconfiguration exception" 
         + (message == null ? "" : (": " + message)));
+  }
+  
+  @Override
+  public boolean renameLocalhost() {
+    return renameLocalhost;
   }
 }
