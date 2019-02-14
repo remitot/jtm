@@ -139,19 +139,47 @@ public class JkApiServlet extends HttpServlet {
     
     final AjpResponseDto ajpResponse = new AjpResponseDto();
     
-    try {
-      Response subresponse = subrequestHttpPortByAjp(host, ajpPortNumber, uri);
-      
-      ajpResponse.setStatus(subresponse.status);
-      ajpResponse.setStatusMessage(subresponse.statusMessage);
-      ajpResponse.setResponseBody(subresponse.responseBody);
-      
-    } catch (SubrequestException e) {
-      e.printStackTrace();
-      
-      ajpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      ajpResponse.setStatusMessage(e.getClass().getName() + ": " + e.getMessage());
+    
+    
+    final Subresponse subresponse = wrapSubrequest(new Subrequest() {
+      @Override
+      public Subresponse execute() throws IOException {
+        SimpleAjpConnection connection = SimpleAjpConnection.open(
+            host, ajpPortNumber, uri, CONNECT_TIMEOUT_MS);
+        
+        connection.connect();
+        
+        return new Subresponse(connection.getStatus(), connection.getResponseBody());
+      }
+    });
+    
+    
+    
+    final String statusMessage;
+    if (subresponse.status == Subresponse.SC_SUCCESS) {
+      statusMessage = "SUCCESS";
+    } else if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
+      statusMessage = "UNKNOWN_HOST";
+    } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
+      statusMessage = "CONNECT_EXCEPTION";
+    } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
+      statusMessage = "SOCKET_EXCEPTION";
+    } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
+      statusMessage = "CONNECT_TIMEOUT";
+    } else if (subresponse.status == Subresponse.SC_UNAUTHORIZED) {
+      statusMessage = "UNAUTHORIZED";
+    } else if (subresponse.status == Subresponse.SC_NOT_FOUND) {
+      statusMessage = "NOT_FOUND";
+    } else {
+      statusMessage = "EXECUTION_ERROR";
     }
+    
+    
+    
+    ajpResponse.setStatus(subresponse.status);
+    ajpResponse.setStatusMessage(statusMessage);
+    ajpResponse.setResponseBody(subresponse.responseBody);
+      
       
     Map<String, Object> responseJsonMap = new HashMap<>();
     responseJsonMap.put("ajpRequest", ajpRequest);
@@ -166,62 +194,23 @@ public class JkApiServlet extends HttpServlet {
       
   }
   
-  private static class Response {
-    public static final String SM_UNKNOWN_HOST = "UNKNOWN_HOST";
-    public static final String SM_CONNECT_EXCEPTION = "CONNECT_EXCEPTION";
-    public static final String SM_SOCKET_EXCEPTION = "SOCKET_EXCEPTION";
-    public static final String SM_CONNECT_TIMEOUT = "CONNECT_TIMEOUT";
+  private static class Subresponse {
+    public static final int SC_SUCCESS = 200;
+    public static final int SC_UNKNOWN_HOST = 461;
+    public static final int SC_CONNECT_EXCEPTION = 462;
+    public static final int SC_SOCKET_EXCEPTION = 463;
+    public static final int SC_CONNECT_TIMEOUT = 464;
+    public static final int SC_UNAUTHORIZED = 401;
+    public static final int SC_NOT_FOUND = 404;
+    public static final int SC_EXECUTION_ERROR = 500;
+    
     
     public final int status;
-    public final String statusMessage;
     public final String responseBody;
     
-    public Response(int status, String statusMessage, String responseBody) {
+    public Subresponse(int status, String responseBody) {
       this.status = status;
-      this.statusMessage = statusMessage;
       this.responseBody = responseBody;
-    }
-  }
-  
-  private static class SubrequestException extends Exception {
-    private static final long serialVersionUID = 1177260562719083892L;
-    public SubrequestException(String message, Throwable cause) {
-      super(message, cause);
-    }
-  }
-  
-  /**
-   * 
-   * @param host
-   * @param ajpPort
-   * @param uri begins with '/'
-   * @return
-   * @throws SubrequestException
-   */
-  private static Response subrequestHttpPortByAjp(String host, int ajpPort, String uri) throws SubrequestException {
-    
-    if (false) {return new Response(200, null, ""+(ajpPort + 1000));}
-    
-    try {
-      SimpleAjpConnection connection = SimpleAjpConnection.open(
-          host, ajpPort, uri, CONNECT_TIMEOUT_MS);
-      
-      connection.connect();
-      
-      return new Response(
-          connection.getStatus(), 
-          connection.getStatusMessage(), 
-          connection.getResponseBody());
-      
-    } catch (SocketTimeoutException e) {
-      // non-authorized request to a protected resource will result java.net.SocketTimeoutException
-      return new Response(
-          HttpServletResponse.SC_GATEWAY_TIMEOUT,
-          null,
-          null);
-      
-    } catch (Throwable e) {
-      throw new SubrequestException("Failed to make subrequest to [" + host + ":" + ajpPort + uri + "]", e);
     }
   }
   
@@ -462,50 +451,67 @@ public class JkApiServlet extends HttpServlet {
       final int httpPortNumber = parseResult.port;
       final String uri = "/manager-ext/api/port/ajp";// TODO parametrize 'manager-ext'
       
+      final String url = "http://" + host + ":" + httpPortNumber + uri;
+      
+      
+      
+      final Subresponse subresponse = wrapSubrequest(new Subrequest() {
+        @Override
+        public Subresponse execute() throws IOException {
+          final URL urlUrl = new URL(url);
+          HttpURLConnection connection = (HttpURLConnection)urlUrl.openConnection();
+          
+          // both timeouts necessary 
+          connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+          connection.setReadTimeout(CONNECT_TIMEOUT_MS);
+          
+          connection.connect();
+          
+          int status = connection.getResponseCode();
+
+          String responseBody = null;
+          if (status == 200) {// TODO or check 2xx?
+            try (Scanner sc = new Scanner(connection.getInputStream())) {
+              sc.useDelimiter("\\Z");
+              if (sc.hasNext()) {
+                responseBody = sc.next();
+              }
+            }
+          }
+          
+          return new Subresponse(status, responseBody);
+        }
+      });
+      
+      
       
       final int ajpPortNumber;
-      try {
-        Response response = subrequestAjpPortByHttp(host, httpPortNumber, uri);
       
-        if (response.status == 200) {
-          ajpPortNumber = Integer.parseInt(response.responseBody);
-          
+      if (subresponse.status == Subresponse.SC_SUCCESS) {
+        ajpPortNumber = Integer.parseInt(subresponse.responseBody);
+        
+      } else {
+        final String errorCode;
+        if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
+          errorCode = "UNKNOWN_HOST";
+        } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
+          errorCode = "CONNECT_EXCEPTION";
+        } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
+          errorCode = "SOCKET_EXCEPTION";
+        } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
+          errorCode = "CONNECT_TIMEOUT";
+        } else if (subresponse.status == Subresponse.SC_UNAUTHORIZED) {
+          errorCode = "UNAUTHORIZED";
+        } else if (subresponse.status == Subresponse.SC_NOT_FOUND) {
+          errorCode = "NOT_FOUND";
         } else {
-          final String errorMessage = "Failed to make request to http://" + host + ":" + httpPortNumber + uri + ": " + response.status;
-          
-          if (response.status == 400 
-              && Response.SM_UNKNOWN_HOST.equals(response.statusMessage)) {
-            return ModStatus.errInvalidFieldData("instance", "UNKNOWN_HOST", errorMessage);
-            
-          } else if (response.status == 400 
-              && Response.SM_CONNECT_EXCEPTION.equals(response.statusMessage)) {
-            return ModStatus.errInvalidFieldData("instance", "CONNECT_EXCEPTION", errorMessage);
-            
-          } else if (response.status == 400 
-              && Response.SM_SOCKET_EXCEPTION.equals(response.statusMessage)) {
-            return ModStatus.errInvalidFieldData("instance", "SOCKET_EXCEPTION", errorMessage);
-            
-          } else if (response.status == 400 
-              && Response.SM_CONNECT_TIMEOUT.equals(response.statusMessage)) {
-            return ModStatus.errInvalidFieldData("instance", "CONNECT_TIMEOUT", errorMessage);
-            
-          } else if (response.status == 401) {
-            return ModStatus.errInvalidFieldData("instance", "UNAUTHORIZED", errorMessage);
-            
-          } else if (response.status == 404) {
-            return ModStatus.errInvalidFieldData("instance", "LINK_BROKEN__NOT_FOUND", errorMessage);
-            
-          } else {
-            return ModStatus.errInvalidFieldData("instance", "LINK_BROKEN", errorMessage);
-          }
+          errorCode = "EXECUTION_ERROR";
         }
         
-      } catch (SubrequestException e) {
-        e.printStackTrace();
-        
-        return ModStatus.errServerException();
+        return ModStatus.errInvalidFieldData("instance", errorCode, "Failed to make request to " + url);
       }
         
+      
       
       if (!host.equals(target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
         target.rebind(host, ajpPortNumber);
@@ -525,66 +531,36 @@ public class JkApiServlet extends HttpServlet {
   
   private static final int CONNECT_TIMEOUT_MS = 2000; // TODO parametrize?
   
-  /**
-   * 
-   * @param host
-   * @param httpPort
-   * @param uri begins with '/'
-   * @return
-   * @throws SubrequestException
-   */
-  private static Response subrequestAjpPortByHttp(String host, int httpPort, String uri) throws SubrequestException {
-     
-    if (false) {return new Response(200, null, ""+(httpPort - 1000));}
-    
-    try {
-      final URL url = new URL("http://" + host + ":" + httpPort + uri);
-      HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-      
-      // both timeouts necessary 
-      connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-      connection.setReadTimeout(CONNECT_TIMEOUT_MS);
-      
-      try {
-        connection.connect();
-      } catch (UnknownHostException e) {
-        // wrong host
-        return new Response(400, Response.SM_UNKNOWN_HOST, null);
-        
-      } catch (ConnectException e) {
-        // host OK, port is not working at all
-        return new Response(400, Response.SM_CONNECT_EXCEPTION, null);
-        
-      }
-      
-      int status = connection.getResponseCode();
-      String statusMessage = connection.getResponseMessage();
-
-      String responseBody = null;
-      if (status == 200) {// TODO or check 2xx?
-        try (Scanner sc = new Scanner(connection.getInputStream())) {
-          sc.useDelimiter("\\Z");
-          if (sc.hasNext()) {
-            responseBody = sc.next();
-          }
-        }
-      }
-      
-      return new Response(status, statusMessage, responseBody);
-      
-    } catch (SocketException e) {// this may be thrown not only from connection.connect(), but also from connection.getResponseCode() etc
-      // host OK, port OK, but it is not http port
-      return new Response(400, Response.SM_SOCKET_EXCEPTION, null);
-      
-    } catch (SocketTimeoutException e) {// this may be thrown not only from connection.connect(), but also from connection.getResponseCode() etc
-      // host OK, port OK, but it is not http port
-      return new Response(400, Response.SM_CONNECT_TIMEOUT, null);
-      
-    } catch (Throwable e) {
-      throw new SubrequestException("Failed to make subrequest to [" + host + ":" + httpPort + uri + "]", e);
-    }
+  private static interface Subrequest {
+    Subresponse execute() throws IOException;
   }
   
+  private static Subresponse wrapSubrequest(Subrequest subrequest) {
+    try {
+      return subrequest.execute();
+      
+    } catch (UnknownHostException e) {
+      // wrong host
+      return new Subresponse(Subresponse.SC_UNKNOWN_HOST, null);
+      
+    } catch (ConnectException e) {
+      // host OK, port is not working at all
+      return new Subresponse(Subresponse.SC_CONNECT_EXCEPTION, null);
+      
+    } catch (SocketException e) {
+      // host OK, port OK, invalid protocol
+      return new Subresponse(Subresponse.SC_SOCKET_EXCEPTION, null);
+      
+    } catch (SocketTimeoutException e) {
+      // host OK, port OK, invalid protocol
+      return new Subresponse(Subresponse.SC_CONNECT_TIMEOUT, null);
+      
+    } catch (Throwable e) {
+      e.printStackTrace();
+      
+      return new Subresponse(Subresponse.SC_EXECUTION_ERROR, null);
+    }
+  }
   
   private static ModStatus deleteBinding(
       ModRequestBodyDto mreq, ApacheConfJk apacheConf) {

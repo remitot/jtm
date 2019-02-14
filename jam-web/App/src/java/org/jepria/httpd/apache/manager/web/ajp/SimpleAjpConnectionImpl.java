@@ -41,14 +41,14 @@ import org.apache.coyote.ajp.TesterAjpMessage;
   }
   
   @Override
-  public void connect() {
+  public void connect() throws IOException {
     if (!messageForwarded) {
       forwardMessage();
     }
   }
   
   @Override
-  public int getStatus() {
+  public int getStatus() throws IOException {
     if (!messageForwarded) {
       forwardMessage();
     }
@@ -56,7 +56,7 @@ import org.apache.coyote.ajp.TesterAjpMessage;
   }
 
   @Override
-  public String getStatusMessage() {
+  public String getStatusMessage() throws IOException {
     if (!messageForwarded) {
       forwardMessage();
     }
@@ -64,7 +64,7 @@ import org.apache.coyote.ajp.TesterAjpMessage;
   }
 
   @Override
-  public String getResponseBody() {
+  public String getResponseBody() throws IOException {
     if (!messageForwarded) {
       forwardMessage();
     }
@@ -75,28 +75,23 @@ import org.apache.coyote.ajp.TesterAjpMessage;
   private String statusMessage;
   private String responseBodyContent;
   
-  private void forwardMessage() {
-    try {
-      TesterAjpMessage forwardMessage = ajpClient.createForwardMessage(uri);
-      // Complete the message - no extra headers required.
-      for (String header: headers.keySet()) {
-        forwardMessage.addHeader(header, headers.get(header));
-      }
-      forwardMessage.end();
-
-      TesterAjpMessage responseHeaders = ajpClient.sendMessage(forwardMessage);
-      // Expect 3 packets: headers, body, end
-      parseResponseHeaders(responseHeaders);
-      TesterAjpMessage responseBody = ajpClient.readMessage();
-      parseResponseBodyContent(responseBody);
-
-      ajpClient.disconnect();
-      
-      messageForwarded = true;
-      
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  private void forwardMessage() throws IOException {
+    TesterAjpMessage forwardMessage = ajpClient.createForwardMessage(uri);
+    // Complete the message - no extra headers required.
+    for (String header: headers.keySet()) {
+      forwardMessage.addHeader(header, headers.get(header));
     }
+    forwardMessage.end();
+
+    TesterAjpMessage responseHeaders = ajpClient.sendMessage(forwardMessage);
+    // Expect 3 packets: headers, body, end
+    parseResponseHeaders(responseHeaders);
+    TesterAjpMessage responseBody = ajpClient.readMessage();
+    parseResponseBodyContent(responseBody);
+
+    ajpClient.disconnect();
+    
+    messageForwarded = true;
   }
   
   /**

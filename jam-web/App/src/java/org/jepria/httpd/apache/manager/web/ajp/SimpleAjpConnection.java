@@ -6,10 +6,10 @@ import org.apache.coyote.ajp.SimpleAjpClient;
 
 public interface SimpleAjpConnection {
   void addHeader(String name, String value);
-  void connect();
-  int getStatus();
-  String getStatusMessage();
-  String getResponseBody();
+  void connect() throws IOException;
+  int getStatus() throws IOException;
+  String getStatusMessage() throws IOException;
+  String getResponseBody() throws IOException;
   
   
   static SimpleAjpConnection open(String host, int port, String uri, int timeoutMs) throws IOException {
