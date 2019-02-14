@@ -34,7 +34,7 @@ function createHeader() {
   
   cell = createCell(div, "column-application");
   label = document.createElement("label");
-  label.innerHTML = "Application"; // NON-NLS
+  label.innerHTML = "Приложение"; // NON-NLS
   cell.appendChild(label);
   
   cell = createCell(div, "column-instance");
