@@ -37,11 +37,12 @@ function validate(fieldName, fieldValue) {
 /**
  * After a modification request has been sent to the server and resulted INVALID_FIELD_DATA status,
  * this method is invoked for all invalid fields
- * @param field name of the field
- * @param message error message or a meta tag
+ * @param fieldName
+ * @param errorCode error code related to the field
+ * @param errorCode error message related to the field
  * @returns message to display on the invalid field
  */
-function getInvalidFieldMessage(field, error) {
+function getInvalidFieldMessage(fieldName, errorCode, errorMessage) {
   return null;
 }
 
@@ -621,7 +622,7 @@ function onSaveButtonClick() {
           
           // check all modifications succeeded
           var allModSuccess = true;
-          var invalidFieldData = false;
+          var invalidFieldDataStatus = false;
           
           for (var i = 0; i < modStatusList.length; i++) {
             if (modStatusList[i].modStatusCode != 0) {
@@ -629,10 +630,10 @@ function onSaveButtonClick() {
             }
             if (modStatusList[i].modStatusCode == 1) {
               // invalid field data
-              invalidFieldData = true;
-              var invalidFieldData = modStatusList[i].invalidFieldData;
-              for (fieldName in invalidFieldData) {
-                onInvalidFieldData(modStatusList[i].modRequestId, fieldName, invalidFieldData[fieldName]);
+              invalidFieldDataStatus = true;
+              var invalidFieldDataMap = modStatusList[i].invalidFieldData;
+              for (fieldName in invalidFieldDataMap) {
+                onInvalidFieldData(modStatusList[i].modRequestId, fieldName, invalidFieldDataMap[fieldName].errorCode, invalidFieldDataMap[fieldName].errorMessage);
               }
             }
           }
@@ -644,7 +645,7 @@ function onSaveButtonClick() {
             jsonItemList = getJsonItemList(jsonResponse); 
             refillGrid(jsonItemList, false);
             
-          } else if (invalidFieldData) {
+          } else if (invalidFieldDataStatus) {
             uiOnTableModNotSuccessInvalidFieldData();
           } else {
             uiOnTableModNotSuccess();
@@ -668,7 +669,14 @@ function onSaveButtonClick() {
   }
 }
 
-function onInvalidFieldData(modRequestId, fieldName, error) {
+/**
+ * @param modRequestId
+ * @param fieldName
+ * @param errorTag
+ * @param errorMessage
+ * @returns
+ */
+function onInvalidFieldData(modRequestId, fieldName, errorCode, errorMessage) {
   var rows = document.querySelectorAll("#table div.row");
   for (var i = 0; i < rows.length; i++) {
     var row = rows[i];
@@ -677,7 +685,7 @@ function onInvalidFieldData(modRequestId, fieldName, error) {
       for (var j = 0; j < fields.length; j++) {
         var field = fields[j];
         if (field.getAttribute("name") == fieldName) {
-          var message = getInvalidFieldMessage(fieldName, error);
+          var message = getInvalidFieldMessage(fieldName, errorCode, errorMessage);
           uiOnFieldValidate(field, false, message);
           return;
         }

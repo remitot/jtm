@@ -172,6 +172,7 @@ public class JkApiServlet extends HttpServlet {
     public static final String SM_UNKNOWN_HOST = "UNKNOWN_HOST";
     public static final String SM_CONNECT_EXCEPTION = "CONNECT_EXCEPTION";
     public static final String SM_SOCKET_EXCEPTION = "SOCKET_EXCEPTION";
+    public static final String SM_CONNECT_TIMEOUT = "CONNECT_TIMEOUT";
     
     public final int status;
     public final String statusMessage;
@@ -369,7 +370,7 @@ public class JkApiServlet extends HttpServlet {
         int code = entry.getValue().code;
         jsonMap.put("modStatusCode", code);
         if (code == ModStatus.SC_INVALID_FIELD_DATA) {
-          jsonMap.put("invalidFieldData", entry.getValue().invalidFieldData);
+          jsonMap.put("invalidFieldData", entry.getValue().invalidFieldDataMap);
         }
         modStatusList.add(jsonMap);
       }
@@ -437,9 +438,7 @@ public class JkApiServlet extends HttpServlet {
       
       // validate 'instance' field value
       if (!validateInstanceFieldValue(bindingDto)) {
-        Map<String, String> invalidFieldData = new HashMap<>();
-        invalidFieldData.put("instance", "INVALID");
-        return ModStatus.errInvalidFieldData(invalidFieldData);
+        return ModStatus.errInvalidFieldData("instance", "INVALID", null);
       }
       
 
@@ -473,40 +472,35 @@ public class JkApiServlet extends HttpServlet {
       final int ajpPortNumber;
       try {
         Response response = subrequestAjpPortByHttp(host, httpPortNumber, uri);
-        
+      
         if (response.status == 200) {
           ajpPortNumber = Integer.parseInt(response.responseBody);
           
-        } else if (response.status == 400 
-            && Response.SM_UNKNOWN_HOST.equals(response.statusMessage)) {
-          Map<String, String> invalidFieldData = new HashMap<>();
-          invalidFieldData.put("instance", "UNKNOWN_HOST");
-          return ModStatus.errInvalidFieldData(invalidFieldData);
-          
-        } else if (response.status == 400 
-            && Response.SM_CONNECT_EXCEPTION.equals(response.statusMessage)) {
-          Map<String, String> invalidFieldData = new HashMap<>();
-          invalidFieldData.put("instance", "CONNECT_EXCEPTION");
-          return ModStatus.errInvalidFieldData(invalidFieldData);
-          
-        } else if (response.status == 400 
-            && Response.SM_SOCKET_EXCEPTION.equals(response.statusMessage)) {
-          Map<String, String> invalidFieldData = new HashMap<>();
-          invalidFieldData.put("instance", "SOCKET_EXCEPTION");
-          return ModStatus.errInvalidFieldData(invalidFieldData);
-          
-        } else if (response.status == 404) {
-          Map<String, String> invalidFieldData = new HashMap<>();
-          String link = "http://" + host + ":" + httpPortNumber + uri;
-          invalidFieldData.put("instance", "JTM_NOT_FOUND:" + link);
-          return ModStatus.errInvalidFieldData(invalidFieldData);
-          
         } else {
-          Map<String, String> invalidFieldData = new HashMap<>();
-          String link = "http://" + host + ":" + httpPortNumber + uri;
-          invalidFieldData.put("instance", "JTM_BROKEN:" + link);
-          return ModStatus.errInvalidFieldData(invalidFieldData);
+          final String errorMessage = "Failed to make request to http://" + host + ":" + httpPortNumber + uri + ": " + response.status;
           
+          if (response.status == 400 
+              && Response.SM_UNKNOWN_HOST.equals(response.statusMessage)) {
+            return ModStatus.errInvalidFieldData("instance", "UNKNOWN_HOST", errorMessage);
+            
+          } else if (response.status == 400 
+              && Response.SM_CONNECT_EXCEPTION.equals(response.statusMessage)) {
+            return ModStatus.errInvalidFieldData("instance", "CONNECT_EXCEPTION", errorMessage);
+            
+          } else if (response.status == 400 
+              && Response.SM_SOCKET_EXCEPTION.equals(response.statusMessage)) {
+            return ModStatus.errInvalidFieldData("instance", "SOCKET_EXCEPTION", errorMessage);
+            
+          } else if (response.status == 400 
+              && Response.SM_CONNECT_TIMEOUT.equals(response.statusMessage)) {
+            return ModStatus.errInvalidFieldData("instance", "CONNECT_TIMEOUT", errorMessage);
+            
+          } else if (response.status == 404) {
+            return ModStatus.errInvalidFieldData("instance", "LINK_BROKEN__NOT_FOUND", errorMessage);
+            
+          } else {
+            return ModStatus.errInvalidFieldData("instance", "LINK_BROKEN", errorMessage);
+          }
         }
         
       } catch (SubrequestException e) {
@@ -548,7 +542,10 @@ public class JkApiServlet extends HttpServlet {
     try {
       final URL url = new URL("http://" + host + ":" + httpPort + uri);
       HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+      
+      // both timeouts necessary 
       connection.setConnectTimeout(2000);// TODO extract 2000
+      connection.setReadTimeout(2000);// TODO extract 2000
       
       try {
         connection.connect();
@@ -559,6 +556,7 @@ public class JkApiServlet extends HttpServlet {
       } catch (ConnectException e) {
         // host OK, port is not working at all
         return new Response(400, Response.SM_CONNECT_EXCEPTION, null);
+        
       }
       
       int status = connection.getResponseCode();
@@ -576,9 +574,13 @@ public class JkApiServlet extends HttpServlet {
       
       return new Response(status, statusMessage, responseBody);
       
-    } catch (SocketException e) {
-      // host OK, target port is working, but not an HTTP port
+    } catch (SocketException e) {// this may be thrown not only from connection.connect(), but also from connection.getResponseCode() etc
+      // host OK, port OK, but it is not http port
       return new Response(400, Response.SM_SOCKET_EXCEPTION, null);
+      
+    } catch (SocketTimeoutException e) {// this may be thrown not only from connection.connect(), but also from connection.getResponseCode() etc
+      // host OK, port OK, but it is not http port
+      return new Response(400, Response.SM_CONNECT_TIMEOUT, null);
       
     } catch (Throwable e) {
       throw new SubrequestException("Failed to make subrequest to [" + host + ":" + httpPort + uri + "]", e);
@@ -632,17 +634,18 @@ public class JkApiServlet extends HttpServlet {
       // validate mandatory fields
       List<String> emptyMandatoryFields = validateMandatoryFields(bindingDto);
       if (!emptyMandatoryFields.isEmpty()) {
-        Map<String, String> invalidFieldData = new HashMap<>();
+        String[] invalidFields = new String[emptyMandatoryFields.size() * 3];
+        int i = 0;
         for (String fieldName: emptyMandatoryFields) {
-          invalidFieldData.put(fieldName, "MANDATORY_EMPTY");
+          invalidFields[i++] = fieldName;
+          invalidFields[i++] = "MANDATORY_EMPTY";
+          invalidFields[i++] = null;
         }
-        return ModStatus.errInvalidFieldData(invalidFieldData);
+        return ModStatus.errInvalidFieldData(invalidFields);
       }
       // validate 'instance' field value
       if (!validateInstanceFieldValue(bindingDto)) {
-        Map<String, String> invalidFieldData = new HashMap<>();
-        invalidFieldData.put("instance", "INVALID");
-        return ModStatus.errInvalidFieldData(invalidFieldData);
+        return ModStatus.errInvalidFieldData("instance", "INVALID", null);
       }
 
       

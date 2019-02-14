@@ -3,6 +3,9 @@ package org.jepria.httpd.apache.manager.web.jk;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class representing status of an arbitrary data modification request
+ */
 public class ModStatus {
   
   /**
@@ -23,21 +26,39 @@ public class ModStatus {
    */
   public final int code;
   /**
-   * if {@link #code} == {@link #SC_INVALID_FIELD_DATA} only: invalid field name mapped to any error message or a meta tag
+   * if {@link #code} == {@link #SC_INVALID_FIELD_DATA} only: invalid field name mapped to error in format {errorCode: ..., errorMessage: ...}
    */
-  public final Map<String, String> invalidFieldData;
+  public final Map<String, Object> invalidFieldDataMap;
   
-  private ModStatus(int code, Map<String, String> invalidFieldData) {
+  private ModStatus(int code, Map<String, Object> invalidFieldDataMap) {
     this.code = code;
-    this.invalidFieldData = invalidFieldData;
+    this.invalidFieldDataMap = invalidFieldDataMap;
   }
 
   public static ModStatus success() {
     return new ModStatus(SC_SUCCESS, null); 
   }
   
-  public static ModStatus errInvalidFieldData(Map<String, String> invalidFieldData) {
-    return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldData); 
+  /**
+   * 
+   * @param invalidFields tuples each of length 3: [fieldName1, fieldErrorCode1, errorMessage1, fieldName2, fieldErrorCode2, errorMessage2, ...]
+   */
+  public static ModStatus errInvalidFieldData(String...invalidFields) {
+    if (invalidFields != null) {
+      if (invalidFields.length % 3 != 0) {
+        throw new IllegalArgumentException("Expected tuples each of length 3");
+      }
+      Map<String, Object> invalidFieldDataMap = new HashMap<>();
+      for (int i = 0; i < invalidFields.length; i += 3) {
+        Map<String, Object> errorMap = new HashMap<>();
+        errorMap.put("errorCode", invalidFields[i + 1]);
+        errorMap.put("errorMessage", invalidFields[i + 2]);
+        invalidFieldDataMap.put(invalidFields[i], errorMap);
+      }
+      return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
+    } else {
+      return new ModStatus(SC_INVALID_FIELD_DATA, null);
+    }
   }
   
   public static ModStatus errServerException() {
@@ -47,14 +68,10 @@ public class ModStatus {
   /////////////////////////////////
   
   public static ModStatus errLocationIsEmpty() {
-    Map<String, String> invalidFieldData = new HashMap<>();
-    invalidFieldData.put("location", "EMPTY");
-    return ModStatus.errInvalidFieldData(invalidFieldData);
+    return ModStatus.errInvalidFieldData("location", "MANDATORY_EMPTY", null); // TODO location is not a field data!
   }
   
   public static ModStatus errItemNotFoundByLocation() {
-    Map<String, String> invalidFieldData = new HashMap<>();
-    invalidFieldData.put("location", "NO_ITEM_FOUND_BY_LOCATION");
-    return ModStatus.errInvalidFieldData(invalidFieldData);
+    return ModStatus.errInvalidFieldData("location", "NO_ITEM_FOUND_BY_LOCATION", null); // TODO location is not a field data!
   }
 }

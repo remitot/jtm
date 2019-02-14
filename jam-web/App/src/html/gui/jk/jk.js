@@ -62,23 +62,20 @@ function validate(fieldName, fieldValue) {
 }
 
 /* @Override from table.js */
-function getInvalidFieldMessage(field, error) {
+function getInvalidFieldMessage(fieldName, errorCode, errorMessage) {
   if (fieldName == "instance") {
-    if (error) {
-      if (error == "UNKNOWN_HOST") {
+    if (errorCode) {
+      if (errorMessage) {
+         console.error(errorMessage + " " + errorCode);
+      }
+      if (errorCode == "UNKNOWN_HOST") {
         return "Неизвестный хост";// NON-NLS
-      } else if (error == "CONNECT_EXCEPTION") {
-        return "Не удалось подключиться (порт не работает)";// NON-NLS
-      } else if (error == "SOCKET_EXCEPTION") {
-        return "Не удалось подключиться (порт не HTTP)";// NON-NLS
-      } else if (error.startsWith("JTM_NOT_FOUND:")) {
-        var link = error.substring(14);
-        // TODO parametrize 'manager-ext'
-        return "На инстансе не установлен manager-ext [" + link + "]";// NON-NLS
-      } else if (error.startsWith("JTM_BROKEN:")) {
-        var link = error.substring(11);
-        // TODO parametrize 'manager-ext'
-        return "На инстансе сломан manager-ext [" + link + "]";// NON-NLS
+      } else if (errorCode == "CONNECT_EXCEPTION") {
+        return "Похоже, не работает порт";// NON-NLS
+      } else if (errorCode == "SOCKET_EXCEPTION" || errorCode == "CONNECT_TIMEOUT") {
+        return "Похоже, не http порт";// NON-NLS
+      } else if (errorCode == "LINK_BROKEN__NOT_FOUND" || errorCode == "LINK_BROKEN") {
+        return "Похоже, на инстансе сломан менеджер";// NON-NLS
       }
     }
   } 

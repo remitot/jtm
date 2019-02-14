@@ -50,9 +50,12 @@ public class SimpleAjpClient {
     }
 
     public void connect(int timeoutMs) throws IOException {
-        socket = new Socket();
-        socket.setSoTimeout(timeoutMs);
-        socket.connect(new InetSocketAddress(host, port), timeoutMs);
+      final InetSocketAddress addr = new InetSocketAddress(host, port);
+      socket = new Socket();
+        
+      // both timeouts necessary
+      socket.setSoTimeout(timeoutMs);
+      socket.connect(addr, timeoutMs);
     }
 
     public void disconnect() throws IOException {
