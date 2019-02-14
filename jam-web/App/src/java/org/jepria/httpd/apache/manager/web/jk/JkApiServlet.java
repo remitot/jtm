@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -77,11 +78,15 @@ public class JkApiServlet extends HttpServlet {
     
     try {
       
+      final boolean renameLocalhost = renameLocalhost(request);
+      
       final Environment environment = EnvironmentFactory.get(request);
       
-      final ApacheConfJk apacheConf = new ApacheConfJk(environment);
+      final ApacheConfJk apacheConf = new ApacheConfJk(
+          () -> environment.getMod_jk_confInputStream(), 
+          () -> environment.getWorkers_propertiesInputStream());
       
-      List<JkDto> bindings = getBindings(apacheConf);
+      List<JkDto> bindings = listBindings(apacheConf, renameLocalhost);
       
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("_list", bindings);
@@ -250,6 +255,8 @@ public class JkApiServlet extends HttpServlet {
 
     try {
       
+      final boolean renameLocalhost = renameLocalhost(req);
+      
       // read list from request body
       final List<ModRequestDto> modRequests;
       
@@ -289,7 +296,9 @@ public class JkApiServlet extends HttpServlet {
       
       final Environment environment = EnvironmentFactory.get(req);
       
-      final ApacheConfJk apacheConf = new ApacheConfJk(environment);
+      final ApacheConfJk apacheConf = new ApacheConfJk(
+          () -> environment.getMod_jk_confInputStream(), 
+          () -> environment.getWorkers_propertiesInputStream());
 
       // collect processed modRequests
       final Set<String> processedModRequestIds = new HashSet<>();
@@ -383,10 +392,12 @@ public class JkApiServlet extends HttpServlet {
         
         // add the new list to the response
         
-        final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(environment);
+        final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(
+            () -> environment.getMod_jk_confInputStream(), 
+            () -> environment.getWorkers_propertiesInputStream());
         
         
-        final List<JkDto> bindingsAfterSave = getBindings(apacheConfAfterSave);
+        final List<JkDto> bindingsAfterSave = listBindings(apacheConfAfterSave, renameLocalhost);
         responseJsonMap.put("_list", bindingsAfterSave);
       }
       
@@ -595,8 +606,7 @@ public class JkApiServlet extends HttpServlet {
 
       } else {
 
-        Map<String, Binding> bindings = apacheConf.getBindings();
-        Binding binding = bindings.get(location);
+        Binding binding = apacheConf.getBindings().get(location);
 
         if (binding == null) {
 
@@ -716,22 +726,42 @@ public class JkApiServlet extends HttpServlet {
     return string == null || "".equals(string);
   }
   
-  private static List<JkDto> getBindings(ApacheConfJk apacheConf) {
+  private static List<JkDto> listBindings(ApacheConfJk apacheConf, boolean renameLocalhost) {
     Map<String, Binding> bindings = apacheConf.getBindings();
 
     // list all bindings
     return bindings.entrySet().stream().map(
-        entry -> bindingToDto(entry.getKey(), entry.getValue()))
+        entry -> bindingToDto(entry.getKey(), entry.getValue(), renameLocalhost))
         .sorted(bindingSorter()).collect(Collectors.toList());
   }
   
-  private static JkDto bindingToDto(String location, Binding binding) {
+  private static boolean renameLocalhost(HttpServletRequest request) {
+    return "true".equals(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.renameLocalhost"));
+  }
+  
+  private static String getLocalhostName() {
+    try {
+      return InetAddress.getLocalHost().getHostName().toLowerCase();
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+      // TODO fail-fast or fail-safe?
+      return "localhost"; // fallback
+    }
+  }
+  
+  private static JkDto bindingToDto(String location, Binding binding, boolean renameLocalhost) {
     JkDto dto = new JkDto();
     dto.setActive(binding.isActive());
     dto.setLocation(location);
     dto.setApplication(binding.getApplication());
     String host = binding.getWorkerHost();
-    dto.setHost(host);
+    
+    if (renameLocalhost && "localhost".equals(host)) {
+      dto.setHost(getLocalhostName());
+    } else {
+      dto.setHost(host);
+    }
+    
     Integer ajpPort = binding.getWorkerAjpPort();
     if (ajpPort != null) {
       final String ajpPortStr = Integer.toString(binding.getWorkerAjpPort());
