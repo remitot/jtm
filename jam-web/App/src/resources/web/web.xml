@@ -6,7 +6,7 @@
   </context-param>
   
   <context-param>
-    <param-name>org.jepria.httpd.apache.manager.web.renameLocalhost</param-name>
+    <param-name>org.jepria.httpd.apache.manager.web.jk.renameLocalhost</param-name>
     <param-value>true</param-value>
   </context-param>
   

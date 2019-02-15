@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -48,6 +49,19 @@ public class JkApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = -3831454096594936484L;
 
+  /**
+   * Application configuration parameter: whether to rename 'localhost' to a real hostname in Bindings passed from server to client
+   */
+  private boolean renameLocalhost;
+  
+  @Override
+  public void init(ServletConfig config) throws ServletException {
+    super.init(config);
+    
+    renameLocalhost = "true".equals(config.getServletContext().getInitParameter(
+        "org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
+  }
+  
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
@@ -70,7 +84,7 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private static void list(HttpServletRequest request, HttpServletResponse response)
+  private void list(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     
     // the content type is defined for the entire method
@@ -78,15 +92,13 @@ public class JkApiServlet extends HttpServlet {
     
     try {
       
-      final boolean renameLocalhost = renameLocalhost(request);
-      
       final Environment environment = EnvironmentFactory.get(request);
       
       final ApacheConfJk apacheConf = new ApacheConfJk(
           () -> environment.getMod_jk_confInputStream(), 
           () -> environment.getWorkers_propertiesInputStream());
       
-      List<JkDto> bindings = listBindings(apacheConf, renameLocalhost);
+      List<JkDto> bindings = listBindings(apacheConf);
       
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("_list", bindings);
@@ -248,14 +260,12 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private static void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  private void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
 
     try {
-      
-      final boolean renameLocalhost = renameLocalhost(req);
       
       // read list from request body
       final List<ModRequestDto> modRequests;
@@ -397,7 +407,7 @@ public class JkApiServlet extends HttpServlet {
             () -> environment.getWorkers_propertiesInputStream());
         
         
-        final List<JkDto> bindingsAfterSave = listBindings(apacheConfAfterSave, renameLocalhost);
+        final List<JkDto> bindingsAfterSave = listBindings(apacheConfAfterSave);
         responseJsonMap.put("_list", bindingsAfterSave);
       }
       
@@ -726,17 +736,13 @@ public class JkApiServlet extends HttpServlet {
     return string == null || "".equals(string);
   }
   
-  private static List<JkDto> listBindings(ApacheConfJk apacheConf, boolean renameLocalhost) {
+  private List<JkDto> listBindings(ApacheConfJk apacheConf) {
     Map<String, Binding> bindings = apacheConf.getBindings();
 
     // list all bindings
     return bindings.entrySet().stream().map(
-        entry -> bindingToDto(entry.getKey(), entry.getValue(), renameLocalhost))
+        entry -> bindingToDto(entry.getKey(), entry.getValue()))
         .sorted(bindingSorter()).collect(Collectors.toList());
-  }
-  
-  private static boolean renameLocalhost(HttpServletRequest request) {
-    return "true".equals(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.renameLocalhost"));
   }
   
   private static String getLocalhostName() {
@@ -749,7 +755,7 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private static JkDto bindingToDto(String location, Binding binding, boolean renameLocalhost) {
+  private JkDto bindingToDto(String location, Binding binding) {
     JkDto dto = new JkDto();
     dto.setActive(binding.isActive());
     dto.setLocation(location);
