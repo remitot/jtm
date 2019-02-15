@@ -8,9 +8,4 @@ public interface Environment {
   InputStream getWorkers_propertiesInputStream();
   OutputStream getMod_jk_confOutputStream();
   OutputStream getWorkers_propertiesOutputStream();
-  
-  /**
-   * Application configuration parameter: whether to rename 'localhost' to a real hostname in Bindings passed between server and client
-   */
-  boolean renameLocalhost();
 }

@@ -17,8 +17,6 @@ public class BasicEnvironment implements Environment {
   private final File mod_jk_conf;
   private final File workers_properties;
   
-  private final boolean renameLocalhost;
-  
   /**
    * @param request
    * @return Apache HTTPD 'conf' directory
@@ -43,8 +41,6 @@ public class BasicEnvironment implements Environment {
     
     mod_jk_conf = confDir.toPath().resolve("jk").resolve("mod_jk.conf").toFile();
     workers_properties = confDir.toPath().resolve("jk").resolve("workers.properties").toFile();
-    
-    renameLocalhost = "true".equals(request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.renameLocalhost"));
   }
   
   @Override
@@ -86,10 +82,5 @@ public class BasicEnvironment implements Environment {
   protected static RuntimeException misconfiguration(String message) {
     throw new RuntimeException("Misconfiguration exception" 
         + (message == null ? "" : (": " + message)));
-  }
-  
-  @Override
-  public boolean renameLocalhost() {
-    return renameLocalhost;
   }
 }

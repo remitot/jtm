@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -23,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +49,19 @@ public class JkApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = -3831454096594936484L;
 
+  /**
+   * Application configuration parameter: whether to rename 'localhost' to a real hostname in Bindings passed from server to client
+   */
+  private boolean renameLocalhost;
+  
+  @Override
+  public void init(ServletConfig config) throws ServletException {
+    super.init(config);
+    
+    renameLocalhost = "true".equals(config.getServletContext().getInitParameter(
+        "org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
+  }
+  
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
@@ -69,7 +84,7 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private static void list(HttpServletRequest request, HttpServletResponse response)
+  private void list(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     
     // the content type is defined for the entire method
@@ -79,9 +94,11 @@ public class JkApiServlet extends HttpServlet {
       
       final Environment environment = EnvironmentFactory.get(request);
       
-      final ApacheConfJk apacheConf = new ApacheConfJk(environment);
+      final ApacheConfJk apacheConf = new ApacheConfJk(
+          () -> environment.getMod_jk_confInputStream(), 
+          () -> environment.getWorkers_propertiesInputStream());
       
-      List<JkDto> bindings = getBindings(apacheConf);
+      List<JkDto> bindings = listBindings(apacheConf);
       
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("_list", bindings);
@@ -232,7 +249,7 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private static void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  private void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
@@ -278,7 +295,9 @@ public class JkApiServlet extends HttpServlet {
       
       final Environment environment = EnvironmentFactory.get(req);
       
-      final ApacheConfJk apacheConf = new ApacheConfJk(environment);
+      final ApacheConfJk apacheConf = new ApacheConfJk(
+          () -> environment.getMod_jk_confInputStream(), 
+          () -> environment.getWorkers_propertiesInputStream());
 
       // collect processed modRequests
       final Set<String> processedModRequestIds = new HashSet<>();
@@ -372,10 +391,12 @@ public class JkApiServlet extends HttpServlet {
         
         // add the new list to the response
         
-        final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(environment);
+        final ApacheConfJk apacheConfAfterSave = new ApacheConfJk(
+            () -> environment.getMod_jk_confInputStream(), 
+            () -> environment.getWorkers_propertiesInputStream());
         
         
-        final List<JkDto> bindingsAfterSave = getBindings(apacheConfAfterSave);
+        final List<JkDto> bindingsAfterSave = listBindings(apacheConfAfterSave);
         responseJsonMap.put("_list", bindingsAfterSave);
       }
       
@@ -576,8 +597,7 @@ public class JkApiServlet extends HttpServlet {
 
       } else {
 
-        Map<String, Binding> bindings = apacheConf.getBindings();
-        Binding binding = bindings.get(location);
+        Binding binding = apacheConf.getBindings().get(location);
 
         if (binding == null) {
 
@@ -697,7 +717,7 @@ public class JkApiServlet extends HttpServlet {
     return string == null || "".equals(string);
   }
   
-  private static List<JkDto> getBindings(ApacheConfJk apacheConf) {
+  private List<JkDto> listBindings(ApacheConfJk apacheConf) {
     Map<String, Binding> bindings = apacheConf.getBindings();
 
     // list all bindings
@@ -706,13 +726,29 @@ public class JkApiServlet extends HttpServlet {
         .sorted(bindingSorter()).collect(Collectors.toList());
   }
   
-  private static JkDto bindingToDto(String location, Binding binding) {
+  private static String getLocalhostName() {
+    try {
+      return InetAddress.getLocalHost().getHostName().toLowerCase();
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+      // TODO fail-fast or fail-safe?
+      return "localhost"; // fallback
+    }
+  }
+  
+  private JkDto bindingToDto(String location, Binding binding) {
     JkDto dto = new JkDto();
     dto.setActive(binding.isActive());
     dto.setLocation(location);
     dto.setApplication(binding.getApplication());
     String host = binding.getWorkerHost();
-    dto.setHost(host);
+    
+    if (renameLocalhost && "localhost".equals(host)) {
+      dto.setHost(getLocalhostName());
+    } else {
+      dto.setHost(host);
+    }
+    
     Integer ajpPort = binding.getWorkerAjpPort();
     if (ajpPort != null) {
       final String ajpPortStr = Integer.toString(binding.getWorkerAjpPort());

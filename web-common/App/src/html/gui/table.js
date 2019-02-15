@@ -153,7 +153,7 @@ function refillGrid(jsonItemList, editable) {
   
   if (jsonItemList.length > 0) {
     
-    addHeaderIfNeeded();
+    addHeaderFooter();
     
     for (var i = 0; i < jsonItemList.length; i++) {
       listItem = jsonItemList[i];
@@ -463,7 +463,7 @@ function onDeleteButtonClick(button) {
     // for newly created rows just remove them from table
     row.parentNode.removeChild(row);
     
-    removeHeaderIfNeeded();
+    removeHeaderFooter();
       
   } else if (!row.classList.contains("deleted")) {
     row.classList.add("deleted");
@@ -488,9 +488,9 @@ function onDeleteButtonClick(button) {
 }
 
 /**
- * Adds the header if the table has no header yet
+ * Adds header and footer if the table has no header yet
  */
-function addHeaderIfNeeded() {
+function addHeaderFooter() {
   var table = document.getElementById("table");
   var tableHeaders = table.getElementsByClassName("header");
   if (tableHeaders.length == 0) {
@@ -500,9 +500,9 @@ function addHeaderIfNeeded() {
 }
 
 /**
- * Removes the header if the table is empty
+ * Removes header and footer if the table is empty
  */
-function removeHeaderIfNeeded() {
+function removeHeaderFooter() {
   var table = document.getElementById("table");
   
   rows = table.getElementsByClassName("row");
@@ -519,7 +519,7 @@ var createRowId = 1;
 
 function onButtonCreateClick() {
   
-  addHeaderIfNeeded();
+  addHeaderFooter();
   
   var table = document.getElementById("table");
 
