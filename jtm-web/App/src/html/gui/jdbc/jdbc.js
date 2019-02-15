@@ -16,9 +16,7 @@ function onTableModSuccess(jsonItemList) {
 
 /* @Override from table.js */
 function uiOnTableModSuccess() {
-  document.getElementsByClassName("control-buttons")[0].style.display = "none";
-  
-  var message = "<span class=\"span-bold\">Все изменения успешно сохранены на сервере.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
+  var message = "<span class=\"span-bold\">Все изменения сохранены.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
     + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
   statusSuccess(message);
 }

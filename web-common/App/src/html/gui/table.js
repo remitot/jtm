@@ -92,7 +92,8 @@ function onTableReloadError(status) {
     statusError(message);
     
   } else {
-    statusError("Ошибка " + status); // NON-NLS
+    console.error("Failed to load table (status " + status + ")");
+    statusError("Ошибка при загрузке таблицы"); // NON-NLS
   }
 }
 
@@ -101,7 +102,7 @@ function onTableReloadError(status) {
  * @returns
  */
 function uiOnTableModSuccess() {
-  var message = "<span class=\"span-bold\">Все изменения успешно сохранены на сервере.</span>"; // NON-NLS
+  var message = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
   statusSuccess(message);
 }
 
@@ -820,7 +821,7 @@ function getRowsDeleted() {
 }
 
 /**
- * Prepare and validate data for rows modified
+ * Prepare and validate data for rows created
  * @return {data: [{}, ...], rowsValid: boolean}
  */
 function getRowsCreated() {
