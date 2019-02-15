@@ -158,7 +158,7 @@
 
     statusBar = document.getElementById("loginStatusBar");
     statusBar.className = "statusBar statusBar-info";
-    statusBar.innerHTML = "Вы — админ сервера?"; // NON-NLS
+    statusBar.innerHTML = "Доступ только админам " + location.hostname + ":" + location.port; // NON-NLS
 
     onLoginSuccessCallback0 = onLoginSuccessCallback;
   } 
