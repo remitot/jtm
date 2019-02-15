@@ -13,13 +13,42 @@ import java.util.regex.Pattern;
   @Override
   public void restart() {
     try {
-      System.out.println("///rest:"+serviceName);
       final String codePage = getCodePage();
-      System.out.println("///"+exec("cmd /c net stop " + serviceName, codePage));
-      System.out.println("///"+exec("cmd /c net start " + serviceName, codePage));
-      System.out.println("///done");
+      
+      // stop the service
+      final String stopExecInput = "cmd /c net stop " + serviceName;
+      final String stopExecOutput = exec(stopExecInput, codePage);
+      final String stopExecOutputContains = "service was stopped successfully";
+      if (stopExecOutput == null || !stopExecOutput.contains(stopExecOutputContains)) {
+        throw new WindowsCmdExecutionException("Failed to stop the service [" + serviceName + "] using Windows cmd: command [" +stopExecInput+ "], "
+            + "expected output containing [" + stopExecOutputContains + "], "
+            + "actual output was "+ (stopExecOutput == null ? "null" : ("[" + stopExecOutput+ "]")) + ". "
+            + "Probably the serviceName is invalid (Windows not logging such errors). Try to run the same command manually.");
+      }
+      
+      
+      // start the service
+      final String startExecInput = "cmd /c net start " + serviceName;
+      final String startExecOutput = exec(startExecInput, codePage);
+      final String startExecOutputContains = "service was started successfully";
+      if (startExecOutput == null || !startExecOutput.contains(startExecOutputContains)) {
+        throw new WindowsCmdExecutionException("Failed to start the service [" + serviceName + "] using Windows cmd: command [" +startExecInput+ "], "
+            + "expected output containing [" + startExecOutputContains + "], "
+            + "actual output was "+ (startExecOutput == null ? "null" : ("[" + startExecOutput+ "]")) + ". "
+            + "Probably the serviceName is invalid (Windows not logging such errors). Try to run the same command manually.");
+      }
+
+    } catch (WindowsCmdExecutionException e) {
+      throw e;
     } catch (Throwable e) {
       throw new RuntimeException("Error restarting service [" + serviceName + "]", e);
+    }
+  }
+  
+  private static class WindowsCmdExecutionException extends RuntimeException {
+    private static final long serialVersionUID = -5790540321423348833L;
+    public WindowsCmdExecutionException(String message) {
+      super(message);
     }
   }
   

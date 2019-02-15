@@ -10,6 +10,13 @@
     <param-value>true</param-value>
   </context-param>
   
+
+  <context-param>
+    <param-name>org.jepria.httpd.apache.manager.web.apacheServiceName</param-name>
+    <param-value>Apache</param-value>
+  </context-param>
+
+ 
   <session-config>
     <session-timeout>10</session-timeout>
   </session-config>
@@ -52,6 +59,17 @@
   <servlet-mapping>
     <servlet-name>JkGui</servlet-name>
     <url-pattern>/jk</url-pattern>
+  </servlet-mapping>
+  
+  
+  <servlet>
+    <servlet-name>RestartServlet</servlet-name>
+    <servlet-class>org.jepria.httpd.apache.manager.web.RestartServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RestartServlet</servlet-name>
+    <url-pattern>/api/restart/*</url-pattern>
   </servlet-mapping>
   
   

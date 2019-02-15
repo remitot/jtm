@@ -40,7 +40,6 @@ import org.jepria.httpd.apache.manager.web.jk.dto.AjpResponseDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestDto;
-import org.jepria.httpd.apache.manager.web.service.ApacheServiceFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -389,9 +388,6 @@ public class JkApiServlet extends HttpServlet {
         apacheConf.save(environment.getMod_jk_confOutputStream(), 
             environment.getWorkers_propertiesOutputStream());
         
-        
-        // restart the Apache service
-        ApacheServiceFactory.get(req.getServletContext()).restart();
         
         // add the new list to the response
         

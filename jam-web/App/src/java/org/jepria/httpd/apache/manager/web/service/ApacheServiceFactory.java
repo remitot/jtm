@@ -2,13 +2,10 @@ package org.jepria.httpd.apache.manager.web.service;
 
 import java.util.Objects;
 
-import javax.servlet.ServletContext;
-
 public class ApacheServiceFactory {
-  
   /**
    * 
-   * @param serviceName Apache HTTPD service name
+   * @param serviceName Apache service name
    * @return
    */
   public static ApacheService get(String serviceName) {
@@ -19,21 +16,5 @@ public class ApacheServiceFactory {
     } else {
       throw new UnsupportedOperationException("Unsupported for the current OS: " + osName);
     }
-  }
-  
-  /**
-   * 
-   * @param context to get the serviceName from
-   * @return
-   */
-  public static ApacheService get(ServletContext context) {
-    final String serviceName = context.getInitParameter("org.jepria.httpd.apache.manager.web.apacheHttpdServiceName");
-    
-    if (serviceName == null) {
-      throw new RuntimeException("Misconfiguration exception: "
-          + " mandatory org.jepria.httpd.apache.manager.web.apacheHttpdServiceName context-param is not specified in web.xml");
-    }
-    
-    return get(serviceName);
   }
 }
