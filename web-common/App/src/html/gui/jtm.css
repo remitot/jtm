@@ -55,10 +55,6 @@ input.field-text:focus {
   border-color: #0089bd;
 }
 
-input.field-text.readonly {
-  border-color: transparent;
-}
-
 /******* status bar *******/
 
 .statusBar {

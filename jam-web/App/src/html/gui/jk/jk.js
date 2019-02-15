@@ -17,6 +17,35 @@ function uiOnTableModSuccess() {
 }
 
 /* @Override from table.js */
+function onTableModSuccess(jsonItemList) {
+  // super:
+  uiOnTableModSuccess();
+  recreateTable(jsonItemList, isEditable());
+  // :super
+  
+  restartApache();
+}
+
+function restartApache() {
+  // TODO send xhr
+  
+  var message = "<span class=\"span-bold\">Все изменения успешно сохранены на сервере.</span>&emsp;Сейчас сервер перезагружается..."; // NON-NLS // NON-NLS
+  statusInfo(message);
+}
+
+
+function uiOnApacheRestartSuccess() {
+  document.getElementsByClassName("control-buttons")[0].style.display = "none";
+  
+  var message = "<span class=\"span-bold\">Все изменения успешно сохранены на сервере, сервер перезагрузился.</span>"; // NON-NLS
+  statusSuccess(message);
+}
+
+function uiOnApacheRestartNotSuccess() {
+  
+}
+
+/* @Override from table.js */
 function createHeader() {
   var row = document.createElement("div");
   row.classList.add("header");

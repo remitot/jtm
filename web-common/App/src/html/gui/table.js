@@ -22,8 +22,6 @@ function createRow(listItem) {
   return null;
 }
 
-function onAfterRefillGrid() {}
-
 /**
  * Validate a single field value before sending to the server in a modification request
  * @param fieldName
@@ -72,11 +70,15 @@ function getJsonItemList(jsonResponse) {
   return jsonResponse._list;
 }
 
+/**
+ * Invoked after {@link #table_reload()} invocation, but not after the table data modifications saved (for that case see {@link #uiOnTableModSuccess()})
+ * @returns
+ */
 function uiOnTableReloadSuccess() {
   statusClear();
 }
 
-function uiOnTableReloadError(status) {
+function onTableReloadError(status) {
   if (status == 401) {
     statusError("Требуется авторизация"); // NON-NLS
     
@@ -99,10 +101,7 @@ function uiOnTableReloadError(status) {
  * @returns
  */
 function uiOnTableModSuccess() {
-  document.getElementsByClassName("control-buttons")[0].style.display = "none";
-  
-  var message = "<span class=\"span-bold\">Все изменения успешно сохранены на сервере.</span>&emsp;Сейчас сервер может перезагрузиться." // NON-NLS // NON-NLS
-    + "&emsp;<a href=\"\" onclick=\"document.location.reload();\">Обновить страницу</a>"; // NON-NLS
+  var message = "<span class=\"span-bold\">Все изменения успешно сохранены на сервере.</span>"; // NON-NLS
   statusSuccess(message);
 }
 
@@ -129,6 +128,11 @@ function uiOnAfterFieldsValidated(fieldsValid) {
   }
 }
 
+function onTableReloadSuccess(jsonItemList) {
+  recreateTable(jsonItemList, isEditable());
+  uiOnTableReloadSuccess();
+}
+
 /**
   * Public API
   */
@@ -146,12 +150,10 @@ function table_reload() {
         jsonResponse = JSON.parse(this.responseText);
         jsonItemList = getJsonItemList(jsonResponse); 
         
-        refillGrid(jsonItemList, isEditable());
-
-        uiOnTableReloadSuccess();
+        onTableReloadSuccess(jsonItemList);
         
       } else {
-        uiOnTableReloadError(this.status);
+        onTableReloadError(this.status);
       }
     }
   };
@@ -159,7 +161,7 @@ function table_reload() {
   xhttp.send();
 }
 
-function refillGrid(jsonItemList, editable) {
+function recreateTable(jsonItemList, editable) {
   table = document.getElementById("table");
   table.innerHTML = "";
   
@@ -178,15 +180,22 @@ function refillGrid(jsonItemList, editable) {
     checkModifications();
   }
   
-
-  if (editable) {
-    rowButtonCreate = createRowButtonCreate();
-    table.appendChild(rowButtonCreate);
-  } else {
-    disableGrid();
-  }
+  var rowButtonCreate = createRowButtonCreate();
+  table.appendChild(rowButtonCreate);
   
-  onAfterRefillGrid();
+  
+  setTableDisabled(!editable);
+
+  
+  // hide control buttons, if any
+  var controlButtons = document.querySelectorAll("div.control-buttons")[0];
+  if (controlButtons) {
+    if (!editable) {
+      controlButtons.classList.add("hidden");
+    } else {
+      controlButtons.classList.remove("hidden");
+    }
+  }
 }
 
 function createRowButtonCreate() {
@@ -458,12 +467,26 @@ function setRowDisabled(row, disabled) {
   var disableableElements = row.querySelectorAll("input.deletable, button.deletable");
 
   for (var i = 0; i < disableableElements.length; i++) {
-    disableableElements[i].disabled = disabled;
+    var disableableElement = disableableElements[i]; 
+    disableableElement.disabled = disabled;
+    // disableableElement.setAttribute("readonly", true); // alternative
   }
   
   var checkboxes = row.querySelectorAll(".checkbox.deletable");
   for (var i = 0; i < checkboxes.length; i++) {
     setCheckboxEnabled(checkboxes[i], !disabled);
+  }
+  
+  // hide all delete buttons (as they were not disabled)
+  var deleteButtons = document.querySelectorAll("#table .row .cell.column-delete input");
+  if (disabled) {
+    for (var i = 0; i < deleteButtons.length; i++) {
+      deleteButtons[i].classList.add("hidden");
+    }
+  } else {
+    for (var i = 0; i < deleteButtons.length; i++) {
+      deleteButtons[i].classList.remove("hidden");
+    }
   }
 }
 
@@ -485,6 +508,11 @@ function onDeleteButtonClick(button) {
     button.title = "Не удалять"; // NON-NLS
 
     setRowDisabled(row, true);
+    // show all delete buttons (as they were disabled too)
+    var deleteButtons = document.querySelectorAll("#table .row .cell.column-delete input");
+    for (var i = 0; i < deleteButtons.length; i++) {
+      deleteButtons[i].classList.remove("hidden");
+    }
     
   } else {
     row.classList.remove("deleted");
@@ -545,10 +573,17 @@ function onButtonCreateClick() {
   checkModifications();
 }
 
-// TODO the logic below is almost JDBC-specific! move it into jdbc.js
+/**
+ * 
+ * @param jsonItemList new list of items to fill the table with
+ * @returns
+ */
+function onTableModSuccess(jsonItemList) {
+  uiOnTableModSuccess();
+  recreateTable(jsonItemList, isEditable());
+}
+
 function onSaveButtonClick() {
-  
-  
   
   var rowsModified = getRowsModified();
   var rowsDeleted = getRowsDeleted();
@@ -648,10 +683,8 @@ function onSaveButtonClick() {
           
           if (allModSuccess) {
             
-            uiOnTableModSuccess();
-            
-            jsonItemList = getJsonItemList(jsonResponse); 
-            refillGrid(jsonItemList, false);
+            var jsonItemList = getJsonItemList(jsonResponse);
+            onTableModSuccess(jsonItemList);
             
           } else if (invalidFieldDataStatus) {
             uiOnTableModNotSuccessInvalidFieldData();
@@ -662,7 +695,7 @@ function onSaveButtonClick() {
         } else {
           uiOnSaveEnd();
           
-          uiOnTableReloadError(this.status);
+          onTableReloadError(this.status);
         }
       }
     };
@@ -703,66 +736,54 @@ function onInvalidFieldData(modRequestId, fieldName, errorCode, errorMessage) {
   }
 }
 
-function disableGrid() {
-
-  table = document.getElementById("table");
-  // remove column-delete contents
-  columnDeletes = table.getElementsByClassName("column-delete");
-  for (var i = 0; i < columnDeletes.length; i++) {
-    columnDelete = columnDeletes[i];
-    columnDelete.innerHTML = "";
-  }
-  
-  inputs = table.getElementsByTagName("input");
-  for (var i = 0; i < inputs.length; i++) {
-    input = inputs[i];
-    
-    // when set 'input.disabled = true' then unable to select text in a field, so set readonly 
-    input.setAttribute("readonly", true);
-    input.classList.add("readonly");
-  }
-  checkboxes = table.getElementsByClassName("checkbox");
-  for (var i = 0; i < checkboxes.length; i++) {
-    checkbox = checkboxes[i];
-    setCheckboxEnabled(checkbox, false);
+/**
+ * Disable all rows in the table and the control buttons
+ * @returns
+ */
+function setTableDisabled(disabled) {
+  var rows = document.querySelectorAll("#table div.row");
+  for (var i = 0; i < rows.length; i++) {
+    setRowDisabled(rows[i], disabled);
   }
   
   // gray out every second row
-  rows = table.getElementsByClassName("row");
-  for (var i = 0; i < rows.length; i += 2) {
-    rows[i].classList.add("even-odd-gray");
-  }
-}
-
-function uiOnSaveEnd() {
-  // enable all rows
-  var rows = document.querySelectorAll("#table div.row");
-  for (var i = 0; i < rows.length; i++) {
-    setRowDisabled(rows[i], false);
-  }
-  // show all delete buttons
-  var deleteButtons = document.querySelectorAll("#table .row .cell.column-delete input");
-  for (var i = 0; i < deleteButtons.length; i++) {
-    deleteButtons[i].classList.remove("hidden");
+  if (disabled) {
+    for (var i = 0; i < rows.length; i += 2) {
+      rows[i].classList.add("even-odd-gray");
+    }
+  } else {
+    for (var i = 0; i < rows.length; i ++) {
+      rows[i].classList.remove("even-odd-gray");
+    }
   }
   
-  setControlButtonsEnabled(true);
+  
+  // hide row-button-create
+  var rowButtonCreate = document.querySelectorAll("#table div.row-button-create")[0];
+  if (disabled) {
+    rowButtonCreate.classList.add("hidden");
+  } else {
+    rowButtonCreate.classList.remove("hidden");
+  }
+  
+  
+  setControlButtonsEnabled(!disabled);
+	if (!disabled) {
+	  checkModifications();
+	}
+}
+
+/**
+ * Invoked after {@link #uiOnSaveBegin()} regardless the status of saving (success or failure)
+ * @returns
+ */
+function uiOnSaveEnd() {
+  setTableDisabled(false);
 }
 
 function uiOnSaveBegin() {
-  // disable all rows
-  var rows = document.querySelectorAll("#table div.row");
-  for (var i = 0; i < rows.length; i++) {
-    setRowDisabled(rows[i], true);
-  }
-  // hide all delete buttons
-  var deleteButtons = document.querySelectorAll("#table .row .cell.column-delete input");
-  for (var i = 0; i < deleteButtons.length; i++) {
-    deleteButtons[i].classList.add("hidden");
-  }
-  
-  setControlButtonsEnabled(false);
-  statusInfo("сохраняем..."); // NON-NLS
+  setTableDisabled(true);
+  statusInfo("сохранение..."); // NON-NLS
 }
 
 /**
