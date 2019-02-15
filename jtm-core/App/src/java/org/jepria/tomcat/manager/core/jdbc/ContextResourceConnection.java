@@ -26,7 +26,7 @@ import org.w3c.dom.Node;
     if (!this.active && active) {
       
       // on activate
-      Node uncommented = NodeFoldHelper.moveNodeFromUnfoldedComments(contextResourceNode);
+      Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(contextResourceNode);
       contextResourceNode = (Element)uncommented;
       
       this.active = active;
@@ -34,7 +34,7 @@ import org.w3c.dom.Node;
     } else if (this.active && !active) {
       
       // on deactivate
-      Node commented = NodeFoldHelper.moveNodeToUnfoldedComments(contextResourceNode);
+      Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(contextResourceNode);
       contextResourceNode = (Element)commented;
       
       this.active = active;

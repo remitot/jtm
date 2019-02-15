@@ -78,15 +78,18 @@ public class NodeFoldHelper {
   }
   
   /**
-   * 
-   * @param node
-   * @return new node which is the uncommented old
+   * Unwraps the node from the unfolded comment,
+   * e.g. from <pre>&lt;UnfoldedComment&gt;&lt;Node&gt;node-contents&lt;/Node&gt;&lt;/UnfoldedComment&gt;</pre>
+   * to <pre>&lt;Node&gt;node-contents&lt;/Node&gt;</pre>
+   *   
+   * @param node the node <b>whose parent</b> is an <code>&lt;UnfoldedComment&gt;</code>
+   * @return a clone of the given node (just unfolded), or the given node itself, if the node's parent is not an <code>&lt;UnfoldedComment&gt;</code>
    */
-  public static Node moveNodeFromUnfoldedComments(Node node) {
+  public static Node unwrapNodeFromUnfoldedComment(Node node) {
     Node unfoldedCommentRoot = node.getParentNode();
     
     if (unfoldedCommentRoot == null || !"UnfoldedComment".equals(((Element)unfoldedCommentRoot).getTagName())) {
-      throw new IllegalArgumentException("The node must have 'UnfoldedComment' parent");
+      return node;
     }
     
     Node nodeClone = node.cloneNode(true);
@@ -100,7 +103,14 @@ public class NodeFoldHelper {
     return nodeClone;
   }
   
-  public static Node moveNodeToUnfoldedComments(Node node) {
+  /**
+   * Wraps the node into <code>&lt;UnfoldedComment&gt;</code> tag,
+   * e.g. from <pre>&lt;Node&gt;node-contents&lt;/Node&gt;</pre> to
+   * <pre>&lt;UnfoldedComment&gt;&lt;Node&gt;node-contents&lt;/Node&gt;&lt;/UnfoldedComment&gt;</pre>  
+   * @param node
+   * @return
+   */
+  public static Node wrapNodeIntoUnfoldedComment(Node node) {
     Node nodeClone = node.cloneNode(true);
     nodeClone = node.getOwnerDocument().importNode(nodeClone, true);
     

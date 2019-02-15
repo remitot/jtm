@@ -27,14 +27,14 @@ import org.w3c.dom.Node;
   public void setActive(boolean active) {
     if (!this.active && active) {
       // on activate
-      Node uncommented = NodeFoldHelper.moveNodeFromUnfoldedComments(contextResourceLinkNode);
+      Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(contextResourceLinkNode);
       contextResourceLinkNode = (Element)uncommented;
       
       this.active = active;
       
     } else if (this.active && !active) {
       // on deactivate
-      Node commented = NodeFoldHelper.moveNodeToUnfoldedComments(contextResourceLinkNode);
+      Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(contextResourceLinkNode);
       contextResourceLinkNode = (Element)commented;
       
       this.active = active;

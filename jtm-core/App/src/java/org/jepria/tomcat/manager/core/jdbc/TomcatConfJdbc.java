@@ -115,15 +115,17 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     
     // context Resources from unfolded comments
-    Map<Integer, List<Node>> contextResourceCommentedNodes = getContextResourceCommentedNodes();
+    List<NodesInUnfoldedComment> contextResourceCommentedNodes = getContextResourceCommentedNodes();
     
-    for (Integer commentIndex: contextResourceCommentedNodes.keySet()) {
-      List<Node> contextResourceCommentedNodes1 = contextResourceCommentedNodes.get(commentIndex);
+    for (NodesInUnfoldedComment commentedNodes: contextResourceCommentedNodes) {
+      if (commentedNodes.commentIndex == null) {
+        throw new IllegalStateException("All UnfoldedComments must be indexes at this point");
+      }
       
-      for (int i = 0; i < contextResourceCommentedNodes1.size(); i++) {
-        Node contextResourceCommentedNode = contextResourceCommentedNodes1.get(i);
+      for (int i = 0; i < commentedNodes.nodes.size(); i++) {
+        Node contextResourceCommentedNode = commentedNodes.nodes.get(i);
         
-        String location = "Context.comment-" + commentIndex + ".Resource-" + i; 
+        String location = "Context.comment-" + commentedNodes.commentIndex + ".Resource-" + i; 
         
         baseConnections0.put(location,
             new ContextResourceConnection(
@@ -135,19 +137,21 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     
     // context Resources from unfolded comments
-    Map<Integer, List<Node>> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
+    List<NodesInUnfoldedComment> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
     
-    for (Integer commentIndex: contextResourceLinksCommentedNodes.keySet()) {
-      List<Node> contextResourceLinksCommentedNodes1 = contextResourceLinksCommentedNodes.get(commentIndex);
+    for (NodesInUnfoldedComment commentedNodes: contextResourceLinksCommentedNodes) {
+      if (commentedNodes.commentIndex == null) {
+        throw new IllegalStateException("All UnfoldedComments must be indexes at this point");
+      }
       
-      for (int i = 0; i < contextResourceLinksCommentedNodes1.size(); i++) {
-        Node contextResourceLinkCommentedNode = contextResourceLinksCommentedNodes1.get(i);
+      for (int i = 0; i < commentedNodes.nodes.size(); i++) {
+        Node contextResourceLinkCommentedNode = commentedNodes.nodes.get(i);
         
         int serverResourceIndex = lookupFirstServerResourceIndexForContextResourceLink(serverResourceNodes, contextResourceLinkCommentedNode);
         if (serverResourceIndex != -1) {
           Node serverResourceNode = serverResourceNodes.get(serverResourceIndex);
           
-          String location = "Context.comment-" + commentIndex + ".ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
+          String location = "Context.comment-" + commentedNodes.commentIndex + ".ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
           
           baseConnections0.put(location, 
               new ContextResourceLinkConnection(
@@ -207,19 +211,44 @@ public class TomcatConfJdbc extends TomcatConfBase {
   }
   
   /**
-   * @return Map&lt;index of comment in Context document, List of Resources within the comment&gt;
+   * List of nodes inside an <code>&lt;UnfoldedComment&gt;</code> node
    */
-  private Map<Integer, List<Node>> getContextResourceCommentedNodes() {
+  private static class NodesInUnfoldedComment {
+    /**
+     * May be null (means that the node has been commented after the indexes assigned)
+     */
+    public final Integer commentIndex;
+    /**
+     * The list of nodes inside the <code>&lt;UnfoldedComment&gt;</code> node
+     */
+    public final List<Node> nodes;
+    
+    public NodesInUnfoldedComment(Integer commentIndex, List<Node> nodes) {
+      this.commentIndex = commentIndex;
+      this.nodes = nodes;
+    }
+  }
+  
+  /**
+   * @return list of Resource nodes within the UnfoldedComment nodes
+   */
+  private List<NodesInUnfoldedComment> getContextResourceCommentedNodes() {
     try {
       final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
           "Context/UnfoldedComment");
       NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      Map<Integer, List<Node>> res = new HashMap<>();
+      List<NodesInUnfoldedComment> res = new ArrayList<>();
       for (int k = 0; k < ucNodeList.getLength(); k++) {
         Node ucNode = ucNodeList.item(k);
         
-        final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
+        final Integer ucIndex;
+        final String commentIndex = ((Element)ucNode).getAttribute("commentIndex");
+        if (commentIndex == null || "".equals(commentIndex)) {
+          ucIndex = null;
+        } else {
+          ucIndex = Integer.parseInt(commentIndex);
+        }
         
         final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
             "Context/UnfoldedComment[" + (k + 1) + "]/Resource");
@@ -227,7 +256,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
         
         if (nodeList.getLength() > 0) {
           List<Node> res1 = NodeUtils.nodeListToList(nodeList);
-          res.put(ucIndex, res1);
+          res.add(new NodesInUnfoldedComment(ucIndex, res1));
         }
       }
       return res;
@@ -239,19 +268,25 @@ public class TomcatConfJdbc extends TomcatConfBase {
   }
   
   /**
-   * @return Map&lt;Index of comment in Context document, List of ResourceLinks within the comment&gt;
+   * @return list of ResourceLink nodes within the UnfoldedComment nodes
    */
-  private Map<Integer, List<Node>> getContextResourceLinkCommentedNodes() {
+  private List<NodesInUnfoldedComment> getContextResourceLinkCommentedNodes() {
     try {
       final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
           "Context/UnfoldedComment");
       NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      Map<Integer, List<Node>> res = new HashMap<>();
+      List<NodesInUnfoldedComment> res = new ArrayList<>();
       for (int k = 0; k < ucNodeList.getLength(); k++) {
         Node ucNode = ucNodeList.item(k);
         
-        final int ucIndex = Integer.parseInt(((Element)ucNode).getAttribute("commentIndex"));
+        final Integer ucIndex;
+        final String commentIndex = ((Element)ucNode).getAttribute("commentIndex");
+        if (commentIndex == null || "".equals(commentIndex)) {
+          ucIndex = null;
+        } else {
+          ucIndex = Integer.parseInt(commentIndex);
+        }
         
         final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
             "Context/UnfoldedComment[" + (k + 1) + "]/ResourceLink");
@@ -259,7 +294,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
         
         if (nodeList.getLength() > 0) {
           List<Node> res1 = NodeUtils.nodeListToList(nodeList);
-          res.put(ucIndex, res1);
+          res.add(new NodesInUnfoldedComment(ucIndex, res1));
         }
       }
       return res;
@@ -359,22 +394,22 @@ public class TomcatConfJdbc extends TomcatConfBase {
   public void deleteDuplicates() {
     // context Resources
     List<Node> contextResourceNodes = getContextResourceNodes();
-    Map<Integer, List<Node>> contextResourceCommentedNodes = getContextResourceCommentedNodes();
+    List<NodesInUnfoldedComment> contextResourceCommentedNodes = getContextResourceCommentedNodes();
     
     List<Node> allContextResourceNodes = new ArrayList<>();
     allContextResourceNodes.addAll(contextResourceNodes);
-    contextResourceCommentedNodes.values().forEach(collection -> allContextResourceNodes.addAll(collection));
+    contextResourceCommentedNodes.forEach(commentedNodes -> allContextResourceNodes.addAll(commentedNodes.nodes));
     
     deleteDuplicates(allContextResourceNodes);
     
     
     // context ResourceLinks
     List<Node> contextResourceLinkNodes = getContextResourceLinkNodes();
-    Map<Integer, List<Node>> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
+    List<NodesInUnfoldedComment> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
     
     List<Node> allContextResourceLinkNodes = new ArrayList<>();
     allContextResourceLinkNodes.addAll(contextResourceLinkNodes);
-    contextResourceLinksCommentedNodes.values().forEach(collection -> allContextResourceLinkNodes.addAll(collection));
+    contextResourceLinksCommentedNodes.forEach(commentedNodes -> allContextResourceLinkNodes.addAll(commentedNodes.nodes));
     
     deleteDuplicates(allContextResourceLinkNodes);
     
