@@ -26,7 +26,7 @@ public class BasicEnvironment implements Environment {
     final String confDirectory = request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.confDirectory");
     if (confDirectory == null) {
       throw new RuntimeException("Misconfiguration exception: "
-          + "org.jepria.httpd.apache.manager.web.confDirectory context-param not specified in web.xml");
+          + " mandatory org.jepria.httpd.apache.manager.web.confDirectory context-param is not specified in web.xml");
     }
     final File confDirectoryFile = new File(confDirectory);
     if (!confDirectoryFile.isDirectory() || !confDirectoryFile.canRead()) {
@@ -48,7 +48,7 @@ public class BasicEnvironment implements Environment {
     try {
       return new FileOutputStream(mod_jk_conf);
     } catch (FileNotFoundException e) {
-      throw misconfiguration("");
+      throw new RuntimeException(e);//TODO?
     }
   }
   
@@ -77,10 +77,5 @@ public class BasicEnvironment implements Environment {
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }
-  }
-  
-  protected static RuntimeException misconfiguration(String message) {
-    throw new RuntimeException("Misconfiguration exception" 
-        + (message == null ? "" : (": " + message)));
   }
 }
