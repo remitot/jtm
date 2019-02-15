@@ -1,5 +1,12 @@
 <web-app>
 
+<!-- 
+  <context-param>
+    <param-name>org.jepria.tomcat.manager.web.managerApacheHref</param-name>
+    <param-value>/manager-apache</param-value>
+  </context-param>
+-->
+  
   <session-config>
     <session-timeout>10</session-timeout>
   </session-config>

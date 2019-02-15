@@ -1,11 +1,15 @@
-<!-- 
-  <%-- for correct cyrillic display while including as jsp --%>
-  <%@ page contentType="text/html; charset=UTF-8" %> 
--->
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<%
+  String managerApacheHref = request.getServletContext().getInitParameter("org.jepria.tomcat.manager.web.managerApacheHref");
+  if (managerApacheHref == null) {
+    managerApacheHref = "/manager-apache";
+  }
+%>
 
 <div class="page-header">
   
-  <a class="page-header__menu-item" href="/manager-apache">Apache HTTPD</a> <!-- NON-NLS -->
+  <a class="page-header__menu-item" href="<%= managerApacheHref %>">Apache HTTPD</a> <!-- NON-NLS -->
   &emsp;&emsp;&emsp;
   <a class="page-header__menu-item" href="jdbc">JDBC коннекты</a> <!-- NON-NLS -->
   &emsp;

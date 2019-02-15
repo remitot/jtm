@@ -19,7 +19,7 @@
   
   <body onload="table_reload();jtm_onload();">
     
-    <%@ include file="/gui/page-header.fragment.html" %>
+    <%@ include file="/gui/page-header.fragment.jsp" %>
      
     <div id="statusBar" class="statusBar statusBar-none"></div>
   
