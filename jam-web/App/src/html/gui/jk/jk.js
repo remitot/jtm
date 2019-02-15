@@ -48,7 +48,7 @@ function createHeader() {
 }
 
 /* @Override from table.js */
-function validate(fieldName, fieldValue) {
+function clientValidate(fieldName, fieldValue) {
   if (fieldName === "application") {
     if (!fieldValue) {
       return false;
@@ -62,7 +62,7 @@ function validate(fieldName, fieldValue) {
 }
 
 /* @Override from table.js */
-function getInvalidFieldMessage(fieldName, errorCode, errorMessage) {
+function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
   if (fieldName == "instance") {
     if (errorCode) {
       if (errorMessage) {

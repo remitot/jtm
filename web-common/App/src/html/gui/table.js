@@ -30,11 +30,23 @@ function onAfterRefillGrid() {}
  * @param fieldValue
  * @returns true or false
  */
-function validate(fieldName, fieldValue) {
+function clientValidate(fieldName, fieldValue) {
   return true;
 }
 
 /**
+ * For client validation (before sending data to the server)
+ * After the client validation (before a modification request has been sent to the server),
+ * this method is invoked for all invalid fields (for which clientValidate returned false)
+ * @param fieldName
+ * @returns
+ */
+function getClientInvalidFieldMessage(fieldName) {
+  return "Неподходящее значение"; // NON-NLS
+}
+
+/**
+ * For server validation (after sending data to the server).
  * After a modification request has been sent to the server and resulted INVALID_FIELD_DATA status,
  * this method is invoked for all invalid fields
  * @param fieldName
@@ -42,7 +54,7 @@ function validate(fieldName, fieldValue) {
  * @param errorCode error message related to the field
  * @returns message to display on the invalid field
  */
-function getInvalidFieldMessage(fieldName, errorCode, errorMessage) {
+function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
   return null;
 }
 
@@ -681,7 +693,7 @@ function onInvalidFieldData(modRequestId, fieldName, errorCode, errorMessage) {
       for (var j = 0; j < fields.length; j++) {
         var field = fields[j];
         if (field.getAttribute("name") == fieldName) {
-          var message = getInvalidFieldMessage(fieldName, errorCode, errorMessage);
+          var message = getServerInvalidFieldMessage(fieldName, errorCode, errorMessage);
           uiOnFieldValidate(field, false, message);
           return;
         }
@@ -825,13 +837,14 @@ function collectRowData(row) {
       // TODO workaround. If checkbox becomes a class, make its own property 'value'
       data[field.name] = field.checked;
     } else {
-      fieldValid = validate(field.name, field.value);
+      fieldValid = clientValidate(field.name, field.value);
       data[field.name] = field.value;
     }
     if (!fieldValid) {
       rowValid = false;
     }
-    uiOnFieldValidate(field, fieldValid, null);
+    var invalidMessage = getClientInvalidFieldMessage(field.name);
+    uiOnFieldValidate(field, fieldValid, invalidMessage);
   }
   
   return {rowValid: rowValid, data: data};
@@ -845,6 +858,7 @@ function collectRowData(row) {
  */
 function uiOnFieldValidate(field, fieldValid, invalidMessage) {
   if (!fieldValid) {
+    
     field.classList.add("invalid");
     if (invalidMessage) {
       field.setAttribute("title", invalidMessage);
