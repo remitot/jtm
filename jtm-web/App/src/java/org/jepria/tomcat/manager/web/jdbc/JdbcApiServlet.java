@@ -524,12 +524,13 @@ public class JdbcApiServlet extends HttpServlet {
         connectionDto = new Gson().fromJson(new InputStreamReader(req.getInputStream()), ConnectionDto.class);
         
         if (connectionDto == null) {
-          throw new IllegalStateException("connectionDto is null");
+          resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          resp.flushBuffer();
+          return;
         }
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.getOutputStream().println("Error parsing JSON request body");
         resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         resp.flushBuffer();
         return;
