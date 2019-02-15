@@ -119,7 +119,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     for (NodesInUnfoldedComment commentedNodes: contextResourceCommentedNodes) {
       if (commentedNodes.commentIndex == null) {
-        throw new IllegalStateException("All UnfoldedComments must be indexes at this point");
+        throw new IllegalStateException("All UnfoldedComments must be indexed at this point");
       }
       
       for (int i = 0; i < commentedNodes.nodes.size(); i++) {
@@ -141,7 +141,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     for (NodesInUnfoldedComment commentedNodes: contextResourceLinksCommentedNodes) {
       if (commentedNodes.commentIndex == null) {
-        throw new IllegalStateException("All UnfoldedComments must be indexes at this point");
+        throw new IllegalStateException("All UnfoldedComments must be indexed at this point");
       }
       
       for (int i = 0; i < commentedNodes.nodes.size(); i++) {
@@ -362,10 +362,6 @@ public class TomcatConfJdbc extends TomcatConfBase {
       
     } catch (XPathExpressionException e) {
       // impossible: controlled XPath expression
-      throw new RuntimeException(e);
-      
-    } catch (IOException e) {
-      //TODO
       throw new RuntimeException(e);
     }
   }
