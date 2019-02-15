@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
     } catch (WindowsCmdExecutionException e) {
       throw e;
     } catch (Throwable e) {
-      throw new RuntimeException("Error restarting service [" + serviceName + "]", e);
+      throw new WindowsCmdExecutionException("Error restarting service [" + serviceName + "]", e);
     }
   }
   
@@ -49,6 +49,9 @@ import java.util.regex.Pattern;
     private static final long serialVersionUID = -5790540321423348833L;
     public WindowsCmdExecutionException(String message) {
       super(message);
+    }
+    public WindowsCmdExecutionException(String message, Throwable cause) {
+      super(message, cause);
     }
   }
   

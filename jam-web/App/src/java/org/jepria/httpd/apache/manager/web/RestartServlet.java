@@ -14,6 +14,11 @@ public class RestartServlet extends HttpServlet {
   private static final long serialVersionUID = -5406772704670572455L;
 
   @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    doPost(req, resp);
+  }
+  
+  @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
     final String serviceName = req.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.apacheServiceName");
