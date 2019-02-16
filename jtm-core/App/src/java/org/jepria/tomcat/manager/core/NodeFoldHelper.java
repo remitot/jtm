@@ -38,9 +38,12 @@ public class NodeFoldHelper {
       
       Matcher m;
       
-      m = Pattern.compile("\\s*" + Pattern.quote("<UnfoldedComment>") + "(.*?)" + Pattern.quote("</UnfoldedComment>") + "\\s*", Pattern.DOTALL).matcher(unfoldedCommentAsString);
+      m = Pattern.compile("\\s*" + Pattern.quote("<UnfoldedComment>") + "\\s*(.*?)\\s*" + Pattern.quote("</UnfoldedComment>") + "\\s*", Pattern.DOTALL).matcher(unfoldedCommentAsString);
       if (m.matches()) {
         commentContent = m.group(1);
+        if ("".equals(commentContent)) {
+          return null;
+        }
       } else {
         m = Pattern.compile("\\s*" + Pattern.quote("<UnfoldedComment/>") + "\\s*", Pattern.DOTALL).matcher(unfoldedCommentAsString);
         if (m.matches()) {
@@ -49,15 +52,7 @@ public class NodeFoldHelper {
           throw new IllegalStateException("Unable to fold the node [" + unfoldedCommentAsString + "] as an UnfoldedComment");
         }
       }
-      
 
-      // trim
-      m = Pattern.compile("\\s*", Pattern.DOTALL).matcher(commentContent);
-      if (m.matches()) {
-        // comment content is empty
-        return null;
-      }
-      
       return node.getOwnerDocument().createComment(commentContent);
       
     } else {
