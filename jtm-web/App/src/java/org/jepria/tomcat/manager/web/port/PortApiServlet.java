@@ -24,8 +24,7 @@ public class PortApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2791033129244689227L;
 
-  private static void port(HttpServletRequest req, HttpServletResponse resp,
-      String type) throws IOException {
+  private static void portHttp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("text/plain; charset=UTF-8");
@@ -38,10 +37,51 @@ public class PortApiServlet extends HttpServlet {
           () -> environment.getContextXmlInputStream(), 
           () -> environment.getServerXmlInputStream());
       
-      PortDto port = getPort(tomcatConf, type);
+      PortDto port = getPort(tomcatConf, "HTTP/1.1");
 
       if (port == null) {
-        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        // the server is requred to have its HTTP port defined
+        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        resp.flushBuffer();
+        return;
+        
+      } else {
+        
+        resp.getWriter().print(port.getNumber());
+        
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.flushBuffer();
+        return;
+      }
+
+    } catch (Throwable e) {
+      e.printStackTrace();
+
+      // response body must either be empty or match the declared content type
+      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      resp.flushBuffer();
+      return;
+    }
+  }
+  
+  private static void portAjp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    
+    // the content type is defined for the entire method
+    resp.setContentType("text/plain; charset=UTF-8");
+    
+    try {
+      
+      Environment environment = EnvironmentFactory.get(req);
+      
+      TomcatConfPort tomcatConf = new TomcatConfPort(
+          () -> environment.getContextXmlInputStream(), 
+          () -> environment.getServerXmlInputStream());
+      
+      PortDto port = getPort(tomcatConf, "AJP/1.3");
+
+      if (port == null) {
+        // the server is requred to have its AJP port defined
+        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         resp.flushBuffer();
         return;
         
@@ -142,11 +182,11 @@ public class PortApiServlet extends HttpServlet {
       return;
       
     } else if ("/http".equals(path)) {
-      port(req, resp, "HTTP/1.1");
+      portHttp(req, resp);
       return;
       
     } else if ("/ajp".equals(path)) {
-      port(req, resp, "AJP/1.3");
+      portAjp(req, resp);
       return;
       
     } else {
