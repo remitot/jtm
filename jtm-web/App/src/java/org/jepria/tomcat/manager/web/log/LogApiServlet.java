@@ -204,25 +204,25 @@ public class LogApiServlet extends HttpServlet {
             
             final Integer lastModifiedAgoVerb;
             final long lastModifiedAgo = System.currentTimeMillis() - lastModified.getTime();
-            if (lastModifiedAgo < 10000) {
+            if (lastModifiedAgo <= 10000) {
               lastModifiedAgoVerb = 1;
-            } else if (lastModifiedAgo < 90000) {
+            } else if (lastModifiedAgo <= 90000) {
               lastModifiedAgoVerb = 2;
-            } else if (lastModifiedAgo < 150000) {
+            } else if (lastModifiedAgo <= 150000) {
               lastModifiedAgoVerb = 3;
-            } else if (lastModifiedAgo < 210000) {
+            } else if (lastModifiedAgo <= 210000) {
               lastModifiedAgoVerb = 4;
-            } else if (lastModifiedAgo < 450000) {
+            } else if (lastModifiedAgo <= 450000) {
               lastModifiedAgoVerb = 5;
-            } else if (lastModifiedAgo < 900000) {
+            } else if (lastModifiedAgo <= 900000) {
               lastModifiedAgoVerb = 6;
-            } else if (lastModifiedAgo < 2700000) {
+            } else if (lastModifiedAgo <= 2700000) {
               lastModifiedAgoVerb = 7;
-            } else if (lastModifiedAgo < 5400000) {
+            } else if (lastModifiedAgo <= 5400000) {
               lastModifiedAgoVerb = 8;
-            } else if (lastModifiedAgo < 9000000) {
+            } else if (lastModifiedAgo <= 9000000) {
               lastModifiedAgoVerb = 9;
-            } else if (lastModifiedAgo < 12600000) {
+            } else if (lastModifiedAgo <= 12600000) {
               lastModifiedAgoVerb = 10;
             } else if (todayDateLocal.equals(lastModifiedDateLocal)) {
               // modified locally today
