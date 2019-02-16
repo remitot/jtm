@@ -6,11 +6,14 @@ import org.w3c.dom.Node;
 
 /*package*/class ContextResourceConnection extends BaseConnection {
 
+  /**
+   * Context/Resource node
+   */
   private Element contextResourceNode;
   
   private boolean active = true;
   
-  /*package*/ContextResourceConnection(
+  public ContextResourceConnection(
       Node contextResourceNode, boolean active) {
     this.contextResourceNode = (Element)contextResourceNode;
     this.active = active;
@@ -24,16 +27,16 @@ import org.w3c.dom.Node;
   @Override
   public void setActive(boolean active) {
     if (!this.active && active) {
-      
       // on activate
+      
       Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(contextResourceNode);
       contextResourceNode = (Element)uncommented;
       
       this.active = active;
       
     } else if (this.active && !active) {
-      
       // on deactivate
+      
       Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(contextResourceNode);
       contextResourceNode = (Element)commented;
       
