@@ -1,582 +1,387 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>JTM API</title>
+    <title>Jepria Tomcat Manager API</title>
   </head>
   <body>
-    <h1>API</h1>
+    <h1>Jepria Tomcat Manager API</h1>
     <h2>General</h2>
+    
+    
     <h3>Login</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>POST</code> or <code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/login</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td><code>username=<i>username</i></code>, <code>password=<i>password</i></code></td>
-        </tr>
-        <tr>
-          <td>Request body</td>
-          <td>empty body</td>
-        </tr>
-        <tr>
-          <td>Response</td>
-          <td>empty body
-            <br/><br/>
-            If login succeeds,
-            the 200 status will be returned.
-            <br/><br/>
-            If either <code>username</code> or <code>password</code> request parameter is empty, 
-            the 400 status will be returned.
-            <br/><br/>
-            If authorization fails, 
-            the 401 status will be returned.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-        </tr>
-        <tr>
-          <td><code>/api/login?username=admin&password=admin</code></td>
-        </tr>
-      </tbody>
-    </table>
+    Method: <code>POST</code> or <code>GET</code>
+    <br/>
+    Url: <code>/api/login</code>
+    <br/>
+    Request params:
+    <ul>
+      <li><code>username</code>: string, mandatory</li>
+      <li><code>password</code>: string, mandatory</li>
+    </ul>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+      <li><code>400</code> if mandatory request parameter is empty</li>
+      <li><code>401</code> if authorization fails</li>
+    </ul>
+    Response body: none
+    <h4>Example</h4>
+    Request: <code>/api/login?username=admin&password=admin</code>
+    <br/>
+    Response: <code>200</code>
+    
+    
     <h3>Logout</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>POST</code> or <code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/logout</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td>none</td>
-        </tr>
-        <tr>
-          <td>Request body</td>
-          <td>empty body</td>
-        </tr>
-        <tr>
-          <td>Response</td>
-          <td>empty body
-            <br/><br/>
-            If logout succeeds,
-            the 200 status will be returned.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-        </tr>
-        <tr>
-          <td><code>/api/logout</code></td>
-        </tr>
-      </tbody>
-    </table>
+    Method: <code>POST</code> or <code>GET</code>
+    <br/>
+    Url: <code>/api/logout</code>
+    <br/>
+    Request params: none
+    <br/>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+    </ul>
+    Response body: none
+    <h4>Example</h4>
+    Request: <code>/api/logout</code>
+    Response: <code>200</code>
+    
+    
     <h2>JDBC</h2>
     <h3>Get list of connection descriptions</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/jdbc/list</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td>none</td>
-        </tr>
-        <tr>
-          <td>Response (application/json UTF-8)</td>
-          <td>list of connection descriptions
-            <pre>
+    Method: <code>GET</code>
+    <br/>
+    Url: <code>/api/jdbc/list</code>
+    <br/>
+    Request params: none
+    <br/>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+    </ul>
+    Response body (<code>application/json UTF-8</code>):
+    <p><pre>
 {
   "_list": [
     {
-      "location": <i>string</i>,
-      "active": <i>boolean</i>,
-      "name": <i>string</i>,
-      "server": <i>string</i>,
-      "db": <i>string</i>,
-      "user": <i>string</i>,
-      "password": <i>string</i>
+      "location": /string, location that identifies the connection in internal configuration files (acts as connection ID)/,
+      "active": /boolean, whether the connection is commented in internal configuration files/,
+      "name": /string, datasource name/,
+      "server": /string, database server and port number/,
+      "db": /string, database name/,
+      "user": /string, database user/,
+      "password": /string, database password/
     },...
   ]
-}
-            </pre>
-            If there are no connections, the <code>"_list"</code>
-            element will have the value of an empty array:
-            <pre>
+}</pre>
+    </p>
+    <p>If there are no connections, the <code>"_list"</code> element will have the value of an empty array:<pre>
 {
   "_list": []
-}
-            </pre>
-            Returning the list under the "_list" key instead of plain JSON array
-            used for maintaining the common response structure with other method responses.
-          </td> 
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-          <th>Response</t>
-        </tr>
-        <tr>
-          <td><code>/api/jdbc/list</code></td>
-          <td>
-            <pre>
+}</pre></p>
+
+    <h4>Example</h4>
+    Request: <code>/api/jdbc/list</code>
+    <br/>
+    Response: <code>200</code><pre>
 {
-  "_list": [
-    {
-      "location": "Context.ResourceLink-0__Server.Resource-0",
-      "active": true,
-      "name": "jdbc/MyDataSource",
-      "server": "mydbserver.com:1521",
-      "db": "MYDATABASE",
-      "user": "me",
-      "password": "mysecret"
-    },
-    {
-      "location": "Context.ResourceLink-1__Server.Resource-1",
-      "active": true,
-      "name": "jdbc/YourDataSource",
-      "server": "yourdbserver.com:1521",
-      "db": "YOURDATABASE",
-      "user": "you",
-      "password": "yoursecret"
-    }
-  ]
-}
-            </pre> 
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h3>Modify connections</h3>
-    Modify existing connections
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>POST</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/jdbc/mod</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td>none</td>
-        </tr>
-        <tr>
-          <td>Request body</td>
-          <td>
-            list of connection modification requests (modRequests),
-            where each element is a modRequest consisting of 
-            a <code>modRequestId</code> (arbitrary value but unique over the entire list)
-            and a <code>modRequestBody</code>, representing one of the three modification requests:
-            <table border="1" style="margin: 10px;">
-              <tbody>
-                <tr>
-                  <th>Update connection</th>
-                  <th>Delete connection</th>
-                  <th>Create connection</th>
-                </tr>
-                <tr>
-                  <td>
-                    <pre>
-{
-  "action": "update",
-  "location": <i>string</i>,
-  "data": {
-    "active": <i>boolean (optional)</i>,
-    "name": <i>string (optional)</i>,
-    "server": <i>string (optional)</i>,
-    "db": <i>string (optional)</i>,
-    "user": <i>string (optional)</i>,
-    "password": <i>string (optional)</i>
-  }
-}
-                </pre>
-                  </td>
-                  <td>
-                    <pre>
-{
-  "action": "delete",
-  "location": <i>string</i>
-}
-                </pre>
-                  </td>
-                  <td>
-                    <pre>
-{
-  "action": "create",
-  "data": {
-    "active": <i>boolean</i>,
-    "name": <i>string</i>,
-    "server": <i>string</i>,
-    "db": <i>string</i>,
-    "user": <i>string</i>,
-    "password": <i>string</i>
-  }
-}
-                </pre>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td>Response (application/json UTF-8)</td>
-          <td>
-            <pre>
-{
-  "modStatusList": 
-      <i>list of statuses corresponding to the list of connection modification requests,  
-      where each element is a modStatus consisting of 
-      a <code>modRequestId</code> (matching by the <code>modRequestId</code> values from the request),
-      a <code>modStatusCode</code>,
-      and a <code>modStatusMessage</code> (a description of the status)</i>
-       
-  "_list": 
-      <i>the full list of connections after all modifications performed, 
-      analogous to the response of /api/jdbc/list</i>
-}       </pre>
-            <br /> The <code>modStatusCode</code> values are:
-            <ul>
-              <li><code>0</code>: <code>SUCCESS</code></li>
-              <li><code>1</code>: <code>ERROR</code>: no connection
-                found by <code>"location"</code>
-              </li>
-              <li><code>2</code>: <code>ERROR</code>: <code>"location"</code>
-                is empty
-              </li>
-              <li><code>3</code>: <code>ERROR</code>: some mandatory
-                fields in <code>"data"</code> are empty
-              </li>
-              <li><code>4</code>: <code>ERROR</code>: illegal <code>"action"</code>
-                value
-              </li>
-              <li><code>5</code>: <code>ERROR</code>: internal error</li>
-            </ul>
-            If the error occures while parsing the request body JSON, 
-            the 400 status will be returned.
-            <br/><br/>
-            If the requested connection modification list contains
-            duplicate or empty <code>modRequestId</code> values, 
-            the 400 status will be returned.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-          <th>Response</t>
-        </tr>
-        <tr>
-          <td>
-            <pre>
-/api/jdbc/mod
-[
-  {
-    "modRequestId": <span style="color: red;">"update_1_1"</span>,
-    "modRequestBody": {
-      "action": "update",
-      "location": "Context.ResourceLink-1__Server.Resource-1",
-      "data": {
-        "active": false,
-        "name": "jdbc/YourNewDataSource",
-        "db": "YOURNEWDATABASE",
-        "password": "yournewsecret"
-      }
-    }
-  },
-  {
-    "modRequestId": <span style="color: orange;">"delete_0_0"</span>,
-    "modRequestBody": {
-      "action": "delete",
-      "location": "Context.ResourceLink-0__Server.Resource-0"
-    }
-  },
-  {
-    "modRequestId": <span style="color: green;">"create"</span>,
-    "modRequestBody": {
-      "action": "create",
-      "data": {
-        "active": true,
-        "name": "jdbc/TheirDataSource",
-        "server": "theirdbserver.com:1521",
-        "db": "THEIRDATABASE",
-        "user": "them",
-        "password": "theirsecret"
-      }
-    }
-  }
-]       </pre>
-          </td>
-          <td>
-            <pre>
-{
-  "modStatusList": [
-    {
-      "modRequestId": <span style="color: red;">"update_1_1"</span>,
-      "modStatusCode": 0,
-      "modStatusMessage": "SUCCESS"
-    },
-    {
-      "modRequestId": <span style="color: orange;">"delete_0_0"</span>,
-      "modStatusCode": 0,
-      "modStatusMessage": "SUCCESS"
-    },
-    {
-      "modRequestId": <span style="color: green;">"create"</span>,
-      "modStatusCode": 0,
-      "modStatusMessage": "SUCCESS"
-    }
-  ],
-  
   "_list": [
     {
       "location": "Context.ResourceLink-0__Server.Resource-1",
       "active": true,
-      "name": "jdbc/TheirDataSource",
-      "server": "theirdbserver.com:1521",
-      "db": "THEIRDATABASE",
-      "user": "them",
-      "password": "theirsecret"
+      "name": "jdbc/Datasource1",
+      "server": "db-server1.com:1521",
+      "db": "DATABASE1",
+      "user": "user1",
+      "password": "password1"
     },
     {
-      "location": "Context.comment-4.ResourceLink-0__Server.Resource-0",
+      "location": "Context.comment-6.ResourceLink-0__Server.Resource-2",
       "active": false,
-      "name": "jdbc/YourNewDataSource",
-      "server": "yourdbserver.com:1521",
-      "db": "YOURNEWDATABASE",
-      "user": "you",
-      "password": "yournewsecret"
+      "name": "jdbc/Datasource2",
+      "server": "db-server2.com:1521",
+      "db": "DATABASE2",
+      "user": "user2",
+      "password": "password2"
     }
   ]
-}  
-          </pre>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h3>Ensure connection</h3>
-    Ensures a connection. Unlike modifying, which manipulates existing
-    connections only, this method ensures the connection is present after
-    invocation. If there is no active connection with the same name, a new
-    active connection is created. If there is an active connection with
-    the same name, the existing connection becomes inactive, and a new
-    active connection is created.
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>POST</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/jdbc/ensure</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td>none</td>
-        </tr>
-        <tr>
-          <td>Request body</td>
-          <td>
-            A connection description (all fields are mandatory): 
-            <pre>
+}</pre>
+
+
+    <h3>Modify connections</h3>
+    <p>Update and delete existing and create new connections
+    </p>
+    Method: <code>POST</code>
+    <br/>
+    Url: <code>/api/jdbc/mod</code>
+    <br/>
+    Request params: none
+    <br/>
+    Request body (<code>application/json UTF-8</code>): list of connection modification requests (modRequests),
+    where each element is a <i>modification request</i> (described below):<pre>
+[
+  {
+    /modification request as described below/
+  },...
+]</pre>
+    <p>Modification request is an element consisting of 
+    a <code>modRequestId</code> and a <code>modRequestBody</code>, representing 
+    one of the three actions:
+    <ul>
+      <li>update<pre>
 {
-  "name": <i>string</i>,
-  "server": <i>string</i>,
-  "db": <i>string</i>,
-  "user": <i>string</i>,
-  "password": <i>string</i>
-}
-          </pre>
-          </td>
-        </tr>
-        <tr>
-          <td>Response (application/json UTF-8)</td>
-          <td>
-            <pre>
+  "modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
+  "modRequestBody": {
+    "action": "update",
+    "location": /string, mandatory, reference to the existing connection/,
+    "data": {
+      "active": /boolean, optional, new field value/,
+      "name": /string, optional, new field value/,
+      "server": /string, optional, new field value/,
+      "db": /string, optional, new field value/,
+      "user": /string, optional, new field value/,
+      "password": /string, optional, new field value/
+    }
+  }
+}</pre>
+      </li>
+      <li>delete<pre>
 {
-  "status": <i>status of the request</i>,
-  "status_message": <i>status message</i>
-}       </pre>
-            <br /> The <code>status</code> values are:
-            <ul>
-              <li><code>0</code>: <code>SUCCESS</code>: there is an
-                entirely same active connection, no modifications
-                performed
-              </li>
-              <li><code>1</code>: <code>SUCCESS</code>: there has
-                been no active connection with the same name, a new active
-                connection was created
-              </li>
-              <li><code>2</code>: <code>SUCCESS</code>: there has
-                been an active connection with the same name, the existing
-                connection made inactive, and a new active connection was
-                created
-              </li>
-              <li><code>3</code>: <code>ERROR</code>: some mandatory
-                fields are empty
-              </li>
-              <li><code>4</code>: <code>ERROR</code>: internal error</li>
-            </ul>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-          <th>Response</t>
-        </tr>
-        <tr>
-          <td>
-            <pre>
-/api/jdbc/ensure
+  "modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
+  "modRequestBody": {
+    "action": "delete",
+    "location": /string, mandatory, reference to the existing connection/
+  }
+}</pre>
+      </li>
+      <li>create<pre>
 {
-    "name": "jdbc/EnsuredDataSource",
-    "server": "theirdbserver.com:1521",
-    "db": "ENSUREDDATABASE",
-    "user": "ens",
-    "password": "ens"
-}       </pre>
-          </td>
-          <td>
-            <pre>
+  "modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
+  "modRequestBody": {
+    "action": "create",
+    "data": {
+      "active": /boolean, optional, new field value/, <span style="color: red;"><b>TODO test what if it is not specified?</b></span>
+      "name": /string, mandatory, new field value/,
+      "server": /string, mandatory, new field value/,
+      "db": /string, mandatory, new field value/,
+      "user": /string, mandatory, new field value/,
+      "password": /string, mandatory, new field value/
+    }
+  }
+}</pre>
+      </li>
+    </ul>
+    </p>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+      <li><code>400</code> if any <code>modRequestId</code> is either null or empty or not unique over the whole list</li>
+      <li><code>400</code> if an error occurres while parsing the JSON request body</li>
+    </ul>
+    Response body (<code>application/json UTF-8</code>) consists of two lists:
+    <p><ul>
+      <li>list of statuses corresponding to the list of connection modification requests,  
+      where each element is a modStatus consisting of a <code>modRequestId</code> (matching by the <code>modRequestId</code> values from the request),
+      a <code>modStatusCode</code>, and a <code>modStatusMessage</code> (a description of the status)</li>
+      <li>list of connections after all modifications performed, 
+      analogous to the response of <code>/api/jdbc/list</code></li>
+    </ul><pre>
 {
-  "status": 1,
-  "status_message": "SUCCESS: there has been no active connection with the same name, a new active connection was created"
-}  
-          </pre>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  "modStatusList": [ /array of modStatuses, of length same as list of modRequests/  
+    {
+      "modRequestId": /string, equals to one of modRequestId values from the request/,
+      "modStatusCode": /integer, the values described below/,
+      "modStatusMessage": /string, description of the <code>modStatusCode</code>/
+    },...
+  ],
+  "_list": [ /contents equal to <code>/api/jdbc/list</code> invoked after the modifications performed/
+    ...
+  ]
+}</pre>
+    </p>
+    <p><code>modStatusCode</code> values:
+    <ul>
+      <li><code>0</code>: successful modification</li>
+      <li><code>1</code>: error: no connection found by <code>location</code></li>
+      <li><code>2</code>: error: <code>"location"</code> is empty</li>
+      <li><code>3</code>: error: some mandatory fields in <code>data</code> are empty</li>
+      <li><code>4</code>: error: illegal <code>action</code> value</li>
+      <li><code>5</code>: error: unspecified (other) errors</li>
+    </ul>
+    </p>
+    
+    <h4>Example</h4>
+    Request: <code>/api/jdbc/mod</code><pre>
+[
+  {
+    "modRequestId": "Context.comment-6.ResourceLink-0__Server.Resource-2",
+    "modRequestBody": {
+      "action": "update",
+      "location": "Context.comment-6.ResourceLink-0__Server.Resource-2",
+      "data": {
+        "active": true,
+        "server": "new-db-server2.com:1521",
+        "user": "new-user2"
+      }
+    }
+  },
+  {
+    "modRequestId": "Context.ResourceLink-0__Server.Resource-1",
+    "modRequestBody": {
+      "action": "delete",
+      "location": "Context.ResourceLink-0__Server.Resource-1"
+    }
+  },
+  {
+    "modRequestId": "row-create-1",
+    "modRequestBody": {
+      "action": "create",
+      "data": {
+        "name": "jdbc/Datasource3",
+        "server": "db-server3.com:1521",
+        "db": "DATABASE3",
+        "user": "user3",
+        "password": "password3"
+      }
+    }
+  }
+]</pre>
+    Response: <code>200</code><pre>
+{
+  "_list": [
+    {
+      "location": "Context.ResourceLink-0__Server.Resource-1",
+      "active": true,
+      "name": "jdbc/Datasource2",
+      "server": "new-db-server2.com:1521",
+      "db": "DATABASE2",
+      "user": "new-user2",
+      "password": "password2"
+    },
+    {
+      "location": "Context.ResourceLink-1__Server.Resource-2",
+      "active": true,
+      "name": "jdbc/Datasource3",
+      "server": "db-server3.com:1521",
+      "db": "DATABASE3",
+      "user": "user3",
+      "password": "password3"
+    }
+  ],
+  "modStatusList": [
+    {
+      "modRequestId": "Context.comment-6.ResourceLink-0__Server.Resource-2",
+      "modStatusMessage": "SUCCESS",
+      "modStatusCode": 0
+    },
+    {
+      "modRequestId": "Context.ResourceLink-0__Server.Resource-1",
+      "modStatusMessage": "SUCCESS",
+      "modStatusCode": 0
+    },
+    {
+      "modRequestId": "row-create-1",
+      "modStatusMessage": "SUCCESS",
+      "modStatusCode": 0
+    }
+  ]
+}</pre>
+    
+
+    
     <h2>Ports</h2>
-    <h3>Get port number</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/port/http</code> or <code>/api/port/ajp</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td>none</td>
-        </tr>
-        <tr>
-          <td>Response (text/plain UTF-8)</td>
-          <td>port number<br />
-            <br/>
-            If the requested <code>type</code> is invalid or no such port defined, 
-            the 404 status will be returned.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-          <th>Response</t>
-        </tr>
-        <tr>
-          <td><code>/api/port/http</code></td>
-          <td>
-            <pre>8080</pre>
-          </td>
-        </tr>
-        <tr>
-          <td><code>/api/port/ajp</code></td>
-          <td>
-            <pre>8009</pre>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <h3>Get HTTP port number</h3>
+    <p>The method is public (not protected by authorization) to provide access to Apache Manager 
+    and because the port information is easy to discover.
+    </p>
+    Method: <code>GET</code>
+    <br/>
+    Url: <code>/api/port/http</code>
+    <br/>
+    Request params: none
+    <br/>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+      <li><code>500</code> if any error occurs (the server is requred to have its HTTP port defined)</li>
+    </ul>
+    Response body (<code>text/plain; charset=UTF-8</code>):<pre>
+/integer, port number/</pre>
+
+    <h4>Example</h4>
+    Request: <code>/api/port/http</code>
+    <br/>
+    Response: <code>200</code><pre>
+8080</pre>
+
+    <h3>Get AJP port number</h3>
+    <p>The method is public (not protected by authorization) to provide access to Apache Manager 
+    and because the port information is easy to discover.
+    </p>
+    Method: <code>GET</code>
+    <br/>
+    Url: <code>/api/port/ajp</code>
+    <br/>
+    Request params: none
+    <br/>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+      <li><code>500</code> if any error occurs (the server is requred to have its AJP port defined)</li>
+    </ul>
+    Response body (<code>text/plain; charset=UTF-8</code>):<pre>
+/integer, port number/</pre>
+
+    <h4>Example</h4>
+    Request: <code>/api/port/ajp</code>
+    <br/>
+    Response: <code>200</code><pre>
+8009</pre>
+
+
     <h3>Get list of port descriptions</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/port/list</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td>none</td>
-        </tr>
-        <tr>
-          <td>Response (application/json UTF-8)</td>
-          <td>list of ports
-            <br /><br />
-            If there are no connections, the <code>"_list"</code>
-            element will have the value of an empty array:
-            <pre>
+    Method: <code>GET</code>
+    <br/>
+    Url: <code>/api/port/list</code>
+    <br/>
+    Request params: none
+    <br/>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+    </ul>
+    Response body (<code>application/json UTF-8</code>):<pre>
+{
+  "_list": [
+    {
+      "type": /string, qualified name of the port type as defined in server configuration/,
+      "number": /integer, port number/
+    },...
+  ]
+}</pre>
+
+    If there are no ports, the <code>"_list"</code> element will have the value of an empty array:<pre>
 {
   "_list": []
-}           </pre>
-            <br /> Returning the list under the "_list" key instead of plain JSON array
-            used for maintaining the common response structure with other method responses.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-          <th>Response</t>
-        </tr>
-        <tr>
-          <td><code>/api/port/list</code></td>
-          <td>
-            <pre>
+}</pre>
+
+    <h4>Example</h4>
+    Request: <code>/api/port/list</code>
+    <br/>
+    Response: <code>200</code><pre>
 {
   "_list": [
     {
@@ -588,180 +393,181 @@
       "number": 8080
     }
   ]
-}       </pre>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+}</pre>
+        
+    
     <h2>Logs</h2>
     <h3>Get list of log files</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/log/list</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td><code>sort=<i>column1,column2,... (optional)</i></code>, <code>localTzOffset=<i>client's local time zone offset in minutes (optional)</i></code></td>
-        </tr>
-        <tr>
-          <td>Response (application/json UTF-8)</td>
-          <td>list of log files
-            <pre>
+    Method: <code>GET</code>
+    <br/>
+    Url: <code>/api/log/list</code>
+    <br/>
+    Request params:
+    <ul>
+      <li><code>sort</code>: string, optional. Comma-separated list (single or any number of elements) of <i>sort directives</i>, 
+      which will be applied to the result list subsequently, in order the directives are specified.
+      The valid sort directive values are:
+      <ul>
+        <li><code>+filename</code> or <code>filename</code>: sort ascending by file name</li>
+        <li><code>-filename</code>: sort descending by file name</li>
+        <li><code>+lastModified</code> or <code>lastModified</code>: sort ascending by the last file modification timestamp</li>
+        <li><code>-lastModified</code>: sort descending by the last file modification timestamp</li>
+      </ul>
+      If the parameter is absent or has empty value, <code>sort=-lastModified,+filename</code> is applied by default.
+      </li>
+      <li><code>localTzOffset</code>: string, optional. The local (client) TimeZone offset in minutes from <code>UTC+00:00</code>,
+      to require the server compute some <i>local</i> file properties. The value may be any integer: positive, negative, or <code>0</code>.
+      If the parameter is absent, the returned list items will contain no local file data.
+      </li>
+    </ul>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+      <li><code>400</code> if the invalid <code>sort</code> parameter value provided</li>
+      <li><code>400</code> if the <code>localTzOffset</code> parameter value provided, 
+      but it does not identify any known TimeZone offset in minutes (for example, value <code>14</code> is invalid but <code>60</code> is OK)</li>
+    </ul>
+    Response body:<pre>
 {
   "_list": [
     {
-      "name": <i>string</i>,
-      "lastModified": <i>file last modification timestamp (milliseconds since 1970)</i>,
-      "size": <i>file size in bytes</i>,
-      "local" : {
-        <i>client's local date and time values, present only if 
-        <code>localTzOffset</code> request parameter was specified</i>
-        "lastModifiedDate": <i>file last modification date in local <code>YYYY-MM-DD</code> format</i>,
-        "lastModifiedTime": <i>file last modification time in local <code>HH:MM:SS</code> format</i>,
-        "lastModifiedAgoVerb": <i>integer ID of the verb describing how long ago 
-        the last file modification happened, from 1 to 12, may be missing (means too long ago)</i>
+      "name": /string, log file name/,
+      "lastModified": /long, file's last modification date, in milliseconds since 1970/
+      "size": /long, size of the file in bytes/,
+      "local": { /the element is only present if <code>localTzOffset</code> request parameter is specified. Some local file data. 
+          All that data may be computed on the client, too (using the <code>lastModified</code> returned value), but it also can be done by the server/
+        "lastModifiedDate": /date string in format "YYYY-MM-DD", file's last modification date in local TimeZone/,
+        "lastModifiedTime": /time string in format "HH:MM:SS", file's last modification time in local TimeZone/,
+        "lastModifiedAgoVerb": /integer verb ID, describing how long ago the file's last modification performed. The values described below/
       }
     },...
   ]
-}
-            </pre>
-            <br /><br />
-            The <code>sort</code> parameter defines the order of items in the response list.
-            The parameter allows a single value or multiple values, comma separated.
-            Sorting by multiple columns will be applied subsequently,
-            in the order the values are specified. 
-            The valid values are: 
-            <ul>
-              <li><code>+filename</code> or <code>filename</code>: sort ascending by file name</li>
-              <li><code>-filename</code>: sort descending by file name</li>
-              <li><code>+lastModified</code> or <code>lastModified</code>: sort ascending by the last file modification timestamp</li>
-              <li><code>-lastModified</code>: sort descending by the last file modification timestamp</li>
-            </ul>
-            Missing <code>sort</code> parameter or the empty value equals to 
-            <code>sort=-lastModified,+filename</code> parameter.
-            <br/><br/> 
-            If the invalid <code>sort</code> parameter value provided,
-            or the error occures while parsing the values, 
-            the 400 status will be returned.
-            <br/><br/>
-            If the invalid <code>localTzOffset</code> request parameter provided, 
-            or no real TimeZone found by such offset, the 400 status will be returned.
-            <br /><br />
-            If there are no log files, the <code>"_list"</code>
-            element will have the value of an empty array:
-            <pre>
+}</pre>
+
+    <code>lastModifiedAgoVerb</code> values:
+    <ul>
+      <li><code>1</code>: at most 10 seconds ago, <i>just now</i></li>
+      <li><code>2</code>: at most 90 seconds ago, <i>a minute ago</i></li>
+      <li><code>3</code>: at most 150 seconds ago, <i>two minutes ago</i></li>
+      <li><code>4</code>: at most 210 seconds ago, <i>three minutes ago</i></li>
+      <li><code>5</code>: at most 450 seconds ago, <i>five minutes ago</i></li>
+      <li><code>6</code>: at most 900 seconds ago, <i>ten minutes ago</i></li>
+      <li><code>7</code>: at most 2700 ago, <i>half an hour ago</i></li>
+      <li><code>8</code>: at most 5400 ago, <i>an hour ago</i></li>
+      <li><code>9</code>: at most 9000 ago, <i>two hours ago</i></li>
+      <li><code>10</code>: at most 12600 ago, <i>three hours ago</i></li>
+      <li><code>11</code>: locally today</li>
+      <li><code>12</code>: locally yesterday</li>
+    </ul>
+    If there are no log files, the <code>"_list"</code> element will have the value of an empty array:<pre>
 {
   "_list": []
-}        </pre>
-            <br /> Returning the list under the "_list" key instead of plain JSON array
-            used for maintaining the common response structure with other method responses.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-          <th>Response</t>
-        </tr>
-        <tr>
-          <td><code>/api/log/list?localTzOffset=180</code> 
-          <br/><i>(means GMT+03:00 timezone)</i></td>
-          <td>
-            <pre>
+}</pre>
+    <h4>Example</h4>
+    Request: <code>/api/log/list?localTzOffset=180</code> <i>(GMT+03:00)</i>
+    <br/>
+    Response: <code>200</code><pre>
 {
   "_list": [
     {
-      "name": "catalina.out",
-      "lastModified": 978426000000,
+      "name": "localhost.log",
+      "lastModified": 1550321025291,
       "local": {
-        "lastModifiedDate": "2001-01-02",
-        "lastModifiedTime": "12:00:00"
+        "lastModifiedDate": "2019-02-16",
+        "lastModifiedTime": "15:43:45",
+        "lastModifiedAgoVerb": 5
       },
-      "size": 4197
+      "size": 496
     },
     {
-      "name": "localhost_access_log.2000-01-01.txt",
-      "lastModified": 946717200000,
+      "name": "localhost_access_log.txt",
+      "lastModified": 1550320815492,
       "local": {
-        "lastModifiedDate": "2000-01-01",
-        "lastModifiedTime": "12:00:00"
+        "lastModifiedDate": "2019-02-16",
+        "lastModifiedTime": "15:40:15",
+        "lastModifiedAgoVerb": 5
       },
-      "size": 587
+      "size": 5551
+    },
+    {
+      "name": "catalina.log",
+      "lastModified": 1550320805010,
+      "local": {
+        "lastModifiedDate": "2019-02-16",
+        "lastModifiedTime": "15:40:05",
+        "lastModifiedAgoVerb": 6
+      },
+      "size": 197563
     }
   ]
-}           </pre>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+}</pre>
+    Request: <code>/api/log/list</code>
+    <br/>
+    Response: <code>200</code><pre>
+{
+    "_list": [
+        {
+            "name": "localhost.log",
+            "lastModified": 1550321025291,
+            "size": 496
+        },
+        {
+            "name": "localhost_access_log.txt",
+            "lastModified": 1550320815492,
+            "size": 5551
+        },
+        {
+            "name": "catalina.log",
+            "lastModified": 1550320805010,
+            "size": 197563
+        }
+    ]
+}</pre>    
+    
+
     <h3>Get log file contents</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/log</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td><code>filename=<i>filename</i></code>, <code>inline <i>(optional)</i></code></td>
-        </tr>
-        <tr>
-          <td>Response (text/plain UTF-8)</td>
-          <td>log file contents
-            <br /><br />
-            The <code>inline</code> parameter is boolean: it may have (but does not require) any value.
-            If the parameter is present, 
-            the response <code>Content-Disposition</code> header will be set to <code>inline</code>,
-            otherwise to <code>attachment</code>.
-            <br/><br/>
-            If the <code>filename</code> request parameter is empty, 
-            the 400 status will be returned.
-            <br/><br/>
-            If the requested <code>filename</code> contains <code>/</code> or <code>\</code> character, 
-            the 400 status will be returned (browsing is not allowed).
-            <br/><br/>
-            If the requested <code>filename</code> does not exist or the file is not readable, 
-            the 400 status will be returned.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-          <th>Response</t>
-        </tr>
-        <tr>
-          <td><code>/api/log?filename=localhost_access_log.2000-01-01.txt&inline</code></td>
-          <td>
-            <pre>
-127.0.0.1 - admin [01/Jan/2000:00:00:00 +0300] "GET /application HTTP/1.1" 200 1000
-127.0.0.1 - admin [01/Jan/2000:02:00:00 +0300] "GET /application HTTP/1.1" 200 1000
-127.0.0.1 - admin [01/Jan/2000:04:00:00 +0300] "GET /application HTTP/1.1" 200 1000
-127.0.0.1 - admin [01/Jan/2000:06:00:00 +0300] "GET /application HTTP/1.1" 200 1000
-127.0.0.1 - admin [01/Jan/2000:08:00:00 +0300] "GET /application HTTP/1.1" 200 1000
-127.0.0.1 - admin [01/Jan/2000:10:00:00 +0300] "GET /application HTTP/1.1" 200 1000
-127.0.0.1 - admin [01/Jan/2000:12:00:00 +0300] "GET /application HTTP/1.1" 200 1000
-            </pre>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    Method: <code>GET</code>
+    <br/>
+    Url: <code>/api/log</code>
+    <br/>
+    Request params:
+    <ul>
+      <li><code>filename</code>: string, mandatory, the existing log file name to get contents</li>
+      <li><code>inline</code>: optional. If the parameter is present (or has any value), the response header <code>Content-Disposition: inline</code> will be set 
+      (thus, the client user agent will itself display the contents). If the parameter is not present, the response header <code>Content-Disposition: attachment; filename=<i>filename</i></code> will be set
+      (thus, the client user agent will ask to download the contents).</li>
+    </ul>
+    Request body: none
+    <br/>
+    Response statuses: 
+    <ul>
+      <li><code>200</code> success</li>
+      <li><code>400</code> if either the <code>filename</code> request parameter is not present, or empty, 
+      or contains disallowed symbols <code>/</code> or <code>\</code> (tries to navigate the file system),
+      or does not denote an existing log file (the existing files are listed by <code>/api/log/list</code>)</li>
+    </ul>
+    Response body (<code>text/plain UTF-8</code>):<pre>
+/file contents/</pre>
+
+    <h4>Example</h4>
+    Request: <code>/api/log?filename=localhost.log&inline</code>
+    <br/>
+    Response: <code>200</code><pre>
+feb 16, 2019 3:43:40 PM org.apache.catalina.authenticator.SingleSignOn expire
+WARNING: SSO unable to expire session [Host: [*********], Context: [/*******], SessionID: [45185DA5E8693EACD937F160C3D13B37]] because the Session could not be found
+feb 16, 2019 3:43:44 PM org.apache.catalina.authenticator.SingleSignOn expire
+WARNING: SSO unable to expire session [Host: [*********], Context: [/*******], SessionID: [7A1BF0E2A900FDDF0766F37EFBE1DC10]] because the Session could not be found
+VARIABLES</pre>
+
   </body>
+  
+  <style>
+pre {
+  background-color: #cecece;
+}
+  </style>
+  
 </html>
 
