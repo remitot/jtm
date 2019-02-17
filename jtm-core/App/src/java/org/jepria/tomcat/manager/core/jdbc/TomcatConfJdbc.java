@@ -8,9 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -24,7 +22,6 @@ import org.jepria.tomcat.manager.core.TomcatConfBase;
 import org.jepria.tomcat.manager.core.TransactionException;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -366,121 +363,12 @@ public class TomcatConfJdbc extends TomcatConfBase {
     }
   }
   
-  protected boolean deleteDuplicatesOnSave = true;
-  
-  public void setDeleteDuplicatesOnSave(boolean deleteDuplicatesOnSave) {
-    this.deleteDuplicatesOnSave = deleteDuplicatesOnSave;
-  }
-  
   public void save(OutputStream contextXmlOutputStream, OutputStream serverXmlOutputStream) {
   
-    if (deleteDuplicatesOnSave) {
-      deleteDuplicates();
-    }
-    
     foldContextComments();
     
     saveContext_xml(contextXmlOutputStream);
     saveServer_xml(serverXmlOutputStream);
-  }
-  
-  /**
-   * Deletes duplicate context Resources, ResourceLinks and server Resources from the documents
-   */
-  public void deleteDuplicates() {
-    // context Resources
-    List<Node> contextResourceNodes = getContextResourceNodes();
-    List<NodesInUnfoldedComment> contextResourceCommentedNodes = getContextResourceCommentedNodes();
-    
-    List<Node> allContextResourceNodes = new ArrayList<>();
-    allContextResourceNodes.addAll(contextResourceNodes);
-    contextResourceCommentedNodes.forEach(commentedNodes -> allContextResourceNodes.addAll(commentedNodes.nodes));
-    
-    deleteDuplicates(allContextResourceNodes);
-    
-    
-    // context ResourceLinks
-    List<Node> contextResourceLinkNodes = getContextResourceLinkNodes();
-    List<NodesInUnfoldedComment> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
-    
-    List<Node> allContextResourceLinkNodes = new ArrayList<>();
-    allContextResourceLinkNodes.addAll(contextResourceLinkNodes);
-    contextResourceLinksCommentedNodes.forEach(commentedNodes -> allContextResourceLinkNodes.addAll(commentedNodes.nodes));
-    
-    deleteDuplicates(allContextResourceLinkNodes);
-    
-    
-    // server Resources
-    List<Node> serverResourceNodes = getServerResourceNodes();
-    
-    deleteDuplicates(serverResourceNodes);
-  }
-  
-  /**
-   * Deletes duplicate nodes, contained in a list, from their DOM parents and from the list
-   * @param nodes
-   */
-  private static void deleteDuplicates(List<Node> nodes) {
-    List<Node> nodes1 = new ArrayList<>(nodes);
-    List<Node> distinctResourceNodes = nodes1.stream().filter(distinctNodeFilter()).collect(Collectors.toList());
-    
-    nodes1.removeAll(distinctResourceNodes);
-    for (Node node: nodes1) {
-      nodes.remove(node);
-      node.getParentNode().removeChild(node);
-    }
-  }
-  
-  /**
-   * @return predicate that used to filter a stream of nodes 
-   * (filter remains only such nodes that no pair of them gives true for {@link #nodesEqual})
-   */
-  private static Predicate<Node> distinctNodeFilter() {
-    List<Node> distinctNodes = new ArrayList<>();
-    return node -> {
-      for (Node node1: distinctNodes) {
-        if (nodesEqual(node, node1)) {
-          return false;
-        }
-      }
-      distinctNodes.add(node);
-      return true;
-    };
-  }
-  
-  /**
-   * Checks whether two nodes have same nodeName and same attributes.
-   * Does not test equality of children or any other node properties
-   * @param node1
-   * @param node2
-   * @return
-   */
-  private static boolean nodesEqual(Node node1, Node node2) {
-    if (!node1.getNodeName().equals(node2.getNodeName())) {
-      return false;
-    }
-    
-    // compare attributes
-    NamedNodeMap attrs1 = node1.getAttributes();
-    NamedNodeMap attrs2 = node2.getAttributes();
-    if (attrs1.getLength() != attrs2.getLength()) {
-      return false;
-    }
-    for (int i = 0; i < attrs1.getLength(); i++) {
-      Node attr1 = attrs1.item(i);
-      String name = attr1.getNodeName();
-      Node attr2 = attrs2.getNamedItem(name);
-      if (attr2 == null) {
-        // because attr1 != null here
-        return false;
-      }
-      String value = attr1.getNodeValue();
-      if (!value.equals(attr2.getNodeValue())) {
-        return false;
-      }
-    }
-    
-    return true;
   }
   
   protected boolean useResourceLinkOnCreateConnection = true;
