@@ -87,7 +87,7 @@ function createRow(listItem) {
   cell.classList.add("cell-field");
   field = addCheckbox(cell, listItem.active, true);
   if (!dataModifiable) {
-    setFieldReadonly(field);
+    checkbox.classList.add("readonly");
     setCheckboxEnabled(checkbox, false);
   } else {
     field.getElementsByTagName("input")[0].tabIndex = tabindex0++;
@@ -165,7 +165,7 @@ function createRow(listItem) {
 function setFieldReadonly(field) {
   field.setAttribute("readonly", "true");
   field.classList.add("readonly");
-  field.title = "Поле нередактируемо"; // NON-NLS
+  field.title = "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"; // NON-NLS
 }
 
 /* @Override from table.js */
