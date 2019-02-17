@@ -125,4 +125,14 @@ public class NodeFoldHelper {
     
     return nodeClone;
   }
+  
+  public static boolean isNodeWithinUnfoldedComment(Node node) {
+    if (node != null) {
+      Node parent = node.getParentNode();
+      if (parent != null) {
+        return "UnfoldedComment".equals(parent.getNodeName());
+      }
+    }
+    return false;
+  }
 }

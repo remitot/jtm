@@ -177,29 +177,11 @@ public class TomcatConfJdbc extends TomcatConfBase {
       for (NodeWithLocation contextResourceLinkNode: contextResourceLinks) {
         final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
         
-        for (NodeWithLocation serverResourceNode: serverResources) {
-          final String name = ((Element)serverResourceNode.node).getAttribute("name");
-          if (name.equals(global)) {
-            final String serverResourceLocation = serverResourceNode.location;
-            
-            final boolean dataModifiable;
-            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
-            if (count == null) {
-              dataModifiable = true;
-            } else {
-              dataModifiable = count.get() == 1;
-            }
-            
-            final BaseConnection resource = new ContextResourceLinkConnection(
-                contextResourceLinkNode.node, serverResourceNode.node,
-                dataModifiable, true);
-            final String location = contextResourceLinkNode.location 
-                + "+" + serverResourceLocation;
-            baseConnections.put(location, resource);
-          }
-        }
+        final List<NodeWithLocation> allServerResources = new ArrayList<>();
+        allServerResources.addAll(serverResources);
+        allServerResources.addAll(commentedServerResources);
         
-        for (NodeWithLocation serverResourceNode: commentedServerResources) {
+        for (NodeWithLocation serverResourceNode: allServerResources) {
           final String name = ((Element)serverResourceNode.node).getAttribute("name");
           if (name.equals(global)) {
             final String serverResourceLocation = serverResourceNode.location;
@@ -214,7 +196,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
             
             final BaseConnection resource = new ContextResourceLinkConnection(
                 contextResourceLinkNode.node, serverResourceNode.node,
-                dataModifiable, false);
+                dataModifiable);
             final String location = contextResourceLinkNode.location 
                 + "+" + serverResourceLocation;
             baseConnections.put(location, resource);
@@ -244,7 +226,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
             
             final BaseConnection resource = new ContextResourceLinkConnection(
                 contextResourceLinkNode.node, serverResourceNode.node,
-                dataModifiable, true);
+                dataModifiable);
             final String location = contextResourceLinkNode.location 
                 + "+" + serverResourceLocation;
             baseConnections.put(location, resource);
@@ -466,8 +448,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
    */
   private List<NodeWithLocation> getCommentedServerResources() {
     
-    if (!serverGnrCommentsUnfolded) {
-      unfoldServerGnrComments();
+    if (!serverCommentsUnfolded) {
+      unfoldServerComments();
     }
     
     try {
@@ -500,7 +482,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
   }
   
   private boolean contextCommentsUnfolded = false;
-  private boolean serverGnrCommentsUnfolded = false;
+  private boolean serverCommentsUnfolded = false;
   
   /**
    * Unfolds XML comments within the Context node:
@@ -557,7 +539,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
    *   </GlobalNamingResources>
    * </Server>
    */
-  private void unfoldServerGnrComments() {
+  private void unfoldServerComments() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Server/GlobalNamingResources/comment()");
       NodeList nodeList = (NodeList) expr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
@@ -574,7 +556,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
         comment.getParentNode().removeChild(comment);
       }
       
-      serverGnrCommentsUnfolded = true;
+      serverCommentsUnfolded = true;
       
     } catch (XPathExpressionException e) {
       // impossible: trusted XPath expression
@@ -603,8 +585,35 @@ public class TomcatConfJdbc extends TomcatConfBase {
         node.getParentNode().removeChild(node);
       }
       
+      contextCommentsUnfolded = false;
+      
     } catch (XPathExpressionException e) {
-      // impossible: controlled XPath expression
+      // impossible: trusted XPath expression
+      throw new RuntimeException(e);
+    }
+  }
+  
+  private void foldServerComments() {
+    try {
+      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Server/GlobalNamingResources/UnfoldedComment");
+      NodeList nodeList = (NodeList) expr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
+      for (int i = 0; i < nodeList.getLength(); i++) {
+        Node node = nodeList.item(i);
+        
+        // try fold comment
+        Comment comment = NodeFoldHelper.foldComment(node);
+        
+        // insert original comment instead of unfolded comment node
+        if (comment != null) {
+          node.getParentNode().insertBefore(comment, node);
+        }
+        node.getParentNode().removeChild(node);
+      }
+      
+      serverCommentsUnfolded = false;
+      
+    } catch (XPathExpressionException e) {
+      // impossible: trusted XPath expression
       throw new RuntimeException(e);
     }
   }
@@ -624,7 +633,12 @@ public class TomcatConfJdbc extends TomcatConfBase {
   
   public void save(OutputStream contextXmlOutputStream, OutputStream serverXmlOutputStream) {
   
-    foldContextComments();
+    if (contextCommentsUnfolded) {
+      foldContextComments();
+    }
+    if (serverCommentsUnfolded) {
+      foldServerComments();
+    }
     
     saveContext_xml(contextXmlOutputStream);
     saveServer_xml(serverXmlOutputStream);
@@ -705,7 +719,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
       Node serverResourceRoot = (Node)serverResourceRootExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
       serverResourceRoot.appendChild(serverResourceNode);
       
-      return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true, true);
+      return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true);
       
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);

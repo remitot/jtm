@@ -400,8 +400,9 @@ public class JdbcApiServlet extends HttpServlet {
    */
   private static ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
     if (!target.isDataModifiable() && (
-        sourceDto.getServer() != null || sourceDto.getDb() != null
-        || sourceDto.getUser() != null || sourceDto.getPassword() != null)) {
+        sourceDto.getActive() != null || sourceDto.getServer() != null 
+        || sourceDto.getDb() != null || sourceDto.getUser() != null
+        || sourceDto.getPassword() != null)) {
       return ModStatus.errDataNotModifiable();
     }
     

@@ -10,15 +10,18 @@ import org.w3c.dom.Node;
   private Element serverResourceNode;
   
   private final boolean dataModifiable;
-  private boolean active = true;
+  private boolean active;
   
   /*package*/ContextResourceLinkConnection(
       Node contextResourceLinkNode, Node serverResourceNode,
-      boolean dataModifiable, boolean active) {
+      boolean dataModifiable) {
     this.contextResourceLinkNode = (Element)contextResourceLinkNode;
     this.serverResourceNode = (Element)serverResourceNode;
     this.dataModifiable = dataModifiable;
-    this.active = active;
+    
+    // determine the active state
+    this.active = !NodeFoldHelper.isNodeWithinUnfoldedComment(contextResourceLinkNode)
+        && !NodeFoldHelper.isNodeWithinUnfoldedComment(serverResourceNode);
   }
   
   @Override
@@ -35,15 +38,27 @@ import org.w3c.dom.Node;
   public void setActive(boolean active) {
     if (!this.active && active) {
       // on activate
-      Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(contextResourceLinkNode);
-      contextResourceLinkNode = (Element)uncommented;
+      if (NodeFoldHelper.isNodeWithinUnfoldedComment(contextResourceLinkNode)) {
+        Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(contextResourceLinkNode);
+        contextResourceLinkNode = (Element)uncommented;
+      }
+      if (NodeFoldHelper.isNodeWithinUnfoldedComment(serverResourceNode)) {
+        Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(serverResourceNode);
+        serverResourceNode = (Element)uncommented;
+      }
       
       this.active = active;
       
     } else if (this.active && !active) {
       // on deactivate
-      Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(contextResourceLinkNode);
-      contextResourceLinkNode = (Element)commented;
+      if (!NodeFoldHelper.isNodeWithinUnfoldedComment(contextResourceLinkNode)) {
+        Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(contextResourceLinkNode);
+        contextResourceLinkNode = (Element)commented;
+      }
+      if (!NodeFoldHelper.isNodeWithinUnfoldedComment(serverResourceNode)) {
+        Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(serverResourceNode);
+        serverResourceNode = (Element)commented;
+      }
       
       this.active = active;
     }

@@ -79,12 +79,20 @@ function createRow(listItem) {
   row.classList.add("row");
   row.setAttribute("item-location", listItem.location);
   
+  var field;
+  
   // active
   cell = createCell(row, "column-active");
   cell.classList.add("column-left");
   cell.classList.add("cell-field");
-  addCheckbox(cell, listItem.active, true);
-  cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  field = addCheckbox(cell, listItem.active, true);
+  if (!dataModifiable) {
+    setFieldReadonly(field);
+    setCheckboxEnabled(checkbox, false);
+  } else {
+    field.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  }
+  
   if (!listItem.active) {
     row.classList.add("inactive");
   }
@@ -111,8 +119,9 @@ function createRow(listItem) {
   field.setAttribute("value-original", listItem.server);
   if (!dataModifiable) {
     setFieldReadonly(field);
+  } else {
+    field.tabIndex = tabindex0++;
   }
-  field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-db");
   cell.classList.add("cell-field");
@@ -120,8 +129,9 @@ function createRow(listItem) {
   field.setAttribute("value-original", listItem.db);
   if (!dataModifiable) {
     setFieldReadonly(field);
+  } else {
+    field.tabIndex = tabindex0++;
   }
-  field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-user");
   cell.classList.add("cell-field");
@@ -129,8 +139,9 @@ function createRow(listItem) {
   field.setAttribute("value-original", listItem.user);
   if (!dataModifiable) {
     setFieldReadonly(field);
+  } else {
+    field.tabIndex = tabindex0++;
   }
-  field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-password");
   cell.classList.add("cell-field");
@@ -138,8 +149,9 @@ function createRow(listItem) {
   field.setAttribute("value-original", listItem.password);
   if (!dataModifiable) {
     setFieldReadonly(field);
+  } else {
+    field.tabIndex = tabindex0++;
   }
-  field.tabIndex = tabindex0++;
   
   if (dataModifiable) {
     cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
