@@ -68,6 +68,13 @@ var tabindex0 = 1;
 
 /* @Override from table.js */
 function createRow(listItem) {
+  var dataModifiable;
+  if (!listItem.dataModifiable) {
+    dataModifiable = false;
+  } else {
+    dataModifiable = true;
+  }
+
   row = document.createElement("div");
   row.classList.add("row");
   row.setAttribute("item-location", listItem.location);
@@ -84,7 +91,9 @@ function createRow(listItem) {
   
   
   cellDelete = createCell(row, "column-delete");
-  addFieldDelete(cellDelete);
+  if (dataModifiable) {
+    addFieldDelete(cellDelete);
+  }
   
   
   div = document.createElement("div");
@@ -100,32 +109,51 @@ function createRow(listItem) {
   cell.classList.add("cell-field");
   field = addField(cell, "server", listItem.server, null);
   field.setAttribute("value-original", listItem.server);
+  if (!dataModifiable) {
+    setFieldReadonly(field);
+  }
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-db");
   cell.classList.add("cell-field");
   field = addField(cell, "db", listItem.db, null);
   field.setAttribute("value-original", listItem.db);
+  if (!dataModifiable) {
+    setFieldReadonly(field);
+  }
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-user");
   cell.classList.add("cell-field");
   field = addField(cell, "user", listItem.user, null);
   field.setAttribute("value-original", listItem.user);
+  if (!dataModifiable) {
+    setFieldReadonly(field);
+  }
   field.tabIndex = tabindex0++;
   
   cell = createCell(div, "column-password");
   cell.classList.add("cell-field");
   field = addField(cell, "password", listItem.password, null);
   field.setAttribute("value-original", listItem.password);
+  if (!dataModifiable) {
+    setFieldReadonly(field);
+  }
   field.tabIndex = tabindex0++;
   
-  cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  if (dataModifiable) {
+    cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  }
   
   row.appendChild(div);
   
-  
   return row;
+}
+
+function setFieldReadonly(field) {
+  field.setAttribute("readonly", "true");
+  field.classList.add("readonly");
+  field.title = "Поле нередактируемо"; // NON-NLS
 }
 
 /* @Override from table.js */

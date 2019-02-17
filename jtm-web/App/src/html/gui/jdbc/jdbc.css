@@ -14,3 +14,7 @@
   width: 20%;
 }
 
+#table .readonly {
+  border-color: transparent;
+}
+
