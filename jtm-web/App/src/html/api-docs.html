@@ -72,6 +72,7 @@
   "_list": [
     {
       "location": /string, location that identifies the connection in internal configuration files (acts as connection ID)/,
+      "dataModifiable": /boolean, whether or not this resource can be modified or deleted/,
       "active": /boolean, whether the connection is commented in internal configuration files/,
       "name": /string, datasource name/,
       "server": /string, database server and port number/,
@@ -94,8 +95,9 @@
 {
   "_list": [
     {
-      "location": "Context.ResourceLink-0__Server.Resource-1",
+      "location": "Context/ResourceLink[0]+Server/Resource[1]",
       "active": true,
+      "dataModifiable": true,
       "name": "jdbc/Datasource1",
       "server": "db-server1.com:1521",
       "db": "DATABASE1",
@@ -103,8 +105,9 @@
       "password": "password1"
     },
     {
-      "location": "Context.comment-6.ResourceLink-0__Server.Resource-2",
+      "location": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
       "active": false,
+      "dataModifiable": true,
       "name": "jdbc/Datasource2",
       "server": "db-server2.com:1521",
       "db": "DATABASE2",
@@ -221,10 +224,10 @@
     Request: <code>/api/jdbc/mod</code><pre>
 [
   {
-    "modRequestId": "Context.comment-6.ResourceLink-0__Server.Resource-2",
+    "modRequestId": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
     "modRequestBody": {
       "action": "update",
-      "location": "Context.comment-6.ResourceLink-0__Server.Resource-2",
+      "location": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
       "data": {
         "active": true,
         "server": "new-db-server2.com:1521",
@@ -233,10 +236,10 @@
     }
   },
   {
-    "modRequestId": "Context.ResourceLink-0__Server.Resource-1",
+    "modRequestId": "Context/ResourceLink[0]+Server/Resource[1]",
     "modRequestBody": {
       "action": "delete",
-      "location": "Context.ResourceLink-0__Server.Resource-1"
+      "location": "Context/ResourceLink[0]+Server/Resource[1]"
     }
   },
   {
@@ -257,7 +260,7 @@
 {
   "_list": [
     {
-      "location": "Context.ResourceLink-0__Server.Resource-1",
+      "location": "Context/ResourceLink[0]+Server/Resource[1]",
       "active": true,
       "name": "jdbc/Datasource2",
       "server": "new-db-server2.com:1521",
@@ -266,7 +269,7 @@
       "password": "password2"
     },
     {
-      "location": "Context.ResourceLink-1__Server.Resource-2",
+      "location": "Context/ResourceLink[1]+Server/Resource[2]",
       "active": true,
       "name": "jdbc/Datasource3",
       "server": "db-server3.com:1521",
@@ -277,12 +280,12 @@
   ],
   "modStatusList": [
     {
-      "modRequestId": "Context.comment-6.ResourceLink-0__Server.Resource-2",
+      "modRequestId": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
       "modStatusMessage": "SUCCESS",
       "modStatusCode": 0
     },
     {
-      "modRequestId": "Context.ResourceLink-0__Server.Resource-1",
+      "modRequestId": "Context/ResourceLink[0]+Server/Resource[1]",
       "modStatusMessage": "SUCCESS",
       "modStatusCode": 0
     },

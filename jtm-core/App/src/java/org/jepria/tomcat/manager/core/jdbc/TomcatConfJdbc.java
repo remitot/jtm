@@ -6,8 +6,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import javax.xml.xpath.XPathConstants;
@@ -15,9 +18,9 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.jepria.tomcat.manager.core.ElementWrapper;
 import org.jepria.tomcat.manager.core.LocationNotExistException;
 import org.jepria.tomcat.manager.core.NodeFoldHelper;
-import org.jepria.tomcat.manager.core.NodeUtils;
 import org.jepria.tomcat.manager.core.TomcatConfBase;
 import org.jepria.tomcat.manager.core.TransactionException;
 import org.w3c.dom.Comment;
@@ -64,254 +67,453 @@ public class TomcatConfJdbc extends TomcatConfBase {
    */
   private void initBaseConnections() {
     
-    Map<String, BaseConnection> baseConnections0 = new HashMap<>();
+    Map<String, BaseConnection> baseConnections = new HashMap<>();
     
-    // context resources
-    List<Node> contextResourceNodes = getContextResourceNodes();
+    // Context/Resource nodes
+    final List<ElementWithLocation> contextResources = getContextResources();
     
-    for (int i = 0; i < contextResourceNodes.size(); i++) {
-      Node contextResourceNode = contextResourceNodes.get(i);
-      
-      String location = "Context.Resource-" + i;
-      
-      baseConnections0.put(location, 
-          new ContextResourceConnection(
-              contextResourceNode, 
-              true));
+    // commented Context/Resource nodes
+    final List<ElementWithLocation> commentedContextResources = getCommentedContextResources();
+    
+    
+    
+    for (ElementWithLocation contextResourceNode: contextResources) {
+      final BaseConnection resource = new ContextResourceConnection(contextResourceNode, true);
+      baseConnections.put(contextResourceNode.getLocation(), resource);
     }
     
-
-    
-    // server resources
-    final List<Node> serverResourceNodes = getServerResourceNodes();
-    
-    
-    // context ResourceLinks
-    List<Node> contextResourceLinkNodes = getContextResourceLinkNodes();
-    
-    for (int i = 0; i < contextResourceLinkNodes.size(); i++) {
-      Node contextResourceLinkNode = contextResourceLinkNodes.get(i);
-      int serverResourceIndex = lookupFirstServerResourceIndexForContextResourceLink(serverResourceNodes, contextResourceLinkNode);
-      if (serverResourceIndex != -1) {
-        Node serverResourceNode = serverResourceNodes.get(serverResourceIndex);
-        
-        String location = "Context.ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
-        
-        baseConnections0.put(location, 
-            new ContextResourceLinkConnection(
-                contextResourceLinkNode, 
-                serverResourceNode, 
-                true));
-      } else {
-        // TODO log?
-      }
+    for (ElementWithLocation resourceNode: commentedContextResources) {
+      final BaseConnection resource = new ContextResourceConnection(resourceNode, false);
+      baseConnections.put(resourceNode.getLocation(), resource);
     }
     
     
-    unfoldContextComments();
     
     
-    // context Resources from unfolded comments
-    List<NodesInUnfoldedComment> contextResourceCommentedNodes = getContextResourceCommentedNodes();
     
-    for (NodesInUnfoldedComment commentedNodes: contextResourceCommentedNodes) {
-      if (commentedNodes.commentIndex == null) {
-        throw new IllegalStateException("All UnfoldedComments must be indexed at this point");
+    
+    // Context/ResourceLink nodes
+    final List<ElementWithLocation> contextResourceLinks = getContextResourceLinkNodes();
+    // commented Context/ResourceLink nodes
+    final List<ElementWithLocation> commentedContextResourceLinks = getCommentedContextResourceLinks();
+    
+    // Server/Resource nodes
+    final List<ElementWithLocation> serverResources = getServerResources();
+    // commented Server/Resource nodes
+    final List<ElementWithLocation> commentedServerResources = getCommentedServerResources();
+    
+    
+    
+    
+    // count links from Context/ResourseLink nodes to the same Server/Resource node.
+    // If multiple Context/ResourceLink nodes link to the same Server/Resource node,
+    // then that Server/Resource node is unmodifiable.
+    
+    // Map<Server/Resource's location, Context/ResourceLink's link count>
+    // Map uses AtomicInteger not for concurrency, but for easier increment only
+    final Map<String, AtomicInteger> serverResourceLinkedLocations = new HashMap<>();
+    
+    {
+      for (ElementWithLocation contextResourceLinkNode: contextResourceLinks) {
+        final String global = contextResourceLinkNode.getAttribute("global");
+        
+        for (ElementWithLocation serverResourceNode: serverResources) {
+          final String name = serverResourceNode.getAttribute("name");
+          if (name.equals(global)) {
+            final String serverResourceLocation = serverResourceNode.getLocation();
+            
+            // increment count
+            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            if (count == null) {
+              serverResourceLinkedLocations.put(serverResourceLocation, new AtomicInteger(1));
+            } else {
+              count.incrementAndGet();
+            }
+          }
+        }
+        
+        for (ElementWithLocation serverResourceNode: commentedServerResources) {
+          final String name = serverResourceNode.getAttribute("name");
+          if (name.equals(global)) {
+            final String serverResourceLocation = serverResourceNode.getLocation();
+            
+            // increment count
+            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            if (count == null) {
+              serverResourceLinkedLocations.put(serverResourceLocation, new AtomicInteger(1));
+            } else {
+              count.incrementAndGet();
+            }
+          }
+        }
       }
       
-      for (int i = 0; i < commentedNodes.nodes.size(); i++) {
-        Node contextResourceCommentedNode = commentedNodes.nodes.get(i);
+      for (ElementWithLocation contextResourceLinkNode: commentedContextResourceLinks) {
+        final String global = contextResourceLinkNode.getAttribute("global");
         
-        String location = "Context.comment-" + commentedNodes.commentIndex + ".Resource-" + i; 
+        List<ElementWithLocation> allServerResources = new ArrayList<>();
+        allServerResources.addAll(serverResources);
+        allServerResources.addAll(commentedServerResources);
         
-        baseConnections0.put(location,
-            new ContextResourceConnection(
-                contextResourceCommentedNode,
-                false));
-      }
-    }
-      
-    
-    
-    // context Resources from unfolded comments
-    List<NodesInUnfoldedComment> contextResourceLinksCommentedNodes = getContextResourceLinkCommentedNodes();
-    
-    for (NodesInUnfoldedComment commentedNodes: contextResourceLinksCommentedNodes) {
-      if (commentedNodes.commentIndex == null) {
-        throw new IllegalStateException("All UnfoldedComments must be indexed at this point");
-      }
-      
-      for (int i = 0; i < commentedNodes.nodes.size(); i++) {
-        Node contextResourceLinkCommentedNode = commentedNodes.nodes.get(i);
-        
-        int serverResourceIndex = lookupFirstServerResourceIndexForContextResourceLink(serverResourceNodes, contextResourceLinkCommentedNode);
-        if (serverResourceIndex != -1) {
-          Node serverResourceNode = serverResourceNodes.get(serverResourceIndex);
-          
-          String location = "Context.comment-" + commentedNodes.commentIndex + ".ResourceLink-" + i + "__Server.Resource-" + serverResourceIndex; 
-          
-          baseConnections0.put(location, 
-              new ContextResourceLinkConnection(
-                  contextResourceLinkCommentedNode,
-                  serverResourceNode,
-                  false));
-        } else {
-          // TODO log?
+        for (ElementWithLocation serverResourceNode: allServerResources) {
+          final String name = serverResourceNode.getAttribute("name");
+          if (name.equals(global)) {
+            final String serverResourceLocation = serverResourceNode.getLocation();
+            
+            // increment count
+            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            if (count == null) {
+              serverResourceLinkedLocations.put(serverResourceLocation, new AtomicInteger(1));
+            } else {
+              count.incrementAndGet();
+            }
+          }
         }
       }
     }
-      
-      
     
-    this.baseConnections = baseConnections0;
+    
+    // assemble Resources from Context/ResourceLink+Server/Resource
+    {
+      for (ElementWithLocation contextResourceLinkNode: contextResourceLinks) {
+        final String global = contextResourceLinkNode.getAttribute("global");
+        
+        for (ElementWithLocation serverResourceNode: serverResources) {
+          final String name = serverResourceNode.getAttribute("name");
+          if (name.equals(global)) {
+            final String serverResourceLocation = serverResourceNode.getLocation();
+            
+            final boolean dataModifiable;
+            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            if (count == null) {
+              dataModifiable = true;
+            } else {
+              dataModifiable = count.get() == 1;
+            }
+            
+            final BaseConnection resource = new ContextResourceLinkConnection(
+                contextResourceLinkNode, serverResourceNode,
+                dataModifiable, true);
+            final String location = contextResourceLinkNode.getLocation() 
+                + "+" + serverResourceLocation;
+            baseConnections.put(location, resource);
+          }
+        }
+        
+        for (ElementWithLocation serverResourceNode: commentedServerResources) {
+          final String name = serverResourceNode.getAttribute("name");
+          if (name.equals(global)) {
+            final String serverResourceLocation = serverResourceNode.getLocation();
+            
+            final boolean dataModifiable;
+            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            if (count == null) {
+              dataModifiable = true;
+            } else {
+              dataModifiable = count.get() == 1;
+            }
+            
+            final BaseConnection resource = new ContextResourceLinkConnection(
+                contextResourceLinkNode, serverResourceNode,
+                dataModifiable, false);
+            final String location = contextResourceLinkNode.getLocation() 
+                + "+" + serverResourceLocation;
+            baseConnections.put(location, resource);
+          }
+        }
+      }
+      
+      for (ElementWithLocation contextResourceLinkNode: commentedContextResourceLinks) {
+        final String global = contextResourceLinkNode.getAttribute("global");
+        
+        List<ElementWithLocation> allServerResources = new ArrayList<>();
+        allServerResources.addAll(serverResources);
+        allServerResources.addAll(commentedServerResources);
+        
+        for (ElementWithLocation serverResourceNode: allServerResources) {
+          final String name = serverResourceNode.getAttribute("name");
+          if (name.equals(global)) {
+            final String serverResourceLocation = serverResourceNode.getLocation();
+            
+            final boolean dataModifiable;
+            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            if (count == null) {
+              dataModifiable = true;
+            } else {
+              dataModifiable = count.get() == 1;
+            }
+            
+            final BaseConnection resource = new ContextResourceLinkConnection(
+                contextResourceLinkNode, serverResourceNode,
+                dataModifiable, true);
+            final String location = contextResourceLinkNode.getLocation() 
+                + "+" + serverResourceLocation;
+            baseConnections.put(location, resource);
+          }
+        }
+      }
+    }
+    
+    this.baseConnections = baseConnections;
   }
   
-  private List<Node> getContextResourceNodes() {
+  /**
+   * @return list of <b>unique-named</b> (retaining the first only) commented Context/Resource nodes.
+   * The list items are filtered by unique name because
+   * Tomcat ignores all same-named Context/Resource nodes except for the first
+   */
+  private List<ElementWithLocation> getContextResources() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
           "Context/Resource");
       NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-      return NodeUtils.nodeListToList(nodeList);
+      
+      final List<ElementWithLocation> ret = new ArrayList<>();
+      
+      // for filtering duplicate names
+      final Set<String> names = new HashSet<>();
+      
+      for (int i = 0; i < nodeList.getLength(); i++) {
+        final Node node = nodeList.item(i);
+        
+        final String name = ((Element)node).getAttribute("name");
+        if (!names.contains(name)) {
+          names.add(name);
+          
+          final String location = "Context/Resource[" + i + "]";;
+          ret.add(new ElementWithLocationImpl((Element)node, location));
+          
+        } else {
+          // TODO warn (log)? Or silently comment the other nodes? 
+          // Commenting will solve the problem, because 
+          // it is allowed (by JTM) to have multiple same-named commented resources.
+        }
+      }
+      
+      return ret;
       
     } catch (XPathExpressionException e) {
-      // impossible: controlled XPath expression
+      // impossible: trusted XPath expression
       throw new RuntimeException(e);
     }
   }
   
-  private List<Node> getServerResourceNodes() {
+  /**
+   * @return list of <b>unique-named</b> (retaining the first only) commented Server/Resource nodes.
+   * The list items are filtered by unique name because
+   * Tomcat ignores all same-named Server/Resource nodes except for the first
+   */
+  private List<ElementWithLocation> getServerResources() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
           "Server/GlobalNamingResources/Resource");
       NodeList nodeList = (NodeList) expr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
       
-      return NodeUtils.nodeListToList(nodeList);
+      final List<ElementWithLocation> ret = new ArrayList<>();
+      
+      // for filtering duplicate names
+      final Set<String> names = new HashSet<>();
+      
+      for (int i = 0; i < nodeList.getLength(); i++) {
+        final Node node = nodeList.item(i);
+        
+        final String name = ((Element)node).getAttribute("name");
+        if (!names.contains(name)) {
+          names.add(name);
+          
+          final String location = "Server/Resource[" + i + "]";;
+          ret.add(new ElementWithLocationImpl((Element)node, location));
+          
+        } else {
+          // TODO warn (log)? Or silently comment the other nodes? 
+          // Commenting will solve the problem, because 
+          // it is allowed (by JTM) to have multiple same-named commented resources.
+        }
+      }
+      
+      return ret;
       
     } catch (XPathExpressionException e) {
-      // impossible: controlled XPath expression
+      // impossible: trusted XPath expression
       throw new RuntimeException(e);
     }
   }
   
-  private List<Node> getContextResourceLinkNodes() {
+  /**
+   * @return list of <b>unique-named</b> (retaining the first only) commented Context/ResourceLink nodes.
+   * The list items are filtered by unique name because
+   * Tomcat ignores all same-named Context/ResourceLink nodes except for the first
+   */
+  private List<ElementWithLocation> getContextResourceLinkNodes() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
           "Context/ResourceLink");
       NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      return NodeUtils.nodeListToList(nodeList);
+      final List<ElementWithLocation> ret = new ArrayList<>();
+      
+      // for filtering duplicate names
+      final Set<String> names = new HashSet<>();
+      
+      for (int i = 0; i < nodeList.getLength(); i++) {
+        final Node node = nodeList.item(i);
+
+        final String name = ((Element)node).getAttribute("name");
+        if (!names.contains(name)) {
+          names.add(name);
+          
+          final String location = "Context/ResourceLink[" + i + "]";;
+          ret.add(new ElementWithLocationImpl((Element)node, location));
+          
+        } else {
+          // TODO warn (log)? Or silently comment the other nodes? 
+          // Commenting will solve the problem, because 
+          // it is allowed (by JTM) to have multiple same-named commented resources.
+        }
+      }
+      
+      return ret;
       
     } catch (XPathExpressionException e) {
-      // impossible: controlled XPath expression
+      // impossible: trusted XPath expression
       throw new RuntimeException(e);
     }
   }
   
   /**
-   * List of nodes inside an <code>&lt;UnfoldedComment&gt;</code> node
+   * @return list of <b>all</b> commented Context/Resource nodes.
+   * The list items are not filtered by unique name because 
+   * JTM allows multiple commented same-named resources  
    */
-  private static class NodesInUnfoldedComment {
-    /**
-     * May be null (means that the node has been commented after the indexes assigned)
-     */
-    public final Integer commentIndex;
-    /**
-     * The list of nodes inside the <code>&lt;UnfoldedComment&gt;</code> node
-     */
-    public final List<Node> nodes;
+  private List<ElementWithLocation> getCommentedContextResources() {
     
-    public NodesInUnfoldedComment(Integer commentIndex, List<Node> nodes) {
-      this.commentIndex = commentIndex;
-      this.nodes = nodes;
+    if (!contextCommentsUnfolded) {
+      unfoldContextComments();
     }
-  }
-  
-  /**
-   * @return list of Resource nodes within the UnfoldedComment nodes
-   */
-  private List<NodesInUnfoldedComment> getContextResourceCommentedNodes() {
+    
     try {
       final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
           "Context/UnfoldedComment");
       NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      List<NodesInUnfoldedComment> res = new ArrayList<>();
-      for (int k = 0; k < ucNodeList.getLength(); k++) {
-        Node ucNode = ucNodeList.item(k);
+      final List<ElementWithLocation> ret = new ArrayList<>();
+      
+      for (int i = 0; i < ucNodeList.getLength(); i++) {
+        // for each Context/UnfoldedComment node
+        Node ucNode = ucNodeList.item(i);
         
-        final Integer ucIndex;
-        final String commentIndex = ((Element)ucNode).getAttribute("commentIndex");
-        if (commentIndex == null || "".equals(commentIndex)) {
-          ucIndex = null;
-        } else {
-          ucIndex = Integer.parseInt(commentIndex);
-        }
+        // find all Resource nodes
+        final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Resource");
+        NodeList nodeList = (NodeList) expr.evaluate(ucNode, XPathConstants.NODESET);
         
-        final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-            "Context/UnfoldedComment[" + (k + 1) + "]/Resource");
-        NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-        
-        if (nodeList.getLength() > 0) {
-          List<Node> res1 = NodeUtils.nodeListToList(nodeList);
-          res.add(new NodesInUnfoldedComment(ucIndex, res1));
+        for (int j = 0; j < nodeList.getLength(); j++) {
+          final Node node = nodeList.item(j);
+          final String location = "Context/comment[" + i + "]/Resource[" + j + "]";
+          ret.add(new ElementWithLocationImpl((Element)node, location));
         }
       }
-      return res;
+      return ret;
       
     } catch (XPathExpressionException e) {
-      // impossible: controlled XPath expression
+      // impossible: trusted XPath expression
       throw new RuntimeException(e);
     }
   }
   
   /**
-   * @return list of ResourceLink nodes within the UnfoldedComment nodes
+   * @return list of <b>all</b> commented Context/ResourceLink nodes.
+   * The list items are not filtered by unique name because 
+   * JTM allows multiple commented same-named resources  
    */
-  private List<NodesInUnfoldedComment> getContextResourceLinkCommentedNodes() {
+  private List<ElementWithLocation> getCommentedContextResourceLinks() {
+    
+    if (!contextCommentsUnfolded) {
+      unfoldContextComments();
+    }
+    
     try {
       final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
           "Context/UnfoldedComment");
       NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      List<NodesInUnfoldedComment> res = new ArrayList<>();
-      for (int k = 0; k < ucNodeList.getLength(); k++) {
-        Node ucNode = ucNodeList.item(k);
+      final List<ElementWithLocation> ret = new ArrayList<>();
+      
+      for (int i = 0; i < ucNodeList.getLength(); i++) {
+        // for each Context/UnfoldedComment node
+        Node ucNode = ucNodeList.item(i);
         
-        final Integer ucIndex;
-        final String commentIndex = ((Element)ucNode).getAttribute("commentIndex");
-        if (commentIndex == null || "".equals(commentIndex)) {
-          ucIndex = null;
-        } else {
-          ucIndex = Integer.parseInt(commentIndex);
-        }
+        // find all ResourceLink nodes
+        final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("ResourceLink");
+        NodeList nodeList = (NodeList) expr.evaluate(ucNode, XPathConstants.NODESET);
         
-        final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
-            "Context/UnfoldedComment[" + (k + 1) + "]/ResourceLink");
-        NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
-        
-        if (nodeList.getLength() > 0) {
-          List<Node> res1 = NodeUtils.nodeListToList(nodeList);
-          res.add(new NodesInUnfoldedComment(ucIndex, res1));
+        for (int j = 0; j < nodeList.getLength(); j++) {
+          final Node node = nodeList.item(j);
+          final String location = "Context/comment[" + i + "]/ResourceLink[" + j + "]";
+          ret.add(new ElementWithLocationImpl((Element)node, location));
         }
       }
-      return res;
+      return ret;
       
     } catch (XPathExpressionException e) {
-      // impossible: controlled XPath expression
+      // impossible: trusted XPath expression
       throw new RuntimeException(e);
     }
   }
   
-  private static int lookupFirstServerResourceIndexForContextResourceLink(List<Node> serverResourceNodes, Node contextResourceLinkNode) {
-    String contextResourceLinkName = ((Element)contextResourceLinkNode).getAttribute("name");
-    for (int i = 0; i < serverResourceNodes.size(); i++) {
-      if (contextResourceLinkName.equals(((Element)serverResourceNodes.get(i)).getAttribute("name"))) {
-        return i;
-      }
+  /**
+   * @return list of <b>all</b> commented Server/Resource nodes.
+   * The list items are not filtered by unique name because 
+   * JTM allows multiple commented same-named resources  
+   */
+  private List<ElementWithLocation> getCommentedServerResources() {
+    
+    if (!serverGnrCommentsUnfolded) {
+      unfoldServerGnrComments();
     }
-    return -1;
+    
+    try {
+      final XPathExpression ucExpr = XPathFactory.newInstance().newXPath().compile(
+          "Server/GlobalNamingResources/UnfoldedComment");
+      NodeList ucNodeList = (NodeList) ucExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
+      
+      final List<ElementWithLocation> ret = new ArrayList<>();
+      
+      for (int i = 0; i < ucNodeList.getLength(); i++) {
+        // for each Server/GlobalNamingResources/UnfoldedComment node
+        Node ucNode = ucNodeList.item(i);
+        
+        // find all Resource nodes
+        final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Resource");
+        NodeList nodeList = (NodeList) expr.evaluate(ucNode, XPathConstants.NODESET);
+        
+        for (int j = 0; j < nodeList.getLength(); j++) {
+          final Node node = nodeList.item(j);
+          final String location = "Server/comment[" + i + "]/Resource[" + j + "]";
+          ret.add(new ElementWithLocationImpl((Element)node, location));
+        }
+      }
+      return ret;
+      
+    } catch (XPathExpressionException e) {
+      // impossible: trusted XPath expression
+      throw new RuntimeException(e);
+    }
   }
   
+  private boolean contextCommentsUnfolded = false;
+  private boolean serverGnrCommentsUnfolded = false;
+  
+  /**
+   * Unfolds XML comments within the Context node:
+   * from
+   * <Context>
+   *   <!-- <CommentedNode>content</CommentedNode> -->
+   * </Context>
+   * to
+   * <Context>
+   *   <UnfoldedComment><CommentedNode>content</CommentedNode></UnfoldedComment>
+   * </Context>
+   */
   private void unfoldContextComments() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Context/comment()");
@@ -322,16 +524,61 @@ public class TomcatConfJdbc extends TomcatConfBase {
         
         // try unfold comment (but may fail to parse comment text as a node)
         Node unfolded = NodeFoldHelper.unfoldComment(comment);
-        ((Element)unfolded).setAttribute("commentIndex", Integer.toString(i));
         
         // insert unfolded comment node instead of original comment
-        unfolded = getContext_xmlDoc().importNode(unfolded, true);
+        unfolded = comment.getOwnerDocument().importNode(unfolded, true);
         comment.getParentNode().insertBefore(unfolded, comment);
         comment.getParentNode().removeChild(comment);
       }
       
+      contextCommentsUnfolded = true;
+      
     } catch (XPathExpressionException e) {
-      // impossible: controlled XPath expression
+      // impossible: trusted XPath expression
+      throw new RuntimeException(e);
+      
+    } catch (IOException e) {
+      //TODO
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Unfolds XML comments within the Server/GlobalNamingResources node:
+   * from
+   * <Server>
+   *   <GlobalNamingResources>
+   *     <!-- <CommentedNode>content</CommentedNode> -->
+   *   </GlobalNamingResources>
+   * </Server>
+   * to
+   * <Server>
+   *   <GlobalNamingResources>
+   *     <UnfoldedComment><CommentedNode>content</CommentedNode></UnfoldedComment>
+   *   </GlobalNamingResources>
+   * </Server>
+   */
+  private void unfoldServerGnrComments() {
+    try {
+      final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("Server/GlobalNamingResources/comment()");
+      NodeList nodeList = (NodeList) expr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
+      
+      for (int i = 0; i < nodeList.getLength(); i++) {
+        Comment comment = (Comment)nodeList.item(i);
+        
+        // try unfold comment (but may fail to parse comment text as a node)
+        Node unfolded = NodeFoldHelper.unfoldComment(comment);
+        
+        // insert unfolded comment node instead of original comment
+        unfolded = comment.getOwnerDocument().importNode(unfolded, true);
+        comment.getParentNode().insertBefore(unfolded, comment);
+        comment.getParentNode().removeChild(comment);
+      }
+      
+      serverGnrCommentsUnfolded = true;
+      
+    } catch (XPathExpressionException e) {
+      // impossible: trusted XPath expression
       throw new RuntimeException(e);
       
     } catch (IOException e) {
@@ -362,6 +609,25 @@ public class TomcatConfJdbc extends TomcatConfBase {
       throw new RuntimeException(e);
     }
   }
+  
+  private static interface ElementWithLocation extends Element {
+    String getLocation();
+  }
+  
+  private class ElementWithLocationImpl extends ElementWrapper implements ElementWithLocation{
+    private final String location;
+    
+    public ElementWithLocationImpl(Element element, String location) {
+      super(element);
+      this.location = location;
+    }
+    @Override
+    public String getLocation() {
+      return location;
+    }
+  }
+  
+  
   
   public void save(OutputStream contextXmlOutputStream, OutputStream serverXmlOutputStream) {
   
@@ -446,7 +712,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
       Node serverResourceRoot = (Node)serverResourceRootExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
       serverResourceRoot.appendChild(serverResourceNode);
       
-      return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true);
+      return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true, true);
       
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);

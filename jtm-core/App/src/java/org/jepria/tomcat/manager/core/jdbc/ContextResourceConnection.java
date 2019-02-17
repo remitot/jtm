@@ -20,6 +20,12 @@ import org.w3c.dom.Node;
   }
   
   @Override
+  public boolean isDataModifiable() {
+    // ContextResource's data is always modifiable
+    return true;
+  }
+  
+  @Override
   public boolean isActive() {
     return active;
   }

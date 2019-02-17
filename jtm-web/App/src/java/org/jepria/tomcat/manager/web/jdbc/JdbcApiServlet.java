@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -119,7 +120,11 @@ public class JdbcApiServlet extends HttpServlet {
   }
 
   private static ConnectionDto connectionToDto(String location, Connection connection) {
+    Objects.requireNonNull(location);
+    
     ConnectionDto dto = new ConnectionDto();
+    
+    dto.setDataModifiable(connection.isDataModifiable());
     dto.setActive(connection.isActive());
     dto.setDb(connection.getDb());
     dto.setLocation(location);
@@ -127,6 +132,7 @@ public class JdbcApiServlet extends HttpServlet {
     dto.setPassword(connection.getPassword());
     dto.setServer(connection.getServer());
     dto.setUser(connection.getUser());
+    
     return dto;
   }
 
@@ -368,11 +374,9 @@ public class JdbcApiServlet extends HttpServlet {
           ret = ModStatus.errItemNotFoundByLocation(location);
 
         } else {
-          ConnectionDto connectionDto = mreq.getData();
-
-          updateFields(connectionDto, connection);
           
-          ret = ModStatus.success();
+          ConnectionDto connectionDto = mreq.getData();
+          return updateFields(connectionDto, connection);
         }
       }
     } catch (Throwable e) {
@@ -389,7 +393,13 @@ public class JdbcApiServlet extends HttpServlet {
    * @param target non null
    * @return
    */
-  private static void updateFields(ConnectionDto sourceDto, Connection target) {
+  private static ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
+    if (!target.isDataModifiable() && (
+        sourceDto.getServer() != null || sourceDto.getDb() != null
+        || sourceDto.getUser() != null || sourceDto.getPassword() != null)) {
+      return ModStatus.errDataNotModifiable();
+    }
+    
     if (sourceDto.getActive() != null) {
       target.setActive(sourceDto.getActive());
     }
@@ -408,6 +418,8 @@ public class JdbcApiServlet extends HttpServlet {
     if (sourceDto.getUser() != null) {
       target.setUser(sourceDto.getUser());
     }
+    
+    return ModStatus.success();
   }
   
   private static ModStatus deleteConnection(
@@ -432,6 +444,11 @@ public class JdbcApiServlet extends HttpServlet {
           ret = ModStatus.errItemNotFoundByLocation(location);
 
         } else {
+          
+          if (!connection.isDataModifiable()) {
+            ret = ModStatus.errDataNotModifiable();
+          }
+          
           tomcatConf.delete(location);
 
           ret = ModStatus.success();

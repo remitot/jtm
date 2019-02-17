@@ -9,13 +9,21 @@ import org.w3c.dom.Node;
   private Element contextResourceLinkNode;
   private Element serverResourceNode;
   
+  private final boolean dataModifiable;
   private boolean active = true;
   
   /*package*/ContextResourceLinkConnection(
-      Node contextResourceLinkNode, Node serverResourceNode, boolean active) {
+      Node contextResourceLinkNode, Node serverResourceNode,
+      boolean dataModifiable, boolean active) {
     this.contextResourceLinkNode = (Element)contextResourceLinkNode;
     this.serverResourceNode = (Element)serverResourceNode;
+    this.dataModifiable = dataModifiable;
     this.active = active;
+  }
+  
+  @Override
+  public boolean isDataModifiable() {
+    return dataModifiable;
   }
   
   @Override

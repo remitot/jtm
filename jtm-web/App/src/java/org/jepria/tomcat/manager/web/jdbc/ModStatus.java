@@ -10,7 +10,8 @@ public class ModStatus {
   public static final int CODE_ERR__LOCATION_IS_EMPTY = 2;
   public static final int CODE_ERR__MANDATORY_FIELDS_EMPTY = 3;
   public static final int CODE_ERR__ILLEGAL_ACTION = 4;
-  public static final int CODE_ERR__INTERNAL_ERROR = 5;
+  public static final int CODE_ERR__DATA_NOT_MODIFIABLE = 5;
+  public static final int CODE_ERR__INTERNAL_ERROR = 500;
   
   
   public final int code;
@@ -44,6 +45,10 @@ public class ModStatus {
   public static ModStatus errIllegalAction(String action) {
     return new ModStatus(CODE_ERR__ILLEGAL_ACTION, "ERROR: illegal action" + 
         (action == null ? "" : (": " + action)));
+  }
+  
+  public static ModStatus errDataNotModifiable() {
+    return new ModStatus(CODE_ERR__DATA_NOT_MODIFIABLE, "ERROR: data is not modifiable");
   }
   
   public static ModStatus errInternalError() {

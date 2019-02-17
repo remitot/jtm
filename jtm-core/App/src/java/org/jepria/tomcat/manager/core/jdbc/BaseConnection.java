@@ -30,7 +30,8 @@ import java.util.regex.Pattern;
       String url = getUrl();
       
       if (url != null && !"".equals(url)) {
-        Matcher m = Pattern.compile("jdbc:oracle:thin:@//([^/]*)/(.*)").matcher(url);
+        // TODO parametrize DB protocol
+        Matcher m = Pattern.compile("jdbc:oracle:thin:@//([^/]+)/(.+)").matcher(url);
         if (m.matches()) {
           if (!serverHasBeenSet) {
             server = m.group(1);
@@ -40,6 +41,9 @@ import java.util.regex.Pattern;
             db = m.group(2);
             dbHasBeenSet = true;
           }
+        } else {
+          // TODO parametrize DB protocol and remove this throw
+          throw new IllegalArgumentException("Only jdbc:oracle:thin url format supported");
         }
       }
     }
@@ -47,6 +51,7 @@ import java.util.regex.Pattern;
   
   // final
   protected final void setUrl() {
+    // TODO parametrize DB protocol
     setUrl("jdbc:oracle:thin:@//" + getServer() + "/" + getDb());
   }
   

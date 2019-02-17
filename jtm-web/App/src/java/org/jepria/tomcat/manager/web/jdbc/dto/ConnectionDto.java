@@ -7,6 +7,7 @@ public class ConnectionDto {
    */
   private String location;
   
+  private Boolean dataModifiable;
   private Boolean active;
   
   private String name;
@@ -25,6 +26,14 @@ public class ConnectionDto {
 
   public void setLocation(String location) {
     this.location = location;
+  }
+
+  public Boolean getDataModifiable() {
+    return dataModifiable;
+  }
+
+  public void setDataModifiable(Boolean dataModifiable) {
+    this.dataModifiable = dataModifiable;
   }
 
   public Boolean getActive() {
