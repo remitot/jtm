@@ -102,6 +102,11 @@ public class JdbcApiServlet extends HttpServlet {
     return new Comparator<ConnectionDto>() {
       @Override
       public int compare(ConnectionDto o1, ConnectionDto o2) {
+        // first sort by dataModifiable
+        if (Boolean.TRUE.equals(o1.getDataModifiable()) && !Boolean.TRUE.equals(o2.getDataModifiable())) {
+          return -1;
+        }
+        
         int nameCmp = o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
         if (nameCmp == 0) {
           // the active is the first
