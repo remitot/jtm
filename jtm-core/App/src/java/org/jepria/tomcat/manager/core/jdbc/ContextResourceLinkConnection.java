@@ -6,13 +6,13 @@ import org.w3c.dom.Node;
 
 /*package*/class ContextResourceLinkConnection extends BaseConnection {
 
-  private Element contextResourceLinkNode;
-  private Element serverResourceNode;
+  protected Element contextResourceLinkNode;
+  protected Element serverResourceNode;
   
   private final boolean dataModifiable;
   private boolean active;
   
-  /*package*/ContextResourceLinkConnection(
+  public ContextResourceLinkConnection(
       Node contextResourceLinkNode, Node serverResourceNode,
       boolean dataModifiable) {
     this.contextResourceLinkNode = (Element)contextResourceLinkNode;

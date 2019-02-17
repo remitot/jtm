@@ -103,9 +103,9 @@
 {
   "_list": [
     {
-      "location": "Context/ResourceLink[0]+Server/Resource[1]",
-      "active": true,
+      "location": "Context/ResourceLink[0]+Server/Resource[0]",
       "dataModifiable": true,
+      "active": true,
       "name": "jdbc/Datasource1",
       "server": "db-server1.com:1521",
       "db": "DATABASE1",
@@ -113,9 +113,9 @@
       "password": "password1"
     },
     {
-      "location": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
-      "active": false,
+      "location": "Context/ResourceLink[1]+Server/Resource[1]",
       "dataModifiable": true,
+      "active": true,
       "name": "jdbc/Datasource2",
       "server": "db-server2.com:1521",
       "db": "DATABASE2",
@@ -190,26 +190,28 @@
       </li>
     </ul>
     </p>
+    <p>Any modifiaction requests with different <code>action</code> values will be ignored.
+    </p>
     Response statuses: 
     <ul>
       <li><code>200</code> success</li>
       <li><code>400</code> if any <code>modRequestId</code> is either null or empty or not unique over the whole list</li>
       <li><code>400</code> if an error occurres while parsing the JSON request body</li>
     </ul>
-    Response body (<code>application/json UTF-8</code>) consists of two lists:
-    <p><ul>
+    Response body (<code>application/json UTF-8</code>) normally consists of two lists:
+    <p><ol>
       <li>list of statuses corresponding to the list of connection modification requests,  
-      where each element is a modStatus consisting of a <code>modRequestId</code> (matching by the <code>modRequestId</code> values from the request),
-      a <code>modStatusCode</code>, and a <code>modStatusMessage</code> (a description of the status)</li>
+      where each element is a modStatus consisting of a <code>modRequestId</code> (matching by the <code>modRequestId</code> 
+      values from the request) and a <code>modStatusCode</code>.
       <li>list of connections after all modifications performed, 
       analogous to the response of <code>/api/jdbc/list</code></li>
-    </ul><pre>
+    </ol><pre>
 {
   "modStatusList": [ /array of modStatuses, of length same as list of modRequests/  
     {
       "modRequestId": /string, equals to one of modRequestId values from the request/,
-      "modStatusCode": /integer, the values described below/,
-      "modStatusMessage": /string, description of the <code>modStatusCode</code>/
+      "modStatusCode": /integer, the values described below/
+      "invalidFieldData": /JSON object, present only if the value of "modStatusCode" is 1, described below/
     },...
   ],
   "_list": [ /contents equal to <code>/api/jdbc/list</code> invoked after the modifications performed/
@@ -220,22 +222,38 @@
     <p><code>modStatusCode</code> values:
     <ul>
       <li><code>0</code>: successful modification</li>
-      <li><code>1</code>: error: no connection found by <code>location</code></li>
-      <li><code>2</code>: error: <code>"location"</code> is empty</li>
-      <li><code>3</code>: error: some mandatory fields in <code>data</code> are empty</li>
-      <li><code>4</code>: error: illegal <code>action</code> value</li>
-      <li><code>5</code>: error: unspecified (other) errors</li>
+      <li><code>1</code>: error: invalid field data (see description of <code>"invalidFieldData"</code> object below)</li>
+      <li><code>2</code>: error: <code>location</code> field is missing or empty</li>
+      <li><code>3</code>: error: no item found by such <code>location</code></li>
+      <li><code>4</code>: error: data not modifiable (means that <code>/api/jdbc/list</code> 
+      returned this item with <code>"dataModifiable": false</code>)</li>
+      <li><code>500</code>: error: unspecified server exception</li>
     </ul>
+    </p>
+    <p>If <b>all</b> <code>modStatusCode</code> values of the <code>modStatusList</code> are <code>0</code>,
+    then (and only then) all modifications succeeded, saved, and the <code>_list</code> element is present in the response,
+    otherwise (if any error occurred), no modifications are actually performed,
+    and the <code>_list</code> element is not present.
+    </p>
+    <p>If the value of <code>modStatusCode</code> is <code>1</code> (invalid client data),
+    a special structure is present in the response, 
+    describing which fields exactly are invalid:<pre>
+{
+  /fieldName/: {
+    "errorCode": /string, the error code/,
+    "errorMessage": /string, optional, description of the error/,
+  },...
+}</pre>
     </p>
     
     <h4>Example</h4>
     Request: <code>/api/jdbc/mod</code><pre>
 [
   {
-    "modRequestId": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
+    "modRequestId": "Context/ResourceLink[1]+Server/Resource[1]",
     "modRequestBody": {
       "action": "update",
-      "location": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
+      "location": "Context/ResourceLink[1]+Server/Resource[1]",
       "data": {
         "active": true,
         "server": "new-db-server2.com:1521",
@@ -244,10 +262,10 @@
     }
   },
   {
-    "modRequestId": "Context/ResourceLink[0]+Server/Resource[1]",
+    "modRequestId": "Context/ResourceLink[0]+Server/Resource[0]",
     "modRequestBody": {
       "action": "delete",
-      "location": "Context/ResourceLink[0]+Server/Resource[1]"
+      "location": "Context/ResourceLink[0]+Server/Resource[0]"
     }
   },
   {
@@ -268,16 +286,18 @@
 {
   "_list": [
     {
-      "location": "Context/ResourceLink[0]+Server/Resource[1]",
+      "location": "Context/ResourceLink[0]+Server/Resource[0]",
+      "dataModifiable": true,
       "active": true,
       "name": "jdbc/Datasource2",
       "server": "new-db-server2.com:1521",
       "db": "DATABASE2",
       "user": "new-user2",
       "password": "password2"
-    },
+    }, 
     {
-      "location": "Context/ResourceLink[1]+Server/Resource[2]",
+      "location": "Context/ResourceLink[1]+Server/Resource[1]",
+      "dataModifiable": true,
       "active": true,
       "name": "jdbc/Datasource3",
       "server": "db-server3.com:1521",
@@ -288,24 +308,48 @@
   ],
   "modStatusList": [
     {
-      "modRequestId": "Context/comment[6]/ResourceLink[0]+Server/Resource[2]",
-      "modStatusMessage": "SUCCESS",
+      "modRequestId": "Context/ResourceLink[1]+Server/Resource[1]",
       "modStatusCode": 0
-    },
-    {
-      "modRequestId": "Context/ResourceLink[0]+Server/Resource[1]",
-      "modStatusMessage": "SUCCESS",
-      "modStatusCode": 0
-    },
-    {
+    }, {
       "modRequestId": "row-create-1",
-      "modStatusMessage": "SUCCESS",
+      "modStatusCode": 0
+    }, {
+      "modRequestId": "Context/ResourceLink[0]+Server/Resource[0]",
       "modStatusCode": 0
     }
   ]
 }</pre>
+    Request: <code>/api/jdbc/mod</code><pre>
+[
+  {
+    "modRequestId": "row-create-1",
+    "modRequestBody": {
+      "action": "create",
+      "data": {
+        "name": "jdbc/Datasource3",
+        "server": "db-server3.com:1521",
+        "db": "DATABASE3",
+        "user": "user3",
+        "password": "password3"
+      }
+    }
+  }
+]</pre>
+    Response: <code>200</code><pre>
+{
+  "modStatusList": [
+    {
+      "invalidFieldData": {
+        "name": {
+          "errorCode": "DUPLICATE_NAME"
+        }
+      },
+      "modRequestId": "row-create-1",
+      "modStatusCode": 1
+    }
+  ]
+}</pre>
     
-
     
     <h2>Ports</h2>
     <h3>Get HTTP port number</h3>

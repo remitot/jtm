@@ -22,6 +22,52 @@ function uiOnTableModSuccess() {
 }
 
 /* @Override from table.js */
+function clientValidate(fieldName, fieldValue) {
+  if (fieldName === "name") {
+    if (!fieldValue) {
+      return false;
+    }
+  }
+  if (fieldName === "server") { 
+    if (!fieldValue) {
+      return false;
+    }
+  }
+  if (fieldName === "db") { 
+    if (!fieldValue) {
+      return false;
+    }
+  }
+  if (fieldName === "user") { 
+    if (!fieldValue) {
+      return false;
+    }
+  }
+  if (fieldName === "password") { 
+    if (!fieldValue) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/* @Override from table.js */
+function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
+  if (fieldName == "name") {
+    if (errorCode) {
+      if (errorMessage) {
+         console.error(errorMessage + " " + errorCode);
+      }
+      if (errorCode == "DUPLICATE_NAME") {
+        return "Такое название уже есть";// NON-NLS
+      } else if (errorCode == "DUPLICATE_GLOBAL") {
+        return "Такое название уже есть среди Context/ResourceLink.global или Server/Resource.name";// NON-NLS
+      }
+    }
+  } 
+}
+
+/* @Override from table.js */
 function createHeader() {
   var row = document.createElement("div");
   row.classList.add("header");
@@ -87,8 +133,8 @@ function createRow(listItem) {
   cell.classList.add("cell-field");
   field = addCheckbox(cell, listItem.active, true);
   if (!dataModifiable) {
-    checkbox.classList.add("readonly");
-    setCheckboxEnabled(checkbox, false);
+    field.classList.add("readonly");
+    setCheckboxEnabled(field, false);
   } else {
     field.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   }
@@ -174,12 +220,16 @@ function createRowCreate() {
   row.classList.add("row");
   row.classList.add("created");
   
+  var field;
+  
   // active
   cell = createCell(row, "column-active");
   cell.classList.add("column-left");
   cell.classList.add("cell-field");
-  addCheckbox(cell, true, false);
-  cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  field = addCheckbox(cell, true, false);
+  field.classList.add("readonly");
+  setCheckboxEnabled(field, false);
+  field.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   
   cellDelete = createCell(row, "column-delete");

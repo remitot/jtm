@@ -13,13 +13,24 @@ public class ModStatus {
    */
   public static final int SC_SUCCESS = 0;
   /**
-   * Client field data is invalid (incorrect format or value processing exception)
+   * Client field data is invalid (incorrect format, or value processing exception)
    */
   public static final int SC_INVALID_FIELD_DATA = 1;
+  
+  /**
+   * Location is empty
+   */
+  public static final int SC_LOCATION_EMPTY = 2;
+  
+  /**
+   * No item found by location
+   */
+  public static final int SC_NO_ITEM_FOUND_BY_LOCATION = 3;
+  
   /**
    * Any server data processing exception
    */
-  public static final int SC_SERVER_EXCEPTION = 2;
+  public static final int SC_SERVER_EXCEPTION = 500;
   
   /**
    * SC_* constant value
@@ -65,13 +76,12 @@ public class ModStatus {
     return new ModStatus(SC_SERVER_EXCEPTION, null); 
   }
   
-  /////////////////////////////////
   
   public static ModStatus errLocationIsEmpty() {
-    return ModStatus.errInvalidFieldData("location", "MANDATORY_EMPTY", null); // TODO location is not a field data!
+    return new ModStatus(SC_LOCATION_EMPTY, null);
   }
   
-  public static ModStatus errItemNotFoundByLocation() {
-    return ModStatus.errInvalidFieldData("location", "NO_ITEM_FOUND_BY_LOCATION", null); // TODO location is not a field data!
+  public static ModStatus errNoItemFoundByLocation() {
+    return new ModStatus(SC_NO_ITEM_FOUND_BY_LOCATION, null);
   }
 }

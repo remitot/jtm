@@ -1,57 +1,95 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * Class representing status of an arbitrary data modification request
+ */
 public class ModStatus {
   
+  /**
+   * Modification succeeded
+   */
+  public static final int SC_SUCCESS = 0;// the constant value referred from table.js
+  /**
+   * Client field data is invalid (incorrect format, or value processing exception)
+   */
+  public static final int SC_INVALID_FIELD_DATA = 1;// the constant value referred from table.js
   
-  public static final int CODE_SUCCESS = 0;
-  public static final int CODE_ERR__ITEM_NOT_FOUND_BY_LOCATION = 1;
-  public static final int CODE_ERR__LOCATION_IS_EMPTY = 2;
-  public static final int CODE_ERR__MANDATORY_FIELDS_EMPTY = 3;
-  public static final int CODE_ERR__ILLEGAL_ACTION = 4;
-  public static final int CODE_ERR__DATA_NOT_MODIFIABLE = 5;
-  public static final int CODE_ERR__INTERNAL_ERROR = 500;
+  /**
+   * Location is empty.
+   */
+  public static final int SC_LOCATION_EMPTY = 2;// the constant value referred from table.js
   
+  /**
+   * No item found by location
+   */
+  public static final int SC_NO_ITEM_FOUND_BY_LOCATION = 3;// the constant value referred from table.js
   
+  /**
+   * Data not modifiable
+   */
+  public static final int SC_DATA_NOT_MODIFIABLE = 4;// the constant value referred from table.js
+  /**
+   * Any server data processing exception
+   */
+  public static final int SC_SERVER_EXCEPTION = 500;
+  
+  /**
+   * SC_* constant value
+   */
   public final int code;
-  public final String message;
-
-
-  private ModStatus(int code, String message) {
+  /**
+   * if {@link #code} == {@link #SC_INVALID_FIELD_DATA} only: invalid field name mapped to error in format {errorCode: ..., errorMessage: ...}
+   */
+  public final Map<String, Object> invalidFieldDataMap;
+  
+  private ModStatus(int code, Map<String, Object> invalidFieldDataMap) {
     this.code = code;
-    this.message = message;
+    this.invalidFieldDataMap = invalidFieldDataMap;
   }
 
-  
   public static ModStatus success() {
-    return new ModStatus(CODE_SUCCESS, "SUCCESS"); 
+    return new ModStatus(SC_SUCCESS, null); 
   }
   
-  public static ModStatus errItemNotFoundByLocation(String location) {
-    return new ModStatus(CODE_ERR__ITEM_NOT_FOUND_BY_LOCATION, "ERROR: no item found by location '" + location + "'"); 
+  /**
+   * 
+   * @param invalidFields tuples each of length 3: [fieldName1, fieldErrorCode1, errorMessage1, fieldName2, fieldErrorCode2, errorMessage2, ...]
+   */
+  public static ModStatus errInvalidFieldData(String...invalidFields) {
+    if (invalidFields != null) {
+      if (invalidFields.length % 3 != 0) {
+        throw new IllegalArgumentException("Expected tuples each of length 3");
+      }
+      Map<String, Object> invalidFieldDataMap = new HashMap<>();
+      for (int i = 0; i < invalidFields.length; i += 3) {
+        Map<String, Object> errorMap = new HashMap<>();
+        errorMap.put("errorCode", invalidFields[i + 1]);
+        errorMap.put("errorMessage", invalidFields[i + 2]);
+        invalidFieldDataMap.put(invalidFields[i], errorMap);
+      }
+      return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
+    } else {
+      return new ModStatus(SC_INVALID_FIELD_DATA, null);
+    }
   }
+  
+  public static ModStatus errServerException() {
+    return new ModStatus(SC_SERVER_EXCEPTION, null); 
+  }
+  
   
   public static ModStatus errLocationIsEmpty() {
-    return new ModStatus(CODE_ERR__LOCATION_IS_EMPTY, "ERROR: location is empty");
-  }
-  
-  public static ModStatus errMandatoryFieldsEmpty(List<String> fields) {
-    String fieldsStr = fields == null || fields.isEmpty() ? null : fields.toString(); 
-    return new ModStatus(CODE_ERR__MANDATORY_FIELDS_EMPTY, "ERROR: mandatory fields in 'data' are empty" + 
-        (fieldsStr == null ? "" : (": " + fieldsStr)));
-  }
-
-  public static ModStatus errIllegalAction(String action) {
-    return new ModStatus(CODE_ERR__ILLEGAL_ACTION, "ERROR: illegal action" + 
-        (action == null ? "" : (": " + action)));
+    return new ModStatus(SC_LOCATION_EMPTY, null);
   }
   
   public static ModStatus errDataNotModifiable() {
-    return new ModStatus(CODE_ERR__DATA_NOT_MODIFIABLE, "ERROR: data is not modifiable");
+    return new ModStatus(SC_DATA_NOT_MODIFIABLE, null);
   }
   
-  public static ModStatus errInternalError() {
-    return new ModStatus(CODE_ERR__INTERNAL_ERROR, "ERROR: internal error, ask server admin for more info");
+  public static ModStatus errNoItemFoundByLocation() {
+    return new ModStatus(SC_NO_ITEM_FOUND_BY_LOCATION, null);
   }
 }

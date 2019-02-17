@@ -90,7 +90,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     
     // Context/ResourceLink nodes
-    final List<NodeWithLocation> contextResourceLinks = getContextResourceLinkNodes();
+    final List<NodeWithLocation> contextResourceLinks = getContextResourceLinks();
     // commented Context/ResourceLink nodes
     final List<NodeWithLocation> commentedContextResourceLinks = getCommentedContextResourceLinks();
     
@@ -323,7 +323,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * The list items are filtered by unique name because
    * Tomcat ignores all same-named Context/ResourceLink nodes except for the first
    */
-  private List<NodeWithLocation> getContextResourceLinkNodes() {
+  private List<NodeWithLocation> getContextResourceLinks() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
           "Context/ResourceLink");
@@ -654,27 +654,53 @@ public class TomcatConfJdbc extends TomcatConfBase {
   }
   
   /**
-   * Creates a new active connection and adds it to the document(s).
+   * Creates a new active connection.
+   * Validates the new connection's name
+   * @param name name of the connection that will be created.   
    * @param initialParams initial params to apply to the newly created connections, in the endpoint files
    * @return
-   * @throws TransactionException 
+   * @throws DuplicateNameException if a resource with the same name already exists
+   * @throws DuplicateGlobalException if either a Context/ResourceLink.global or Server/Resource.name
+   * duplicates the name, and thus unable to create a {@link ContextResourceLinkConnection} 
    */
-  public Connection create(ConnectionInitialParams initialParams) throws TransactionException {
-    try {
-      final BaseConnection baseConnection;
-      
-      if (useResourceLinkOnCreateConnection) {
-        baseConnection = createContextResourceLinkConnection();
-      } else {
-        baseConnection = createContextResourceConnection();
+  public Connection create(String name, ConnectionInitialParams initialParams)
+      throws DuplicateNameException, DuplicateGlobalException {
+    
+    // validate 'name' over all context nodes
+    final List<NodeWithLocation> allContext = new ArrayList<>();
+    allContext.addAll(getContextResources());
+    allContext.addAll(getCommentedContextResources());
+    allContext.addAll(getContextResourceLinks());
+    allContext.addAll(getCommentedContextResourceLinks());
+    for (NodeWithLocation n: allContext) {
+      Element node = (Element)n.node;
+      if (name.equals(node.getAttribute("name"))) {
+        throw new DuplicateNameException();
       }
-      
-      baseConnection.fillDefault(initialParams);
-      
-      return baseConnection;
-      
-    } catch (Throwable e) {
-      throw new TransactionException(e);
+    }
+    
+    
+    final BaseConnection baseConnection;
+    
+    if (useResourceLinkOnCreateConnection) {
+      baseConnection = createContextResourceLinkConnection(name);
+    } else {
+      baseConnection = createContextResourceConnection();
+    }
+    
+    baseConnection.fillDefault(initialParams);
+    
+    return baseConnection;
+  }
+  
+  public static class DuplicateNameException extends Exception {
+    private static final long serialVersionUID = -4035895628172792970L;
+  }
+  
+  public static class DuplicateGlobalException extends Exception {
+    private static final long serialVersionUID = -6574278256617947520L;
+    public DuplicateGlobalException(String message) {
+      super(message);
     }
   }
   
@@ -698,7 +724,31 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * Creates and adds
    * @return
    */
-  protected ContextResourceLinkConnection createContextResourceLinkConnection() {
+  protected ContextResourceLinkConnection createContextResourceLinkConnection(String name) throws DuplicateGlobalException {
+    
+    // validate 'global' over all Context/ResourceLink nodes
+    final List<NodeWithLocation> allContextResourceLinks = new ArrayList<>();
+    allContextResourceLinks.addAll(getContextResourceLinks());
+    allContextResourceLinks.addAll(getCommentedContextResourceLinks());
+    for (NodeWithLocation n: allContextResourceLinks) {
+      Element node = (Element)n.node;
+      if (name.equals(node.getAttribute("global"))) {
+        throw new DuplicateGlobalException("Context ResourceLink with the same 'global' already exists");
+      }
+    }
+    
+    // validate 'name' over all Server/Resource nodes
+    final List<NodeWithLocation> allServerResources = new ArrayList<>();
+    allServerResources.addAll(getServerResources());
+    allServerResources.addAll(getCommentedServerResources());
+    for (NodeWithLocation n: allServerResources) {
+      Element node = (Element)n.node;
+      if (name.equals(node.getAttribute("name"))) {
+        throw new DuplicateGlobalException("Server Resource with the same 'name' already exists");
+      }
+    }
+    
+    
     try {
       // context ResourceLink
       Node contextResourceLinkNode = getContext_xmlDoc().createElement("ResourceLink");
@@ -717,10 +767,40 @@ public class TomcatConfJdbc extends TomcatConfBase {
       Node serverResourceRoot = (Node)serverResourceRootExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
       serverResourceRoot.appendChild(serverResourceNode);
       
-      return new ContextResourceLinkConnection(contextResourceLinkNode, serverResourceNode, true);
+      return new ContextResourceLinkCreatedConnection(contextResourceLinkNode, serverResourceNode, true);
       
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);
+    }
+  }
+  
+  
+  /**
+   * Class represents a newly created connection. 
+   * Used to initially set the Context/ResourceLink's 'global' and Server/Resource's 'name' attributes
+   */
+  private class ContextResourceLinkCreatedConnection extends ContextResourceLinkConnection {
+    
+    private boolean globalHasBeenSet = false;
+    
+    public ContextResourceLinkCreatedConnection(Node contextResourceLinkNode,
+        Node serverResourceNode, boolean dataModifiable) {
+      super(contextResourceLinkNode, serverResourceNode, dataModifiable);
+    }
+    
+    @Override
+    public void setName(String name) {
+      super.setName(name);
+      
+      if (!globalHasBeenSet) {
+        setGlobal(name);
+        globalHasBeenSet = true;
+      }
+    }
+    
+    protected void setGlobal(String name) {
+      contextResourceLinkNode.setAttribute("global", name);
+      serverResourceNode.setAttribute("name", name);
     }
   }
   

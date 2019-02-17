@@ -27,6 +27,8 @@ import org.jepria.tomcat.manager.core.TransactionException;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
 import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
+import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc.DuplicateGlobalException;
+import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc.DuplicateNameException;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
@@ -172,12 +174,17 @@ public class JdbcApiServlet extends HttpServlet {
         for (ModRequestDto modRequest: modRequests) {
           final String modRequestId = modRequest.getModRequestId();
           
-          if (modRequestId == null || "".equals(modRequestId)
-              || modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
-            // duplicate or empty modRequestId values
+          // validate modRequestId fields
+          if (modRequestId == null || "".equals(modRequestId)) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                "Found missing or empty modRequestId fields");
+            resp.flushBuffer();
+            return;
             
-            // TODO log?
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
+            
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                "Duplicate modRequestId field values found: [" + modRequestId + "]");
             resp.flushBuffer();
             return;
           }
@@ -199,8 +206,8 @@ public class JdbcApiServlet extends HttpServlet {
       // response map
       final Map<String, ModStatus> modStatusMap = new HashMap<>();
       
-      
-      boolean confModified = false; 
+      // all modifications succeeded
+      boolean allModSuccess = true; 
       
       // 1) perform all updates
       for (String modRequestId: modRequestBodyMap.keySet()) {
@@ -210,8 +217,8 @@ public class JdbcApiServlet extends HttpServlet {
           processedModRequestIds.add(modRequestId);
 
           ModStatus modStatus = updateConnection(mreq, tomcatConf);
-          if (modStatus.code == ModStatus.CODE_SUCCESS) {
-            confModified = true;
+          if (modStatus.code != ModStatus.SC_SUCCESS) {
+            allModSuccess = false;
           }
 
           modStatusMap.put(modRequestId, modStatus);
@@ -227,8 +234,8 @@ public class JdbcApiServlet extends HttpServlet {
           processedModRequestIds.add(modRequestId);
 
           ModStatus modStatus = deleteConnection(mreq, tomcatConf);
-          if (modStatus.code == ModStatus.CODE_SUCCESS) {
-            confModified = true;
+          if (modStatus.code != ModStatus.SC_SUCCESS) {
+            allModSuccess = false;
           }
           
           modStatusMap.put(modRequestId, modStatus);
@@ -245,8 +252,8 @@ public class JdbcApiServlet extends HttpServlet {
 
           ModStatus modStatus = createConnection(mreq, tomcatConf, 
               environment.getJdbcConnectionInitialParams());
-          if (modStatus.code == ModStatus.CODE_SUCCESS) {
-            confModified = true;
+          if (modStatus.code != ModStatus.SC_SUCCESS) {
+            allModSuccess = false;
           }
           
           modStatusMap.put(modRequestId, modStatus);
@@ -254,37 +261,30 @@ public class JdbcApiServlet extends HttpServlet {
       }
 
 
-
-      // 4) process illegal actions
-      for (String modRequestId: modRequestBodyMap.keySet()) {
-        if (!processedModRequestIds.contains(modRequestId)) {
-          
-          String action = modRequestBodyMap.get(modRequestId).getAction();
-          ModStatus modStatus = ModStatus.errIllegalAction(action);
-          
-          modStatusMap.put(modRequestId, modStatus);
-        }
-      }
+      // 4) ignore illegal actions
 
 
       // prepare response map
       final Map<String, Object> responseJsonMap = new HashMap<>();
       
-      // convert map to list
-      final List<Map<String, Object>> modStatusList = modStatusMap.entrySet().stream().map(
-          entry -> {
-            Map<String, Object> jsonMap = new HashMap<>();
-            jsonMap.put("modRequestId", entry.getKey());
-            jsonMap.put("modStatusCode", entry.getValue().code);
-            // TODO maybe to check some URL parameter (such as 'verbose=1') and to put or not to put modStatusMessages into a response?
-            jsonMap.put("modStatusMessage", entry.getValue().message);
-            return jsonMap;
-          }).collect(Collectors.toList());
+      // convert map to list of JSON objects
+      List<Map<String, Object>> modStatusList = new ArrayList<>();
+      for (Map.Entry<String, ModStatus> entry: modStatusMap.entrySet()) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("modRequestId", entry.getKey());
+        int code = entry.getValue().code;
+        jsonMap.put("modStatusCode", code);
+        if (code == ModStatus.SC_INVALID_FIELD_DATA) {
+          jsonMap.put("invalidFieldData", entry.getValue().invalidFieldDataMap);
+        }
+        modStatusList.add(jsonMap);
+      }
       
       responseJsonMap.put("modStatusList", modStatusList);
       
       
-      if (confModified) {
+      if (allModSuccess) {
+        // save modifications and add a new _list to the response
         
         // because the new connection list needed in response, do a fake save (to a temporary storage) and get after-save connections from there
         ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
@@ -302,9 +302,6 @@ public class JdbcApiServlet extends HttpServlet {
         saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
         
       } else {
-        // no conf save, just write response
-        List<ConnectionDto> connectionDtos = getConnections(tomcatConf);
-        responseJsonMap.put("_list", connectionDtos);
         
         try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
           new Gson().toJson(responseJsonMap, osw);
@@ -360,36 +357,28 @@ public class JdbcApiServlet extends HttpServlet {
   private static ModStatus updateConnection(
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
     
-    ModStatus ret;
-    
     try {
       String location = mreq.getLocation();
 
       if (location == null) {
-
-        ret = ModStatus.errLocationIsEmpty();
-            
-      } else {
-
-        Map<String, Connection> connections = tomcatConf.getConnections();
-        Connection connection = connections.get(location);
-
-        if (connection == null) {
-
-          ret = ModStatus.errItemNotFoundByLocation(location);
-
-        } else {
-          
-          ConnectionDto connectionDto = mreq.getData();
-          return updateFields(connectionDto, connection);
-        }
+        return ModStatus.errLocationIsEmpty();
       }
+
+      Map<String, Connection> connections = tomcatConf.getConnections();
+      Connection connection = connections.get(location);
+
+      if (connection == null) {
+        return ModStatus.errNoItemFoundByLocation();
+      }
+        
+      ConnectionDto connectionDto = mreq.getData();
+      
+      return updateFields(connectionDto, connection);
     } catch (Throwable e) {
       e.printStackTrace();
-      ret = ModStatus.errInternalError();
+      
+      return ModStatus.errServerException();
     }
-    
-    return ret;
   }
   
   /**
@@ -399,12 +388,16 @@ public class JdbcApiServlet extends HttpServlet {
    * @return
    */
   private static ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
+    
+    // validate illegal action due to dataModifiable field
     if (!target.isDataModifiable() && (
         sourceDto.getActive() != null || sourceDto.getServer() != null 
         || sourceDto.getDb() != null || sourceDto.getUser() != null
         || sourceDto.getPassword() != null)) {
+      
       return ModStatus.errDataNotModifiable();
     }
+    
     
     if (sourceDto.getActive() != null) {
       target.setActive(sourceDto.getActive());
@@ -430,42 +423,35 @@ public class JdbcApiServlet extends HttpServlet {
   
   private static ModStatus deleteConnection(
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
-    
-    ModStatus ret;
 
     try {
       String location = mreq.getLocation();
 
       if (location == null) {
-
-        ret = ModStatus.errLocationIsEmpty();
-
-      } else {
-
-        Map<String, Connection> connections = tomcatConf.getConnections();
-        Connection connection = connections.get(location);
-
-        if (connection == null) {
-
-          ret = ModStatus.errItemNotFoundByLocation(location);
-
-        } else {
-          
-          if (!connection.isDataModifiable()) {
-            ret = ModStatus.errDataNotModifiable();
-          }
-          
-          tomcatConf.delete(location);
-
-          ret = ModStatus.success();
-        }
+        return ModStatus.errLocationIsEmpty();
       }
+
+
+      Map<String, Connection> connections = tomcatConf.getConnections();
+      Connection connection = connections.get(location);
+
+      if (connection == null) {
+        return ModStatus.errNoItemFoundByLocation();
+      }
+        
+      if (!connection.isDataModifiable()) {
+        return ModStatus.errDataNotModifiable();
+      }
+      
+      tomcatConf.delete(location);
+
+      return ModStatus.success();
+      
     } catch (Throwable e) {
       e.printStackTrace();
-      ret = ModStatus.errInternalError();
+      
+      return ModStatus.errServerException();
     }
-    
-    return ret;
   }
   
   private static ModStatus createConnection(
@@ -479,20 +465,32 @@ public class JdbcApiServlet extends HttpServlet {
       // validate mandatory fields
       List<String> emptyMandatoryFields = validateMandatoryFields(connectionDto);
       if (!emptyMandatoryFields.isEmpty()) {
-        return ModStatus.errMandatoryFieldsEmpty(emptyMandatoryFields);
+        String[] invalidFields = new String[emptyMandatoryFields.size() * 3];
+        int i = 0;
+        for (String fieldName: emptyMandatoryFields) {
+          invalidFields[i++] = fieldName;
+          invalidFields[i++] = "MANDATORY_EMPTY";
+          invalidFields[i++] = null;
+        }
+        return ModStatus.errInvalidFieldData(invalidFields);
       }
-      
+          
 
-      Connection newConnection = tomcatConf.create(connectionInitialParams);
+      final Connection newConnection;
+      try {
+        newConnection = tomcatConf.create(connectionDto.getName(), connectionInitialParams);
+      } catch (DuplicateNameException e) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null); 
+      } catch (DuplicateGlobalException e) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", e.getMessage());
+      }
 
-      updateFields(connectionDto, newConnection);
-
-      return ModStatus.success();
+      return updateFields(connectionDto, newConnection);
       
     } catch (Throwable e) {
       e.printStackTrace();
       
-      return ModStatus.errInternalError();
+      return ModStatus.errServerException();
     }
   }
   

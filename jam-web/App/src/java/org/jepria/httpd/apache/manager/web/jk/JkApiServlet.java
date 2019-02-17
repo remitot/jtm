@@ -279,12 +279,17 @@ public class JkApiServlet extends HttpServlet {
         for (ModRequestDto modRequest: modRequests) {
           final String modRequestId = modRequest.getModRequestId();
           
-          if (modRequestId == null || "".equals(modRequestId)
-              || modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
-            // duplicate or empty modRequestId values
+          // validate modRequestId fields
+          if (modRequestId == null || "".equals(modRequestId)) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                "Found missing or empty modRequestId fields");
+            resp.flushBuffer();
+            return;
             
-            // TODO log?
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
+            
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                "Duplicate modRequestId field values found: [" + modRequestId + "]");
             resp.flushBuffer();
             return;
           }
@@ -383,7 +388,7 @@ public class JkApiServlet extends HttpServlet {
       
       
       if (allModSuccess) {
-        // save modifications
+        // save modifications and add a new _list to the response
         
         apacheConf.save(environment.getMod_jk_confOutputStream(), 
             environment.getWorkers_propertiesOutputStream());
@@ -434,7 +439,7 @@ public class JkApiServlet extends HttpServlet {
       Binding binding = bindings.get(location);
 
       if (binding == null) {
-        return ModStatus.errItemNotFoundByLocation();
+        return ModStatus.errNoItemFoundByLocation();
       }
       
       JkDto bindingDto = mreq.getData();
@@ -457,7 +462,7 @@ public class JkApiServlet extends HttpServlet {
   
   /**
    * Updates target's fields with source's values
-   * @param sourceDto already valid
+   * @param sourceDto
    * @param target non null
    * @return
    */
@@ -585,37 +590,29 @@ public class JkApiServlet extends HttpServlet {
   
   private static ModStatus deleteBinding(
       ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
-    
-    ModStatus ret;
 
     try {
       String location = mreq.getLocation();
 
       if (location == null) {
-
-        ret = ModStatus.errLocationIsEmpty();
-
-      } else {
-
-        Binding binding = apacheConf.getBindings().get(location);
-
-        if (binding == null) {
-
-          ret = ModStatus.errItemNotFoundByLocation();
-
-        } else {
-          apacheConf.delete(location);
-
-          ret = ModStatus.success();
-        }
+        return ModStatus.errLocationIsEmpty();
       }
+
+      Binding binding = apacheConf.getBindings().get(location);
+
+      if (binding == null) {
+        return ModStatus.errNoItemFoundByLocation();
+      }
+      
+      apacheConf.delete(location);
+      
+      return ModStatus.success();
+      
     } catch (Throwable e) {
       e.printStackTrace();
       
-      ret = ModStatus.errServerException();
+      return ModStatus.errServerException();
     }
-    
-    return ret;
   }
   
   private static ModStatus createBinding(
