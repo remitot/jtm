@@ -72,7 +72,7 @@
   "_list": [
     {
       "location": /string, location that identifies the connection in internal configuration files (acts as connection ID)/,
-      "dataModifiable": /boolean, whether or not this resource can be modified or deleted/,
+      "dataModifiable": /boolean, whether or not this resource can be modified or deleted (described below)/,
       "active": /boolean, whether the connection is commented in internal configuration files/,
       "name": /string, datasource name/,
       "server": /string, database server and port number/,
@@ -82,6 +82,14 @@
     },...
   ]
 }</pre>
+    </p>
+    <p>If <code>dataModifiable</code> value is <code>false</code>, the subsequent <code>/api/jdbc/mod</code>
+    requests must attempt neither to modify any of the following fields: 
+    <code>active</code>, <code>server</code>, <code>db</code>, <code>user</code>, <code>password</code>,
+    nor to delete the item. Otherwise, such attempt will cause errors.
+    This is because multiple <code>Context/ResourceLink</code> nodes point to the same 
+    <code>Server/Resource</code> node in Tomcat configurations, so it is impossible 
+    to modify such <code>Server/Resource</code>'s values for a separate <code>Context/ResourceLink</code>.
     </p>
     <p>If there are no connections, the <code>"_list"</code> element will have the value of an empty array:<pre>
 {

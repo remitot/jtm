@@ -6,7 +6,7 @@ public interface Connection {
    * Whether or not this Resource's "data" fields (server, db, user, password) are modifiable
    * and the resource is deletable.
    * The "non-data" fields (active and name) are always modifiable.
-   * An attempt to modify data fields ar delete the resource
+   * An attempt to modify data fields or delete the resource
    * if this method returns {@code false} will cause errors.
    */
   boolean isDataModifiable();
