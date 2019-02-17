@@ -72,8 +72,6 @@ import org.w3c.dom.Node;
   @Override
   public void setName(String name) {
     contextResourceLinkNode.setAttribute("name", name);
-    contextResourceLinkNode.setAttribute("global", name);
-    serverResourceNode.setAttribute("name", name);
   }
 
   @Override
