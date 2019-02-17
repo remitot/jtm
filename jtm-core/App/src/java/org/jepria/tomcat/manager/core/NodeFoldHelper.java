@@ -27,7 +27,7 @@ public class NodeFoldHelper {
   public static Comment foldComment(Node node) {
     if ("UnfoldedComment".equals(((Element)node).getTagName())) {
       
-      // remove all UnfoldedComment attributes, e.g. commentIndex to easily match by regex
+      // remove all UnfoldedComment attributes, to easily match by regex
       while (node.getAttributes().getLength() > 0) {
         Node attr = node.getAttributes().item(0);
         node.getAttributes().removeNamedItem(attr.getNodeName());

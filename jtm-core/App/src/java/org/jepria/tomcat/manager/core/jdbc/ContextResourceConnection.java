@@ -11,12 +11,14 @@ import org.w3c.dom.Node;
    */
   private Element contextResourceNode;
   
-  private boolean active = true;
+  private boolean active;
   
   public ContextResourceConnection(
-      Node contextResourceNode, boolean active) {
+      Node contextResourceNode) {
     this.contextResourceNode = (Element)contextResourceNode;
-    this.active = active;
+    
+    // determine the active state
+    this.active = !NodeFoldHelper.isNodeWithinUnfoldedComment(contextResourceNode);
   }
   
   @Override
@@ -35,16 +37,20 @@ import org.w3c.dom.Node;
     if (!this.active && active) {
       // on activate
       
-      Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(contextResourceNode);
-      contextResourceNode = (Element)uncommented;
+      if (NodeFoldHelper.isNodeWithinUnfoldedComment(contextResourceNode)) {
+        Node uncommented = NodeFoldHelper.unwrapNodeFromUnfoldedComment(contextResourceNode);
+        contextResourceNode = (Element)uncommented;
+      }
       
       this.active = active;
       
     } else if (this.active && !active) {
       // on deactivate
       
-      Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(contextResourceNode);
-      contextResourceNode = (Element)commented;
+      if (!NodeFoldHelper.isNodeWithinUnfoldedComment(contextResourceNode)) {
+        Node commented = NodeFoldHelper.wrapNodeIntoUnfoldedComment(contextResourceNode);
+        contextResourceNode = (Element)commented;
+      }
       
       this.active = active;
     }

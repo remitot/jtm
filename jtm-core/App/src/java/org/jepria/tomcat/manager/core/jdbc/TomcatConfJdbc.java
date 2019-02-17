@@ -70,20 +70,18 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     // Context/Resource nodes
     final List<NodeWithLocation> contextResources = getContextResources();
-    
     // commented Context/Resource nodes
     final List<NodeWithLocation> commentedContextResources = getCommentedContextResources();
     
-    
-    
-    for (NodeWithLocation contextResourceNode: contextResources) {
-      final BaseConnection resource = new ContextResourceConnection(contextResourceNode.node, true);
-      baseConnections.put(contextResourceNode.location, resource);
-    }
-    
-    for (NodeWithLocation resourceNode: commentedContextResources) {
-      final BaseConnection resource = new ContextResourceConnection(resourceNode.node, false);
-      baseConnections.put(resourceNode.location, resource);
+    {
+      final List<NodeWithLocation> allContextResources = new ArrayList<>();
+      allContextResources.addAll(contextResources);
+      allContextResources.addAll(commentedContextResources);
+      
+      for (NodeWithLocation contextResourceNode: allContextResources) {
+        final BaseConnection resource = new ContextResourceConnection(contextResourceNode.node);
+        baseConnections.put(contextResourceNode.location, resource);
+      }
     }
     
     
@@ -689,7 +687,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
       Node contextResourceRoot = (Node)contextResourceRootExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODE);
       contextResourceRoot.appendChild(contextResourceNode);
       
-      return new ContextResourceConnection(contextResourceNode, true);
+      return new ContextResourceConnection(contextResourceNode);
       
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);
