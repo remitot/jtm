@@ -1,20 +1,25 @@
 <web-app>
 
+<!-- Application environment configuration: -->
+
+  <!-- mandatory -->
   <context-param>
     <param-name>org.jepria.httpd.apache.manager.web.confDirectory</param-name>
     <param-value></param-value>
   </context-param>
   
+  <!-- optional -->
   <context-param>
     <param-name>org.jepria.httpd.apache.manager.web.jk.renameLocalhost</param-name>
     <param-value>true</param-value>
   </context-param>
   
-
+  <!-- mandatory -->
   <context-param>
     <param-name>org.jepria.httpd.apache.manager.web.apacheServiceName</param-name>
     <param-value>Apache</param-value>
   </context-param>
+<!-- :Application environment configuration -->
 
  
   <session-config>

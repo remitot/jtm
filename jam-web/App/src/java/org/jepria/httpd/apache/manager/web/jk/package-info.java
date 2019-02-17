@@ -1,8 +1,5 @@
 /**
- * NON-PRODUCTION CODE!
- * 
- * A part of the application for mapping applications
- * through Apache HTTPD mod_jk.conf
+ * Apache HTTPD mod_jk API endpoint.
  */
 package org.jepria.httpd.apache.manager.web.jk;
 

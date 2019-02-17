@@ -1,7 +1,5 @@
 /**
- * NON-PRODUCTION CODE!
- * 
- * A part of the application for managing Tomcat's port configurations
+ * Tomcat ports API endpoint.
  */
 package org.jepria.tomcat.manager.web.port;
 
