@@ -253,6 +253,8 @@ function addCheckbox(cell, active, enabled) {
   strike = document.createElement("div");
   strike.classList.add("strike");
   cell.appendChild(strike);
+  
+  return checkbox;
 }
 
 function createCheckbox(active) {
@@ -475,7 +477,10 @@ function setRowDisabled(row, disabled) {
   
   var checkboxes = row.querySelectorAll(".checkbox.deletable");
   for (var i = 0; i < checkboxes.length; i++) {
-    setCheckboxEnabled(checkboxes[i], !disabled);
+    var checkbox = checkboxes[i];
+    if (!checkbox.classList.contains("readonly")) {
+      setCheckboxEnabled(checkbox, !disabled);
+    }
   }
   
   // hide all delete buttons (as they were not disabled)
