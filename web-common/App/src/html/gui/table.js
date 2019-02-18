@@ -109,7 +109,7 @@ function uiOnTableModSuccess() {
 /**
  * Not all ModRequests succeeded (but possibly some of them), no modifications performed on the server, some ModRequests resulted INVALID_FIELD_DATA status
  */
-function uiOnTableModNotSuccessInvalidFieldData() {
+function uiOnTableModErrorInvalidFieldData() {
   var message = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
       "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
   statusError(message);
@@ -118,7 +118,7 @@ function uiOnTableModNotSuccessInvalidFieldData() {
 /**
  * Not all ModRequests succeeded (but possibly some of them), no modifications performed on the server
  */
-function uiOnTableModNotSuccess() {
+function uiOnTableModError() {
   var message = "<span class=\"span-bold\">При попытке сохранить изменения произошла ошибка. На сервере всё осталось без изменений.</span>"; // NON-NLS 
   statusError(message);
 }
@@ -693,15 +693,14 @@ function onSaveButtonClick() {
             onTableModSuccess(jsonItemList);
             
           } else if (invalidFieldDataStatus) {
-            uiOnTableModNotSuccessInvalidFieldData();
+            uiOnTableModErrorInvalidFieldData();
           } else {
-            uiOnTableModNotSuccess();
+            uiOnTableModError();
           }
           
         } else {
           uiOnSaveEnd();
-          
-          onTableReloadError(this.status);
+          uiOnTableModError();
         }
       }
     };
