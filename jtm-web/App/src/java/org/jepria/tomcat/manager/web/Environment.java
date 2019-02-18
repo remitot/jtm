@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
+import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 
 /**
  * Environment-dependent configuration parameters
@@ -42,7 +42,7 @@ public interface Environment {
   File getLogsDirectory();
   
   /**
-   * @return initial (default) params for the newly created JDBC connection
+   * @return initial params for the newly created resources
    */
-  ConnectionInitialParams getJdbcConnectionInitialParams();
+  ResourceInitialParams getResourceInitialParams();
 }

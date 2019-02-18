@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.core.TransactionException;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
-import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
+import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc.DuplicateGlobalException;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc.DuplicateNameException;
@@ -251,7 +251,7 @@ public class JdbcApiServlet extends HttpServlet {
           processedModRequestIds.add(modRequestId);
 
           ModStatus modStatus = createConnection(mreq, tomcatConf, 
-              environment.getJdbcConnectionInitialParams());
+              environment.getResourceInitialParams());
           if (modStatus.code != ModStatus.SC_SUCCESS) {
             allModSuccess = false;
           }
@@ -456,7 +456,7 @@ public class JdbcApiServlet extends HttpServlet {
   
   private static ModStatus createConnection(
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf,
-      ConnectionInitialParams connectionInitialParams) {
+      ResourceInitialParams initialParams) {
 
     try {
       ConnectionDto connectionDto = mreq.getData();
@@ -478,7 +478,7 @@ public class JdbcApiServlet extends HttpServlet {
 
       final Connection newConnection;
       try {
-        newConnection = tomcatConf.create(connectionDto.getName(), connectionInitialParams);
+        newConnection = tomcatConf.create(connectionDto.getName(), initialParams);
       } catch (DuplicateNameException e) {
         return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null); 
       } catch (DuplicateGlobalException e) {

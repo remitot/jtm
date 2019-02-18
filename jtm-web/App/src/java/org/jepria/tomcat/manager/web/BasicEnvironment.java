@@ -4,17 +4,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.jepria.tomcat.manager.core.jdbc.ConnectionInitialParams;
+import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 
 /**
  * Basic production environment
@@ -24,11 +29,9 @@ public class BasicEnvironment implements Environment {
   private final File contextXml;
   private final File serverXml;
   
-  private final File contextResourceDefaultAttrs;
-  private final File contextResourceLinkDefaultAttrs;
-  private final File serverResourceDefaultAttrs;
-  
   private final File logsDirectory;
+  
+  private final String appConfDirectoryFallback;
   
   /**
    * @param request
@@ -52,14 +55,9 @@ public class BasicEnvironment implements Environment {
     contextXml = confDir.toPath().resolve("context.xml").toFile();
     serverXml = confDir.toPath().resolve("server.xml").toFile();
     
-    contextResourceDefaultAttrs = new File(request.getServletContext().getRealPath(
-        "/WEB-INF/jdbc_connection_default_attrs/context_Resource.default_attrs.properties"));
-    contextResourceLinkDefaultAttrs = new File(request.getServletContext().getRealPath(
-        "/WEB-INF/jdbc_connection_default_attrs/context_ResourceLink.default_attrs.properties"));
-    serverResourceDefaultAttrs = new File(request.getServletContext().getRealPath(
-        "/WEB-INF/jdbc_connection_default_attrs/server_Resource.default_attrs.properties"));
-    
     logsDirectory = getLogsDirectory(request);
+    
+    appConfDirectoryFallback = request.getServletContext().getRealPath("/WEB-INF/conf");
   }
   
   @Override
@@ -103,43 +101,86 @@ public class BasicEnvironment implements Environment {
     return logsDirectory;
   }
   
-  @Override
-  public ConnectionInitialParams getJdbcConnectionInitialParams() {
-    
-    // TODO reload each time?
-    Properties contextResourceDefaultAttrsProps = new Properties();
-    Properties contextResourceLinkDefaultAttrsProps = new Properties();
-    Properties serverResourceDefaultAttrsProps = new Properties();
-    
+
+  protected String getAppConfDirectoryFilename() {
     try {
-      contextResourceDefaultAttrsProps.load(new InputStreamReader(
-          new FileInputStream(contextResourceDefaultAttrs), "UTF-8"));
-      contextResourceLinkDefaultAttrsProps.load(new InputStreamReader(
-          new FileInputStream(contextResourceLinkDefaultAttrs), "UTF-8"));
-      serverResourceDefaultAttrsProps.load(new InputStreamReader(
-          new FileInputStream(serverResourceDefaultAttrs), "UTF-8"));
-    } catch (Throwable e) {
-      // fail first
-      throw new RuntimeException("Failed to load connection default attributes", e);
+      Context initCtx = new InitialContext();
+      Context envCtx = (Context) initCtx.lookup("java:comp/env");
+      return (String) envCtx.lookup("org.jepria.tomcat.manager.web.jdbc.InitialAttrs");
+    } catch (NamingException e) {
+      return null;
+    }
+  }
+  
+  @Override
+  public ResourceInitialParams getResourceInitialParams() {
+    
+    String appConfDirectory0;
+    try {
+      Context initCtx = new InitialContext();
+      Context envCtx = (Context) initCtx.lookup("java:comp/env");
+      String appConfDirectoryEnv = (String) envCtx.lookup("org.jepria.tomcat.manager.web.jdbc.InitialAttrs");
+      
+      if (appConfDirectoryEnv != null) {
+        appConfDirectory0 = appConfDirectoryEnv;
+            
+      } else {
+        // TODO fail-fast or fail-safe?
+        // fail-fast:
+//          throw new RuntimeException("Misconfiguration exception: "
+//              + "failed to obtain application conf directory "
+//              + "from [java:comp/env/org.jepria.tomcat.manager.web.jdbc.InitialAttrs]", 
+//              new NullPointerException());
+        appConfDirectory0 = appConfDirectoryFallback;
+      }
+      
+    } catch (NamingException e) {
+      
+      // TODO fail-fast or fail-safe?
+      // fail-fast:
+//      throw new RuntimeException("Misconfiguration exception: "
+//          + "failed to obtain application conf directory "
+//          + "from [java:comp/env/org.jepria.tomcat.manager.web.jdbc.InitialAttrs]", e);
+      appConfDirectory0 = appConfDirectoryFallback;
     }
     
-    return new ConnectionInitialParams() {
-      @Override
-      public Map<String, String> serverResourceDefaultAttrs() {
-        return serverResourceDefaultAttrsProps.entrySet().stream()
-            .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
+    final String appConfDirectory = appConfDirectory0; 
+    
+    
+    return new ResourceInitialParams() {
+      
+      private Map<String, String> readFile(String filename) {
+        try (Reader reader = new InputStreamReader(new FileInputStream(
+            new File(filename)), "UTF-8")) {
+          final Properties properties = new Properties();
+          properties.load(reader);
+          return properties.entrySet().stream()
+              .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
+        } catch (IOException e) {
+          throw new RuntimeException("Misconfiguration exception: "
+              + "application conf directory [" + appConfDirectory + "]: ", 
+              e);
+        }
       }
       
       @Override
-      public Map<String, String> contextResourceLinkDefaultAttrs() {
-        return contextResourceLinkDefaultAttrsProps.entrySet().stream()
-            .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
+      public Map<String, String> getServerResourceAttrs() {
+        return readFile(appConfDirectory + "/jdbc.initial_attrs/ContextResource.properties");
       }
       
       @Override
-      public Map<String, String> contextResourceDefaultAttrs() {
-        return contextResourceDefaultAttrsProps.entrySet().stream()
-            .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
+      public Map<String, String> getContextResourceLinkAttrs() {
+        return readFile(appConfDirectory + "/jdbc.initial_attrs/ContextResourceLink.properties");
+      }
+      
+      @Override
+      public Map<String, String> getContextResourceAttrs() {
+        return readFile(appConfDirectory + "/jdbc.initial_attrs/ServerResource.properties");
+      }
+      
+      @Override
+      public String getJdbcProtocol() {
+        return readFile(appConfDirectory + "/application.properties").get("jdbc.url_protocol");
       }
     };
   }

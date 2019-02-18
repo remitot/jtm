@@ -84,8 +84,8 @@
           <fileset file="${GSON_LIB}" />
         </copy>
       	
-      	<copy todir="temp-war/WEB-INF/jdbc_connection_default_attrs">
-          <fileset file="src/resources/jdbc_connection_default_attrs/**/" />
+      	<copy todir="temp-war/WEB-INF/conf">
+          <fileset file="conf/**/" />
         </copy>
         
       	<unzip src="${WEB-COMMON_LIB}" dest="temp-war"/>	

@@ -11,12 +11,27 @@ import java.util.regex.Pattern;
   /*package*/abstract void delete();
   
   /**
-   * Apply initial settings to the nodes in the endpoint files
+   * Set initial attributes for the newly created nodes
    */
-  /*package*/abstract void fillDefault(ConnectionInitialParams initialParams);
+  /*package*/abstract void setInitialAttrs(ResourceInitialParams initialParams);
   
+  /**
+   * Sets the 'url' attribute of the node
+   * @param url the value assembled from 
+   * {@link #setServer(String)} and {@link #setDb(String)} 
+   */
   protected abstract void setUrl(String url);
+  
+  /**
+   * @return 'url' attribute of the node to parse 
+   * the return values of {@link #getServer()} and {@link #getDb()}   
+   */
   protected abstract String getUrl();
+  
+  protected boolean urlParsed = false;
+  
+  protected String protocol;
+  private boolean protocolHasBeenSet = false;
   
   protected String server;
   private boolean serverHasBeenSet = false;
@@ -24,64 +39,65 @@ import java.util.regex.Pattern;
   protected String db;
   private boolean dbHasBeenSet = false;
   
-  // final
-  protected final void parseUrl() {
+
+  protected void parseUrl() {
     if (!dbHasBeenSet || !serverHasBeenSet) { 
-      String url = getUrl();
+      final String url = getUrl();
       
       if (url != null && !"".equals(url)) {
-        // TODO parametrize DB protocol
-        Matcher m = Pattern.compile("jdbc:oracle:thin:@//([^/]+)/(.+)").matcher(url);
+        Matcher m = Pattern.compile("(.+?//)([^/]+?)/(.+)").matcher(url);
         if (m.matches()) {
+          if (!protocolHasBeenSet) {
+            protocol = m.group(1);
+            protocolHasBeenSet = true;
+          }
           if (!serverHasBeenSet) {
-            server = m.group(1);
+            server = m.group(2);
             serverHasBeenSet = true;
           }
           if (!dbHasBeenSet) {
-            db = m.group(2);
+            db = m.group(3);
             dbHasBeenSet = true;
           }
         } else {
-          // TODO parametrize DB protocol and remove this throw
-          throw new IllegalArgumentException("Only jdbc:oracle:thin url format supported");
+          throw new IllegalArgumentException("The url [" + url + "] does not match the expected regex");
         }
       }
     }
   }
   
-  // final
-  protected final void setUrl() {
-    // TODO parametrize DB protocol
-    setUrl("jdbc:oracle:thin:@//" + getServer() + "/" + getDb());
+  private void setUrl() {
+    setUrl(protocol + getServer() + "/" + getDb());
   }
   
-  // final
+  /*package*/void setProtocol(String protocol) {
+    this.protocol = protocol;
+    protocolHasBeenSet = true;
+  }
+  
   @Override
-  public final String getDb() {
+  public String getServer() {
+    parseUrl();
+    return server;
+  }
+ 
+  @Override
+  public String getDb() {
     parseUrl();
     return db;
   }
   
-  // final
   @Override
-  public final void setDb(String db) {
-    this.db = db;
-    dbHasBeenSet = true;
+  public void setServer(String server) {
+    this.server = server;
+    serverHasBeenSet = true;
     setUrl();
   }
   
-  // final
   @Override
-  public final String getServer() {
-    parseUrl();
-    return server;
-  }
-  
-  // final
-  @Override
-  public final void setServer(String server) {
-    this.server = server;
-    serverHasBeenSet = true;
+  public void setDb(String db) {
+    this.db = db;
+    dbHasBeenSet = true;
     setUrl();
   }
 }

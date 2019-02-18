@@ -655,15 +655,16 @@ public class TomcatConfJdbc extends TomcatConfBase {
   
   /**
    * Creates a new active connection.
-   * Validates the new connection's name
-   * @param name name of the connection that will be created.   
+   * Validates the new resource's name, throws exceptions if validation fails.
+   * @param name name of the resource that will be created.   
    * @param initialParams initial params to apply to the newly created connections, in the endpoint files
    * @return
    * @throws DuplicateNameException if a resource with the same name already exists
    * @throws DuplicateGlobalException if either a Context/ResourceLink.global or Server/Resource.name
    * duplicates the name, and thus unable to create a {@link ContextResourceLinkConnection} 
    */
-  public Connection create(String name, ConnectionInitialParams initialParams)
+  public Connection create(String name, 
+      ResourceInitialParams initialParams)
       throws DuplicateNameException, DuplicateGlobalException {
     
     // validate 'name' over all context nodes
@@ -688,7 +689,9 @@ public class TomcatConfJdbc extends TomcatConfBase {
       baseConnection = createContextResourceConnection();
     }
     
-    baseConnection.fillDefault(initialParams);
+    
+    baseConnection.setProtocol(initialParams.getJdbcProtocol());
+    baseConnection.setInitialAttrs(initialParams);
     
     return baseConnection;
   }
@@ -766,6 +769,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
           "Server/GlobalNamingResources");
       Node serverResourceRoot = (Node)serverResourceRootExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODE);
       serverResourceRoot.appendChild(serverResourceNode);
+      
       
       return new ContextResourceLinkCreatedConnection(contextResourceLinkNode, serverResourceNode, true);
       
