@@ -35,12 +35,23 @@ public class LoginServlet extends HttpServlet {
     if (username != null && password != null) {
       try {
         
-        // logout if logged in
-        if (req.getUserPrincipal() != null) {
-          req.logout();
-        }
+        // TODO Tomcat bug?
+        // when logged into vsmlapprfid1:8081/manager-ext/jdbc, then opening vsmlapprfid1:8080/manager-ext/jdbc results 401 
+        // (on tomcat's container security check level) -- WHY? (with SSO valve turned on!)
+        // OK, but after that, if we do vsmlapprfid1:8080/manager-ext/api/login -- the userPrincipal IS null, but req.login() throws
+        // 'javax.servlet.ServletException: This request has already been authenticated' -- WHY? Must be EITHER request authenticated OR userPrincipal==null!
+        
+        // So, as a workaround -- logout anyway...
+        
+//        // logout if logged in
+//        if (req.getUserPrincipal() != null) {
+//          req.logout();
+//        }
+        
+        req.logout();
         
         req.login(username, password);
+        
         
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
