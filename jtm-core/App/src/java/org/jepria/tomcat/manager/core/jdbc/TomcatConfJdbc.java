@@ -32,10 +32,23 @@ import org.w3c.dom.NodeList;
  */
 public class TomcatConfJdbc extends TomcatConfBase {
   
+  /**
+   * Whether to create new resources with Context/Resource or Context/ResourceLink+Server/GlobalNamingResources/Resource nodes
+   */
+  private final boolean createContextResources;
   
+  /**
+   * @param context_xmlInput
+   * @param server_xmlInput
+   * @param createContextResources if {@code true}: create new resources with {@code Context/Resource} nodes, 
+   * otherwise: create new resources with {@code Context/ResourceLink+Server/GlobalNamingResources/Resource} nodes
+   */
   public TomcatConfJdbc(Supplier<InputStream> context_xmlInput,
-      Supplier<InputStream> server_xmlInput) {
+      Supplier<InputStream> server_xmlInput, 
+      boolean createContextResources) {
+    
     super(context_xmlInput, server_xmlInput);
+    this.createContextResources = createContextResources;
   }
 
   /**
@@ -642,17 +655,6 @@ public class TomcatConfJdbc extends TomcatConfBase {
     saveServer_xml(serverXmlOutputStream);
   }
   
-  protected boolean useResourceLinkOnCreateConnection = true;
-  
-  /**
-   * 
-   * @param useResourceLinkOnCreateConnection {@code true} if to create new connections using {@code Context/ResourceLink+Server/Resource},
-   * otherwise {@code false} to create new connections using {@code Context/Resource}
-   */
-  public void setUseResourceLinkOnCreateConnection(boolean useResourceLinkOnCreateConnection) {
-    this.useResourceLinkOnCreateConnection = useResourceLinkOnCreateConnection;
-  }
-  
   /**
    * Creates a new active connection.
    * Validates the new resource's name, throws exceptions if validation fails.
@@ -683,10 +685,10 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     final BaseConnection baseConnection;
     
-    if (useResourceLinkOnCreateConnection) {
-      baseConnection = createContextResourceLinkConnection(name);
-    } else {
+    if (createContextResources) {
       baseConnection = createContextResourceConnection();
+    } else {
+      baseConnection = createContextResourceLinkConnection(name);
     }
     
     

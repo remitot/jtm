@@ -43,6 +43,10 @@ public class JdbcApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7724868882541481749L;
 
+  private static boolean isCreateContextResources(Environment environment) {
+    return "true".equals(environment.getApplicationProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
+  }
+  
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
@@ -55,11 +59,12 @@ public class JdbcApiServlet extends HttpServlet {
       
       try {
         
-        Environment environment = EnvironmentFactory.get(req);
+        final Environment environment = EnvironmentFactory.get(req);
         
-        TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
+        final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
             () -> environment.getContextXmlInputStream(), 
-            () -> environment.getServerXmlInputStream());
+            () -> environment.getServerXmlInputStream(),
+            isCreateContextResources(environment));
         
         List<ConnectionDto> connections = getConnections(tomcatConf);
 
@@ -197,7 +202,8 @@ public class JdbcApiServlet extends HttpServlet {
       
       final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
           () -> environment.getContextXmlInputStream(), 
-          () -> environment.getServerXmlInputStream());
+          () -> environment.getServerXmlInputStream(),
+          isCreateContextResources(environment));
 
       // collect processed modRequests
       final Set<String> processedModRequestIds = new HashSet<>();
@@ -292,9 +298,10 @@ public class JdbcApiServlet extends HttpServlet {
         
         tomcatConf.save(contextXmlBaos, serverXmlBaos);
         
-        TomcatConfJdbc tomcatConfAfterSave = new TomcatConfJdbc(
+        final TomcatConfJdbc tomcatConfAfterSave = new TomcatConfJdbc(
             () -> new ByteArrayInputStream(contextXmlBaos.toByteArray()),
-            () -> new ByteArrayInputStream(serverXmlBaos.toByteArray()));
+            () -> new ByteArrayInputStream(serverXmlBaos.toByteArray()),
+            isCreateContextResources(environment));
         
         List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
         responseJsonMap.put("_list", connectionDtos);

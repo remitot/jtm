@@ -101,20 +101,35 @@ public class BasicEnvironment implements Environment {
     return logsDirectory;
   }
   
-
-  protected String getAppConfDirectoryFilename() {
+  protected String getEnv(String name) {
     try {
       Context initCtx = new InitialContext();
       Context envCtx = (Context) initCtx.lookup("java:comp/env");
-      return (String) envCtx.lookup("org.jepria.tomcat.manager.web.jdbc.InitialAttrs");
+      return (String) envCtx.lookup(name);
     } catch (NamingException e) {
+      // TODO fail-fast or fail-safe? what if the user configured the env variable, but the exception occurred?
       return null;
     }
   }
   
   @Override
-  public Map<String, String> getApplicationProperties() {
-    return readProperties("application.properties");
+  /**
+   * 1. Looks up the property defined in {@code java:comp/env/propertyName} JNDI entry. If the entry is defined, returns the value.
+   * 2. Looks up the property in {@code appConfDirectory/application.properties} file 
+   * (if an application configuration directory is defined in {@code java:comp/env/org.jepria.tomcat.manager.web.appConfDirectory} JNDI entry). 
+   * If the entry is defined, returns the value.
+   * 3. Looks up the property in internal {@code conf-default/application.properties} file. If the property is defined, returns the value. 
+   * 4. returns {@code null}.
+   */
+  public String getApplicationProperty(String propertyName) {
+    
+    final String env = getEnv(propertyName);
+    
+    if (env == null) {
+      return readProperties("application.properties").get(propertyName);
+    } else {
+      return env;
+    }
   }
   
   /**
@@ -122,48 +137,27 @@ public class BasicEnvironment implements Environment {
    * @param filepath relative to the application conf directory
    * @return
    */
-  private Map<String, String> readProperties(String filepath) {
+  protected Map<String, String> readProperties(String filepath) {
     
-    String appConfDirectoryPath;
-    try {
-      Context initCtx = new InitialContext();
-      Context envCtx = (Context) initCtx.lookup("java:comp/env");
-      String appConfDirectoryEnv = (String) envCtx.lookup("org.jepria.tomcat.manager.web.appConfDirectory");
-      
-      if (appConfDirectoryEnv != null) {
-        appConfDirectoryPath = appConfDirectoryEnv;
-            
-      } else {
-        // TODO fail-fast or fail-safe?
-        // fail-fast:
-//          throw new RuntimeException("Misconfiguration exception: "
-//              + "failed to obtain application conf directory "
-//              + "from [java:comp/env/org.jepria.tomcat.manager.web.jdbc.InitialAttrs]", 
-//              new NullPointerException());
-        appConfDirectoryPath = appConfDirectoryDefault;
-      }
-      
-    } catch (NamingException e) {
-      
-      // TODO fail-fast or fail-safe?
-      // fail-fast:
-//      throw new RuntimeException("Misconfiguration exception: "
-//          + "failed to obtain application conf directory "
-//          + "from [java:comp/env/org.jepria.tomcat.manager.web.jdbc.InitialAttrs]", e);
-      appConfDirectoryPath = appConfDirectoryDefault;
+    final String env = getEnv("org.jepria.tomcat.manager.web.appConfDirectory");
+    
+    final File appConfDirectory;
+    if (env != null) {
+      appConfDirectory = new File(env);
+    } else {
+      appConfDirectory = new File(appConfDirectoryDefault);
     }
     
-    final File appConfDirectory = new File(appConfDirectoryPath); 
-    
     try (Reader reader = new InputStreamReader(new FileInputStream(new File(appConfDirectory, filepath)), "UTF-8")) {
+      
       final Properties properties = new Properties();
       properties.load(reader);
+      
       return properties.entrySet().stream()
           .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
+      
     } catch (IOException e) {
-      throw new RuntimeException("Misconfiguration exception: "
-          + "application conf directory [" + appConfDirectory + "]: ", 
-          e);
+      throw new RuntimeException("Misconfiguration exception: " + "application conf directory [" + appConfDirectory + "]: ", e);
     }
   }
   
@@ -188,7 +182,7 @@ public class BasicEnvironment implements Environment {
       
       @Override
       public String getJdbcProtocol() {
-        return getApplicationProperties().get("jdbc.protocol"); 
+        return getApplicationProperty("org.jepria.tomcat.manager.web.jdbc.protocol"); 
       }
     };
   }

@@ -2,7 +2,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%
-  String managerApacheHref = EnvironmentFactory.get(request).getApplicationProperties().get("manager.apache.href");
+  String managerApacheHref = EnvironmentFactory.get(request).getApplicationProperty("org.jepria.tomcat.manager.web.managerApacheHref");
 %>
 
 <div class="page-header">
