@@ -71,7 +71,7 @@
 {
   "_list": [
     {
-      "location": /string, location that identifies the connection in internal configuration files (acts as connection ID)/,
+      "id": /string, identificator of the connection/,
       "dataModifiable": /boolean, whether or not this resource can be modified or deleted (described below)/,
       "active": /boolean, whether the connection is commented in internal configuration files/,
       "name": /string, datasource name/,
@@ -103,7 +103,7 @@
 {
   "_list": [
     {
-      "location": "Context/ResourceLink[0]+Server/Resource[0]",
+      "id": "$C.RL0+$S.R0",
       "dataModifiable": true,
       "active": true,
       "name": "jdbc/Datasource1",
@@ -113,7 +113,7 @@
       "password": "password1"
     },
     {
-      "location": "Context/ResourceLink[1]+Server/Resource[1]",
+      "id": "$C.RL1+$S.R1",
       "dataModifiable": true,
       "active": true,
       "name": "jdbc/Datasource2",
@@ -151,7 +151,7 @@
   "modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
   "modRequestBody": {
     "action": "update",
-    "location": /string, mandatory, reference to the existing connection/,
+    "id": /string, mandatory, reference to the existing connection id/,
     "data": {
       "active": /boolean, optional, new field value/,
       "name": /string, optional, new field value/,
@@ -168,7 +168,7 @@
   "modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
   "modRequestBody": {
     "action": "delete",
-    "location": /string, mandatory, reference to the existing connection/
+    "id": /string, mandatory, reference to the existing connection id/
   }
 }</pre>
       </li>
@@ -223,8 +223,8 @@
     <ul>
       <li><code>0</code>: successful modification</li>
       <li><code>1</code>: error: invalid field data (see description of <code>"invalidFieldData"</code> object below)</li>
-      <li><code>2</code>: error: <code>location</code> field is missing or empty</li>
-      <li><code>3</code>: error: no item found by such <code>location</code></li>
+      <li><code>2</code>: error: <code>id</code> field is missing or empty</li>
+      <li><code>3</code>: error: no item found by such <code>id</code></li>
       <li><code>4</code>: error: data not modifiable (means that <code>/api/jdbc/list</code> 
       returned this item with <code>"dataModifiable": false</code>)</li>
       <li><code>500</code>: error: unspecified server exception</li>
@@ -250,10 +250,10 @@
     Request: <code>/api/jdbc/mod</code><pre>
 [
   {
-    "modRequestId": "Context/ResourceLink[1]+Server/Resource[1]",
+    "modRequestId": "$C.RL1+$S.R1",
     "modRequestBody": {
       "action": "update",
-      "location": "Context/ResourceLink[1]+Server/Resource[1]",
+      "id": "$C.RL1+$S.R1",
       "data": {
         "active": true,
         "server": "new-db-server2:1521",
@@ -262,10 +262,10 @@
     }
   },
   {
-    "modRequestId": "Context/ResourceLink[0]+Server/Resource[0]",
+    "modRequestId": "$C.RL0+$S.R0",
     "modRequestBody": {
       "action": "delete",
-      "location": "Context/ResourceLink[0]+Server/Resource[0]"
+      "id": "$C.RL0+$S.R0"
     }
   },
   {
@@ -286,7 +286,7 @@
 {
   "_list": [
     {
-      "location": "Context/ResourceLink[0]+Server/Resource[0]",
+      "id": "$C.RL0+$S.R0",
       "dataModifiable": true,
       "active": true,
       "name": "jdbc/Datasource2",
@@ -296,7 +296,7 @@
       "password": "password2"
     }, 
     {
-      "location": "Context/ResourceLink[1]+Server/Resource[1]",
+      "id": "$C.RL1+$S.R1",
       "dataModifiable": true,
       "active": true,
       "name": "jdbc/Datasource3",
@@ -308,13 +308,13 @@
   ],
   "modStatusList": [
     {
-      "modRequestId": "Context/ResourceLink[1]+Server/Resource[1]",
+      "modRequestId": "$C.RL1+$S.R1",
       "modStatusCode": 0
     }, {
       "modRequestId": "row-create-1",
       "modStatusCode": 0
     }, {
-      "modRequestId": "Context/ResourceLink[0]+Server/Resource[0]",
+      "modRequestId": "$C.RL0+$S.R0",
       "modStatusCode": 0
     }
   ]

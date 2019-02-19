@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.tomcat.manager.core.TransactionException;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
@@ -129,15 +128,15 @@ public class JdbcApiServlet extends HttpServlet {
     };
   }
 
-  private static ConnectionDto connectionToDto(String location, Connection connection) {
-    Objects.requireNonNull(location);
+  private static ConnectionDto connectionToDto(String id, Connection connection) {
+    Objects.requireNonNull(id);
     
     ConnectionDto dto = new ConnectionDto();
     
     dto.setDataModifiable(connection.isDataModifiable());
     dto.setActive(connection.isActive());
     dto.setDb(connection.getDb());
-    dto.setLocation(location);
+    dto.setId(id);
     dto.setName(connection.getName());
     dto.setPassword(connection.getPassword());
     dto.setServer(connection.getServer());
@@ -363,17 +362,17 @@ public class JdbcApiServlet extends HttpServlet {
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
     
     try {
-      final String location = mreq.getLocation();
+      final String id = mreq.getId();
 
-      if (location == null) {
-        return ModStatus.errLocationIsEmpty();
+      if (id == null) {
+        return ModStatus.errEmptyId();
       }
 
       final Map<String, Connection> connections = tomcatConf.getConnections();
-      final Connection connection = connections.get(location);
+      final Connection connection = connections.get(id);
 
       if (connection == null) {
-        return ModStatus.errNoItemFoundByLocation();
+        return ModStatus.errNoItemFoundById();
       }
         
       final ConnectionDto connectionDto = mreq.getData();
@@ -441,25 +440,25 @@ public class JdbcApiServlet extends HttpServlet {
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
 
     try {
-      String location = mreq.getLocation();
+      String id = mreq.getId();
 
-      if (location == null) {
-        return ModStatus.errLocationIsEmpty();
+      if (id == null) {
+        return ModStatus.errEmptyId();
       }
 
 
       Map<String, Connection> connections = tomcatConf.getConnections();
-      Connection connection = connections.get(location);
+      Connection connection = connections.get(id);
 
       if (connection == null) {
-        return ModStatus.errNoItemFoundByLocation();
+        return ModStatus.errNoItemFoundById();
       }
         
       if (!connection.isDataModifiable()) {
         return ModStatus.errDataNotModifiable();
       }
       
-      tomcatConf.delete(location);
+      tomcatConf.delete(id);
 
       return ModStatus.success();
       
@@ -519,12 +518,10 @@ public class JdbcApiServlet extends HttpServlet {
    * @param environment
    * @param responseJsonMap
    * @param resp
-   * @throws TransactionException
    * @throws IOException
    */
   private static void saveAndWriteResponse(TomcatConfJdbc tomcatConf, Environment environment,
-      Map<String, Object> responseJsonMap, HttpServletResponse resp)
-          throws TransactionException, IOException {
+      Map<String, Object> responseJsonMap, HttpServletResponse resp) throws IOException {
     // prepare response to write as fast as possible, after save completes
     ByteArrayOutputStream preparedResponse = new ByteArrayOutputStream();
     

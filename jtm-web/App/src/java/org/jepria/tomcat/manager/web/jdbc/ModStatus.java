@@ -18,14 +18,14 @@ public class ModStatus {
   public static final int SC_INVALID_FIELD_DATA = 1;// the constant value referred from table.js
   
   /**
-   * Location is empty.
+   * Empty id.
    */
-  public static final int SC_LOCATION_EMPTY = 2;// the constant value referred from table.js
+  public static final int SC_EMPTY_ID = 2;// the constant value referred from table.js
   
   /**
-   * No item found by location
+   * No item found by id
    */
-  public static final int SC_NO_ITEM_FOUND_BY_LOCATION = 3;// the constant value referred from table.js
+  public static final int SC_NO_ITEM_FOUND_BY_ID = 3;// the constant value referred from table.js
   
   /**
    * Data not modifiable
@@ -81,15 +81,15 @@ public class ModStatus {
   }
   
   
-  public static ModStatus errLocationIsEmpty() {
-    return new ModStatus(SC_LOCATION_EMPTY, null);
+  public static ModStatus errEmptyId() {
+    return new ModStatus(SC_EMPTY_ID, null);
   }
   
   public static ModStatus errDataNotModifiable() {
     return new ModStatus(SC_DATA_NOT_MODIFIABLE, null);
   }
   
-  public static ModStatus errNoItemFoundByLocation() {
-    return new ModStatus(SC_NO_ITEM_FOUND_BY_LOCATION, null);
+  public static ModStatus errNoItemFoundById() {
+    return new ModStatus(SC_NO_ITEM_FOUND_BY_ID, null);
   }
 }

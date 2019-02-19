@@ -2,10 +2,7 @@ package org.jepria.tomcat.manager.web.jdbc.dto;
 
 public class ConnectionDto {
   
-  /**
-   * Location of the connection in a configuration file
-   */
-  private String location;
+  private String id;
   
   private Boolean dataModifiable;
   private Boolean active;
@@ -20,12 +17,12 @@ public class ConnectionDto {
   public ConnectionDto() {
   }
 
-  public String getLocation() {
-    return location;
+  public String getId() {
+    return id;
   }
 
-  public void setLocation(String location) {
-    this.location = location;
+  public void setId(String id) {
+    this.id = id;
   }
 
   public Boolean getDataModifiable() {

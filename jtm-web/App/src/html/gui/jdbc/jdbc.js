@@ -124,7 +124,7 @@ function createRow(listItem) {
 
   row = document.createElement("div");
   row.classList.add("row");
-  row.setAttribute("item-location", listItem.location);
+  row.setAttribute("item-id", listItem.id);
   
   var field;
   

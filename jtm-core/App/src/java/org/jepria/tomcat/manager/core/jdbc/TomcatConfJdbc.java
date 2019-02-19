@@ -18,10 +18,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.jepria.tomcat.manager.core.LocationNotExistException;
 import org.jepria.tomcat.manager.core.NodeFoldHelper;
 import org.jepria.tomcat.manager.core.TomcatConfBase;
-import org.jepria.tomcat.manager.core.TransactionException;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -57,14 +55,14 @@ public class TomcatConfJdbc extends TomcatConfBase {
   private Map<String, BaseConnection> baseConnections = null;
   
   /**
-   * @return unmodifiable Map&lt;Location, Connection&gt;
+   * @return unmodifiable Map&lt;ResourceId, Resource&gt;
    */
   public Map<String, Connection> getConnections() {
     return Collections.unmodifiableMap(getBaseConnections());
   }
   
   /**
-   * @return unmodifiable Map&lt;Location, BaseConnection&gt;
+   * @return Map&lt;ResourceId, BaseConnection&gt;
    */
   protected Map<String, BaseConnection> getBaseConnections() {
     if (baseConnections == null) {
@@ -82,18 +80,18 @@ public class TomcatConfJdbc extends TomcatConfBase {
     Map<String, BaseConnection> baseConnections = new HashMap<>();
     
     // Context/Resource nodes
-    final List<NodeWithLocation> contextResources = getContextResources();
+    final List<NodeWithId> contextResources = getContextResources();
     // commented Context/Resource nodes
-    final List<NodeWithLocation> commentedContextResources = getCommentedContextResources();
+    final List<NodeWithId> commentedContextResources = getCommentedContextResources();
     
     {
-      final List<NodeWithLocation> allContextResources = new ArrayList<>();
+      final List<NodeWithId> allContextResources = new ArrayList<>();
       allContextResources.addAll(contextResources);
       allContextResources.addAll(commentedContextResources);
       
-      for (NodeWithLocation contextResourceNode: allContextResources) {
+      for (NodeWithId contextResourceNode: allContextResources) {
         final BaseConnection resource = new ContextResourceConnection(contextResourceNode.node);
-        baseConnections.put(contextResourceNode.location, resource);
+        baseConnections.put(contextResourceNode.id, resource);
       }
     }
     
@@ -103,14 +101,14 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     
     // Context/ResourceLink nodes
-    final List<NodeWithLocation> contextResourceLinks = getContextResourceLinks();
+    final List<NodeWithId> contextResourceLinks = getContextResourceLinks();
     // commented Context/ResourceLink nodes
-    final List<NodeWithLocation> commentedContextResourceLinks = getCommentedContextResourceLinks();
+    final List<NodeWithId> commentedContextResourceLinks = getCommentedContextResourceLinks();
     
     // Server/Resource nodes
-    final List<NodeWithLocation> serverResources = getServerResources();
+    final List<NodeWithId> serverResources = getServerResources();
     // commented Server/Resource nodes
-    final List<NodeWithLocation> commentedServerResources = getCommentedServerResources();
+    final List<NodeWithId> commentedServerResources = getCommentedServerResources();
     
     
     
@@ -119,38 +117,38 @@ public class TomcatConfJdbc extends TomcatConfBase {
     // If multiple Context/ResourceLink nodes link to the same Server/Resource node,
     // then that Server/Resource node is unmodifiable.
     
-    // Map<Server/Resource's location, Context/ResourceLink's link count>
+    // Map<Server/Resource's id, Context/ResourceLink's link count>
     // Map uses AtomicInteger not for concurrency, but for easier increment only
-    final Map<String, AtomicInteger> serverResourceLinkedLocations = new HashMap<>();
+    final Map<String, AtomicInteger> serverResourceLinkedIds = new HashMap<>();
     
     {
-      for (NodeWithLocation contextResourceLinkNode: contextResourceLinks) {
+      for (NodeWithId contextResourceLinkNode: contextResourceLinks) {
         final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
         
-        for (NodeWithLocation serverResourceNode: serverResources) {
+        for (NodeWithId serverResourceNode: serverResources) {
           final String name = ((Element)serverResourceNode.node).getAttribute("name");
           if (name.equals(global)) {
-            final String serverResourceLocation = serverResourceNode.location;
+            final String serverResourceId = serverResourceNode.id;
             
             // increment count
-            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
             if (count == null) {
-              serverResourceLinkedLocations.put(serverResourceLocation, new AtomicInteger(1));
+              serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
             } else {
               count.incrementAndGet();
             }
           }
         }
         
-        for (NodeWithLocation serverResourceNode: commentedServerResources) {
+        for (NodeWithId serverResourceNode: commentedServerResources) {
           final String name = ((Element)serverResourceNode.node).getAttribute("name");
           if (name.equals(global)) {
-            final String serverResourceLocation = serverResourceNode.location;
+            final String serverResourceId = serverResourceNode.id;
             
             // increment count
-            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
             if (count == null) {
-              serverResourceLinkedLocations.put(serverResourceLocation, new AtomicInteger(1));
+              serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
             } else {
               count.incrementAndGet();
             }
@@ -158,22 +156,22 @@ public class TomcatConfJdbc extends TomcatConfBase {
         }
       }
       
-      for (NodeWithLocation contextResourceLinkNode: commentedContextResourceLinks) {
+      for (NodeWithId contextResourceLinkNode: commentedContextResourceLinks) {
         final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
         
-        List<NodeWithLocation> allServerResources = new ArrayList<>();
+        List<NodeWithId> allServerResources = new ArrayList<>();
         allServerResources.addAll(serverResources);
         allServerResources.addAll(commentedServerResources);
         
-        for (NodeWithLocation serverResourceNode: allServerResources) {
+        for (NodeWithId serverResourceNode: allServerResources) {
           final String name = ((Element)serverResourceNode.node).getAttribute("name");
           if (name.equals(global)) {
-            final String serverResourceLocation = serverResourceNode.location;
+            final String serverResourceId = serverResourceNode.id;
             
             // increment count
-            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
             if (count == null) {
-              serverResourceLinkedLocations.put(serverResourceLocation, new AtomicInteger(1));
+              serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
             } else {
               count.incrementAndGet();
             }
@@ -185,20 +183,20 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     // assemble Resources from Context/ResourceLink+Server/Resource
     {
-      for (NodeWithLocation contextResourceLinkNode: contextResourceLinks) {
+      for (NodeWithId contextResourceLinkNode: contextResourceLinks) {
         final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
         
-        final List<NodeWithLocation> allServerResources = new ArrayList<>();
+        final List<NodeWithId> allServerResources = new ArrayList<>();
         allServerResources.addAll(serverResources);
         allServerResources.addAll(commentedServerResources);
         
-        for (NodeWithLocation serverResourceNode: allServerResources) {
+        for (NodeWithId serverResourceNode: allServerResources) {
           final String name = ((Element)serverResourceNode.node).getAttribute("name");
           if (name.equals(global)) {
-            final String serverResourceLocation = serverResourceNode.location;
+            final String serverResourceId = serverResourceNode.id;
             
             final boolean dataModifiable;
-            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
             if (count == null) {
               dataModifiable = true;
             } else {
@@ -208,27 +206,27 @@ public class TomcatConfJdbc extends TomcatConfBase {
             final BaseConnection resource = new ContextResourceLinkConnection(
                 contextResourceLinkNode.node, serverResourceNode.node,
                 dataModifiable);
-            final String location = contextResourceLinkNode.location 
-                + "+" + serverResourceLocation;
-            baseConnections.put(location, resource);
+            final String id = contextResourceLinkNode.id 
+                + "+" + serverResourceId;
+            baseConnections.put(id, resource);
           }
         }
       }
       
-      for (NodeWithLocation contextResourceLinkNode: commentedContextResourceLinks) {
+      for (NodeWithId contextResourceLinkNode: commentedContextResourceLinks) {
         final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
         
-        List<NodeWithLocation> allServerResources = new ArrayList<>();
+        List<NodeWithId> allServerResources = new ArrayList<>();
         allServerResources.addAll(serverResources);
         allServerResources.addAll(commentedServerResources);
         
-        for (NodeWithLocation serverResourceNode: allServerResources) {
+        for (NodeWithId serverResourceNode: allServerResources) {
           final String name = ((Element)serverResourceNode.node).getAttribute("name");
           if (name.equals(global)) {
-            final String serverResourceLocation = serverResourceNode.location;
+            final String serverResourceId = serverResourceNode.id;
             
             final boolean dataModifiable;
-            AtomicInteger count = serverResourceLinkedLocations.get(serverResourceLocation);
+            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
             if (count == null) {
               dataModifiable = true;
             } else {
@@ -238,9 +236,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
             final BaseConnection resource = new ContextResourceLinkConnection(
                 contextResourceLinkNode.node, serverResourceNode.node,
                 dataModifiable);
-            final String location = contextResourceLinkNode.location 
-                + "+" + serverResourceLocation;
-            baseConnections.put(location, resource);
+            final String id = contextResourceLinkNode.id + "+" + serverResourceId;
+            baseConnections.put(id, resource);
           }
         }
       }
@@ -254,13 +251,13 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * The list items are filtered by unique name because
    * Tomcat ignores all same-named Context/Resource nodes except for the first
    */
-  private List<NodeWithLocation> getContextResources() {
+  private List<NodeWithId> getContextResources() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
           "Context/Resource");
       NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      final List<NodeWithLocation> ret = new ArrayList<>();
+      final List<NodeWithId> ret = new ArrayList<>();
       
       // for filtering duplicate names
       final Set<String> names = new HashSet<>();
@@ -272,8 +269,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
         if (!names.contains(name)) {
           names.add(name);
           
-          final String location = "Context/Resource[" + i + "]";;
-          ret.add(new NodeWithLocation((Element)node, location));
+          final String id = "$C.R" + i; // means "located at Context/Resource-with-index-i"
+          ret.add(new NodeWithId((Element)node, id));
           
         } else {
           // TODO warn (log)? Or silently comment the other nodes? 
@@ -295,13 +292,13 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * The list items are filtered by unique name because
    * Tomcat ignores all same-named Server/Resource nodes except for the first
    */
-  private List<NodeWithLocation> getServerResources() {
+  private List<NodeWithId> getServerResources() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
           "Server/GlobalNamingResources/Resource");
       NodeList nodeList = (NodeList) expr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
       
-      final List<NodeWithLocation> ret = new ArrayList<>();
+      final List<NodeWithId> ret = new ArrayList<>();
       
       // for filtering duplicate names
       final Set<String> names = new HashSet<>();
@@ -313,8 +310,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
         if (!names.contains(name)) {
           names.add(name);
           
-          final String location = "Server/Resource[" + i + "]";;
-          ret.add(new NodeWithLocation((Element)node, location));
+          final String id = "$S.GNR.R" + i; // means "located at Server/GlobalNamingResources/Resource-with-index-i"
+          ret.add(new NodeWithId((Element)node, id));
           
         } else {
           // TODO warn (log)? Or silently comment the other nodes? 
@@ -336,13 +333,13 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * The list items are filtered by unique name because
    * Tomcat ignores all same-named Context/ResourceLink nodes except for the first
    */
-  private List<NodeWithLocation> getContextResourceLinks() {
+  private List<NodeWithId> getContextResourceLinks() {
     try {
       final XPathExpression expr = XPathFactory.newInstance().newXPath().compile(
           "Context/ResourceLink");
       NodeList nodeList = (NodeList) expr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      final List<NodeWithLocation> ret = new ArrayList<>();
+      final List<NodeWithId> ret = new ArrayList<>();
       
       // for filtering duplicate names
       final Set<String> names = new HashSet<>();
@@ -354,8 +351,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
         if (!names.contains(name)) {
           names.add(name);
           
-          final String location = "Context/ResourceLink[" + i + "]";;
-          ret.add(new NodeWithLocation((Element)node, location));
+          final String id = "$C.RL" + i; // means "located at Context/ResourceLink-with-index-i"
+          ret.add(new NodeWithId((Element)node, id));
           
         } else {
           // TODO warn (log)? Or silently comment the other nodes? 
@@ -377,7 +374,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * The list items are not filtered by unique name because 
    * JTM allows multiple commented same-named resources  
    */
-  private List<NodeWithLocation> getCommentedContextResources() {
+  private List<NodeWithId> getCommentedContextResources() {
     
     if (!contextCommentsUnfolded) {
       unfoldContextComments();
@@ -388,7 +385,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
           "Context/UnfoldedComment");
       NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      final List<NodeWithLocation> ret = new ArrayList<>();
+      final List<NodeWithId> ret = new ArrayList<>();
       
       for (int i = 0; i < ucNodeList.getLength(); i++) {
         // for each Context/UnfoldedComment node
@@ -400,8 +397,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
         
         for (int j = 0; j < nodeList.getLength(); j++) {
           final Node node = nodeList.item(j);
-          final String location = "Context/comment[" + i + "]/Resource[" + j + "]";
-          ret.add(new NodeWithLocation((Element)node, location));
+          final String id = "$C.#" + i + ".R" + j; // means "located at Context/comment-with-index-i/Resource-with-index-j"
+          ret.add(new NodeWithId((Element)node, id));
         }
       }
       return ret;
@@ -417,7 +414,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * The list items are not filtered by unique name because 
    * JTM allows multiple commented same-named resources  
    */
-  private List<NodeWithLocation> getCommentedContextResourceLinks() {
+  private List<NodeWithId> getCommentedContextResourceLinks() {
     
     if (!contextCommentsUnfolded) {
       unfoldContextComments();
@@ -428,7 +425,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
           "Context/UnfoldedComment");
       NodeList ucNodeList = (NodeList) ucExpr.evaluate(getContext_xmlDoc(), XPathConstants.NODESET);
       
-      final List<NodeWithLocation> ret = new ArrayList<>();
+      final List<NodeWithId> ret = new ArrayList<>();
       
       for (int i = 0; i < ucNodeList.getLength(); i++) {
         // for each Context/UnfoldedComment node
@@ -440,8 +437,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
         
         for (int j = 0; j < nodeList.getLength(); j++) {
           final Node node = nodeList.item(j);
-          final String location = "Context/comment[" + i + "]/ResourceLink[" + j + "]";
-          ret.add(new NodeWithLocation((Element)node, location));
+          final String id = "$C.#" + i + ".RL" + j; // means "located at Context/comment-with-index-i/ResourceLink-with-index-j"
+          ret.add(new NodeWithId((Element)node, id));
         }
       }
       return ret;
@@ -457,7 +454,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * The list items are not filtered by unique name because 
    * JTM allows multiple commented same-named resources  
    */
-  private List<NodeWithLocation> getCommentedServerResources() {
+  private List<NodeWithId> getCommentedServerResources() {
     
     if (!serverCommentsUnfolded) {
       unfoldServerComments();
@@ -468,7 +465,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
           "Server/GlobalNamingResources/UnfoldedComment");
       NodeList ucNodeList = (NodeList) ucExpr.evaluate(getServer_xmlDoc(), XPathConstants.NODESET);
       
-      final List<NodeWithLocation> ret = new ArrayList<>();
+      final List<NodeWithId> ret = new ArrayList<>();
       
       for (int i = 0; i < ucNodeList.getLength(); i++) {
         // for each Server/GlobalNamingResources/UnfoldedComment node
@@ -480,8 +477,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
         
         for (int j = 0; j < nodeList.getLength(); j++) {
           final Node node = nodeList.item(j);
-          final String location = "Server/comment[" + i + "]/Resource[" + j + "]";
-          ret.add(new NodeWithLocation((Element)node, location));
+          final String id = "$S.#" + i + ".R" + j; // means "located at Server/comment-with-index-i/Resource-with-index-j"
+          ret.add(new NodeWithId((Element)node, id));
         }
       }
       return ret;
@@ -629,14 +626,17 @@ public class TomcatConfJdbc extends TomcatConfBase {
     }
   }
   
-  private static class NodeWithLocation {
+  /**
+   * A {@link Node} with id (based on the node's location in the XML file)
+   */
+  private static class NodeWithId {
     public final Node node;
-    public final String location;
+    public final String id;
      
     
-    public NodeWithLocation(Node node, String location) {
+    public NodeWithId(Node node, String id) {
       this.node = node;
-      this.location = location;
+      this.id = id;
     }
   }
   
@@ -681,7 +681,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
   }
   
   protected boolean validateNewContextResourceOrResourceLinkName(String name) {
-    final List<NodeWithLocation> nodes = new ArrayList<>();
+    final List<NodeWithId> nodes = new ArrayList<>();
     nodes.addAll(getContextResources());
     nodes.addAll(getCommentedContextResources());
     nodes.addAll(getContextResourceLinks());
@@ -693,7 +693,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
   }
   
   protected boolean validateNewServerResourceName(String name) {
-    final List<NodeWithLocation> nodes = new ArrayList<>();
+    final List<NodeWithId> nodes = new ArrayList<>();
     nodes.addAll(getServerResources());
     nodes.addAll(getCommentedServerResources());
 
@@ -803,20 +803,17 @@ public class TomcatConfJdbc extends TomcatConfBase {
     }
   }
   
-  public void delete(String location) throws TransactionException, LocationNotExistException {
-    try {
-      BaseConnection connection = getBaseConnections().get(location);
+  /**
+   * Delete resource by id
+   * @param resourceId resource id
+   */
+  public void delete(String resourceId) {
+      BaseConnection connection = getBaseConnections().get(resourceId);
       
       if (connection == null) {
-        throw new LocationNotExistException(location);
+        throw new IllegalArgumentException("No resource found by resourceId [" + resourceId + "]");
       }
       
       connection.delete();
-      
-    } catch (LocationNotExistException e) {
-      throw e;
-    } catch (Throwable e) {
-      throw new TransactionException(e);
-    }
   }
 }
