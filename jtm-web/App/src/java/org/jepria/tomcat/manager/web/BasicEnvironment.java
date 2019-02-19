@@ -141,14 +141,19 @@ public class BasicEnvironment implements Environment {
     
     final String env = getEnv("org.jepria.tomcat.manager.web.appConfDirectory");
     
-    final File appConfDirectory;
+    // target file to read properties from
+    File file;
     if (env != null) {
-      appConfDirectory = new File(env);
+      file = new File(env, filepath);
+      
+      if (!file.exists()) {
+        file = new File(appConfDirectoryDefault, filepath);
+      }
     } else {
-      appConfDirectory = new File(appConfDirectoryDefault);
+      file = new File(appConfDirectoryDefault, filepath);
     }
     
-    try (Reader reader = new InputStreamReader(new FileInputStream(new File(appConfDirectory, filepath)), "UTF-8")) {
+    try (Reader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
       
       final Properties properties = new Properties();
       properties.load(reader);
@@ -157,7 +162,7 @@ public class BasicEnvironment implements Environment {
           .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
       
     } catch (IOException e) {
-      throw new RuntimeException("Misconfiguration exception: " + "application conf directory [" + appConfDirectory + "]: ", e);
+      throw new RuntimeException("Misconfiguration exception: file [" + file + "]: ", e);
     }
   }
   

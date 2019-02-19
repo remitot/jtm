@@ -85,7 +85,7 @@
         </copy>
       	
       	<copy todir="temp-war/WEB-INF/conf-default">
-          <fileset file="conf/**/" />
+          <fileset file="conf-default/**/" />
         </copy>
         
       	<unzip src="${WEB-COMMON_LIB}" dest="temp-war"/>	
