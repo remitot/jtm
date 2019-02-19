@@ -31,7 +31,7 @@ public class BasicEnvironment implements Environment {
   
   private final File logsDirectory;
   
-  private final String appConfDirectoryFallback;
+  private final String appConfDirectoryDefault;
   
   /**
    * @param request
@@ -57,7 +57,7 @@ public class BasicEnvironment implements Environment {
     
     logsDirectory = getLogsDirectory(request);
     
-    appConfDirectoryFallback = request.getServletContext().getRealPath("/WEB-INF/conf");
+    appConfDirectoryDefault = request.getServletContext().getRealPath("/WEB-INF/conf-default");
   }
   
   @Override
@@ -113,16 +113,25 @@ public class BasicEnvironment implements Environment {
   }
   
   @Override
-  public ResourceInitialParams getResourceInitialParams() {
+  public Map<String, String> getApplicationProperties() {
+    return readProperties("application.properties");
+  }
+  
+  /**
+   * 
+   * @param filepath relative to the application conf directory
+   * @return
+   */
+  private Map<String, String> readProperties(String filepath) {
     
-    String appConfDirectory0;
+    String appConfDirectoryPath;
     try {
       Context initCtx = new InitialContext();
       Context envCtx = (Context) initCtx.lookup("java:comp/env");
-      String appConfDirectoryEnv = (String) envCtx.lookup("org.jepria.tomcat.manager.web.jdbc.InitialAttrs");
+      String appConfDirectoryEnv = (String) envCtx.lookup("org.jepria.tomcat.manager.web.appConfDirectory");
       
       if (appConfDirectoryEnv != null) {
-        appConfDirectory0 = appConfDirectoryEnv;
+        appConfDirectoryPath = appConfDirectoryEnv;
             
       } else {
         // TODO fail-fast or fail-safe?
@@ -131,7 +140,7 @@ public class BasicEnvironment implements Environment {
 //              + "failed to obtain application conf directory "
 //              + "from [java:comp/env/org.jepria.tomcat.manager.web.jdbc.InitialAttrs]", 
 //              new NullPointerException());
-        appConfDirectory0 = appConfDirectoryFallback;
+        appConfDirectoryPath = appConfDirectoryDefault;
       }
       
     } catch (NamingException e) {
@@ -141,46 +150,45 @@ public class BasicEnvironment implements Environment {
 //      throw new RuntimeException("Misconfiguration exception: "
 //          + "failed to obtain application conf directory "
 //          + "from [java:comp/env/org.jepria.tomcat.manager.web.jdbc.InitialAttrs]", e);
-      appConfDirectory0 = appConfDirectoryFallback;
+      appConfDirectoryPath = appConfDirectoryDefault;
     }
     
-    final String appConfDirectory = appConfDirectory0; 
+    final File appConfDirectory = new File(appConfDirectoryPath); 
     
-    
+    try (Reader reader = new InputStreamReader(new FileInputStream(new File(appConfDirectory, filepath)), "UTF-8")) {
+      final Properties properties = new Properties();
+      properties.load(reader);
+      return properties.entrySet().stream()
+          .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
+    } catch (IOException e) {
+      throw new RuntimeException("Misconfiguration exception: "
+          + "application conf directory [" + appConfDirectory + "]: ", 
+          e);
+    }
+  }
+  
+  
+  @Override
+  public ResourceInitialParams getResourceInitialParams() {
     return new ResourceInitialParams() {
-      
-      private Map<String, String> readFile(String filename) {
-        try (Reader reader = new InputStreamReader(new FileInputStream(
-            new File(filename)), "UTF-8")) {
-          final Properties properties = new Properties();
-          properties.load(reader);
-          return properties.entrySet().stream()
-              .collect(Collectors.toMap(e -> (String)e.getKey(), e -> (String)e.getValue()));
-        } catch (IOException e) {
-          throw new RuntimeException("Misconfiguration exception: "
-              + "application conf directory [" + appConfDirectory + "]: ", 
-              e);
-        }
-      }
-      
       @Override
       public Map<String, String> getServerResourceAttrs() {
-        return readFile(appConfDirectory + "/jdbc.initial_attrs/ContextResource.properties");
+        return readProperties("jdbc.initial/ServerResource.properties");
       }
       
       @Override
       public Map<String, String> getContextResourceLinkAttrs() {
-        return readFile(appConfDirectory + "/jdbc.initial_attrs/ContextResourceLink.properties");
+        return readProperties("jdbc.initial/ContextResourceLink.properties");
       }
       
       @Override
       public Map<String, String> getContextResourceAttrs() {
-        return readFile(appConfDirectory + "/jdbc.initial_attrs/ServerResource.properties");
+        return readProperties("jdbc.initial/ContextResource.properties");
       }
       
       @Override
       public String getJdbcProtocol() {
-        return readFile(appConfDirectory + "/application.properties").get("jdbc.url_protocol");
+        return getApplicationProperties().get("jdbc.protocol"); 
       }
     };
   }

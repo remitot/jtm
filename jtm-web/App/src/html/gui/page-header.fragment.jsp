@@ -1,10 +1,8 @@
+<%@page import="org.jepria.tomcat.manager.web.EnvironmentFactory"%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%
-  String managerApacheHref = request.getServletContext().getInitParameter("org.jepria.tomcat.manager.web.managerApacheHref");
-  if (managerApacheHref == null) {
-    managerApacheHref = "/manager-apache";
-  }
+  String managerApacheHref = EnvironmentFactory.get(request).getApplicationProperties().get("manager.apache.href");
 %>
 
 <div class="page-header">

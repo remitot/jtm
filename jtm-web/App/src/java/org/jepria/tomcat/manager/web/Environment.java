@@ -3,6 +3,7 @@ package org.jepria.tomcat.manager.web;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 
@@ -45,4 +46,6 @@ public interface Environment {
    * @return initial params for the newly created resources
    */
   ResourceInitialParams getResourceInitialParams();
+  
+  Map<String, String> getApplicationProperties();
 }

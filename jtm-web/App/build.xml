@@ -84,7 +84,7 @@
           <fileset file="${GSON_LIB}" />
         </copy>
       	
-      	<copy todir="temp-war/WEB-INF/conf">
+      	<copy todir="temp-war/WEB-INF/conf-default">
           <fileset file="conf/**/" />
         </copy>
         
