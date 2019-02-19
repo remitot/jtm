@@ -66,8 +66,13 @@ import java.util.regex.Pattern;
     }
   }
   
-  private void setUrl() {
-    setUrl(protocol + getServer() + "/" + getDb());
+  protected String getProtocol() {
+    parseUrl();
+    return protocol;
+  }
+  
+  protected void setUrl() {
+    setUrl(getProtocol() + getServer() + "/" + getDb());
   }
   
   /*package*/void setProtocol(String protocol) {
