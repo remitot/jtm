@@ -12,6 +12,8 @@
 переименовать сущность Connection в Resource. Осторожно: это может породить имена ContextResourceResource, ContextResourceLinkResource
 По-нормальному разобраться с авторизацией на нескольких инстансах (см. описание временного решения в LoginServlet)
 
+readme.txt -> readme.md
+
 jtm-core------------------------
 
 1. Строка "UnfoldedComment" сейчас упоминается в двух классах, а можно енкапсулировать логику в одном классе.
