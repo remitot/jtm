@@ -238,7 +238,7 @@ function createRow(listItem) {
   
   cell = createCell(div, "column-instance");
   cell.classList.add("cell-field");
-  field = addFieldInstance(cell, listItem.host, listItem.getHttpPortLink, null);
+  field = addFieldInstance(cell, listItem.host, listItem.getHttpPortLink, "tomcat-server:8080");
   field.setAttribute("value-original", "");
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
