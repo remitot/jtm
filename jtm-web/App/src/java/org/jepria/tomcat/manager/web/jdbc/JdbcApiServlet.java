@@ -27,8 +27,6 @@ import org.jepria.tomcat.manager.core.TransactionException;
 import org.jepria.tomcat.manager.core.jdbc.Connection;
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
-import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc.DuplicateGlobalException;
-import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc.DuplicateNameException;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
@@ -365,22 +363,33 @@ public class JdbcApiServlet extends HttpServlet {
       ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
     
     try {
-      String location = mreq.getLocation();
+      final String location = mreq.getLocation();
 
       if (location == null) {
         return ModStatus.errLocationIsEmpty();
       }
 
-      Map<String, Connection> connections = tomcatConf.getConnections();
-      Connection connection = connections.get(location);
+      final Map<String, Connection> connections = tomcatConf.getConnections();
+      final Connection connection = connections.get(location);
 
       if (connection == null) {
         return ModStatus.errNoItemFoundByLocation();
       }
         
-      ConnectionDto connectionDto = mreq.getData();
+      final ConnectionDto connectionDto = mreq.getData();
+      
+      
+      // validate name
+      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
+      if (validateNameResult == 1) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
+      } else if (validateNameResult == 2) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
+      }
+      
       
       return updateFields(connectionDto, connection);
+      
     } catch (Throwable e) {
       e.printStackTrace();
       
@@ -481,16 +490,18 @@ public class JdbcApiServlet extends HttpServlet {
         }
         return ModStatus.errInvalidFieldData(invalidFields);
       }
+      
           
-
-      final Connection newConnection;
-      try {
-        newConnection = tomcatConf.create(connectionDto.getName(), initialParams);
-      } catch (DuplicateNameException e) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null); 
-      } catch (DuplicateGlobalException e) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", e.getMessage());
+      // validate name
+      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
+      if (validateNameResult == 1) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
+      } else if (validateNameResult == 2) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
       }
+      
+      
+      final Connection newConnection = tomcatConf.create(connectionDto.getName(), initialParams);
 
       return updateFields(connectionDto, newConnection);
       

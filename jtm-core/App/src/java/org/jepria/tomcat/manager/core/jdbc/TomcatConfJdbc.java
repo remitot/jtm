@@ -655,58 +655,74 @@ public class TomcatConfJdbc extends TomcatConfBase {
     saveServer_xml(serverXmlOutputStream);
   }
   
+  
   /**
-   * Creates a new active connection.
-   * Validates the new resource's name, throws exceptions if validation fails.
-   * @param name name of the resource that will be created.   
-   * @param initialParams initial params to apply to the newly created connections, in the endpoint files
-   * @return
-   * @throws DuplicateNameException if a resource with the same name already exists
-   * @throws DuplicateGlobalException if either a Context/ResourceLink.global or Server/Resource.name
-   * duplicates the name, and thus unable to create a {@link ContextResourceLinkConnection} 
+   * Validates name of the resource that is about to be created (before the creation)
+   * @param name name of the resource that is about to be created
+   * @return {@code 0} if the name is OK to create; 
+   * {@code 1} if there is a resource (either Context/Resource or Context/ResourceLink) 
+   * with the same name;
+   * {@code 2} if there is no resource (neither Context/Resource nor Context/ResourceLink) 
+   * with the same name, but {@link #createContextResources} is set to {@code false} and
+   * there is a Server/Resource with the same name.
    */
-  public Connection create(String name, 
-      ResourceInitialParams initialParams)
-      throws DuplicateNameException, DuplicateGlobalException {
+  public int validateNewResourceName(String name) {
+    if (!validateNewContextResourceOrResourceLinkName(name)) {
+      return 1;
+    }
     
-    // validate 'name' over all context nodes
-    final List<NodeWithLocation> allContext = new ArrayList<>();
-    allContext.addAll(getContextResources());
-    allContext.addAll(getCommentedContextResources());
-    allContext.addAll(getContextResourceLinks());
-    allContext.addAll(getCommentedContextResourceLinks());
-    for (NodeWithLocation n: allContext) {
-      Element node = (Element)n.node;
-      if (name.equals(node.getAttribute("name"))) {
-        throw new DuplicateNameException();
+    if (!createContextResources) {
+      if (!validateNewServerResourceName(name)) {
+        return 2;
       }
     }
     
+    return 0;
+  }
+  
+  protected boolean validateNewContextResourceOrResourceLinkName(String name) {
+    final List<NodeWithLocation> nodes = new ArrayList<>();
+    nodes.addAll(getContextResources());
+    nodes.addAll(getCommentedContextResources());
+    nodes.addAll(getContextResourceLinks());
+    nodes.addAll(getCommentedContextResourceLinks());
+    
+    return !nodes.stream().filter(
+        node -> name.equals(((Element)node.node).getAttribute("name")))
+        .findAny().isPresent();
+  }
+  
+  protected boolean validateNewServerResourceName(String name) {
+    final List<NodeWithLocation> nodes = new ArrayList<>();
+    nodes.addAll(getServerResources());
+    nodes.addAll(getCommentedServerResources());
+
+    return !nodes.stream().filter(
+        node -> name.equals(((Element)node.node).getAttribute("name")))
+        .findAny().isPresent();
+  }
+  
+  
+  /**
+   * Creates a new active connection.
+   * @param initialParams initial params to apply to the newly created resource
+   * @return the created resource
+   */
+  public Connection create(String name, 
+      ResourceInitialParams initialParams) {
     
     final BaseConnection baseConnection;
-    
+
     if (createContextResources) {
       baseConnection = createContextResourceConnection();
     } else {
-      baseConnection = createContextResourceLinkConnection(name);
+      baseConnection = createContextResourceLinkConnection();
     }
-    
     
     baseConnection.setProtocol(initialParams.getJdbcProtocol());
     baseConnection.setInitialAttrs(initialParams);
     
     return baseConnection;
-  }
-  
-  public static class DuplicateNameException extends Exception {
-    private static final long serialVersionUID = -4035895628172792970L;
-  }
-  
-  public static class DuplicateGlobalException extends Exception {
-    private static final long serialVersionUID = -6574278256617947520L;
-    public DuplicateGlobalException(String message) {
-      super(message);
-    }
   }
   
   protected ContextResourceConnection createContextResourceConnection() {
@@ -729,30 +745,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
    * Creates and adds
    * @return
    */
-  protected ContextResourceLinkConnection createContextResourceLinkConnection(String name) throws DuplicateGlobalException {
-    
-    // validate 'global' over all Context/ResourceLink nodes
-    final List<NodeWithLocation> allContextResourceLinks = new ArrayList<>();
-    allContextResourceLinks.addAll(getContextResourceLinks());
-    allContextResourceLinks.addAll(getCommentedContextResourceLinks());
-    for (NodeWithLocation n: allContextResourceLinks) {
-      Element node = (Element)n.node;
-      if (name.equals(node.getAttribute("global"))) {
-        throw new DuplicateGlobalException("Context ResourceLink with the same 'global' already exists");
-      }
-    }
-    
-    // validate 'name' over all Server/Resource nodes
-    final List<NodeWithLocation> allServerResources = new ArrayList<>();
-    allServerResources.addAll(getServerResources());
-    allServerResources.addAll(getCommentedServerResources());
-    for (NodeWithLocation n: allServerResources) {
-      Element node = (Element)n.node;
-      if (name.equals(node.getAttribute("name"))) {
-        throw new DuplicateGlobalException("Server Resource with the same 'name' already exists");
-      }
-    }
-    
+  protected ContextResourceLinkConnection createContextResourceLinkConnection() {
     
     try {
       // context ResourceLink

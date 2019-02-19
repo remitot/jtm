@@ -61,7 +61,8 @@ function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
       if (errorCode == "DUPLICATE_NAME") {
         return "Такое название уже есть";// NON-NLS
       } else if (errorCode == "DUPLICATE_GLOBAL") {
-        return "Такое название уже есть среди Context/ResourceLink.global или Server/Resource.name";// NON-NLS
+        return "Такое название уже есть среди Context/ResourceLink.global " 
+            + "или Server/GlobalNamingResources/Resource.name";// NON-NLS
       }
     }
   } 
