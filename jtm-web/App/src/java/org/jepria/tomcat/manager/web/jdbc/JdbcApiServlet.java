@@ -41,7 +41,7 @@ public class JdbcApiServlet extends HttpServlet {
   private static final long serialVersionUID = -7724868882541481749L;
 
   private static boolean isCreateContextResources(Environment environment) {
-    return "true".equals(environment.getApplicationProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
+    return "true".equals(environment.getProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
   }
   
   @Override
