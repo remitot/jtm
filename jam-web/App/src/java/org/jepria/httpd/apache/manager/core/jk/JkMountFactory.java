@@ -98,8 +98,8 @@ public class JkMountFactory {
         final TextLineReference line = lines.next();
         
         tryParseJkMountDirective(line, 
-            m -> rootMounts.put(m.getApplication(), m),
-            m -> asterMounts.put(m.getApplication(), m));
+            m -> rootMounts.putIfAbsent(m.getApplication(), m),
+            m -> asterMounts.putIfAbsent(m.getApplication(), m));
       }
       
       // assemble JkMounts from JkMountDirectives with both root and asterisk mounted to the same application and worker

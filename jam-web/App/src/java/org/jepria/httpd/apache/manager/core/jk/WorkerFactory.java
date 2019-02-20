@@ -187,9 +187,9 @@ public class WorkerFactory {
         final TextLineReference line = lines.next();
         
         tryParseWorkerProperty(line, 
-            m -> typeProperties.put(m.getWorkerName(), m),
-            m -> hostProperties.put(m.getWorkerName(), m),
-            m -> portProperties.put(m.getWorkerName(), m));
+            m -> typeProperties.putIfAbsent(m.getWorkerName(), m),
+            m -> hostProperties.putIfAbsent(m.getWorkerName(), m),
+            m -> portProperties.putIfAbsent(m.getWorkerName(), m));
       }
       
       
