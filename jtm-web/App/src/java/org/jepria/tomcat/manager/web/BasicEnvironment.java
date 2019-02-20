@@ -43,14 +43,14 @@ public class BasicEnvironment implements Environment {
   }
   
   public BasicEnvironment(HttpServletRequest request) {
+    envPropertyFactory = new EnvironmentPropertyFactory(new File(request.getServletContext().getRealPath("/WEB-INF/app-conf-default.properties")));
+    
     File confDir = getConfDirectory(request);
     
     contextXml = confDir.toPath().resolve("context.xml").toFile();
     serverXml = confDir.toPath().resolve("server.xml").toFile();
     
     logsDirectory = getLogsDirectory(request);
-    
-    envPropertyFactory = new EnvironmentPropertyFactory(new File(request.getServletContext().getRealPath("/WEB-INF/app-conf-default.properties")));
   }
   
   @Override

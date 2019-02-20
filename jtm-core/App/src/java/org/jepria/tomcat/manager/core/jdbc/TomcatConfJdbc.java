@@ -805,13 +805,13 @@ public class TomcatConfJdbc extends TomcatConfBase {
   
   /**
    * Delete resource by id
-   * @param resourceId resource id
+   * @param id resource id
    */
-  public void delete(String resourceId) {
-      BaseConnection connection = getBaseConnections().get(resourceId);
+  public void delete(String id) {
+      BaseConnection connection = getBaseConnections().get(id);
       
       if (connection == null) {
-        throw new IllegalArgumentException("No resource found by resourceId [" + resourceId + "]");
+        throw new IllegalArgumentException("No resource found by id [" + id + "]");
       }
       
       connection.delete();
