@@ -440,6 +440,11 @@ public class JkApiServlet extends HttpServlet {
         return ModStatus.errInvalidFieldData("instance", "INVALID", null);
       }
       
+      // validate name
+      if (!apacheConf.validateNewBindingApplication(bindingDto.getApplication())) {
+        return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
+      }
+      
 
       return updateFields(bindingDto, binding);
       
@@ -629,6 +634,10 @@ public class JkApiServlet extends HttpServlet {
         return ModStatus.errInvalidFieldData("instance", "INVALID", null);
       }
 
+      // validate name
+      if (!apacheConf.validateNewBindingApplication(bindingDto.getApplication())) {
+        return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
+      }
       
       Binding newBinding = apacheConf.create();
       

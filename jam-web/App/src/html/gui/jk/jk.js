@@ -179,7 +179,16 @@ function clientValidate(fieldName, fieldValue) {
 
 /* @Override from table.js */
 function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
-  if (fieldName == "instance") {
+  if (fieldName == "application") {
+    if (errorCode) {
+      if (errorMessage) {
+        console.error(errorMessage + " " + errorCode);
+      }
+      if (errorCode == "DUPLICATE_NAME") {
+        return "Такое приложение уже есть";// NON-NLS
+      }
+    }
+  } else if (fieldName == "instance") {
     if (errorCode) {
       if (errorMessage) {
          console.error(errorMessage + " " + errorCode);
@@ -192,7 +201,7 @@ function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
         return "Похоже, не http порт";// NON-NLS
       } else if (errorCode == "UNAUTHORIZED") {
         return "Похоже, инстанс не в общем кластере с текущим";// NON-NLS
-      } else if (errorCode == "LINK_BROKEN__NOT_FOUND" || errorCode == "LINK_BROKEN") {
+      } else if (errorCode == "NOT_FOUND" || errorCode == "EXECUTION_ERROR") {
         return "Похоже, на инстансе сломан менеджер";// NON-NLS
       }
     }

@@ -657,8 +657,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
   
   
   /**
-   * Validates name of the resource that is about to be created (before the creation)
-   * @param name name of the resource that is about to be created
+   * Validates 'name' field of the resource that is about to be created (before the creation) or updated.
+   * @param name name of the resource that is about to be created or updated
    * @return {@code 0} if the name is OK to create; 
    * {@code 1} if there is a resource (either Context/Resource or Context/ResourceLink) 
    * with the same name;
@@ -687,9 +687,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
     nodes.addAll(getContextResourceLinks());
     nodes.addAll(getCommentedContextResourceLinks());
     
-    return !nodes.stream().filter(
-        node -> name.equals(((Element)node.node).getAttribute("name")))
-        .findAny().isPresent();
+    return !nodes.stream().anyMatch(
+        node -> name.equals(((Element)node.node).getAttribute("name")));
   }
   
   protected boolean validateNewServerResourceName(String name) {
@@ -697,9 +696,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
     nodes.addAll(getServerResources());
     nodes.addAll(getCommentedServerResources());
 
-    return !nodes.stream().filter(
-        node -> name.equals(((Element)node.node).getAttribute("name")))
-        .findAny().isPresent();
+    return !nodes.stream().anyMatch(
+        node -> name.equals(((Element)node.node).getAttribute("name")));
   }
   
   
