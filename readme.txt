@@ -12,7 +12,6 @@
 переименовать сущность Connection в Resource. Осторожно: это может породить имена ContextResourceResource, ContextResourceLinkResource
 По-нормальному разобраться с авторизацией на нескольких инстансах (см. описание временного решения в LoginServlet)
 
-readme.txt -> readme.md
 
 jtm-core------------------------
 
@@ -28,7 +27,6 @@ jtm-web--------------------------
 
 jam-web------------------
 
-0. Уникальность имён приложений
 1. Сделать api-docs.html по аналогии с jtm-web
 
 2. Вынести jam-core по аналогии с jtm-core
