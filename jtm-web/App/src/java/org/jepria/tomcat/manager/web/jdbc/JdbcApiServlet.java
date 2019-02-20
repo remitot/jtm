@@ -379,11 +379,14 @@ public class JdbcApiServlet extends HttpServlet {
       
       
       // validate name
-      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
-      if (validateNameResult == 1) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
-      } else if (validateNameResult == 2) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
+      final String name = connectionDto.getName();
+      if (name != null) {
+        int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
+        if (validateNameResult == 1) {
+          return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
+        } else if (validateNameResult == 2) {
+          return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
+        }
       }
       
       
