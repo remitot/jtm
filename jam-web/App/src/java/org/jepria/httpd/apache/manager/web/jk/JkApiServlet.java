@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -63,7 +64,6 @@ public class JkApiServlet extends HttpServlet {
       
     } else {
       
-      // TODO set content type for the error case?
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
       response.flushBuffer();
       return;
@@ -99,7 +99,6 @@ public class JkApiServlet extends HttpServlet {
     } catch (Throwable e) {
       e.printStackTrace();
 
-      response.getOutputStream().println("Oops! Something went wrong.");//TODO
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       response.flushBuffer();
       return;
@@ -111,6 +110,9 @@ public class JkApiServlet extends HttpServlet {
     AJP
   }
   
+  private static final String MANAGER_EXT_AJP_PORT_URI = "/manager-ext/api/port/ajp";
+  private static final String MANAGER_EXT_HTTP_PORT_URI = "/manager-ext/api/port/http";
+  
   private static void getHttpPort(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     
@@ -121,7 +123,7 @@ public class JkApiServlet extends HttpServlet {
     String ajpPort = request.getParameter("ajp-port");
     
     if (host == null || ajpPort == null || !ajpPort.matches("\\d+")) {
-      // TODO set content type for the error case?
+      
       response.sendError(HttpServletResponse.SC_BAD_REQUEST);
       response.flushBuffer();
       return;
@@ -135,8 +137,8 @@ public class JkApiServlet extends HttpServlet {
       // impossible
       throw e;
     }
-    final String uri = "/manager-ext/api/port/http";// TODO extract
     
+    final String uri = MANAGER_EXT_HTTP_PORT_URI;
     
     
     
@@ -144,8 +146,6 @@ public class JkApiServlet extends HttpServlet {
     ajpRequest.setHost(host);
     ajpRequest.setPort(ajpPortNumber);
     ajpRequest.setUri(uri);
-    
-    final AjpResponseDto ajpResponse = new AjpResponseDto();
     
     
     
@@ -183,14 +183,14 @@ public class JkApiServlet extends HttpServlet {
     }
     
     
-    
+    final AjpResponseDto ajpResponse = new AjpResponseDto();
     ajpResponse.setStatus(subresponse.status);
     ajpResponse.setStatusMessage(statusMessage);
     ajpResponse.setResponseBody(subresponse.responseBody);
       
       
     Map<String, Object> responseJsonMap = new HashMap<>();
-    responseJsonMap.put("ajpRequest", ajpRequest);
+    responseJsonMap.put("ajpRequestUrl", ajpRequest);
     responseJsonMap.put("ajpResponse", ajpResponse);
     
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -237,7 +237,6 @@ public class JkApiServlet extends HttpServlet {
       
     } else {
       
-      // TODO set content type for the error case?
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
       response.flushBuffer();
       return;
@@ -325,7 +324,7 @@ public class JkApiServlet extends HttpServlet {
         if ("update".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = updateBinding(mreq, apacheConf, modType);
+          ModStatus modStatus = updateBinding(mreq, apacheConf, modType, environment);
           if (modStatus.code != ModStatus.SC_SUCCESS) {
             allModSuccess = false;
           }
@@ -359,7 +358,7 @@ public class JkApiServlet extends HttpServlet {
         if ("create".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = createBinding(mreq, apacheConf, modType);
+          ModStatus modStatus = createBinding(mreq, apacheConf, modType, environment);
           if (modStatus.code != ModStatus.SC_SUCCESS) {
             allModSuccess = false;
           }
@@ -434,7 +433,8 @@ public class JkApiServlet extends HttpServlet {
   }
   
   private static ModStatus updateBinding(
-      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType) {
+      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType,
+      Environment environment) {
     
     try {
       String id = mreq.getId();
@@ -467,7 +467,7 @@ public class JkApiServlet extends HttpServlet {
       }
       
 
-      return updateFields(bindingDto, binding, modType);
+      return updateFields(bindingDto, binding, modType, environment);
       
     } catch (Throwable e) {
       e.printStackTrace();
@@ -482,7 +482,8 @@ public class JkApiServlet extends HttpServlet {
    * @param target non null
    * @return
    */
-  private static ModStatus updateFields(JkDto sourceDto, Binding target, ModType modType) {
+  private static ModStatus updateFields(JkDto sourceDto, Binding target, ModType modType, 
+      Environment environment) {
 
     // rebinding comes first
     
@@ -502,17 +503,20 @@ public class JkApiServlet extends HttpServlet {
       case HTTP: {
         // get ajp port by http
         final int httpPortNumber = parseResult.port;
-        final String uri = "/manager-ext/api/port/ajp";// TODO parametrize 'manager-ext'
         
-        final String url = "http://" + host + ":" + httpPortNumber + uri;
-        
-        
+        final URL url;
+        try {
+          url = new URL("http://", host, httpPortNumber, MANAGER_EXT_AJP_PORT_URI);
+        } catch (MalformedURLException e) {
+          // impossible: trusted url
+          throw new RuntimeException(e);
+        }
         
         final Subresponse subresponse = wrapSubrequest(new Subrequest() {
           @Override
           public Subresponse execute() throws IOException {
-            final URL urlUrl = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection)urlUrl.openConnection();
+            
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
             
             // both timeouts necessary 
             connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -559,7 +563,7 @@ public class JkApiServlet extends HttpServlet {
             errorCode = "EXECUTION_ERROR";
           }
           
-          return ModStatus.errInvalidFieldData("instance", errorCode, "Failed to make request to " + url);
+          return ModStatus.errInvalidFieldData("instance", errorCode, "Failed to make request to " + url.toString());
         }
         break;
       }
@@ -646,7 +650,8 @@ public class JkApiServlet extends HttpServlet {
   }
   
   private static ModStatus createBinding(
-      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType) {
+      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType,
+      Environment environment) {
     
     try {
       JkDto bindingDto = mreq.getData();
@@ -677,7 +682,7 @@ public class JkApiServlet extends HttpServlet {
       
       Binding newBinding = apacheConf.create();
       
-      return updateFields(bindingDto, newBinding, modType);
+      return updateFields(bindingDto, newBinding, modType, environment);
 
     } catch (Throwable e) {
       e.printStackTrace();

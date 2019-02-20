@@ -11,7 +11,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-public class EnvironmentPropertyFactory {
+/*package*/class EnvironmentPropertyFactory {
   private final File confDefault;
 
   public EnvironmentPropertyFactory(File confDefault) {
