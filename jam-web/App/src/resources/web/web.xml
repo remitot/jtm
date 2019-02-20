@@ -44,6 +44,15 @@
     <url-pattern>/jk-http</url-pattern>
   </servlet-mapping>
   
+  <servlet>
+    <servlet-name>JkAjpGui</servlet-name>
+    <jsp-file>/gui/jk-ajp/jk-ajp.jsp</jsp-file>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>JkAjpGui</servlet-name>
+    <url-pattern>/jk-ajp</url-pattern>
+  </servlet-mapping>
+  
   
   <servlet>
     <servlet-name>RestartServlet</servlet-name>
