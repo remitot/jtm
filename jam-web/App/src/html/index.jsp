@@ -1,3 +1,3 @@
 <% 
-  response.sendRedirect("jk");
+  response.sendRedirect("jk-http");
 %>

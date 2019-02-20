@@ -36,12 +36,12 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>JkGui</servlet-name>
-    <jsp-file>/gui/jk/jk.jsp</jsp-file>
+    <servlet-name>JkHttpGui</servlet-name>
+    <jsp-file>/gui/jk-http/jk-http.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
-    <servlet-name>JkGui</servlet-name>
-    <url-pattern>/jk</url-pattern>
+    <servlet-name>JkHttpGui</servlet-name>
+    <url-pattern>/jk-http</url-pattern>
   </servlet-mapping>
   
   
