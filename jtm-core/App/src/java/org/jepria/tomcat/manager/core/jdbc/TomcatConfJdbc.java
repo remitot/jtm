@@ -79,6 +79,9 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     Map<String, BaseConnection> baseConnections = new HashMap<>();
     
+    // for filtering unique context names
+    final Set<String> contextNames = new HashSet<>();
+    
     // Context/Resource nodes
     final List<NodeWithId> contextResources = getContextResources();
     // commented Context/Resource nodes
@@ -90,8 +93,10 @@ public class TomcatConfJdbc extends TomcatConfBase {
       allContextResources.addAll(commentedContextResources);
       
       for (NodeWithId contextResourceNode: allContextResources) {
-        final BaseConnection resource = new ContextResourceConnection(contextResourceNode.node);
-        baseConnections.put(contextResourceNode.id, resource);
+        if (contextNames.add(((Element)contextResourceNode.node).getAttribute("name"))) {// filter unique context names
+          final BaseConnection resource = new ContextResourceConnection(contextResourceNode.node);
+          baseConnections.put(contextResourceNode.id, resource);
+        }
       }
     }
     
@@ -123,57 +128,63 @@ public class TomcatConfJdbc extends TomcatConfBase {
     
     {
       for (NodeWithId contextResourceLinkNode: contextResourceLinks) {
-        final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
-        
-        for (NodeWithId serverResourceNode: serverResources) {
-          final String name = ((Element)serverResourceNode.node).getAttribute("name");
-          if (name.equals(global)) {
-            final String serverResourceId = serverResourceNode.id;
-            
-            // increment count
-            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
-            if (count == null) {
-              serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
-            } else {
-              count.incrementAndGet();
+        if (contextNames.add(((Element)contextResourceLinkNode.node).getAttribute("name"))) {// filter unique context names
+          
+          final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
+          
+          for (NodeWithId serverResourceNode: serverResources) {
+            final String name = ((Element)serverResourceNode.node).getAttribute("name");
+            if (name.equals(global)) {
+              final String serverResourceId = serverResourceNode.id;
+              
+              // increment count
+              AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
+              if (count == null) {
+                serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
+              } else {
+                count.incrementAndGet();
+              }
             }
           }
-        }
-        
-        for (NodeWithId serverResourceNode: commentedServerResources) {
-          final String name = ((Element)serverResourceNode.node).getAttribute("name");
-          if (name.equals(global)) {
-            final String serverResourceId = serverResourceNode.id;
-            
-            // increment count
-            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
-            if (count == null) {
-              serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
-            } else {
-              count.incrementAndGet();
+          
+          for (NodeWithId serverResourceNode: commentedServerResources) {
+            final String name = ((Element)serverResourceNode.node).getAttribute("name");
+            if (name.equals(global)) {
+              final String serverResourceId = serverResourceNode.id;
+              
+              // increment count
+              AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
+              if (count == null) {
+                serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
+              } else {
+                count.incrementAndGet();
+              }
             }
           }
         }
       }
       
       for (NodeWithId contextResourceLinkNode: commentedContextResourceLinks) {
-        final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
+        if (contextNames.add(((Element)contextResourceLinkNode.node).getAttribute("name"))) {// filter unique context names
         
-        List<NodeWithId> allServerResources = new ArrayList<>();
-        allServerResources.addAll(serverResources);
-        allServerResources.addAll(commentedServerResources);
+          final String global = ((Element)contextResourceLinkNode.node).getAttribute("global");
         
-        for (NodeWithId serverResourceNode: allServerResources) {
-          final String name = ((Element)serverResourceNode.node).getAttribute("name");
-          if (name.equals(global)) {
-            final String serverResourceId = serverResourceNode.id;
-            
-            // increment count
-            AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
-            if (count == null) {
-              serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
-            } else {
-              count.incrementAndGet();
+          List<NodeWithId> allServerResources = new ArrayList<>();
+          allServerResources.addAll(serverResources);
+          allServerResources.addAll(commentedServerResources);
+          
+          for (NodeWithId serverResourceNode: allServerResources) {
+            final String name = ((Element)serverResourceNode.node).getAttribute("name");
+            if (name.equals(global)) {
+              final String serverResourceId = serverResourceNode.id;
+              
+              // increment count
+              AtomicInteger count = serverResourceLinkedIds.get(serverResourceId);
+              if (count == null) {
+                serverResourceLinkedIds.put(serverResourceId, new AtomicInteger(1));
+              } else {
+                count.incrementAndGet();
+              }
             }
           }
         }
