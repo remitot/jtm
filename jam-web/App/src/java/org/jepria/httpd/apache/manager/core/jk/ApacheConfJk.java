@@ -37,9 +37,8 @@ public class ApacheConfJk extends ApacheConfBase {
   /**
    * @return unmodifiable Map&lt;BindingId, Binding&gt;
    */
-  @SuppressWarnings("unchecked")
   public Map<String, Binding> getBindings() {
-    return (Map<String, Binding>)(Map<String, ?>)getBaseBindings();
+    return Collections.unmodifiableMap(getBaseBindings());
   }
   
   
@@ -88,7 +87,7 @@ public class ApacheConfJk extends ApacheConfBase {
     }
     
     
-    this.baseBindings = Collections.unmodifiableMap(bindings);
+    this.baseBindings = bindings;
   }
   
   /**
