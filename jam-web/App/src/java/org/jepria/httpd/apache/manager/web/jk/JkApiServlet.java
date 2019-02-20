@@ -106,6 +106,11 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
+  private enum ModType {
+    HTTP,
+    AJP
+  }
+  
   private static void getHttpPort(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     
@@ -222,8 +227,12 @@ public class JkApiServlet extends HttpServlet {
 
     String path = request.getPathInfo();
     
-    if ("/mod".equals(path)) {
-      mod(request, response);
+    if ("/mod/http".equals(path)) {
+      mod(request, response, ModType.HTTP);
+      return;
+      
+    } else if ("/mod/ajp".equals(path)) {
+      mod(request, response, ModType.AJP);
       return;
       
     } else {
@@ -235,7 +244,16 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  /**
+   * 
+   * @param req
+   * @param resp
+   * @param modType {@link ModType#HTTP} for create or update requests by http instance (like "tomcat-server:8080");
+   * {@link ModType#AJP} for create or update requests by ajp instance (like "tomcat-server:8009"). 
+   * @throws ServletException
+   * @throws IOException
+   */
+  private void mod(HttpServletRequest req, HttpServletResponse resp, ModType modType) throws ServletException, IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("application/json; charset=UTF-8");
@@ -307,7 +325,7 @@ public class JkApiServlet extends HttpServlet {
         if ("update".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = updateBinding(mreq, apacheConf);
+          ModStatus modStatus = updateBinding(mreq, apacheConf, modType);
           if (modStatus.code != ModStatus.SC_SUCCESS) {
             allModSuccess = false;
           }
@@ -341,7 +359,7 @@ public class JkApiServlet extends HttpServlet {
         if ("create".equals(mreq.getAction())) {
           processedModRequestIds.add(modRequestId);
 
-          ModStatus modStatus = createBinding(mreq, apacheConf);
+          ModStatus modStatus = createBinding(mreq, apacheConf, modType);
           if (modStatus.code != ModStatus.SC_SUCCESS) {
             allModSuccess = false;
           }
@@ -416,7 +434,7 @@ public class JkApiServlet extends HttpServlet {
   }
   
   private static ModStatus updateBinding(
-      ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
+      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType) {
     
     try {
       String id = mreq.getId();
@@ -440,13 +458,16 @@ public class JkApiServlet extends HttpServlet {
         return ModStatus.errInvalidFieldData("instance", "INVALID", null);
       }
       
-      // validate name
-      if (!apacheConf.validateNewBindingApplication(bindingDto.getApplication())) {
-        return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
+      // validate application
+      final String application = bindingDto.getApplication();
+      if (application != null) {
+        if (!apacheConf.validateNewBindingApplication(bindingDto.getApplication())) {
+          return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
+        }
       }
       
 
-      return updateFields(bindingDto, binding);
+      return updateFields(bindingDto, binding, modType);
       
     } catch (Throwable e) {
       e.printStackTrace();
@@ -461,78 +482,92 @@ public class JkApiServlet extends HttpServlet {
    * @param target non null
    * @return
    */
-  private static ModStatus updateFields(JkDto sourceDto, Binding target) {
+  private static ModStatus updateFields(JkDto sourceDto, Binding target, ModType modType) {
 
     // rebinding comes first
     
     if (sourceDto.getInstance() != null) {
+        
       final InstanceValueParser.ParseResult parseResult = InstanceValueParser.tryParse(sourceDto.getInstance());
-      
+        
       final String host = parseResult.host;
-      final int httpPortNumber = parseResult.port;
-      final String uri = "/manager-ext/api/port/ajp";// TODO parametrize 'manager-ext'
-      
-      final String url = "http://" + host + ":" + httpPortNumber + uri;
-      
-      
-      
-      final Subresponse subresponse = wrapSubrequest(new Subrequest() {
-        @Override
-        public Subresponse execute() throws IOException {
-          final URL urlUrl = new URL(url);
-          HttpURLConnection connection = (HttpURLConnection)urlUrl.openConnection();
-          
-          // both timeouts necessary 
-          connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-          connection.setReadTimeout(CONNECT_TIMEOUT_MS);
-          
-          connection.connect();
-          
-          int status = connection.getResponseCode();
-
-          String responseBody = null;
-          if (status == 200) {// TODO or check 2xx?
-            try (Scanner sc = new Scanner(connection.getInputStream())) {
-              sc.useDelimiter("\\Z");
-              if (sc.hasNext()) {
-                responseBody = sc.next();
-              }
-            }
-          }
-          
-          return new Subresponse(status, responseBody);
-        }
-      });
-      
-      
-      
       final int ajpPortNumber;
       
-      if (subresponse.status == Subresponse.SC_SUCCESS) {
-        ajpPortNumber = Integer.parseInt(subresponse.responseBody);
+      switch (modType) {
+      case AJP: {
+        ajpPortNumber = parseResult.port;
+        break;
+      }
+      
+      case HTTP: {
+        // get ajp port by http
+        final int httpPortNumber = parseResult.port;
+        final String uri = "/manager-ext/api/port/ajp";// TODO parametrize 'manager-ext'
         
-      } else {
-        final String errorCode;
-        if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
-          errorCode = "UNKNOWN_HOST";
-        } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
-          errorCode = "CONNECT_EXCEPTION";
-        } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
-          errorCode = "SOCKET_EXCEPTION";
-        } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
-          errorCode = "CONNECT_TIMEOUT";
-        } else if (subresponse.status == Subresponse.SC_UNAUTHORIZED) {
-          errorCode = "UNAUTHORIZED";
-        } else if (subresponse.status == Subresponse.SC_NOT_FOUND) {
-          errorCode = "NOT_FOUND";
+        final String url = "http://" + host + ":" + httpPortNumber + uri;
+        
+        
+        
+        final Subresponse subresponse = wrapSubrequest(new Subrequest() {
+          @Override
+          public Subresponse execute() throws IOException {
+            final URL urlUrl = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection)urlUrl.openConnection();
+            
+            // both timeouts necessary 
+            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            connection.setReadTimeout(CONNECT_TIMEOUT_MS);
+            
+            connection.connect();
+            
+            int status = connection.getResponseCode();
+  
+            String responseBody = null;
+            if (status == 200) {// TODO or check 2xx?
+              try (Scanner sc = new Scanner(connection.getInputStream())) {
+                sc.useDelimiter("\\Z");
+                if (sc.hasNext()) {
+                  responseBody = sc.next();
+                }
+              }
+            }
+            
+            return new Subresponse(status, responseBody);
+          }
+        });
+        
+        
+        
+        if (subresponse.status == Subresponse.SC_SUCCESS) {
+          ajpPortNumber = Integer.parseInt(subresponse.responseBody);
+          
         } else {
-          errorCode = "EXECUTION_ERROR";
+          final String errorCode;
+          if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
+            errorCode = "UNKNOWN_HOST";
+          } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
+            errorCode = "CONNECT_EXCEPTION";
+          } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
+            errorCode = "SOCKET_EXCEPTION";
+          } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
+            errorCode = "CONNECT_TIMEOUT";
+          } else if (subresponse.status == Subresponse.SC_UNAUTHORIZED) {
+            errorCode = "UNAUTHORIZED";
+          } else if (subresponse.status == Subresponse.SC_NOT_FOUND) {
+            errorCode = "NOT_FOUND";
+          } else {
+            errorCode = "EXECUTION_ERROR";
+          }
+          
+          return ModStatus.errInvalidFieldData("instance", errorCode, "Failed to make request to " + url);
         }
-        
-        return ModStatus.errInvalidFieldData("instance", errorCode, "Failed to make request to " + url);
+        break;
+      }
+      default: {
+        throw new IllegalArgumentException("Unknown modType [" + modType + "]");
+      }
       }
         
-      
       
       if (!host.equals(target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
         target.rebind(host, ajpPortNumber);
@@ -611,7 +646,7 @@ public class JkApiServlet extends HttpServlet {
   }
   
   private static ModStatus createBinding(
-      ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
+      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType) {
     
     try {
       JkDto bindingDto = mreq.getData();
@@ -634,14 +669,15 @@ public class JkApiServlet extends HttpServlet {
         return ModStatus.errInvalidFieldData("instance", "INVALID", null);
       }
 
-      // validate name
+      // validate application
       if (!apacheConf.validateNewBindingApplication(bindingDto.getApplication())) {
         return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
       }
       
+      
       Binding newBinding = apacheConf.create();
       
-      return updateFields(bindingDto, newBinding);
+      return updateFields(bindingDto, newBinding, modType);
 
     } catch (Throwable e) {
       e.printStackTrace();

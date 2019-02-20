@@ -12,8 +12,9 @@
     <script type="text/javascript" src="gui/jtm.js"></script>
     <script type="text/javascript" src="gui/table.js"></script>
     
-    <link rel="stylesheet" href="gui/jk-http/jk-http.css">
-    <script type="text/javascript" src="gui/jk-http/jk-http.js"></script>
+    <link rel="stylesheet" href="gui/jk/jk-http.css">
+    <script type="text/javascript" src="gui/jk/jk-common.js"></script>
+    <script type="text/javascript" src="gui/jk/jk-http.js"></script>
     
   </head>
   

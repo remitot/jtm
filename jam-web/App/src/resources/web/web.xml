@@ -37,7 +37,7 @@
 
   <servlet>
     <servlet-name>JkHttpGui</servlet-name>
-    <jsp-file>/gui/jk-http/jk-http.jsp</jsp-file>
+    <jsp-file>/gui/jk/jk-http.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
     <servlet-name>JkHttpGui</servlet-name>
@@ -46,7 +46,7 @@
   
   <servlet>
     <servlet-name>JkAjpGui</servlet-name>
-    <jsp-file>/gui/jk-ajp/jk-ajp.jsp</jsp-file>
+    <jsp-file>/gui/jk/jk-ajp.jsp</jsp-file>
   </servlet>
   <servlet-mapping>
     <servlet-name>JkAjpGui</servlet-name>
