@@ -570,7 +570,7 @@ function onButtonCreateClick() {
   var table = document.getElementById("table");
 
   var rowCreate = createRowCreate();
-  rowCreate.setAttribute("item-location", "row-create-" + createRowId++);
+  rowCreate.setAttribute("item-id", "row-create-" + createRowId++);
   
   table.insertBefore(rowCreate, table.lastChild);
   
@@ -615,10 +615,10 @@ function onSaveButtonClick() {
     for (var i = 0; i < rowsModified.length; i++) {
       modRequestList.push(
           {
-            modRequestId: rowsModified[i].itemLocation, // same as location
+            modRequestId: rowsModified[i].itemId, // same as id
             modRequestBody: {
               action: "update", 
-              location: rowsModified[i].itemLocation, 
+              id: rowsModified[i].itemId, 
               data: rowsModified[i].itemData
             }
           }
@@ -630,10 +630,10 @@ function onSaveButtonClick() {
     for (var i = 0; i < rowsDeleted.length; i++) {
       modRequestList.push(
           {
-            modRequestId: rowsDeleted[i], // same as location
+            modRequestId: rowsDeleted[i], // same as id
             modRequestBody: {
               action: "delete", 
-              location: rowsDeleted[i]
+              id: rowsDeleted[i]
             }
           }
       );
@@ -644,7 +644,7 @@ function onSaveButtonClick() {
     for (var i = 0; i < rowsCreated.length; i++) {
       modRequestList.push(
           {
-            modRequestId: rowsCreated[i].itemLocation, // same as location
+            modRequestId: rowsCreated[i].itemId, // same as id
             modRequestBody: {
               action: "create", 
               data: rowsCreated[i].itemData
@@ -726,7 +726,7 @@ function onInvalidFieldData(modRequestId, fieldName, errorCode, errorMessage) {
   var rows = document.querySelectorAll("#table div.row");
   for (var i = 0; i < rows.length; i++) {
     var row = rows[i];
-    if (row.getAttribute("item-location") == modRequestId) {
+    if (row.getAttribute("item-id") == modRequestId) {
       var fields = row.querySelectorAll("input");
       for (var j = 0; j < fields.length; j++) {
         var field = fields[j];
@@ -793,7 +793,7 @@ function uiOnSaveBegin() {
 
 /**
  * Prepare and validate data for rows modified
- * @return {data: [{itemLocation: string, itemData: {}}, ...], rowsValid: boolean}
+ * @return {data: [{itemId: string, itemData: {}}, ...], rowsValid: boolean}
  */
 function getRowsModified() {
   var rows = document.querySelectorAll("#table div.row");
@@ -803,7 +803,7 @@ function getRowsModified() {
     row = rows[i];
     if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.getElementsByClassName("modified").length > 0) {
       var rowData = collectRowData(row);
-      data.push({itemLocation: row.getAttribute("item-location"), itemData: rowData.data});
+      data.push({itemId: row.getAttribute("item-id"), itemData: rowData.data});
       if (!rowData.rowValid) {
         rowsValid = false;
       }
@@ -814,14 +814,14 @@ function getRowsModified() {
 
 function getRowsDeleted() {
   var rows = document.querySelectorAll("#table div.row");
-  rowsDeletedLocations = [];
+  rowsDeletedIds = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
     if (row.classList.contains("deleted") && !row.classList.contains("created")) {
-      rowsDeletedLocations.push(row.getAttribute("item-location"));
+      rowsDeletedIds.push(row.getAttribute("item-id"));
     }
   }
-  return rowsDeletedLocations;
+  return rowsDeletedIds;
 }
 
 /**
@@ -836,7 +836,7 @@ function getRowsCreated() {
     var row = rows[i];
     if (row.classList.contains("created") && !row.classList.contains("deleted")) {
       var rowData = collectRowData(row);
-      data.push({itemLocation: row.getAttribute("item-location"), itemData: rowData.data});
+      data.push({itemId: row.getAttribute("item-id"), itemData: rowData.data});
       if (!rowData.rowValid) {
         rowsValid = false;
       }
