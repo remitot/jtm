@@ -488,7 +488,7 @@ public class TomcatConfJdbc extends TomcatConfBase {
         
         for (int j = 0; j < nodeList.getLength(); j++) {
           final Node node = nodeList.item(j);
-          final String id = "$S.#" + i + ".R" + j; // means "located at Server/comment-with-index-i/Resource-with-index-j"
+          final String id = "$S.GNR.#" + i + ".R" + j; // means "located at Server/GlobalNamingResources/comment-with-index-i/Resource-with-index-j"
           ret.add(new NodeWithId((Element)node, id));
         }
       }
