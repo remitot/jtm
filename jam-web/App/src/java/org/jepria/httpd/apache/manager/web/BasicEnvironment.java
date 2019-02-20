@@ -17,27 +17,18 @@ public class BasicEnvironment implements Environment {
   private final File mod_jk_conf;
   private final File workers_properties;
   
-  /**
-   * @param request
-   * @return Apache HTTPD 'conf' directory
-   * @throws ConfigurationException 
-   */
-  protected File getConfDirectory(HttpServletRequest request) {
-    final String confDirectory = request.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.confDirectory");
-    if (confDirectory == null) {
-      throw new RuntimeException("Misconfiguration exception: "
-          + " mandatory org.jepria.httpd.apache.manager.web.confDirectory context-param is not specified in web.xml");
-    }
-    final File confDirectoryFile = new File(confDirectory);
-    if (!confDirectoryFile.isDirectory() || !confDirectoryFile.canRead()) {
-      throw new RuntimeException("Misconfiguration exception: "
-          + "org.jepria.httpd.apache.manager.web.confDirectory context-param value does not represent an existing readable directory");
-    }
-    return new File(confDirectory);
-  }
+  private final EnvironmentPropertyFactory envPropertyFactory;
   
   public BasicEnvironment(HttpServletRequest request) {
-    File confDir = getConfDirectory(request);
+    envPropertyFactory = new EnvironmentPropertyFactory(new File(request.getServletContext().getRealPath("/WEB-INF/app-conf-default.properties")));
+    
+    final String confDirEnv = getProperty("org.jepria.httpd.apache.manager.web.conf.dir");
+    if (confDirEnv == null) {
+      throw new RuntimeException("Misconfiguration exception: "
+          + " mandatory configuration property \"org.jepria.httpd.apache.manager.web.conf.dir\" is not defined");
+    }
+    
+    final File confDir = new File(confDirEnv);
     
     mod_jk_conf = confDir.toPath().resolve("jk").resolve("mod_jk.conf").toFile();
     workers_properties = confDir.toPath().resolve("jk").resolve("workers.properties").toFile();
@@ -77,5 +68,10 @@ public class BasicEnvironment implements Environment {
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     }
+  }
+  
+  @Override
+  public String getProperty(String name) {
+    return envPropertyFactory.getProperty(name);
   }
 }

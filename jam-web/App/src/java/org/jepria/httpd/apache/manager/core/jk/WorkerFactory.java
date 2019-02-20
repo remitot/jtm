@@ -28,7 +28,7 @@ public class WorkerFactory {
     }
 
     @Override
-    public String getLocation() {
+    public String getId() {
       return typeWorkerProperty.getLine().lineNumber() + "-" 
           + hostWorkerProperty.getLine().lineNumber() + "-" 
           + portWorkerProperty.getLine().lineNumber();

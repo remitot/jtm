@@ -4,9 +4,9 @@ public class ModRequestBodyDto {
   private String action;
   
   /**
-   * Reference to the {@link #data#location} for external {@link JkDto} identification (e.g. in modification requests)
+   * Reference to the {@link #data#id} for external {@link JkDto} identification (e.g. in modification requests)
    */
-  private String location;
+  private String id;
   private JkDto data;
   
   public ModRequestBodyDto() {
@@ -20,12 +20,12 @@ public class ModRequestBodyDto {
     this.action = action;
   }
 
-  public String getLocation() {
-    return location;
+  public String getId() {
+    return id;
   }
 
-  public void setLocation(String location) {
-    this.location = location;
+  public void setId(String id) {
+    this.id = id;
   }
 
   public JkDto getData() {

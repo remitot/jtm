@@ -24,7 +24,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -49,19 +48,6 @@ public class JkApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = -3831454096594936484L;
 
-  /**
-   * Application configuration parameter: whether to rename 'localhost' to a real hostname in Bindings passed from server to client
-   */
-  private boolean renameLocalhost;
-  
-  @Override
-  public void init(ServletConfig config) throws ServletException {
-    super.init(config);
-    
-    renameLocalhost = "true".equals(config.getServletContext().getInitParameter(
-        "org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
-  }
-  
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
@@ -98,7 +84,7 @@ public class JkApiServlet extends HttpServlet {
           () -> environment.getMod_jk_confInputStream(), 
           () -> environment.getWorkers_propertiesInputStream());
       
-      List<JkDto> bindings = listBindings(apacheConf);
+      List<JkDto> bindings = listBindings(apacheConf, renameLocalhost(environment));
       
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("_list", bindings);
@@ -401,7 +387,7 @@ public class JkApiServlet extends HttpServlet {
             () -> environment.getWorkers_propertiesInputStream());
         
         
-        final List<JkDto> bindingsAfterSave = listBindings(apacheConfAfterSave);
+        final List<JkDto> bindingsAfterSave = listBindings(apacheConfAfterSave, renameLocalhost(environment));
         responseJsonMap.put("_list", bindingsAfterSave);
       }
       
@@ -425,21 +411,25 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
+  private static boolean renameLocalhost(Environment environment) {
+    return "true".equals(environment.getProperty("org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
+  }
+  
   private static ModStatus updateBinding(
       ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
     
     try {
-      String location = mreq.getLocation();
+      String id = mreq.getId();
 
-      if (location == null) {
-        return ModStatus.errLocationIsEmpty();
+      if (id == null) {
+        return ModStatus.errEmptyId();
       }
 
       Map<String, Binding> bindings = apacheConf.getBindings();
-      Binding binding = bindings.get(location);
+      Binding binding = bindings.get(id);
 
       if (binding == null) {
-        return ModStatus.errNoItemFoundByLocation();
+        return ModStatus.errNoItemFoundById();
       }
       
       JkDto bindingDto = mreq.getData();
@@ -592,19 +582,19 @@ public class JkApiServlet extends HttpServlet {
       ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
 
     try {
-      String location = mreq.getLocation();
+      String id = mreq.getId();
 
-      if (location == null) {
-        return ModStatus.errLocationIsEmpty();
+      if (id == null) {
+        return ModStatus.errEmptyId();
       }
 
-      Binding binding = apacheConf.getBindings().get(location);
+      Binding binding = apacheConf.getBindings().get(id);
 
       if (binding == null) {
-        return ModStatus.errNoItemFoundByLocation();
+        return ModStatus.errNoItemFoundById();
       }
       
-      apacheConf.delete(location);
+      apacheConf.delete(id);
       
       return ModStatus.success();
       
@@ -714,12 +704,12 @@ public class JkApiServlet extends HttpServlet {
     return string == null || "".equals(string);
   }
   
-  private List<JkDto> listBindings(ApacheConfJk apacheConf) {
+  private List<JkDto> listBindings(ApacheConfJk apacheConf, boolean renameLocalhost) {
     Map<String, Binding> bindings = apacheConf.getBindings();
 
     // list all bindings
     return bindings.entrySet().stream().map(
-        entry -> bindingToDto(entry.getKey(), entry.getValue()))
+        entry -> bindingToDto(entry.getKey(), entry.getValue(), renameLocalhost))
         .sorted(bindingSorter()).collect(Collectors.toList());
   }
   
@@ -733,10 +723,10 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private JkDto bindingToDto(String location, Binding binding) {
+  private JkDto bindingToDto(String id, Binding binding, boolean renameLocalhost) {
     JkDto dto = new JkDto();
     dto.setActive(binding.isActive());
-    dto.setLocation(location);
+    dto.setId(id);
     dto.setApplication(binding.getApplication());
     String host = binding.getWorkerHost();
     

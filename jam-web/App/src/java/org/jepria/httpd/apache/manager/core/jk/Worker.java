@@ -9,9 +9,9 @@ package org.jepria.httpd.apache.manager.core.jk;
   
   /**
    * Service method.
-   * @return JkMount's location to be used as a part of {@link Binding}'s location  
+   * @return Worker's id to be used as a part of {@link Binding}'s id  
    */
-  String getLocation();
+  String getId();
   
   /**
    * The common worker name for all three properties

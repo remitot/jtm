@@ -21,15 +21,10 @@ public class RestartServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
-    final String serviceName = req.getServletContext().getInitParameter("org.jepria.httpd.apache.manager.web.apacheServiceName");
-    
-    if (serviceName == null) {
-      throw new RuntimeException("Misconfiguration exception: "
-          + " mandatory org.jepria.httpd.apache.manager.web.apacheServiceName context-param is not specified in web.xml");
-    }
+    final String apacheServiceName = EnvironmentFactory.get(req).getProperty("org.jepria.httpd.apache.manager.web.apacheServiceName");
     
     // restart the Apache service
-    ApacheServiceFactory.get(serviceName).restart();
+    ApacheServiceFactory.get(apacheServiceName).restart();
     
   }
 }

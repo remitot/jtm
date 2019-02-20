@@ -9,9 +9,9 @@ package org.jepria.httpd.apache.manager.core.jk;
   
   /**
    * Service method.
-   * @return JkMount's location to be used as a part of {@link Binding}'s location  
+   * @return JkMount's id to be used as a part of {@link Binding}'s id  
    */
-  String getLocation();
+  String getId();
   
   boolean isActive();
   void setActive(boolean active);

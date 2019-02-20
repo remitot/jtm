@@ -18,14 +18,14 @@ public class ModStatus {
   public static final int SC_INVALID_FIELD_DATA = 1;
   
   /**
-   * Location is empty
+   * Id is empty
    */
-  public static final int SC_LOCATION_EMPTY = 2;
+  public static final int SC_EMPTY_ID = 2;
   
   /**
-   * No item found by location
+   * No item found by id
    */
-  public static final int SC_NO_ITEM_FOUND_BY_LOCATION = 3;
+  public static final int SC_NO_ITEM_FOUND_BY_ID = 3;
   
   /**
    * Any server data processing exception
@@ -77,11 +77,11 @@ public class ModStatus {
   }
   
   
-  public static ModStatus errLocationIsEmpty() {
-    return new ModStatus(SC_LOCATION_EMPTY, null);
+  public static ModStatus errEmptyId() {
+    return new ModStatus(SC_EMPTY_ID, null);
   }
   
-  public static ModStatus errNoItemFoundByLocation() {
-    return new ModStatus(SC_NO_ITEM_FOUND_BY_LOCATION, null);
+  public static ModStatus errNoItemFoundById() {
+    return new ModStatus(SC_NO_ITEM_FOUND_BY_ID, null);
   }
 }

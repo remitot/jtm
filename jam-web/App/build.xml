@@ -88,6 +88,10 @@
         	<fileset file="${POOLNETTY-POOL_LIB}" />
         </copy>
       	
+      	<copy todir="temp-war/WEB-INF">
+          <fileset file="app-conf-default.properties" />
+        </copy>
+      	
       	<unzip src="${WEB-COMMON_LIB}" dest="temp-war"/>	
       	
         <copy todir="temp-war">

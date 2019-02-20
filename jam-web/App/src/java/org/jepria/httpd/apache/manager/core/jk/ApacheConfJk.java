@@ -24,7 +24,7 @@ public class ApacheConfJk extends ApacheConfBase {
   private Map<String, BaseBinding> baseBindings = null;
   
   /**
-   * @return unmodifiable Map&lt;Location, BaseBinding&gt;
+   * @return unmodifiable Map&lt;BindingId, BaseBinding&gt;
    */
   protected Map<String, BaseBinding> getBaseBindings() {
     if (baseBindings == null) {
@@ -35,7 +35,7 @@ public class ApacheConfJk extends ApacheConfBase {
   }
   
   /**
-   * @return unmodifiable Map&lt;Location, Binding&gt;
+   * @return unmodifiable Map&lt;BindingId, Binding&gt;
    */
   @SuppressWarnings("unchecked")
   public Map<String, Binding> getBindings() {
@@ -79,11 +79,11 @@ public class ApacheConfJk extends ApacheConfBase {
       }
       
       if (worker != null) {
-        String location = "mod_jk.conf-" + jkMount.getLocation() + "__workers.properties-" + worker.getLocation();
+        String id = jkMount.getId() + "+" + worker.getId();
         
         BaseBinding binding = new BindingImpl(jkMount, worker, this);
         
-        bindings.put(location, binding);
+        bindings.put(id, binding);
       }
     }
     
@@ -99,14 +99,14 @@ public class ApacheConfJk extends ApacheConfBase {
   }
   
   /**
-   * Delete Binding by location
-   * @param location
+   * Delete binding by id
+   * @param id
    */
-  public void delete(String location) {
-    BaseBinding binding = getBaseBindings().get(location);
+  public void delete(String id) {
+    BaseBinding binding = getBaseBindings().get(id);
     
     if (binding == null) {
-      throw new IllegalArgumentException/*LocationNotExistException /*TODO*/(location);
+      throw new IllegalArgumentException("No binding found by id [" + id + "]");
     }
     
     binding.delete();

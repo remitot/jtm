@@ -2,10 +2,7 @@ package org.jepria.httpd.apache.manager.web.jk.dto;
 
 public class JkDto {
   
-  /**
-   * Location of the Jk binding in a configuration file
-   */
-  private String location;
+  private String id;
   private Boolean active;
   private String application;
   private String host;
@@ -25,11 +22,11 @@ public class JkDto {
   public JkDto() {}
   
   
-  public String getLocation() {
-    return location;
+  public String getId() {
+    return id;
   }
-  public void setLocation(String location) {
-    this.location = location;
+  public void setId(String id) {
+    this.id = id;
   }
   public Boolean getActive() {
     return active;
