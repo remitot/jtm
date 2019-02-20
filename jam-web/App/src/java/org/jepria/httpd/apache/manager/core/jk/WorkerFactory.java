@@ -29,9 +29,10 @@ public class WorkerFactory {
 
     @Override
     public String getId() {
-      return typeWorkerProperty.getLine().lineNumber() + "-" 
-          + hostWorkerProperty.getLine().lineNumber() + "-" 
-          + portWorkerProperty.getLine().lineNumber();
+      int t = typeWorkerProperty.getLine().lineNumber();
+      int h = hostWorkerProperty.getLine().lineNumber();
+      int p = portWorkerProperty.getLine().lineNumber();
+      return "$T" + t + "+H" + h + "+P" + p; // means "located at Type-property-at-line-t + Host-property-at-line-h + Port-property-at-line-p" 
     }
     
     @Override

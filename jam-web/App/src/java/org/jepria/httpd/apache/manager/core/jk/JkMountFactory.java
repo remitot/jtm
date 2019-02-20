@@ -24,7 +24,9 @@ public class JkMountFactory {
 
     @Override
     public String getId() {
-      return rootMountDirective.getLine().lineNumber() + "-" + asterMountDirective.getLine().lineNumber();
+      int r = rootMountDirective.getLine().lineNumber();
+      int a = asterMountDirective.getLine().lineNumber();
+      return "$R" + r + "+A" + a; // means "located at Root-mount-at-line-r + Asterisk-mount-at-line-a"
     }
     
     @Override
