@@ -110,8 +110,8 @@ public class JkApiServlet extends HttpServlet {
     AJP
   }
   
-  private static final String MANAGER_EXT_AJP_PORT_URI = "/manager-ext/api/port/ajp";
-  private static final String MANAGER_EXT_HTTP_PORT_URI = "/manager-ext/api/port/http";
+  private static final String MANAGER_EXT_AJP_PORT_URI = "/api/port/ajp";
+  private static final String MANAGER_EXT_HTTP_PORT_URI = "/api/port/http";
   
   private static void getHttpPort(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -138,7 +138,12 @@ public class JkApiServlet extends HttpServlet {
       throw e;
     }
     
-    final String uri = MANAGER_EXT_HTTP_PORT_URI;
+    
+    final Environment environment = EnvironmentFactory.get(request);
+    
+    final String tomcatManagerPath = lookupTomcatManagerPath(environment, host, ajpPortNumber);
+    
+    final String uri = tomcatManagerPath + MANAGER_EXT_HTTP_PORT_URI;
     
     
     
@@ -200,6 +205,18 @@ public class JkApiServlet extends HttpServlet {
     response.flushBuffer();
     return;
       
+  }
+  
+  private static String lookupTomcatManagerPath(Environment environment, String host, int port) {
+    String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
+    if (tomcatManagerPath == null) {
+      tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager.default.path");
+      if (tomcatManagerPath == null) {
+        throw new RuntimeException("Misconfiguration exception: "
+            + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.TomcatManager.default.path\" is not defined");
+      }
+    }
+    return tomcatManagerPath;
   }
   
   private static class Subresponse {
@@ -504,9 +521,11 @@ public class JkApiServlet extends HttpServlet {
         // get ajp port by http
         final int httpPortNumber = parseResult.port;
         
+        final String tomcatManagerPath = lookupTomcatManagerPath(environment, host, httpPortNumber);
+        
         final URL url;
         try {
-          url = new URL("http://", host, httpPortNumber, MANAGER_EXT_AJP_PORT_URI);
+          url = new URL("http://", host, httpPortNumber, tomcatManagerPath + MANAGER_EXT_AJP_PORT_URI);
         } catch (MalformedURLException e) {
           // impossible: trusted url
           throw new RuntimeException(e);
