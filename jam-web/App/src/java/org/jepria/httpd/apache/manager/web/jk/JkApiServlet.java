@@ -778,13 +778,13 @@ public class JkApiServlet extends HttpServlet {
     dto.setActive(binding.isActive());
     dto.setId(id);
     dto.setApplication(binding.getApplication());
-    String host = binding.getWorkerHost();
     
+    String host = binding.getWorkerHost();
     if (renameLocalhost && "localhost".equals(host)) {
-      dto.setHost(getLocalhostName());
-    } else {
-      dto.setHost(host);
+      host = getLocalhostName();
     }
+    
+    dto.setHost(host);
     
     Integer ajpPort = binding.getWorkerAjpPort();
     if (ajpPort != null) {
