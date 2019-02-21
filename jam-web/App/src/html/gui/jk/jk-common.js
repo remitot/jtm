@@ -22,7 +22,7 @@ function getApiRestartUrl() {
  */
 function restartApacheAfterMod() {
   var message = "<span class=\"span-bold\">Все изменения сохранены.</span>&emsp;" + // NON-NLS
-      "Подожите, пока Apache перезагрузится..."; // NON-NLS
+      "Подожите на этой странице, пока Apache перезагрузится..."; // NON-NLS
   statusInfo(message);
 
   
@@ -77,7 +77,7 @@ function onApacheRestartAfterModError(status) {
  * Send Apache restart request 
  */
 function restartApache() {
-  var message = "Подожите, пока Apache перезагрузится..."; // NON-NLS
+  var message = "Подожите на этой странице, пока Apache перезагрузится..."; // NON-NLS
   statusInfo(message);
 
   
@@ -157,16 +157,16 @@ function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
       if (errorMessage) {
          console.error(errorMessage + " " + errorCode);
       }
-      if (errorCode == "UNKNOWN_HOST") {
+      if (errorCode.startsWith("UNKNOWN_HOST@@")) {
         return "Неизвестный хост";// NON-NLS
-      } else if (errorCode == "CONNECT_EXCEPTION") {
-        return "Похоже, не работает порт";// NON-NLS
-      } else if (errorCode == "SOCKET_EXCEPTION" || errorCode == "CONNECT_TIMEOUT") {
-        return "Похоже, не http порт";// NON-NLS
-      } else if (errorCode == "UNAUTHORIZED") {
-        return "Похоже, инстанс не в общем кластере с текущим";// NON-NLS
-      } else if (errorCode == "NOT_FOUND" || errorCode == "EXECUTION_ERROR") {
-        return "Похоже, на инстансе сломан менеджер";// NON-NLS
+      } else if (errorCode.startsWith("CONNECT_EXCEPTION@@")) {
+        return "Похоже, на этом хосте не работает порт";// NON-NLS
+      } else if (errorCode.startsWith("SOCKET_EXCEPTION@@") || errorCode.startsWith("CONNECT_TIMEOUT@@")) {
+        return "Похоже, это не http порт";// NON-NLS
+      } else if (errorCode.startsWith("UNSUCCESS_STATUS@@")) {
+        // UNSUCCESS_STATUS@@status_int@@url_string 
+        var split = errorCode.split("@@");
+        return "Не удалось проверить http порт: запрос на [" + split[2] + "] вернул статус " + split[1];// NON-NLS
       }
     }
   } 

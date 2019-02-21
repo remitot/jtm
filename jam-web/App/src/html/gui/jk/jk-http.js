@@ -90,7 +90,7 @@ function addFieldInstance(cell, host, getHttpPortLink, placeholder) {
   if (getHttpPortLink) {
     var button = document.createElement("button");
     button.classList.add("deletable");
-    setGetHttpPortButtonState(button, 0);
+    setGetHttpPortButtonState(button, 0, null);
     button.onclick = function(){getHttpPortButtonClick(button, host, getHttpPortLink);}
     button.tabIndex = tabindex0++;
     div.appendChild(button);
@@ -107,9 +107,9 @@ function addFieldInstance(cell, host, getHttpPortLink, placeholder) {
 }
 
 /**
- * 0 -- initial state, 1 -- loading state
+ * @param state 0 -- initial state, 1 -- loading state, 2 -- error state (together with errorMessage)
  */
-function setGetHttpPortButtonState(button, state) {
+function setGetHttpPortButtonState(button, state, errorMessage) {
   if (state == 0) {
     button.disabled = false;
     button.innerHTML = "Запросить"; // NON-NLS
@@ -121,7 +121,11 @@ function setGetHttpPortButtonState(button, state) {
   } else {
     button.disabled = true;
     button.innerHTML = "Ошибка"; // NON-NLS
-    button.title = "При запросе инстанса возникла ошибка"; // NON-NLS
+    if (errorMessage) {
+      button.title = errorMessage;
+    } else {
+      button.title = null;
+    }
   }
 }
 
@@ -133,7 +137,7 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
         var responseJson = JSON.parse(this.responseText);
         
         if (responseJson.ajpResponse.status == 200) {
-          setGetHttpPortButtonState(button, 0);
+          setGetHttpPortButtonState(button, 0, null);
           
           //TODO resolve the relative path:
           var field = button.parentElement.firstChild;
@@ -146,7 +150,28 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
           // TODO in the error case we do not know the HTTP port only,
           // but we still know host and ajp port (after the initial /list request)
           // Better to show at least the information we have?
-          setGetHttpPortButtonState(button, 2);
+          
+          var errorMessage = "При запросе http порта возникла ошибка"; // NON-NLS
+          var errorCode = responseJson.ajpResponse.statusMessage;
+          if (errorCode) {
+            if (errorCode.startsWith("UNKNOWN_HOST@@")) {
+              var split = errorCode.split("@@");
+              errorMessage = "При запросе http порта возникла ошибка: неизвестный хост " + split[1];// NON-NLS
+            } else if (errorCode.startsWith("CONNECT_EXCEPTION@@")) {
+              var split = errorCode.split("@@");
+              errorMessage = "При запросе http порта возникла ошибка: похоже, на хосте "
+                  + split[1] + " не работает порт " + split[2];// NON-NLS
+            } else if (errorCode.startsWith("SOCKET_EXCEPTION@@") || errorCode.startsWith("CONNECT_TIMEOUT@@")) {
+              var split = errorCode.split("@@");
+              errorMessage = "При запросе http порта возникла ошибка: похоже, на хосте "
+                  + split[1] + " порт " + split[2] + " не http";// NON-NLS
+            } else if (errorCode.startsWith("UNSUCCESS_STATUS@@")) {
+              // UNSUCCESS_STATUS@@status_int@@url_string 
+              var split = errorCode.split("@@");
+              errorMessage = "При запросе http порта возникла ошибка: запрос на [" + split[2] + "] вернул статус " + split[1];// NON-NLS
+            }
+          }
+          setGetHttpPortButtonState(button, 2, errorMessage);
           
           console.error("Error subrequesting HTTP port by AJP: status " + responseJson.ajpResponse.status 
               + ", message: " + responseJson.ajpResponse.statusMessage);
@@ -164,7 +189,8 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
         // TODO in the error case we do not know the HTTP port only,
         // but we still know host and ajp port (after the initial /list request)
         // Better to show at least the information we have?
-        setGetHttpPortButtonState(button, 2);
+        var errorMessage = "При запросе http порта возникла ошибка"; // NON-NLS
+        setGetHttpPortButtonState(button, 2, errorMessage);
         
         console.error("Get HTTP port error: " + this.status);
       }
@@ -173,7 +199,7 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
   xhttp.open("GET", getHttpPortLink, true);
   xhttp.send();
   
-  setGetHttpPortButtonState(button, 1);
+  setGetHttpPortButtonState(button, 1, null);
 }
 
 /* @Override from table.js */
