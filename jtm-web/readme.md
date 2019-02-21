@@ -13,7 +13,7 @@ Each configuration property may be overridden individually using [Tomcat JNDI en
   ...
 </Context>
 ```
-* To override a property (or multiple properties) using a single custom application configuration file, create the file at any local place, define that place in a JNDI entry with the `"org.jepria.tomcat.manager.web.conf.file"` name, then override the properties you need in that file.
+* To override a property (or multiple properties) using a single custom application configuration file, create the file at any local place, define that place in a JNDI entry with `name="org.jepria.tomcat.manager.web.conf.file"`, then override the properties you need in that file.
 Note that the properties overridden in `Context/Environment` have higher priority than the same properties overridden in a custom configuration file.
 Example:
 ```
