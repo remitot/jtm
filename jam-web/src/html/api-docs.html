@@ -1,97 +1,445 @@
+<!-- 
+//////////////////////////////////////////////////
+This file has been auto-converted from api-docs.md
+////////////////////////////////////////////////// 
+-->
+
+
 <!DOCTYPE html>
 <html>
   <head>
     <title>JAM API</title>
   </head>
   <body>
-    <h1>API</h1>
-    <h2>General</h2>
-    <h3>Login</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>POST</code> or <code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/login</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td><code>username=<i>username</i></code>, <code>password=<i>password</i></code></td>
-        </tr>
-        <tr>
-          <td>Request body</td>
-          <td>empty body</td>
-        </tr>
-        <tr>
-          <td>Response</td>
-          <td>empty body
-            <br/><br/>
-            If login succeeds,
-            the 200 status will be returned.
-            <br/><br/>
-            If either <code>username</code> or <code>password</code> request parameter is empty, 
-            the 400 status will be returned.
-            <br/><br/>
-            If authorization fails, 
-            the 401 status will be returned.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-        </tr>
-        <tr>
-          <td><code>/api/login?username=admin&password=admin</code></td>
-        </tr>
-      </tbody>
-    </table>
-    <h3>Logout</h3>
-    <table border="1">
-      <tbody>
-        <tr>
-          <td>Method</td>
-          <td><code>POST</code> or <code>GET</code></td>
-        </tr>
-        <tr>
-          <td>Url</td>
-          <td><code>/api/logout</code></td>
-        </tr>
-        <tr>
-          <td>Request params</td>
-          <td>none</td>
-        </tr>
-        <tr>
-          <td>Request body</td>
-          <td>empty body</td>
-        </tr>
-        <tr>
-          <td>Response</td>
-          <td>empty body
-            <br/><br/>
-            If logout succeeds,
-            the 200 status will be returned.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>Example:</h4>
-    <table border="1">
-      <tbody>
-        <tr>
-          <th>Request</th>
-        </tr>
-        <tr>
-          <td><code>/api/logout</code></td>
-        </tr>
-      </tbody>
-    </table>
+<h1 id="api">API</h1>
+
+<h2 id="general">General</h2>
+
+<h3 id="login">Login</h3>
+
+<p>Method: <code>POST</code> (preferrable) or <code>GET</code></p>
+
+<p>Url: <code>/api/login</code></p>
+
+<p>Request params:</p>
+
+<ul>
+<li><code>username</code>: string, mandatory</li>
+
+<li><code>password</code>: string, mandatory</li>
+</ul>
+
+<p>Request body: none
+Response statuses:</p>
+
+<ul>
+<li><code>200</code>: success</li>
+
+<li><code>400</code> if mandatory request parameter is empty</li>
+
+<li><code>401</code> if authorization fails</li>
+</ul>
+
+<p>Response body: none</p>
+
+<h4 id="example">Example</h4>
+
+<p>Request: <code>/api/login?username=admin&amp;password=admin</code></p>
+
+<p>Response: <code>200</code></p>
+
+<h3 id="logout">Logout</h3>
+
+<p>Method: <code>POST</code> (preferrable) or <code>GET</code></p>
+
+<p>Url: <code>/api/logout</code></p>
+
+<p>Request params: none</p>
+
+<p>Request body: none</p>
+
+<p>Response statuses:</p>
+
+<ul>
+<li><code>200</code>: success</li>
+</ul>
+
+<p>Response body: none</p>
+
+<h4 id="example-1">Example</h4>
+
+<p>Request: <code>/api/logout</code></p>
+
+<p>Response: <code>200</code></p>
+
+<h3 id="restartapache">Restart Apache</h3>
+
+<p>Method: <code>POST</code> (preferrable) or <code>GET</code></p>
+
+<p>Url: <code>/api/restart</code></p>
+
+<p>Request params: none</p>
+
+<p>Request body: none</p>
+
+<p>Response statuses:</p>
+
+<ul>
+<li><code>200</code>: success</li>
+</ul>
+
+<p>Response body: none</p>
+
+<h4 id="example-2">Example</h4>
+
+<p>Request: <code>/api/restart</code></p>
+
+<p>Response: <code>200</code></p>
+
+<h2 id="jk">Jk</h2>
+
+<p>Interface to the Apache's <code>mod_jk</code> module</p>
+
+<h3 id="getlistofbindings">Get list of bindings</h3>
+
+<p>Method: <code>GET</code></p>
+
+<p>Url: <code>/api/jk/list</code></p>
+
+<p>Request params: none</p>
+
+<p>Request body: none</p>
+
+<p>Response statuses:</p>
+
+<ul>
+<li><code>200</code>: success</li>
+</ul>
+
+<p>Response body (<code>application/json; UTF-8</code>): </p>
+
+<pre><code>{
+  "_list": [
+    {
+      "id": /string, identificator of the binding/,
+      "active": /boolean, whether the binding is commented in internal configuration files/,
+      "application": /string, application that is bound to a Jk worker/,
+      "host": /string, host of the worker that the application is bound to/,
+      "ajpPort": /integer, ajp port number on the host/,
+      "getHttpPortLink": /string, link to request the host's http port with, using the JTM on that host/
+          /the field value may be constructed on the client-side from other field values (host, ajpPort)/
+    },...
+  ]
+}
+</code></pre>
+
+<h4 id="example-3">Example</h4>
+
+<p>Request: <code>/api/jk/list</code></p>
+
+<p>Response: <code>200</code></p>
+
+<pre><code>{
+  "_list": [
+    {
+      "id": "$R31+A32+$T33+H34+P35",
+      "active": true,
+      "application": "Application1",
+      "host": "tomcat-server1.com",
+      "ajpPort": 8009,
+      "getHttpPortLink": "api/jk/get-http-port?host=tomcat-server1.com&amp;ajp-port=8009"
+    },
+    {
+      "id": "$R28+A29+$T37+H38+P39",
+      "active": false,
+      "application": "Application2",
+      "host": "tomcat-server2",
+      "ajpPort": 8109,
+      "getHttpPortLink": "api/jk/get-http-port?host=tomcat-server2&amp;ajp-port=8109"
+    }
+  ]
+}
+</code></pre>
+
+<h3 id="modifybindingscreateandupdatebyajpportdelete">Modify bindings: create and update by ajp port, delete</h3>
+
+<p>Method: <code>POST</code></p>
+
+<p>Url: <code>/api/jk/mod/ajp</code></p>
+
+<p>Request params: none</p>
+
+<p>Request body (<code>application/json; UTF-8</code>): list of connection modification requests (modRequests), where each element is a <em>modification request</em> (described below):</p>
+
+<pre><code>[
+  {
+    /modification request as described below/
+  },...
+]
+</code></pre>
+
+<p>Modification request is an element consisting of a <code>modRequestId</code> and a <code>modRequestBody</code> and representing one of the three actions:</p>
+
+<ul>
+<li>update
+<code>
+{
+"modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
+"modRequestBody": {
+  "action": "update",
+  "id": /string, mandatory, reference to the existing binding id/,
+  "data": {
+    "active": /boolean, optional, new field value/,
+    "application": /string, optional, new field value/,
+    "instance": /string, optional, new field value in format "host:ajpPort"/
+  }
+}
+}
+</code></li>
+
+<li>create
+<code>
+{
+"modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
+"modRequestBody": {
+  "action": "create",
+  "data": {
+    "active": /boolean, optional, new field value (default "true")/,
+    "application": /string, mandatory, new field value/,
+    "instance": /string, optional, new field value in format "host:ajpPort"/
+  }
+}
+}
+</code></li>
+
+<li>delete
+<code>
+{
+"modRequestId": /string, mandatory, arbitrary value but unique over the entire list/,
+"modRequestBody": {
+  "action": "delete",
+  "id": /string, mandatory, reference to the existing binding id/
+}
+}
+</code>
+Any modification requests with different <code>action</code> values will be ignored.</li>
+</ul>
+
+<p>Response statuses:</p>
+
+<ul>
+<li><code>200</code>: success</li>
+
+<li><code>400</code> if any <code>modRequestId</code> is either <code>null</code> or empty or not unique over the whole list</li>
+
+<li><code>400</code> if an error occurs while parsing the JSON request body</li>
+</ul>
+
+<p>Response body (<code>application/json; UTF-8</code>) normally consists of two lists:</p>
+
+<ul>
+<li>list of statuses corresponding to the list of connection modification requests,  where each element is a <em>modStatus</em> consisting of a <code>modRequestId</code> (matching by the <code>modRequestId</code> values from the request) and a <code>modStatusCode</code>.</li>
+
+<li>list of connections after all modifications performed, analogous to the response of <code>/api/jk/list</code></li>
+</ul>
+
+<pre><code>{
+  "modStatusList": [ /array of modStatuses, of length same as list of modRequests/  
+    {
+      "modRequestId": /string, equals to one of modRequestId values from the request/,
+      "modStatusCode": /integer, the values described below/
+      "invalidFieldData": /JSON object, described below/
+          /present only if the value of "modStatusCode" is 1, /
+    },...
+  ],
+  "_list": [ 
+    /contents equal to result of /api/jdbc/list, invoked after the modifications performed/
+  ]
+}
+</code></pre>
+
+<p><code>modStatusCode</code> values:</p>
+
+<ul>
+<li><code>0</code>: successful modification</li>
+
+<li><code>1</code>: error: invalid field data (see description of <code>"invalidFieldData"</code> object below)</li>
+
+<li><code>2</code>: error: <code>id</code> field is missing or empty</li>
+
+<li><code>3</code>: error: no item found by such <code>id</code></li>
+
+<li><code>500</code>: error: unspecified server exception</li>
+</ul>
+
+<p>If <em>all</em> <code>modStatusCode</code> values of the <code>modStatusList</code> are <code>0</code>, then (and only then) all modifications succeeded, saved, and the <code>_list</code> element is present in the response, otherwise (if any error occurred), no modifications are actually performed, and the <code>_list</code> element is not present.</p>
+
+<p>If the value of <code>modStatusCode</code> is <code>1</code> (invalid field data), a special object is present in the response, describing which fields exactly are invalid:</p>
+
+<pre><code>{
+  /fieldName/: {
+    "errorCode": /string, the error code/,
+    "errorMessage": /string, optional, description of the error/,
+  },...
+}
+</code></pre>
+
+<h4 id="example-4">Example</h4>
+
+<p>Request: <code>/api/jk/mod/ajp</code></p>
+
+<pre><code>[
+  {
+    "modRequestId": "$R28+A29+$T37+H38+P39",
+    "modRequestBody": {
+      "action": "update",
+      "id": "$R28+A29+$T37+H38+P39",
+      "data": {
+        "active": true,
+        "application": "NewApplication2",
+        "instance": "tomcat-server3.net:8209"
+      }
+    }
+  },
+  {
+    "modRequestId": "$R31+A32+$T33+H34+P35",
+    "modRequestBody": {
+      "action": "delete",
+      "id": "$R31+A32+$T33+H34+P35"
+    }
+  },
+  {
+    "modRequestId": "row-create-1",
+    "modRequestBody": {
+      "action": "create",
+      "data": {
+        "application": "Application3",
+        "instance": "tomcat-server1.com:8009"
+      }
+    }
+  }
+]
+</code></pre>
+
+<p>Response: <code>200</code></p>
+
+<pre><code>{
+  "_list": [
+    {
+      "id": "$R32+A33+$T33+H34+P35",
+      "active": true,
+      "application": "Application3",
+      "host": "tomcat-server1.com",
+      "ajpPort": 8009,
+      "getHttpPortLink": "api/jk/get-http-port?host=tomcat-server1.com&amp;ajp-port=8009"
+    },
+    {
+      "id": "$R28+A29+$T41+H42+P43",
+      "active": true,
+      "application": "NewApplication2",
+      "host": "tomcat-server3.net",
+      "ajpPort": 8209,
+      "getHttpPortLink": "api/jk/get-http-port?host=tomcat-server3.net&amp;ajp-port=8209"
+    }
+  ],
+  "modStatusList": [
+    {
+      "modRequestId": "$R28+A29+$T37+H38+P39",
+      "modStatusCode": 0
+    },
+    {
+      "modRequestId": "row-create-1",
+      "modStatusCode": 0
+    },
+    {
+      "modRequestId": "$R31+A32+$T33+H34+P35",
+      "modStatusCode": 0
+    }
+  ]
+}
+</code></pre>
+
+<h3 id="modifybindingscreateandupdatebyhttpportdelete">Modify bindings: create and update by http port, delete</h3>
+
+<p>Method: <code>POST</code></p>
+
+<p>Url: <code>/api/jk/mod/http</code></p>
+
+<p>Works exactly the same as <code>/api/jk/mod/ajp</code> endpoint, except for the <code>instance</code> field having its port as <strong>http</strong> instead of ajp:</p>
+
+<pre><code>{
+  "modRequestBody": {
+    ...
+    "instance": /string, optional, new field value in format "host:httpPort"/,
+    ...
+  }
+}
+</code></pre>
+
+<p>The Apache Jk module lets only bind application paths to server instances by <em>ajp</em> ports, not <em>http</em>. To do so, the server (requested to bind an application path to an instance by <em>http</em> port) makes a subrequest to the target instance's JTM (if any) over <em>http</em>, and gets the <em>ajp</em> port number of that instance as a subresponse. After that, the server is able to bind the application path to the known <em>ajp</em> port. If there is no JTM deployed on the target instance, the server has no way to surely know the <em>ajp</em> port, so the modRequest to <code>/api/jk/mod/http</code> fails. However, the modRequests to <code>/api/jk/mod/ajp</code> work regardless of JTMs, because they update the Apache's configuration directly.</p>
+
+<p>Because the <em>delete</em> modRequests do not specify a port, there is no difference which endpoint to use to delete the bindings.</p>
+
+<h3 id="gethttpportbyajpport">Get http port by ajp port</h3>
+
+<p>Makes a subrequest to the target instance's JTM (if any) over <em>ajp</em>, and gets the <em>http</em> port number of that instance as a subresponse.</p>
+
+<p>Method: <code>GET</code></p>
+
+<p>Url: <code>/api/jk/get-http-port</code></p>
+
+<p>Request params:</p>
+
+<ul>
+<li><code>host</code>: string, mandatory, the target instance's host name</li>
+
+<li><code>ajp-port</code>: string, mandatory, the target instance's <em>ajp</em> port, for which to get the <em>http</em> port</li>
+</ul>
+
+<p>Request body: none
+Response statuses:</p>
+
+<ul>
+<li><code>200</code>: success</li>
+
+<li><code>400</code> if mandatory request parameter is empty</li>
+</ul>
+
+<p>Request body (<code>text/plain; UTF-8</code>):</p>
+
+<pre><code>{
+  "status": /string, status of the ajp subrequest-subresponse, the values described below/,
+  "httpPort": /integer, the http port/
+      /present only if the value of "status" is "SUCCESS"/
+}
+</code></pre>
+
+<p>The <code>status</code> values are:</p>
+
+<ul>
+<li><code>SUCCESS</code>: successful subrequest</li>
+
+<li><code>UNKNOWN_HOST@@{url}</code>: unknown host (in the ajp-subrequested <code>{url}</code>)</li>
+
+<li><code>CONNECT_EXCEPTION@@{url}</code>: <em>probably</em> the non-working port (in the ajp-subrequested <code>{url}</code>)</li>
+
+<li><code>SOCKET_EXCEPTION@@{url}</code>: <em>probably</em> the port is working, but not over the <em>http</em> protocol (in the ajp-subrequested <code>{url}</code>)</li>
+
+<li><code>CONNECT_TIMEOUT@@{url}</code>: <em>probably</em> the port is working, but not over the <em>http</em> protocol (in the ajp-subrequested <code>{url}</code>)</li>
+
+<li><code>UNSUCCESS_STATUS@@{status_code}@@{url}</code>: the ajp-subrequest to the <code>{url}</code> made a subresponse with the unsuccess <code>{status_code}</code> (the values are common HTTP statuses)</li>
+</ul>
+
+<h4 id="example-5">Example</h4>
+
+<p>Request: <code>/api/jk/get-http-port?host=tomcat-server1.com&amp;ajp-port=8009</code></p>
+
+<p>Response: <code>200</code></p>
+
+<pre><code>{
+  "status": "SUCCESS",
+  "httpPort": 8080
+}
+</code></pre>
   </body>
 </html>
-
