@@ -167,24 +167,21 @@ public class JkApiServlet extends HttpServlet {
     });
     
     
-    
     final String statusMessage;
     if (subresponse.status == Subresponse.SC_SUCCESS) {
       statusMessage = "SUCCESS";
     } else if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
-      statusMessage = "UNKNOWN_HOST";
+      statusMessage = "UNKNOWN_HOST@@" + host;
     } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
-      statusMessage = "CONNECT_EXCEPTION";
+      statusMessage = "CONNECT_EXCEPTION@@" + host + "@@" + ajpPortNumber;
     } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
-      statusMessage = "SOCKET_EXCEPTION";
+      statusMessage = "SOCKET_EXCEPTION@@" + host + "@@" + ajpPortNumber;
     } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
-      statusMessage = "CONNECT_TIMEOUT";
-    } else if (subresponse.status == Subresponse.SC_UNAUTHORIZED) {
-      statusMessage = "UNAUTHORIZED";
-    } else if (subresponse.status == Subresponse.SC_NOT_FOUND) {
-      statusMessage = "NOT_FOUND";
+      statusMessage = "CONNECT_TIMEOUT@@" + host + "@@" + ajpPortNumber;
     } else {
-      statusMessage = "EXECUTION_ERROR";
+      // for client logging/messaging
+      final String urlString = "ajp://" + host + ":" + ajpPortNumber + uri;//TODO fake "ajp://" scheme!
+      statusMessage = "UNSUCCESS_STATUS@@" + subresponse.status + "@@" + urlString;
     }
     
     
@@ -225,10 +222,6 @@ public class JkApiServlet extends HttpServlet {
     public static final int SC_CONNECT_EXCEPTION = 462;
     public static final int SC_SOCKET_EXCEPTION = 463;
     public static final int SC_CONNECT_TIMEOUT = 464;
-    public static final int SC_UNAUTHORIZED = 401;
-    public static final int SC_NOT_FOUND = 404;
-    public static final int SC_EXECUTION_ERROR = 500;
-    
     
     public final int status;
     public final String responseBody;
@@ -567,19 +560,16 @@ public class JkApiServlet extends HttpServlet {
         } else {
           final String errorCode;
           if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
-            errorCode = "UNKNOWN_HOST";
+            errorCode = "UNKNOWN_HOST@@" + host;
           } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
-            errorCode = "CONNECT_EXCEPTION";
+            errorCode = "CONNECT_EXCEPTION@@" + host + "@@" + httpPortNumber;
           } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
-            errorCode = "SOCKET_EXCEPTION";
+            errorCode = "SOCKET_EXCEPTION@@" + host + "@@" + httpPortNumber;
           } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
-            errorCode = "CONNECT_TIMEOUT";
-          } else if (subresponse.status == Subresponse.SC_UNAUTHORIZED) {
-            errorCode = "UNAUTHORIZED";
-          } else if (subresponse.status == Subresponse.SC_NOT_FOUND) {
-            errorCode = "NOT_FOUND";
+            errorCode = "CONNECT_TIMEOUT@@" + host + "@@" + httpPortNumber;
           } else {
-            errorCode = "EXECUTION_ERROR";
+            // @@ is a safe delimiter
+            errorCode = "UNSUCCESS_STATUS@@" + subresponse.status + "@@" + url.toString();
           }
           
           return ModStatus.errInvalidFieldData("instance", errorCode, "Failed to make request to " + url.toString());
@@ -637,7 +627,7 @@ public class JkApiServlet extends HttpServlet {
     } catch (Throwable e) {
       e.printStackTrace();
       
-      return new Subresponse(Subresponse.SC_EXECUTION_ERROR, null);
+      return new Subresponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null);
     }
   }
   
