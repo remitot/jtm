@@ -454,7 +454,7 @@ public class JkApiServlet extends HttpServlet {
       // validate application
       final String application = bindingDto.getApplication();
       if (application != null) {
-        if (!apacheConf.validateNewBindingApplication(bindingDto.getApplication())) {
+        if (!apacheConf.validateNewApplication(bindingDto.getApplication())) {
           return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
         }
       }
@@ -678,7 +678,7 @@ public class JkApiServlet extends HttpServlet {
       }
 
       // validate application
-      if (!apacheConf.validateNewBindingApplication(bindingDto.getApplication())) {
+      if (!apacheConf.validateNewApplication(bindingDto.getApplication())) {
         return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
       }
       

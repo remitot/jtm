@@ -65,8 +65,17 @@ import java.util.Optional;
     if (existingWorker != null) {
       worker = existingWorker;
     } else {
-      final String workerName = getNewWorkerName(host, ajpPortStr);
-      Worker newWorker = apacheConf.createWorker(workerName);
+      final String newWorkerName0 = getNewWorkerName(host, ajpPortStr);
+      
+      // find unique name by appending _index
+      String newWorkerName = newWorkerName0;
+      int i = 2;
+      while (!apacheConf.validateNewWorkerName(newWorkerName)) {
+        newWorkerName = newWorkerName0 + "_" + i++;
+      }
+      
+      
+      Worker newWorker = apacheConf.createWorker(newWorkerName);
       newWorker.setHost(host);
       newWorker.setPort(ajpPort);
       worker = newWorker;
@@ -77,7 +86,7 @@ import java.util.Optional;
   
   // TODO extract upwards or parametrize
   private String getNewWorkerName(String host, String ajpPort) {
-    return host + "_" + ajpPort;
+    return (host + "_" + ajpPort).replaceAll("\\.|\\-|/|:", "_");
   }
   
   /**

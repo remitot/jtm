@@ -174,8 +174,12 @@ public class ApacheConfJk extends ApacheConfBase {
    * @return {@code true} if the new name is OK; 
    * {@code false} if there is a binding with the same application
    */
-  public boolean validateNewBindingApplication(String application) {
+  public boolean validateNewApplication(String application) {
     return !getBindings().values().stream().anyMatch(
         binding -> application.equals(binding.getApplication()));
+  }
+  
+  public boolean validateNewWorkerName(String workerName) {
+    return !getWorkers().stream().anyMatch(worker -> workerName.equals(worker.getName()));
   }
 }
