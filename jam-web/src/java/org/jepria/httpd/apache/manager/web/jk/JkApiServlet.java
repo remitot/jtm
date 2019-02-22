@@ -35,7 +35,6 @@ import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
 import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
-import org.jepria.httpd.apache.manager.web.jk.dto.AjpResponseDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingListDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingModDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
@@ -123,7 +122,6 @@ public class JkApiServlet extends HttpServlet {
     String ajpPort = request.getParameter("ajp-port");
     
     if (host == null || ajpPort == null || !ajpPort.matches("\\d+")) {
-      
       response.sendError(HttpServletResponse.SC_BAD_REQUEST);
       response.flushBuffer();
       return;
@@ -158,27 +156,16 @@ public class JkApiServlet extends HttpServlet {
     });
     
 
-    // for client logging/messaging
     final String ajpRequestUrl = "ajp://" + host + ":" + ajpPortNumber + uri;//TODO fake "ajp://" scheme!
+    final String subresponseStatus = getSubresponseStatus(subresponse, ajpRequestUrl);
     
+    final Map<String, Object> responseJsonMap = new HashMap<>();
     
-    final String statusMessage;
+    responseJsonMap.put("status", subresponseStatus);
     if (subresponse.status == HttpServletResponse.SC_OK) {
-      statusMessage = "SUCCESS";
-    } else {
-      statusMessage = subresponseToErrorCode(subresponse, ajpRequestUrl);
+      int httpPort = Integer.parseInt(subresponse.responseBody);
+      responseJsonMap.put("httpPort", httpPort);
     }
-    
-    
-    final AjpResponseDto ajpResponse = new AjpResponseDto();
-    ajpResponse.setStatus(subresponse.status);
-    ajpResponse.setStatusMessage(statusMessage);
-    ajpResponse.setResponseBody(subresponse.responseBody);
-      
-      
-    Map<String, Object> responseJsonMap = new HashMap<>();
-    responseJsonMap.put("ajpRequest", ajpRequestUrl);
-    responseJsonMap.put("ajpResponse", ajpResponse);
     
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
@@ -542,7 +529,7 @@ public class JkApiServlet extends HttpServlet {
           ajpPortNumber = Integer.parseInt(subresponse.responseBody);
           
         } else {
-          final String errorCode = subresponseToErrorCode(subresponse, url.toString());
+          final String errorCode = getSubresponseStatus(subresponse, url.toString());
           
           return ModStatus.errInvalidFieldData("instance", errorCode, null);
         }
@@ -576,9 +563,9 @@ public class JkApiServlet extends HttpServlet {
    * @param url url of the subrequest, for client logging/messaging
    * @return
    */
-  private static String subresponseToErrorCode(Subresponse subresponse, String url) {
+  private static String getSubresponseStatus(Subresponse subresponse, String url) {
     if (subresponse.status == HttpServletResponse.SC_OK) {
-      return null;
+      return "SUCCESS";
     } else if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
       return "UNKNOWN_HOST@@" + url;
     } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 

@@ -136,12 +136,12 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
       if (this.status == 200) {
         var responseJson = JSON.parse(this.responseText);
         
-        if (responseJson.ajpResponse.status == 200) {
+        if (responseJson.status == "SUCCESS") {
           setGetHttpPortButtonState(button, 0, null);
           
           //TODO resolve the relative path:
           var field = button.parentElement.firstChild;
-          var value = host + ":" + responseJson.ajpResponse.responseBody;
+          var value = host + ":" + responseJson.httpPort;
           field.setAttribute("value-original", value);
           field.value = value;
           onFieldInput(field);
@@ -152,17 +152,17 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
           // Better to show at least the information we have?
           
           var errorMessage = "При запросе http порта возникла ошибка"; // NON-NLS
-          var errorCode = responseJson.ajpResponse.statusMessage;
+          var errorCode = responseJson.status;
           if (errorCode) {
             if (errorCode.startsWith("UNKNOWN_HOST@@")) {
               var split = errorCode.split("@@");
-              errorMessage = "При запросе http порта по ссылке " + split[1] + " возникла ошибка: неизвестный хост";// NON-NLS
+              errorMessage = "При запросе http порта по URL " + split[1] + " возникла ошибка: неизвестный хост";// NON-NLS
             } else if (errorCode.startsWith("CONNECT_EXCEPTION@@")) {
               var split = errorCode.split("@@");
-              errorMessage = "При запросе http порта по ссылке " + split[1] + " возникла ошибка: похоже, на хосте не работает порт";// NON-NLS
+              errorMessage = "При запросе http порта по URL " + split[1] + " возникла ошибка: похоже, на хосте не работает порт";// NON-NLS
             } else if (errorCode.startsWith("SOCKET_EXCEPTION@@") || errorCode.startsWith("CONNECT_TIMEOUT@@")) {
               var split = errorCode.split("@@");
-              errorMessage = "При запросе http порта по ссылке " + split[1] + " возникла ошибка: похоже, указанный порт не http";// NON-NLS
+              errorMessage = "При запросе http порта по URL " + split[1] + " возникла ошибка: похоже, указанный порт не http";// NON-NLS
             } else if (errorCode.startsWith("UNSUCCESS_STATUS@@")) {
               // UNSUCCESS_STATUS@@status_int@@url_string 
               var split = errorCode.split("@@");
@@ -170,9 +170,6 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
             }
           }
           setGetHttpPortButtonState(button, 2, errorMessage);
-          
-          console.error("Error subrequesting HTTP port by AJP: status " + responseJson.ajpResponse.status 
-              + ", message: " + responseJson.ajpResponse.statusMessage);
         }
         
       } else if (this.status == 401) {
