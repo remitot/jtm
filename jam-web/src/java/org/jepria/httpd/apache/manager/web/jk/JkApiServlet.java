@@ -156,11 +156,11 @@ public class JkApiServlet extends HttpServlet {
     });
     
 
-    final String ajpRequestUrl = "ajp://" + host + ":" + ajpPortNumber + uri;//TODO fake "ajp://" scheme!
-    final String subresponseStatus = getSubresponseStatus(subresponse, ajpRequestUrl);
-    
     final Map<String, Object> responseJsonMap = new HashMap<>();
     
+    
+    final String ajpRequestUrl = "ajp://" + host + ":" + ajpPortNumber + uri;//TODO fake "ajp://" scheme!
+    final String subresponseStatus = getSubresponseStatus(subresponse, ajpRequestUrl);
     responseJsonMap.put("status", subresponseStatus);
     if (subresponse.status == HttpServletResponse.SC_OK) {
       int httpPort = Integer.parseInt(subresponse.responseBody);
