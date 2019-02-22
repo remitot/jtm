@@ -51,11 +51,15 @@ public class ApacheConfJk extends ApacheConfBase {
    * @return unmodifiable List of Workers
    */
   public List<Worker> getWorkers() {
+    return Collections.unmodifiableList(getBaseWorkers());
+  }
+  
+  protected List<Worker> getBaseWorkers() {
     if (workers == null) {
       initWorkers();
     }
     
-    return Collections.unmodifiableList(workers);
+    return workers;
   }
   
   /**
@@ -146,14 +150,13 @@ public class ApacheConfJk extends ApacheConfBase {
 
     
     // add the new worker to the list
-    getWorkers(); // initialize if necessary
     
     // TODO unchecked add! 
     // Future getWorkers() external access may rely on the new worker presence,
     // but the new worker is NOT saved to the target file yet (added to the list only instead),
     // and if the save fails, this may lead to inconsistency 
     // (because the new 'present' worker will be actually absent)
-    this.workers.add(worker); 
+    getBaseWorkers().add(worker); 
     
     
     return worker;
