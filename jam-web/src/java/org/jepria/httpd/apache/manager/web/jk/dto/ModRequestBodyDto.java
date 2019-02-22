@@ -7,7 +7,7 @@ public class ModRequestBodyDto {
    * Reference to the {@link #data#id} for external {@link JkDto} identification (e.g. in modification requests)
    */
   private String id;
-  private JkDto data;
+  private BindingModDto data;
   
   public ModRequestBodyDto() {
   }
@@ -28,11 +28,11 @@ public class ModRequestBodyDto {
     this.id = id;
   }
 
-  public JkDto getData() {
+  public BindingModDto getData() {
     return data;
   }
 
-  public void setData(JkDto data) {
+  public void setData(BindingModDto data) {
     this.data = data;
   }
   

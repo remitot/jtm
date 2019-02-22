@@ -36,7 +36,8 @@ import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.jk.dto.AjpResponseDto;
-import org.jepria.httpd.apache.manager.web.jk.dto.JkDto;
+import org.jepria.httpd.apache.manager.web.jk.dto.BindingListDto;
+import org.jepria.httpd.apache.manager.web.jk.dto.BindingModDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestDto;
 
@@ -83,7 +84,7 @@ public class JkApiServlet extends HttpServlet {
           () -> environment.getMod_jk_confInputStream(), 
           () -> environment.getWorkers_propertiesInputStream());
       
-      List<JkDto> bindings = listBindings(apacheConf, renameLocalhost(environment));
+      List<BindingListDto> bindings = listBindings(apacheConf, renameLocalhost(environment));
       
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("_list", bindings);
@@ -397,7 +398,7 @@ public class JkApiServlet extends HttpServlet {
             () -> environment.getWorkers_propertiesInputStream());
         
         
-        final List<JkDto> bindingsAfterSave = listBindings(apacheConfAfterSave, renameLocalhost(environment));
+        final List<BindingListDto> bindingsAfterSave = listBindings(apacheConfAfterSave, renameLocalhost(environment));
         responseJsonMap.put("_list", bindingsAfterSave);
       }
       
@@ -443,7 +444,7 @@ public class JkApiServlet extends HttpServlet {
         return ModStatus.errNoItemFoundById();
       }
       
-      JkDto bindingDto = mreq.getData();
+      BindingModDto bindingDto = mreq.getData();
       
       
       // validate 'instance' field value
@@ -475,7 +476,7 @@ public class JkApiServlet extends HttpServlet {
    * @param target non null
    * @return
    */
-  private static ModStatus updateFields(JkDto sourceDto, Binding target, ModType modType, 
+  private static ModStatus updateFields(BindingModDto sourceDto, Binding target, ModType modType, 
       Environment environment) {
 
     // rebinding comes first
@@ -657,7 +658,7 @@ public class JkApiServlet extends HttpServlet {
       Environment environment) {
     
     try {
-      JkDto bindingDto = mreq.getData();
+      BindingModDto bindingDto = mreq.getData();
 
       
       // validate mandatory fields
@@ -699,7 +700,7 @@ public class JkApiServlet extends HttpServlet {
    * @param dto
    * @return list of field names whose values are empty (but must not be empty), or else empty list
    */
-  private static List<String> validateMandatoryFields(JkDto dto) {
+  private static List<String> validateMandatoryFields(BindingModDto dto) {
     List<String> emptyFields = new ArrayList<>();
 
     if (empty(dto.getApplication())) {
@@ -749,7 +750,7 @@ public class JkApiServlet extends HttpServlet {
    * @param dto
    * @return true if dto has no 'instance' field or the 'instance' field value is not empty and valid 
    */
-  private static boolean validateInstanceFieldValue(JkDto dto) {
+  private static boolean validateInstanceFieldValue(BindingModDto dto) {
     return dto.getInstance() == null || InstanceValueParser.tryParse(dto.getInstance()).success;
   }
   
@@ -757,7 +758,7 @@ public class JkApiServlet extends HttpServlet {
     return string == null || "".equals(string);
   }
   
-  private List<JkDto> listBindings(ApacheConfJk apacheConf, boolean renameLocalhost) {
+  private List<BindingListDto> listBindings(ApacheConfJk apacheConf, boolean renameLocalhost) {
     Map<String, Binding> bindings = apacheConf.getBindings();
 
     // list all bindings
@@ -776,8 +777,8 @@ public class JkApiServlet extends HttpServlet {
     }
   }
   
-  private JkDto bindingToDto(String id, Binding binding, boolean renameLocalhost) {
-    JkDto dto = new JkDto();
+  private BindingListDto bindingToDto(String id, Binding binding, boolean renameLocalhost) {
+    BindingListDto dto = new BindingListDto();
     dto.setActive(binding.isActive());
     dto.setId(id);
     dto.setApplication(binding.getApplication());
@@ -799,10 +800,10 @@ public class JkApiServlet extends HttpServlet {
     return dto;
   }
   
-  private static Comparator<JkDto> bindingSorter() {
-    return new Comparator<JkDto>() {
+  private static Comparator<BindingListDto> bindingSorter() {
+    return new Comparator<BindingListDto>() {
       @Override
-      public int compare(JkDto o1, JkDto o2) {
+      public int compare(BindingListDto o1, BindingListDto o2) {
         int applicationCmp = o1.getApplication().toLowerCase().compareTo(o2.getApplication().toLowerCase());
         if (applicationCmp == 0) {
           // the active is the first

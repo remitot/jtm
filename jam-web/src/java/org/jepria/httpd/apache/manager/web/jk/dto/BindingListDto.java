@@ -1,22 +1,15 @@
 package org.jepria.httpd.apache.manager.web.jk.dto;
 
-public class JkDto {
+public class BindingListDto {
   
   private String id;
   private Boolean active;
   private String application;
   private String host;
   private Integer ajpPort;
-  /**
-   * Field normally passed from server to client only
-   */
   private String getHttpPortLink;
-  /**
-   * Field normally passed from client to server only (host with http port: "tomcat-server:8080")
-   */
-  private String instance;
   
-  public JkDto() {}
+  public BindingListDto() {}
   
   
   public String getId() {
@@ -54,11 +47,5 @@ public class JkDto {
   }
   public void setGetHttpPortLink(String getHttpPortLink) {
     this.getHttpPortLink = getHttpPortLink;
-  }
-  public String getInstance() {
-    return instance;
-  }
-  public void setInstance(String instance) {
-    this.instance = instance;
   }
 }
