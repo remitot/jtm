@@ -4,7 +4,8 @@ The out-of-the-box (non-customized) application uses the default configuration p
 stored in `App/app-conf-default.properties` file (`WEB-INF/app-conf-default.properties` in the war).
 
 Each configuration property may be overridden individually using [Tomcat JNDI entries](https://tomcat.apache.org/tomcat-7.0-doc/config/context.html#Environment_Entries) or using a single custom application configuration file. 
-* To override a property using Tomcat JNDI entries, create a `Context/Environment` entry of a type `String`, with name of the property to override, and the overridden value. Example:
+* To override a property using Tomcat JNDI entries, create a `Context/Environment` entry of a type `String`, with name of the property to override, and the overridden value.
+Example:
 ```
 <Context>
   ...
