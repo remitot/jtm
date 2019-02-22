@@ -1,5 +1,5 @@
-App/build/
-App/lib/*.jar
+build/
+lib/*.jar
 
 # Created by https://www.gitignore.io/api/java,eclipse,java-web
 

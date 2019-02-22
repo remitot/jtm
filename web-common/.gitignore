@@ -1,4 +1,4 @@
-App/lib/web-common.war
+lib/*.war
 
 # Created by https://www.gitignore.io/api/java,eclipse,java-web
 
