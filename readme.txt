@@ -25,6 +25,12 @@ jtm-web--------------------------
 Кнопка "Test Connection" у каждого ряда таблицы
 7. Кнопка рестарт Томкат (не по контекст.хмл, а по-нормальному: по порту SHUTDOWN)
 
+
+jam-core------------------
+
+fix: WorkerFactory.parseWorkerNames: корректно парсить мультилайн-пропертисы
+fix: WorkerFactory.parseWorkerNames: корректно парсить пустой или отсутствующий worker.list
+
 jam-web------------------
 
 1. Сделать api-docs.html по аналогии с jtm-web
