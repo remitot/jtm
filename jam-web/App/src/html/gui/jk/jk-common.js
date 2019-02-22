@@ -166,7 +166,7 @@ function getServerInvalidFieldMessage(fieldName, errorCode, errorMessage) {
       } else if (errorCode.startsWith("UNSUCCESS_STATUS@@")) {
         // UNSUCCESS_STATUS@@status_int@@url_string 
         var split = errorCode.split("@@");
-        return "Не удалось проверить http порт: запрос на [" + split[2] + "] вернул статус " + split[1];// NON-NLS
+        return "Не удалось проверить http порт: запрос на " + split[2] + " вернул статус " + split[1];// NON-NLS
       }
     }
   } 

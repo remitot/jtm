@@ -156,19 +156,17 @@ function getHttpPortButtonClick(button, host, getHttpPortLink) {
           if (errorCode) {
             if (errorCode.startsWith("UNKNOWN_HOST@@")) {
               var split = errorCode.split("@@");
-              errorMessage = "При запросе http порта возникла ошибка: неизвестный хост " + split[1];// NON-NLS
+              errorMessage = "При запросе http порта по ссылке " + split[1] + " возникла ошибка: неизвестный хост";// NON-NLS
             } else if (errorCode.startsWith("CONNECT_EXCEPTION@@")) {
               var split = errorCode.split("@@");
-              errorMessage = "При запросе http порта возникла ошибка: похоже, на хосте "
-                  + split[1] + " не работает порт " + split[2];// NON-NLS
+              errorMessage = "При запросе http порта по ссылке " + split[1] + " возникла ошибка: похоже, на хосте не работает порт";// NON-NLS
             } else if (errorCode.startsWith("SOCKET_EXCEPTION@@") || errorCode.startsWith("CONNECT_TIMEOUT@@")) {
               var split = errorCode.split("@@");
-              errorMessage = "При запросе http порта возникла ошибка: похоже, на хосте "
-                  + split[1] + " порт " + split[2] + " не http";// NON-NLS
+              errorMessage = "При запросе http порта по ссылке " + split[1] + " возникла ошибка: похоже, указанный порт не http";// NON-NLS
             } else if (errorCode.startsWith("UNSUCCESS_STATUS@@")) {
               // UNSUCCESS_STATUS@@status_int@@url_string 
               var split = errorCode.split("@@");
-              errorMessage = "При запросе http порта возникла ошибка: запрос на [" + split[2] + "] вернул статус " + split[1];// NON-NLS
+              errorMessage = "При запросе http порта возникла ошибка: запрос на " + split[2] + " вернул статус " + split[1];// NON-NLS
             }
           }
           setGetHttpPortButtonState(button, 2, errorMessage);

@@ -35,7 +35,6 @@ import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.ajp.SimpleAjpConnection;
-import org.jepria.httpd.apache.manager.web.jk.dto.AjpRequestDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.AjpResponseDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
@@ -145,15 +144,6 @@ public class JkApiServlet extends HttpServlet {
     
     final String uri = tomcatManagerPath + MANAGER_EXT_HTTP_PORT_URI;
     
-    
-    
-    final AjpRequestDto ajpRequest = new AjpRequestDto();
-    ajpRequest.setHost(host);
-    ajpRequest.setPort(ajpPortNumber);
-    ajpRequest.setUri(uri);
-    
-    
-    
     final Subresponse subresponse = wrapSubrequest(new Subrequest() {
       @Override
       public Subresponse execute() throws IOException {
@@ -166,22 +156,16 @@ public class JkApiServlet extends HttpServlet {
       }
     });
     
+
+    // for client logging/messaging
+    final String ajpRequestUrl = "ajp://" + host + ":" + ajpPortNumber + uri;//TODO fake "ajp://" scheme!
+    
     
     final String statusMessage;
-    if (subresponse.status == Subresponse.SC_SUCCESS) {
+    if (subresponse.status == HttpServletResponse.SC_OK) {
       statusMessage = "SUCCESS";
-    } else if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
-      statusMessage = "UNKNOWN_HOST@@" + host;
-    } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
-      statusMessage = "CONNECT_EXCEPTION@@" + host + "@@" + ajpPortNumber;
-    } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
-      statusMessage = "SOCKET_EXCEPTION@@" + host + "@@" + ajpPortNumber;
-    } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
-      statusMessage = "CONNECT_TIMEOUT@@" + host + "@@" + ajpPortNumber;
     } else {
-      // for client logging/messaging
-      final String urlString = "ajp://" + host + ":" + ajpPortNumber + uri;//TODO fake "ajp://" scheme!
-      statusMessage = "UNSUCCESS_STATUS@@" + subresponse.status + "@@" + urlString;
+      statusMessage = subresponseToErrorCode(subresponse, ajpRequestUrl);
     }
     
     
@@ -192,7 +176,7 @@ public class JkApiServlet extends HttpServlet {
       
       
     Map<String, Object> responseJsonMap = new HashMap<>();
-    responseJsonMap.put("ajpRequestUrl", ajpRequest);
+    responseJsonMap.put("ajpRequest", ajpRequestUrl);
     responseJsonMap.put("ajpResponse", ajpResponse);
     
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -217,7 +201,6 @@ public class JkApiServlet extends HttpServlet {
   }
   
   private static class Subresponse {
-    public static final int SC_SUCCESS = 200;
     public static final int SC_UNKNOWN_HOST = 461;
     public static final int SC_CONNECT_EXCEPTION = 462;
     public static final int SC_SOCKET_EXCEPTION = 463;
@@ -554,25 +537,13 @@ public class JkApiServlet extends HttpServlet {
         
         
         
-        if (subresponse.status == Subresponse.SC_SUCCESS) {
+        if (subresponse.status == HttpServletResponse.SC_OK) {
           ajpPortNumber = Integer.parseInt(subresponse.responseBody);
           
         } else {
-          final String errorCode;
-          if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
-            errorCode = "UNKNOWN_HOST@@" + host;
-          } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
-            errorCode = "CONNECT_EXCEPTION@@" + host + "@@" + httpPortNumber;
-          } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
-            errorCode = "SOCKET_EXCEPTION@@" + host + "@@" + httpPortNumber;
-          } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
-            errorCode = "CONNECT_TIMEOUT@@" + host + "@@" + httpPortNumber;
-          } else {
-            // @@ is a safe delimiter
-            errorCode = "UNSUCCESS_STATUS@@" + subresponse.status + "@@" + url.toString();
-          }
+          final String errorCode = subresponseToErrorCode(subresponse, url.toString());
           
-          return ModStatus.errInvalidFieldData("instance", errorCode, "Failed to make request to " + url.toString());
+          return ModStatus.errInvalidFieldData("instance", errorCode, null);
         }
         break;
       }
@@ -596,6 +567,29 @@ public class JkApiServlet extends HttpServlet {
     }
     
     return ModStatus.success();
+  }
+  
+  /**
+   * Convert {@link Subresponse} to an errorCode String to pass to the client
+   * @param subresponse
+   * @param url url of the subrequest, for client logging/messaging
+   * @return
+   */
+  private static String subresponseToErrorCode(Subresponse subresponse, String url) {
+    if (subresponse.status == HttpServletResponse.SC_OK) {
+      return null;
+    } else if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
+      return "UNKNOWN_HOST@@" + url;
+    } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
+      return "CONNECT_EXCEPTION@@" + url;
+    } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
+      return "SOCKET_EXCEPTION@@" + url;
+    } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
+      return "CONNECT_TIMEOUT@@" + url;
+    } else {
+      // @@ is a safe delimiter
+      return "UNSUCCESS_STATUS@@" + subresponse.status + "@@" + url;
+    }
   }
   
   private static final int CONNECT_TIMEOUT_MS = 2000; // TODO parametrize?
