@@ -1,5 +1,5 @@
 App/build/
-App/lib/jtm-core.jar
+App/lib/*.jar
 
 # Created by https://www.gitignore.io/api/java,eclipse,java-web
 
