@@ -66,17 +66,6 @@
   
   
   <servlet>
-    <servlet-name>FilesApiServlet</servlet-name>
-    <servlet-class>org.jepria.httpd.apache.manager.web.files.FilesApiServlet
-    </servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>FilesApiServlet</servlet-name>
-    <url-pattern>/api/files/*</url-pattern>
-  </servlet-mapping>
-  
-  
-  <servlet>
     <servlet-name>ApiDocs</servlet-name>
     <jsp-file>/api-docs.html</jsp-file>
   </servlet>
