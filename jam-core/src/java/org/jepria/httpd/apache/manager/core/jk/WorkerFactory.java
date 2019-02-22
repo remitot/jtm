@@ -80,27 +80,30 @@ public class WorkerFactory {
   
   public static final Pattern PROPERTY_PATTERN = Pattern.compile("\\s*worker\\.([^\\.]+)\\.([^=\\s]+)\\s*\\=\\s*([^\\s]+)\\s*");
   
-  public static final Pattern WORKER_LIST_PATTERN = Pattern.compile("\\s*worker.list\\s*=(.+)");
+  public static final Pattern WORKER_LIST_PATTERN = Pattern.compile("\\s*worker\\.list\\s*((\\=|:)(.+))?");
   
   /**
    * Finds {@code worker.list} property line and parses its value
    * @param lines lines of the {@code workers.properties} file
    * @return or else empty list
    */
+  // TODO the parsing will fail if worker.list is a multiline property, with \-escaped newlines
   public static List<String> parseWorkerNames(Iterable<TextLineReference> lines) {
     if (lines != null) {
       for (TextLineReference line: lines) {
         
         Matcher m = WORKER_LIST_PATTERN.matcher(line);
         if (m.matches()) {
-          List<String> list = new ArrayList<>();
+          final List<String> list = new ArrayList<>();
           
-          String workerList = m.group(1);
-          String[] split = workerList.split("\\s*,\\s*");
-          if (split != null) {
-            for (String worker: split) {
-              if (worker != null && !"".equals(worker)) {
-                list.add(worker);
+          String workerList = m.group(3);// this group may be null
+          if (workerList != null) {
+            String[] split = workerList.split("\\s*,\\s*");
+            if (split != null) {
+              for (String worker: split) {
+                if (worker != null && !"".equals(worker)) {
+                  list.add(worker);
+                }
               }
             }
           }
