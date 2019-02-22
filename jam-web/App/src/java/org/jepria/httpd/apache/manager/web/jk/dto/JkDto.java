@@ -6,16 +6,13 @@ public class JkDto {
   private Boolean active;
   private String application;
   private String host;
-  /**
-   * Field normally passed from server to client only
-   */
-  private String ajpPort;
+  private Integer ajpPort;
   /**
    * Field normally passed from server to client only
    */
   private String getHttpPortLink;
   /**
-   * Field normally passed from client to server only (host with HTTP port: "tomcat-server:8080")
+   * Field normally passed from client to server only (host with http port: "tomcat-server:8080")
    */
   private String instance;
   
@@ -46,10 +43,10 @@ public class JkDto {
   public void setHost(String host) {
     this.host = host;
   }
-  public String getAjpPort() {
+  public Integer getAjpPort() {
     return ajpPort;
   }
-  public void setAjpPort(String ajpPort) {
+  public void setAjpPort(Integer ajpPort) {
     this.ajpPort = ajpPort;
   }
   public String getGetHttpPortLink() {

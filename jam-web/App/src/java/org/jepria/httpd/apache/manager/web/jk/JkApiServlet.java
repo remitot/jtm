@@ -791,8 +791,7 @@ public class JkApiServlet extends HttpServlet {
     
     Integer ajpPort = binding.getWorkerAjpPort();
     if (ajpPort != null) {
-      final String ajpPortStr = Integer.toString(binding.getWorkerAjpPort());
-      dto.setAjpPort(ajpPortStr);
+      dto.setAjpPort(binding.getWorkerAjpPort());
     }
     if (host != null && ajpPort != null) {
       dto.setGetHttpPortLink("api/jk/get-http-port?host=" + host + "&ajp-port=" + ajpPort);
