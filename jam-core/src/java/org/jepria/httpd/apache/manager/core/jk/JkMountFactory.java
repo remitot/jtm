@@ -3,7 +3,6 @@ package org.jepria.httpd.apache.manager.core.jk;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,7 +86,7 @@ public class JkMountFactory {
    * @param lines of the {@code mod_jk.conf} file
    * @return or else empty list
    */
-  public static List<JkMount> parse(Iterator<TextLineReference> lines) {
+  public static List<JkMount> parse(Iterable<TextLineReference> lines) {
     List<JkMount> ret = new ArrayList<>();
     
     if (lines != null) {
@@ -95,10 +94,8 @@ public class JkMountFactory {
       Map<String, JkMountDirective> rootMounts = new HashMap<>();
       // collect asterisk mounts ('/Application/*'), with application names as keys 
       Map<String, JkMountDirective> asterMounts = new HashMap<>();
-      
-      while (lines.hasNext()) {
-        final TextLineReference line = lines.next();
-        
+
+      for (TextLineReference line: lines) {
         tryParseJkMountDirective(line, 
             m -> rootMounts.putIfAbsent(m.getApplication(), m),
             m -> asterMounts.putIfAbsent(m.getApplication(), m));

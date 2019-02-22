@@ -84,13 +84,12 @@ public class WorkerFactory {
   
   /**
    * Finds {@code worker.list} property line and parses its value
-   * @param lines of the {@code workers.properties} file
+   * @param lines lines of the {@code workers.properties} file
    * @return or else empty list
    */
-  public static List<String> parseWorkerNames(Iterator<TextLineReference> lines) {
+  public static List<String> parseWorkerNames(Iterable<TextLineReference> lines) {
     if (lines != null) {
-      while (lines.hasNext()) {
-        final TextLineReference line = lines.next();
+      for (TextLineReference line: lines) {
         
         Matcher m = WORKER_LIST_PATTERN.matcher(line);
         if (m.matches()) {

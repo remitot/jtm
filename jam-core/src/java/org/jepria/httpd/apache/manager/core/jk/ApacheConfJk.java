@@ -67,7 +67,7 @@ public class ApacheConfJk extends ApacheConfBase {
    */
   private void initBaseBindings() {
     
-    List<JkMount> jkMounts = JkMountFactory.parse(getMod_jk_confLines().iterator());
+    List<JkMount> jkMounts = JkMountFactory.parse(getMod_jk_confLines());
 
     Map<String, BaseBinding> bindings = new HashMap<>();
     for (JkMount jkMount: jkMounts) {
@@ -141,7 +141,7 @@ public class ApacheConfJk extends ApacheConfBase {
     TextLineReference portWorkerPropertyLine = TextLineReference.addNewLine(getWorkers_propertiesLines());
     
     // add the new worker name into the worker.list
-    List<String> workerNames = WorkerFactory.parseWorkerNames(getWorkers_propertiesLines().iterator());
+    List<String> workerNames = WorkerFactory.parseWorkerNames(getWorkers_propertiesLines());
     if (!workerNames.contains(name)) {
       workerNames.add(name);
     }
