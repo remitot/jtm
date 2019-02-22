@@ -501,7 +501,7 @@ public class JkApiServlet extends HttpServlet {
         
         final URL url;
         try {
-          url = new URL("http://", host, httpPortNumber, tomcatManagerPath + MANAGER_EXT_AJP_PORT_URI);
+          url = new URL("http", host, httpPortNumber, tomcatManagerPath + MANAGER_EXT_AJP_PORT_URI);
         } catch (MalformedURLException e) {
           // impossible: trusted url
           throw new RuntimeException(e);
