@@ -1,6 +1,6 @@
 package org.jepria.tomcat.suspender;
 
-public interface Webapps {
+public interface AppMapper {
   /**
    * Try to map the uri to an unsuspended (alive, deployed) application 
    * @param uri

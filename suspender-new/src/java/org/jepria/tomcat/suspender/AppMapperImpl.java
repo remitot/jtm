@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/*package*/class WebappsImpl implements Webapps {
+/*package*/class AppMapperImpl implements AppMapper {
 
   
   /**
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
    */
   private final Path webapps;
   
-  public WebappsImpl(Path webapps) {
+  public AppMapperImpl(Path webapps) {
     this.webapps = webapps;
   }
   
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return getMatchingAppContext(uri, appsUnsus);
+    return getMatchingApp(uri, appsUnsus);
   }
 
   @Override
@@ -43,10 +43,10 @@ import java.util.stream.Collectors;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return getMatchingAppContext(uri, appsSus);
+    return getMatchingApp(uri, appsSus);
   }
   
-  protected String getMatchingAppContext(String requestUri, Set<String> apps) {
+  protected String getMatchingApp(String requestUri, Set<String> apps) {
     if (requestUri == null || apps == null || apps.size() == 0) {
       return null;
     }
