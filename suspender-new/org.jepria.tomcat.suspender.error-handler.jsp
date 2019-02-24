@@ -1,4 +1,4 @@
 <%@ page import="org.jepria.tomcat.suspender.ErrorHandler" %>
 <%
-	ErrorHandler.handle(request, response);
+	new ErrorHandler().handle(request, response);
 %>
