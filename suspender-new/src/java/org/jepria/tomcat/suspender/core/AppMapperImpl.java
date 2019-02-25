@@ -46,21 +46,25 @@ import java.util.stream.Collectors;
     return getMatchingApp(uri, apps);
   }
   
-  protected String getMatchingApp(String requestUri, Set<String> apps) {
-    if (requestUri == null || apps == null || apps.size() == 0) {
+  protected String getMatchingApp(String uri, Set<String> apps) {
+    if (uri == null) {
       return null;
     }
     
-    String requestContext = requestUri.replaceAll("/", "#"); 
+    if (uri.startsWith("/")) {
+      uri = uri.substring(1);
+    }
+    
+    String uri1 = uri.replaceAll("/", "#"); 
     
     while (true) {
-      if (apps.contains(requestContext)) {
-        return requestContext;
+      if (apps.contains(uri1)) {
+        return uri1;
       }
       
-      int lastHash = requestContext.lastIndexOf('#');
+      int lastHash = uri1.lastIndexOf('#');
       if (lastHash != -1) {
-        requestContext = requestContext.substring(0, lastHash);
+        uri1 = uri1.substring(0, lastHash);
       } else {
         break;
       }

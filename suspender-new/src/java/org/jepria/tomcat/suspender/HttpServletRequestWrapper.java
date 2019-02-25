@@ -23,6 +23,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+/**
+ * A void (delegating) wrapper
+ */
 @SuppressWarnings("deprecation")
 public class HttpServletRequestWrapper implements HttpServletRequest {
   

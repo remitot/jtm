@@ -20,6 +20,9 @@ import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
 
+/**
+ * A void (delegating) wrapper
+ */
 @SuppressWarnings("deprecation")
 public class ServletContextWrapper implements ServletContext {
   

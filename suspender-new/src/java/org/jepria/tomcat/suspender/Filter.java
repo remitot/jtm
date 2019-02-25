@@ -61,7 +61,7 @@ public class Filter implements javax.servlet.Filter {
   protected void process(String uri) {
     SuspendProcessor sp = new SuspendProcessor(uri);
     
-    if (sp.getResult() == Result.FOUND_SUSPENDED) {
+    if (sp.getResult() == Result.FOUND_SUSPENDED || sp.getResult() == Result.FOUND_BOTH_PRIOR_SUSPENDED) {
       unsuspend(sp.getApp());
     }
   }
