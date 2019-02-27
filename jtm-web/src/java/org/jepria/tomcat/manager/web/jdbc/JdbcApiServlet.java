@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,6 +30,7 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
+import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcRenderer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -51,9 +51,6 @@ public class JdbcApiServlet extends HttpServlet {
     
     if ("/list".equals(path)) {
       
-      // the content type is defined for the entire method
-      resp.setContentType("application/json; charset=UTF-8");
-      
       try {
         
         final Environment environment = EnvironmentFactory.get(req);
@@ -63,14 +60,31 @@ public class JdbcApiServlet extends HttpServlet {
             () -> environment.getServerXmlInputStream(),
             isCreateContextResources(environment));
         
-        List<ConnectionDto> connections = getConnections(tomcatConf);
+        final List<ConnectionDto> connections = getConnections(tomcatConf);
 
-        Map<String, Object> responseJsonMap = new HashMap<>();
-        responseJsonMap.put("_list", connections);
+        final String responseBody;
         
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        gson.toJson(responseJsonMap, new PrintStream(resp.getOutputStream()));
         
+        if (req.getParameter("ssr") == null) {
+          // JSON API
+          resp.setContentType("application/json; charset=UTF-8");
+          
+          Map<String, Object> responseJsonMap = new HashMap<>();
+          responseJsonMap.put("_list", connections);
+          
+          Gson gson = new GsonBuilder().setPrettyPrinting().create();
+          responseBody = gson.toJson(responseJsonMap);
+          
+        } else {
+          // SSR API
+          responseBody = new JdbcRenderer().renderTable(connections);
+        }
+        
+        
+        // write response body
+        if (responseBody != null) {
+          resp.getOutputStream().print(responseBody);
+        }
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
         return;
