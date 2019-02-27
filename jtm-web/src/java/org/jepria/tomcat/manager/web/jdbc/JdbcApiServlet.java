@@ -77,6 +77,8 @@ public class JdbcApiServlet extends HttpServlet {
           
         } else {
           // SSR API
+          resp.setContentType("text/html; charset=UTF-8");
+          
           responseBody = new JdbcRenderer().renderTable(connections);
         }
         
