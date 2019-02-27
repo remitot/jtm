@@ -408,6 +408,8 @@ function addFieldDelete(cell) {
   
   wrapper = wrapCellPad(button);  
   cell.appendChild(wrapper);
+  
+  return button;
 }
 
 function createCell(row, columnClass) {

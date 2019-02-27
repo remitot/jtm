@@ -54,7 +54,6 @@ function createRow(listItem) {
   
   
   var cellDelete = createCell(row, "column-delete");
-  addFieldDelete(cellDelete);
   
   
   var div = document.createElement("div");
@@ -75,7 +74,8 @@ function createRow(listItem) {
   field.setAttribute("value-original", "");
   field.tabIndex = tabindex0++;
   
-  cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  var deleteButton = addFieldDelete(cellDelete);
+  deleteButton.tabIndex = tabindex0++;
   
   row.appendChild(div);
   

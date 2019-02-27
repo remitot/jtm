@@ -47,8 +47,7 @@ function createRow(listItem) {
   row = document.createElement("div");
   row.classList.add("row");
   
-  cellDelete = createCell(row, "column-delete");
-  addFieldDelete(cellDelete);
+  var cellDelete = createCell(row, "column-delete");
   
   div = document.createElement("div");
   div.classList.add("flexColumns");
@@ -81,7 +80,8 @@ function createRow(listItem) {
       + " target=\"_blank\" title=\"Открыть в читалке\">Отслеживать</a>"; // NON-NLS // NON-NLS
   field = addField(cell, "monitor", cellValue, null);
   
-  cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  var deleteButton = addFieldDelete(cellDelete);
+  deleteButton.tabIndex = tabindex0++;
   
   row.appendChild(div);
   

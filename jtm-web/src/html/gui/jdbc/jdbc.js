@@ -145,10 +145,7 @@ function createRow(listItem) {
   }
   
   
-  cellDelete = createCell(row, "column-delete");
-  if (dataModifiable) {
-    addFieldDelete(cellDelete);
-  }
+  var cellDelete = createCell(row, "column-delete");
   
   
   div = document.createElement("div");
@@ -201,7 +198,8 @@ function createRow(listItem) {
   }
   
   if (dataModifiable) {
-    cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+    var deleteButton = addFieldDelete(cellDelete);
+    deleteButton.tabIndex = tabindex0++;
   }
   
   row.appendChild(div);
@@ -233,8 +231,7 @@ function createRowCreate() {
   field.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   
-  cellDelete = createCell(row, "column-delete");
-  addFieldDelete(cellDelete);
+  var cellDelete = createCell(row, "column-delete");
   
   
   flexColumns = document.createElement("div");
@@ -270,7 +267,8 @@ function createRowCreate() {
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
   
-  cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
+  var deleteButton = addFieldDelete(cellDelete);
+  deleteButton.tabIndex = tabindex0++;
   
   row.appendChild(flexColumns);
   
