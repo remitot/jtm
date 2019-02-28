@@ -163,7 +163,7 @@ function table_reload() {
 }
 
 function recreateTable(jsonItemList, editable) {
-  table = document.getElementById("table");
+  var table = document.getElementById("table");
   table.innerHTML = "";
   
   if (jsonItemList.length > 0) {
@@ -210,9 +210,9 @@ function addTableScript(table) {
   
   addFieldsDeleteScript(table);
   
-  var fieldsCheckbox = table.querySelectorAll(".checkbox");
-  for (var i = 0; i < fieldsCheckbox.length; i++) {
-    var checkbox = fieldsCheckbox[i];
+  var checkboxes = table.querySelectorAll(".checkbox");
+  for (var i = 0; i < checkboxes.length; i++) {
+    var checkbox = checkboxes[i];
     
     // TODO bad direct access
     var input = checkbox.getElementsByTagName("input")[0];
@@ -290,9 +290,7 @@ function addCheckbox(cell, active, enabled) {
   
   cell.appendChild(wrapper);
   
-  strike = document.createElement("div");
-  strike.classList.add("strike");
-  cell.appendChild(strike);
+  addStrike(cell);
   
   return checkbox;
 }
