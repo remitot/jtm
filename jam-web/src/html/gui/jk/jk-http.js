@@ -42,11 +42,14 @@ function createRow(listItem) {
   row.classList.add("row");
   row.setAttribute("item-id", listItem.id);
   
+  var field;
+  
   // active
   var cell = createCell(row, "column-active");
   cell.classList.add("column-left");
   cell.classList.add("cell-field");
-  addCheckbox(cell, listItem.active, true);
+  field = addCheckbox(cell, listItem.active, true);
+  field.setAttribute("value-original", listItem.active);
   cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   if (!listItem.active) {
     row.classList.add("inactive");
@@ -211,11 +214,14 @@ function createRowCreate() {
   row.classList.add("row");
   row.classList.add("created");
   
+  var field;
+  
   // active
   var cell = createCell(row, "column-active");
   cell.classList.add("column-left");
   cell.classList.add("cell-field");
-  addCheckbox(cell, true, false);
+  field = addCheckbox(cell, true, false);
+  onCheckboxInput(field);// trigger initial event
   cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
   
@@ -230,7 +236,7 @@ function createRowCreate() {
   
   cell = createCell(flexColumns, "column-application");
   cell.classList.add("cell-field");
-  field = addField(cell, "application", "", "Application");
+  field = addField(cell, "application", null, "Application");
   field.tabIndex = tabindex0++;
   onFieldInput(field);// trigger initial event
  

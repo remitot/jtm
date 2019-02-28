@@ -58,8 +58,8 @@ public class JdbcApiServlet extends HttpServlet {
         
         
         // write response
-        resp.setContentType("application/json; charset=UTF-8");
         if (responseBody != null) {
+          resp.setContentType("application/json; charset=UTF-8");
           resp.getOutputStream().print(responseBody);
         }
         resp.setStatus(HttpServletResponse.SC_OK);

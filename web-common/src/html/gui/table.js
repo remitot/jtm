@@ -185,6 +185,9 @@ function recreateTable(jsonItemList, editable) {
   table.appendChild(rowButtonCreate);
   
   
+  addTableScript(table);
+  
+  
   setTableDisabled(!editable);
 
   
@@ -196,6 +199,45 @@ function recreateTable(jsonItemList, editable) {
     } else {
       controlButtons.classList.remove("hidden");
     }
+  }
+}
+
+function addTableScript(table) {
+  var fieldsText = table.querySelectorAll("input.field-text");
+  for (var i = 0; i < fieldsText.length; i++) {
+    fieldsText[i].oninput = function(event){onFieldInput(event.target)};
+  }
+  
+  addFieldsDeleteScript(table);
+  
+  var fieldsCheckbox = table.querySelectorAll(".checkbox");
+  for (var i = 0; i < fieldsCheckbox.length; i++) {
+    var checkbox = fieldsCheckbox[i];
+    
+    // TODO bad direct access
+    var input = checkbox.getElementsByTagName("input")[0];
+    // TODO bad direct access
+    var span = checkbox.getElementsByTagName("span")[0];
+    
+    // add 'hovered' class for checkbox's onfocus and onmouseover  
+    input.onfocus = function(event){
+      var input = event.target;
+      // TODO bad relative path
+      input.parentElement.getElementsByClassName("checkmark")[0].classList.add("hovered");
+    }
+    input.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
+      var input = event.target;
+      // TODO bad relative path
+      input.parentElement.getElementsByClassName("checkmark")[0].classList.remove("hovered");
+    });
+    span.onmouseover = function(event) {
+      var checkmark = event.target;
+      checkmark.classList.add("hovered");
+    }
+    span.addEventListener("mouseout", function(event) { // .onmouseout not working in some browsers
+      var checkmark = event.target;
+      checkmark.classList.remove("hovered");
+    });
   }
 }
 
@@ -234,12 +276,12 @@ function setCheckboxEnabled(checkbox, enabled) {
 }
 
 function addCheckbox(cell, active, enabled) {
-  checkbox = createCheckbox(active);
+  var checkbox = createCheckbox(active);
   
   setCheckboxEnabled(checkbox, enabled);
   
-  checkbox.onclick = function(event){
-    onCheckboxInput(event.target);
+  checkbox.onclick = function(event) {
+    onCheckboxInput(checkbox);
     checkModifications();
   };
   checkbox.classList.add("deletable");
@@ -247,8 +289,6 @@ function addCheckbox(cell, active, enabled) {
   wrapper = wrapCellPad(checkbox);  
   
   cell.appendChild(wrapper);
-  
-  onCheckboxInput(checkbox.getElementsByTagName("input")[0]);// trigger initial event
   
   strike = document.createElement("div");
   strike.classList.add("strike");
@@ -265,41 +305,23 @@ function createCheckbox(active) {
   input.type = "checkbox";
   input.name = "active";
   input.checked = active;
-  input.setAttribute("value-original", active);
   field.appendChild(input);
   
   var span = document.createElement("span");
   span.classList.add("checkmark");
   field.appendChild(span);
 
-
-  // add 'hovered' class for checkbox's onfocus and onmouseover  
-  input.onfocus = function(event){
-    var input = event.target;
-    input.parentElement.getElementsByClassName("checkmark")[0].classList.add("hovered");
-  }
-  input.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
-    var input = event.target;
-    input.parentElement.getElementsByClassName("checkmark")[0].classList.remove("hovered");
-  });
-  span.onmouseover = function(event) {
-    var checkmark = event.target;
-    checkmark.classList.add("hovered");
-  }
-  span.addEventListener("mouseout", function(event) { // .onmouseout not working in some browsers
-    var checkmark = event.target;
-    checkmark.classList.remove("hovered");
-  });
-
-  
   return field;
 }
 
-function onCheckboxInput(input) {
+function onCheckboxInput(checkbox) {
+  // TODO bad direct access
+  var input = checkbox.getElementsByTagName("input")[0];
+  
   // this will be SPAN, then INPUT on a single click
   if (input.tagName.toLowerCase() == "input") {
-    if (input.checked && input.getAttribute("value-original") == "true" 
-        || !input.checked && input.getAttribute("value-original") == "false") {
+    if (input.checked && checkbox.getAttribute("value-original") == "true" 
+        || !input.checked && checkbox.getAttribute("value-original") == "false") {
       // affect both input (to get the modified fields selected by input.modified) 
       // and label (to graphically display the field modification state)
       input.parentElement.classList.remove("modified");
@@ -353,7 +375,6 @@ function createFieldInput(name, value, placeholder) {
     field.placeholder = placeholder;
   }
   
-  field.oninput = function(event){onFieldInput(event.target)};
   field.classList.add("field-text");
   field.classList.add("inactivatible");
   field.classList.add("deletable");
@@ -401,10 +422,11 @@ function wrapCellPad(element) {
 function addFieldDelete(cell) {
 
   button = document.createElement("input");
+  button.classList.add("field-delete");
+  
   button.type = "image";
   button.src = "gui/img/delete.png";
   button.title = "Удалить"; // NON-NLS
-  button.onclick = function(event){onDeleteButtonClick(event.target);};
   
   wrapper = wrapCellPad(button);  
   cell.appendChild(wrapper);
@@ -576,11 +598,22 @@ function onButtonCreateClick() {
   
   table.insertBefore(rowCreate, table.lastChild);
   
-  rowCreate.querySelectorAll(".cell input[type='text']")[0].focus(); // focus on the first text input field
+  addRowCreateScript(rowCreate);
   
   checkModifications();
 }
 
+function addRowCreateScript(rowCreate) {
+	addFieldsDeleteScript(rowCreate);
+	rowCreate.querySelectorAll(".cell input[type='text']")[0].focus(); // focus on the first text input field
+}
+
+function addFieldsDeleteScript(composite) {
+	var fieldsDelete = composite.querySelectorAll("input.field-delete");
+  for (var i = 0; i < fieldsDelete.length; i++) {
+    fieldsDelete[i].onclick = function(event){onDeleteButtonClick(event.target)};
+  }
+}
 /**
  * 
  * @param jsonItemList new list of items to fill the table with
