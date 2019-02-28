@@ -605,7 +605,20 @@ function onButtonCreateClick() {
 
 function addRowCreateScript(rowCreate) {
 	addFieldsDeleteScript(rowCreate);
-	rowCreate.querySelectorAll(".cell input[type='text']")[0].focus(); // focus on the first text input field
+	
+	// trigger initial events
+	var fields = rowCreate.querySelectorAll("input.field-text");
+	for (var i = 0; i < fields.length; i++) {
+	  onFieldInput(fields[i]);
+	}
+	
+	var checkboxes = rowCreate.querySelectorAll(".checkbox");
+  for (var i = 0; i < checkboxes.length; i++) {
+    onCheckboxInput(checkboxes[i]);
+  }
+	
+	// focus on the first text input field
+	rowCreate.querySelectorAll(".cell input[type='text']")[0].focus();
 }
 
 function addFieldsDeleteScript(composite) {

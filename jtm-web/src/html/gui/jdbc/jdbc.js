@@ -145,9 +145,7 @@ function createRow(listItem) {
     row.classList.add("inactive");
   }
   
-  
   var cellDelete = createCell(row, "column-delete");
-  
   
   div = document.createElement("div");
   div.classList.add("flexColumns");
@@ -227,14 +225,10 @@ function createRowCreate() {
   cell.classList.add("column-left");
   cell.classList.add("cell-field");
   field = addCheckbox(cell, true, false);
-  onCheckboxInput(field);// trigger initial event
   field.classList.add("readonly");
   setCheckboxEnabled(field, false);
-  field.getElementsByTagName("input")[0].tabIndex = tabindex0++;
-  
   
   var cellDelete = createCell(row, "column-delete");
-  
   
   flexColumns = document.createElement("div");
   flexColumns.classList.add("flexColumns");
@@ -243,31 +237,26 @@ function createRowCreate() {
   cell.classList.add("cell-field");
   field = addField(cell, "name", null, "jdbc/MyDataSource");
   field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
  
   cell = createCell(flexColumns, "column-server");
   cell.classList.add("cell-field");
   field = addField(cell, "server", null, "db-server:1521");
   field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-db");
   cell.classList.add("cell-field");
   field = addField(cell, "db", null, "MYDATABASE");
   field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-user");
   cell.classList.add("cell-field");
   field = addField(cell, "user", null, "me");
   field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
   
   cell = createCell(flexColumns, "column-password");
   cell.classList.add("cell-field");
   field = addField(cell, "password", null, "mysecret");
   field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
   
   var deleteButton = addFieldDelete(cellDelete);
   deleteButton.tabIndex = tabindex0++;

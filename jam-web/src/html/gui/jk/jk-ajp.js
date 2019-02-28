@@ -55,9 +55,7 @@ function createRow(listItem) {
     row.classList.add("inactive");
   }
   
-  
   var cellDelete = createCell(row, "column-delete");
-  
   
   var div = document.createElement("div");
   div.classList.add("flexColumns");
@@ -106,13 +104,9 @@ function createRowCreate() {
   cell.classList.add("column-left");
   cell.classList.add("cell-field");
   field = addCheckbox(cell, true, false);
-  onCheckboxInput(field);// trigger initial event
-  cell.getElementsByTagName("input")[0].tabIndex = tabindex0++;
-  
   
   var cellDelete = createCell(row, "column-delete");
   addFieldDelete(cellDelete);
-  
   
   var flexColumns = document.createElement("div");
   flexColumns.classList.add("flexColumns");
@@ -123,13 +117,11 @@ function createRowCreate() {
   cell.classList.add("cell-field");
   field = addField(cell, "application", null, "Application");
   field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
  
   cell = createCell(flexColumns, "column-instance");
   cell.classList.add("cell-field");
   field = addField(cell, "instance", null, "tomcat-server:8009");
   field.tabIndex = tabindex0++;
-  onFieldInput(field);// trigger initial event
   
   cellDelete.getElementsByTagName("input")[0].tabIndex = tabindex0++;
   
