@@ -9,7 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
-import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcRenderer;
+import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
+import org.jepria.web.ssr.table.Table;
 
 public class JdbcSsrServlet extends HttpServlet {
 
@@ -25,13 +26,13 @@ public class JdbcSsrServlet extends HttpServlet {
       try {
         final List<ConnectionDto> connections = new JdbcApi().list(req);
         
-        final String responseBody = new JdbcRenderer().tableHtml(connections);
+        final Table<ConnectionDto> table = new JdbcTable();
+        table.load(connections);
+        
         
         // write response
-        if (responseBody != null) {
-          resp.setContentType("text/html; charset=UTF-8");
-          resp.getWriter().print(responseBody);
-        }
+        resp.setContentType("text/html; charset=UTF-8");
+        table.print(resp.getWriter());
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
         return;
@@ -43,28 +44,6 @@ public class JdbcSsrServlet extends HttpServlet {
         resp.flushBuffer();
         return;
       }
-
-    } else if ("/table/js".equals(path)) {
-        
-        try {
-          final String responseBody = new JdbcRenderer().tableJs();
-          
-          // write response
-          if (responseBody != null) {
-            resp.setContentType("application/javascript; charset=UTF-8");
-            resp.getWriter().print(responseBody);
-          }
-          resp.setStatus(HttpServletResponse.SC_OK);
-          resp.flushBuffer();
-          return;
-          
-        } catch (Throwable e) {
-          e.printStackTrace();
-
-          resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-          resp.flushBuffer();
-          return;
-        }
 
     } else {
       

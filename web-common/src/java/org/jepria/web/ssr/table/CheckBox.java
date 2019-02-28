@@ -1,10 +1,11 @@
-package org.jepria.tomcat.manager.web.jdbc.ssr;
+package org.jepria.web.ssr.table;
+
 
 public class CheckBox extends El {
   
-  protected final El input;
+  public final El input;
   
-  protected final El checkmark;
+  public final El checkmark;
   
   public CheckBox(boolean active) {
     super("label");
@@ -14,7 +15,6 @@ public class CheckBox extends El {
     input.setAttribute("type", "checkbox");
     input.setAttribute("name", "active");
     input.setAttribute("checked", active);
-    input.setAttribute("value-original", active);
     appendChild(input);
     
     checkmark = new El("span");

@@ -1,45 +1,15 @@
 package org.jepria.tomcat.manager.web.jdbc.ssr;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.web.ssr.table.CheckBox;
+import org.jepria.web.ssr.table.El;
+import org.jepria.web.ssr.table.Label;
+import org.jepria.web.ssr.table.Table;
 
-public class JdbcRenderer {
+public class JdbcTable extends Table<ConnectionDto> {
   
-  private int tabindex = 1; 
-  
-  public String tableJs() {
-    return null;
-  }
-  
-  private boolean isEditable() {
-    return true;
-  }
-  
-  public String tableHtml(List<ConnectionDto> resources) throws IOException {
-    
-    final StringBuilder sb = new StringBuilder();
-    
-    if (resources != null && !resources.isEmpty()) {
-      
-      // TODO here are table CONTENTS only (but better to return the whole table from the root <div class="table">)
-      El header = createHeader();
-      header.print(sb);
-      
-      for (ConnectionDto resource: resources) {
-        El row = createRow(resource);
-        row.print(sb);
-      }
-    }
-    
-    El rowButtonCreate = createRowButtonCreate();
-    rowButtonCreate.print(sb);
-    
-    return sb.toString();
-  }
-  
-  private El createRow(ConnectionDto listItem) {
+  @Override
+  protected El createRow(ConnectionDto listItem) {
     final boolean dataModifiable = !Boolean.FALSE.equals(listItem.getDataModifiable());
 
     El row = new El("div");
@@ -127,127 +97,14 @@ public class JdbcRenderer {
     return row;
   }
   
-  
-  // from table.js
-  private El addField(El cell, String name, String value, String placeholder) {
-    El field = createField(name, value, placeholder);
-    
-    El wrapper = wrapCellPad(field);
-    cell.appendChild(wrapper);
-
-    if (isEditable()) {
-      addStrike(cell);
-    }
-      
-    return field;
-  }
-  
-  private El createField(String name, String value, String placeholder) {
-    if (isEditable()) {
-      return createFieldInput(name, value, placeholder);
-    } else {
-      return createFieldLabel(value);
-    }
-  }
-
-  private El createFieldInput(String name, String value, String placeholder) {
-    El field = new El("input");
-    field.setAttribute("type", "text");
-    field.setAttribute("name", name);
-    field.setAttribute("value", value);
-    field.setAttribute("placeholder", placeholder);
-    
-    field.classList.add("field-text");
-    field.classList.add("inactivatible");
-    field.classList.add("deletable");
-    
-    return field;
-  }
-
-  private void addStrike(El cell) {
-    El strike = new El("div");
-    strike.classList.add("strike");
-    cell.appendChild(strike);
-  }
-
-  private El createFieldLabel(String value) {
-    El field = new El("label");
-    field.setInnerHTML(value);
-    
-    field.classList.add("field-text");
-    field.classList.add("inactivatible");
-    field.classList.add("deletable");
-    
-    return field;
-  }
-
-  private El wrapCellPad(El element) {
-    El wrapper = new El("div");
-    
-    El leftDiv = new El("div");
-    leftDiv.classList.add("cell-pad-left");
-    wrapper.appendChild(leftDiv);
-    
-    El rightDiv = new El("div");
-    rightDiv.classList.add("cell-pad-right");
-    wrapper.appendChild(rightDiv);
-    
-    El midDiv = new El("div");
-    midDiv.classList.add("cell-pad-mid");
-    wrapper.appendChild(midDiv);
-    
-    midDiv.appendChild(element);
-    
-    return wrapper;
-  }
-  
-  private El addFieldDelete(El cell) {
-
-    El button = new El("input");
-    button.classList.add("field-delete");
-    
-    button.setAttribute("type", "image");
-    button.setAttribute("src", "gui/img/delete.png");
-    button.setAttribute("title", "Удалить"); // NON-NLS
-    
-    El wrapper = wrapCellPad(button);  
-    cell.appendChild(wrapper);
-    
-    return button;
-  }
-  
-  private El createCell(El row, String columnClass) {
-    El cell = new El("div");
-    cell.classList.add("cell");
-    cell.classList.add(columnClass);
-    row.appendChild(cell);
-    return cell;
-  }
-  
-  private CheckBox addCheckbox(El cell, boolean active, boolean enabled) {
-    CheckBox checkbox = new CheckBox(active);
-    
-    checkbox.setEnabled(enabled);
-    
-    checkbox.classList.add("deletable");
-
-    El wrapper = wrapCellPad(checkbox);  
-    
-    cell.appendChild(wrapper);
-    
-    addStrike(cell);
-    
-    return checkbox;
-  }
-  
-  // The very JDBC's method! Not table's!
-  private void setFieldReadonly(El field) {
+  protected void setFieldReadonly(El field) {
     field.setAttribute("readonly", "true");
     field.classList.add("readonly");
     field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
   }
   
-  private El createRowCreate() {
+  @Override
+  protected El createRowCreate() {
     El row = new El("div");
     row.classList.add("row");
     row.classList.add("created");
@@ -300,7 +157,8 @@ public class JdbcRenderer {
     return row;
   }
   
-  private El createHeader() {
+  @Override
+  protected El createHeader() {
     El row = new El("div");
     row.classList.add("header");
     
@@ -337,28 +195,6 @@ public class JdbcRenderer {
     cell.appendChild(label);
     
     row.appendChild(div);
-    
-    return row;
-  }
-  
-  private El createRowButtonCreate() {
-    El row = new El("div");
-    row.classList.add("row-button-create");
-    
-    El cell;
-    
-    // active
-    cell = createCell(row, "column-button-create");
-    cell.classList.add("column-left");
-    
-    El buttonCreate = new El("button");
-    buttonCreate.classList.add("row-button-create__button-create");
-    buttonCreate.classList.add("big-black-button");
-    buttonCreate.setInnerHTML("НОВАЯ ЗАПИСЬ"); // NON-NLS
-    
-    El wrapper = wrapCellPad(buttonCreate);
-    
-    cell.appendChild(wrapper);
     
     return row;
   }

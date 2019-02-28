@@ -1,25 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="war" name="Module Building">
+<project default="jar" name="Module Building">
 
 	<property name="DISTR_DIR" location="lib"/>
-  <property name="DISTR_NAME" value="web-common"/>
+  <property name="DISTR_NAME" value="jtm-web-common"/>
   
-  <!-- Создание приложения war -->
-  <target name="war">
-    <sequential>
-      <mkdir dir="temp-war" />
-      
-      <copy todir="temp-war">
-        <fileset file="src/html/**/" />
-      </copy>
-      
-      <jar basedir="temp-war" destfile="${DISTR_DIR}/${DISTR_NAME}.war" />
-      <delete failonerror="false" dir="temp-war" />
-    </sequential>
+	<!-- java compile -->
+  <path id="classpath">
+    <pathelement location="build" />
+  </path>
+  
+  <fileset id="class-jar" dir="build">
+    <include name="**/*.class" />
+  </fileset>
+
+  <target name="java-compile">
+    <mkdir dir="build" />
+    <javac srcdir="src/java" destdir="build" encoding="utf-8"
+      includeantruntime="false">
+    </javac>
   </target>
   
-  <target name="clean-all">
-    <delete file="${DISTR_DIR}/${DISTR_NAME}.war"/>
+  
+  <target name="jar" depends="java-compile">
+    <jar destfile="${DISTR_DIR}/${DISTR_NAME}.jar">
+      <fileset refid="class-jar" />
+    </jar>
+  </target>
+
+
+  <target name="build" depends="jar" />
+
+  <target name="clean">
+    <delete includeemptydirs="true" quiet="true">
+      <fileset dir="build" />
+    </delete>
   </target>
   
 </project>

@@ -1,4 +1,5 @@
-package org.jepria.tomcat.manager.web.jdbc.ssr;
+package org.jepria.web.ssr.table;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public class El {
    * <br/>
    * <strong>Note:</strong> the Chrome browser fails rendering html if there are short-closed tags present. So, the default value is {@code false}.  
    */
-  protected boolean shortCloseEmptyTag() {
+  protected boolean allowShortClose() {
     return false;
   }
   
@@ -110,7 +111,7 @@ public class El {
       }
     }
     
-    if (shortCloseEmptyTag() && innerHTML == null && childs.isEmpty()) {
+    if (innerHTML == null && childs.isEmpty() && allowShortClose()) {
       // empty body
       sb.append("/>");
       
@@ -134,9 +135,21 @@ public class El {
     
   }
   
+  public String print() throws IOException {
+    StringBuilder sb = new StringBuilder();
+    print(sb);
+    return sb.toString();
+  }
+  
   public void setInnerHTML(String innerHTML) {
     this.innerHTML = innerHTML;
     // setting innerHTML destroys the children
     childs.clear();
   }
+
+  public String getInnerHTML() {
+    return innerHTML;
+  }
+  
+  
 }
