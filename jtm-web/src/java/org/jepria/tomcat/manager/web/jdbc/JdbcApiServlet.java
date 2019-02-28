@@ -30,7 +30,6 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
-import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcRenderer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -40,10 +39,6 @@ public class JdbcApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7724868882541481749L;
 
-  private static boolean isCreateContextResources(Environment environment) {
-    return "true".equals(environment.getProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
-  }
-  
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
@@ -52,38 +47,18 @@ public class JdbcApiServlet extends HttpServlet {
     if ("/list".equals(path)) {
       
       try {
-        
-        final Environment environment = EnvironmentFactory.get(req);
-        
-        final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
-            () -> environment.getContextXmlInputStream(), 
-            () -> environment.getServerXmlInputStream(),
-            isCreateContextResources(environment));
-        
-        final List<ConnectionDto> connections = getConnections(tomcatConf);
+        final List<ConnectionDto> connections = new JdbcApi().list(req);
 
-        final String responseBody;
+        
+        Map<String, Object> responseJsonMap = new HashMap<>();
+        responseJsonMap.put("_list", connections);
+        
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        final String responseBody = gson.toJson(responseJsonMap);
         
         
-        if (req.getParameter("ssr") == null) {
-          // JSON API
-          resp.setContentType("application/json; charset=UTF-8");
-          
-          Map<String, Object> responseJsonMap = new HashMap<>();
-          responseJsonMap.put("_list", connections);
-          
-          Gson gson = new GsonBuilder().setPrettyPrinting().create();
-          responseBody = gson.toJson(responseJsonMap);
-          
-        } else {
-          // SSR API
-          resp.setContentType("text/html; charset=UTF-8");
-          
-          responseBody = new JdbcRenderer().renderTable(connections);
-        }
-        
-        
-        // write response body
+        // write response
+        resp.setContentType("application/json; charset=UTF-8");
         if (responseBody != null) {
           resp.getOutputStream().print(responseBody);
         }
@@ -94,7 +69,6 @@ public class JdbcApiServlet extends HttpServlet {
       } catch (Throwable e) {
         e.printStackTrace();
 
-        // response body must either be empty or match the declared content type
         resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         resp.flushBuffer();
         return;
@@ -102,11 +76,26 @@ public class JdbcApiServlet extends HttpServlet {
 
     } else {
       
-      // TODO set content type for the error case?
       resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
     }
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ////////// legacy, moved to JdbcApi: /////////////
+  
+  private static boolean isCreateContextResources(Environment environment) {
+    return "true".equals(environment.getProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
   }
   
   private static List<ConnectionDto> getConnections(TomcatConfJdbc tomcatConf) {
@@ -155,7 +144,7 @@ public class JdbcApiServlet extends HttpServlet {
     
     return dto;
   }
-
+  ////////// :legacy, moved to JdbcApi /////////////
 
   private static void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     

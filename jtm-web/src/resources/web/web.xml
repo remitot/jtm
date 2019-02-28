@@ -33,6 +33,16 @@
     <servlet-name>JdbcApiServlet</servlet-name>
     <url-pattern>/api/jdbc/*</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>JdbcSsrServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcSsrServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>JdbcSsrServlet</servlet-name>
+    <url-pattern>/ssr/jdbc/*</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>JdbcGui</servlet-name>
