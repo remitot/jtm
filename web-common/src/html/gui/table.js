@@ -238,6 +238,12 @@ function addTableScript(table) {
       var checkmark = event.target;
       checkmark.classList.remove("hovered");
     });
+    
+    
+    checkbox.onclick = function(event) {
+      onCheckboxInput(checkbox);
+      checkModifications();
+    };
   }
 }
 
@@ -280,10 +286,6 @@ function addCheckbox(cell, active, enabled) {
   
   setCheckboxEnabled(checkbox, enabled);
   
-  checkbox.onclick = function(event) {
-    onCheckboxInput(checkbox);
-    checkModifications();
-  };
   checkbox.classList.add("deletable");
 
   wrapper = wrapCellPad(checkbox);  
