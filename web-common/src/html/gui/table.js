@@ -166,6 +166,7 @@ function recreateTable(jsonItemList, editable) {
   var table = document.getElementById("table");
   table.innerHTML = "";
   
+  // structure:
   if (jsonItemList.length > 0) {
     
     addHeaderFooter();
@@ -183,10 +184,11 @@ function recreateTable(jsonItemList, editable) {
   
   var rowButtonCreate = createRowButtonCreate();
   table.appendChild(rowButtonCreate);
+  // :structure
   
-  
+  // behavior:
   addTableScript(table);
-  
+  // :behavior
   
   setTableDisabled(!editable);
 
@@ -245,6 +247,14 @@ function addTableScript(table) {
       checkModifications();
     };
   }
+  
+  addRowButtonCreateScript(table);
+}
+
+function addRowButtonCreateScript(rowButtonCreate) {
+  var buttonCreate = table.querySelectorAll(".row-button-create__button-create")[0];
+  buttonCreate.onclick = function(event){onButtonCreateClick();};
+  addHoverForBigBlackButton(buttonCreate);
 }
 
 function createRowButtonCreate() {
@@ -256,13 +266,9 @@ function createRowButtonCreate() {
   cell.classList.add("column-left");
   
   buttonCreate = document.createElement("button");
+  buttonCreate.classList.add("row-button-create__button-create");
   buttonCreate.classList.add("big-black-button");
   buttonCreate.innerHTML = "НОВАЯ ЗАПИСЬ"; // NON-NLS
-  buttonCreate.onclick = function(event){onButtonCreateClick();};
-  
-  addHoverForBigBlackButton(buttonCreate);
-  
-  addHoverForBigBlackButton(buttonCreate);
   
   wrapper = wrapCellPad(buttonCreate);
   

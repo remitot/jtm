@@ -1,5 +1,6 @@
 package org.jepria.tomcat.manager.web.jdbc.ssr;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
@@ -8,15 +9,32 @@ public class JdbcRenderer {
   
   private int tabindex = 1; 
   
-  public String renderTable(List<ConnectionDto> resources) {
+  public String tableJs() {
+    return null;
+  }
+  
+  private boolean isEditable() {
+    return true;
+  }
+  
+  public String tableHtml(List<ConnectionDto> resources) throws IOException {
     
     final StringBuilder sb = new StringBuilder();
     
-    if (resources != null) {
+    if (resources != null && !resources.isEmpty()) {
+      
+      // TODO here are table CONTENTS only (but better to return the whole table from the root <div class="table">)
+      El header = createHeader();
+      header.print(sb);
+      
       for (ConnectionDto resource: resources) {
         El row = createRow(resource);
+        row.print(sb);
       }
     }
+    
+    El rowButtonCreate = createRowButtonCreate();
+    rowButtonCreate.print(sb);
     
     return sb.toString();
   }
@@ -28,14 +46,14 @@ public class JdbcRenderer {
     row.classList.add("row");
     row.setAttribute("item-id", listItem.getId());
     
-    El cell;
-    El field;
+    El cell, field;
     
     // active
     cell = createCell(row, "column-active");
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
     CheckBox checkBox = addCheckbox(cell, listItem.getActive(), true);
+    checkBox.setAttribute("value-original", listItem.getActive());
     if (!dataModifiable) {
       checkBox.classList.add("readonly");
       checkBox.setEnabled(false);
@@ -48,9 +66,7 @@ public class JdbcRenderer {
       row.classList.add("inactive");
     }
     
-    
-    El cellDelete = createCell(row, "column-delete");;
-    
+    El cellDelete = createCell(row, "column-delete");
     
     El div = new El("div");
     div.classList.add("flexColumns");
@@ -138,12 +154,9 @@ public class JdbcRenderer {
     El field = new El("input");
     field.setAttribute("type", "text");
     field.setAttribute("name", name);
-    field.value = value;
-    if (placeholder != null) {
-      field.setAttribute("placeholder", placeholder);
-    }
+    field.setAttribute("value", value);
+    field.setAttribute("placeholder", placeholder);
     
-    field.oninput = function(event){onFieldInput(event.target)};
     field.classList.add("field-text");
     field.classList.add("inactivatible");
     field.classList.add("deletable");
@@ -159,7 +172,7 @@ public class JdbcRenderer {
 
   private El createFieldLabel(String value) {
     El field = new El("label");
-    field.innerHTML = value;
+    field.setInnerHTML(value);
     
     field.classList.add("field-text");
     field.classList.add("inactivatible");
@@ -190,16 +203,17 @@ public class JdbcRenderer {
   
   private El addFieldDelete(El cell) {
 
-    El delete = new El("input");
-    delete.setAttribute("type", "image");
-    delete.setAttribute("src", "gui/img/delete.png");
-    delete.setAttribute("title", "Удалить"); // NON-NLS
-    delete.onclick = function(event){onDeleteButtonClick(event.target);};
+    El button = new El("input");
+    button.classList.add("field-delete");
     
-    El wrapper = wrapCellPad(delete);  
+    button.setAttribute("type", "image");
+    button.setAttribute("src", "gui/img/delete.png");
+    button.setAttribute("title", "Удалить"); // NON-NLS
+    
+    El wrapper = wrapCellPad(button);  
     cell.appendChild(wrapper);
     
-    return delete;
+    return button;
   }
   
   private El createCell(El row, String columnClass) {
@@ -213,41 +227,13 @@ public class JdbcRenderer {
   private CheckBox addCheckbox(El cell, boolean active, boolean enabled) {
     CheckBox checkbox = new CheckBox(active);
     
-    // add 'hovered' class for checkbox's onfocus and onmouseover  
-    // TODO bad direct access
-    checkbox.input.onfocus = function(event){
-      var input = event.target;
-      input.parentElement.getElementsByClassName("checkmark")[0].classList.add("hovered");
-    }
-    //TODO bad direct access
-    checkbox.input.addEventListener("focusout", function(event) { // .onfocusout not working in some browsers
-      var input = event.target;
-      input.parentElement.getElementsByClassName("checkmark")[0].classList.remove("hovered");
-    });
-    //TODO bad direct access
-    checkbox.checkmark.onmouseover = function(event) {
-      var checkmark = event.target;
-      checkmark.classList.add("hovered");
-    }
-    //TODO bad direct access
-    checkbox.checkmark.addEventListener("mouseout", function(event) { // .onmouseout not working in some browsers
-      var checkmark = event.target;
-      checkmark.classList.remove("hovered");
-    });
-    
     checkbox.setEnabled(enabled);
     
-    checkbox.onclick = function(event){
-      onCheckboxInput(event.target);
-      checkModifications();
-    };
     checkbox.classList.add("deletable");
 
     El wrapper = wrapCellPad(checkbox);  
     
     cell.appendChild(wrapper);
-    
-    onCheckboxInput(checkbox.getElementsByTagName("input")[0]);// trigger initial event
     
     addStrike(cell);
     
@@ -259,5 +245,121 @@ public class JdbcRenderer {
     field.setAttribute("readonly", "true");
     field.classList.add("readonly");
     field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
+  }
+  
+  private El createRowCreate() {
+    El row = new El("div");
+    row.classList.add("row");
+    row.classList.add("created");
+    
+    El cell, field;
+    
+    // active
+    cell = createCell(row, "column-active");
+    cell.classList.add("column-left");
+    cell.classList.add("cell-field");
+    CheckBox checkBox = addCheckbox(cell, true, false);
+    checkBox.classList.add("readonly");
+    checkBox.setEnabled(false);
+    
+    El cellDelete = createCell(row, "column-delete");
+    
+    El flexColumns = new El("div");
+    flexColumns.classList.add("flexColumns");
+    
+    cell = createCell(flexColumns, "column-name");
+    cell.classList.add("cell-field");
+    field = addField(cell, "name", null, "jdbc/MyDataSource");
+    field.setAttribute("tabindex", tabindex++);
+   
+    cell = createCell(flexColumns, "column-server");
+    cell.classList.add("cell-field");
+    field = addField(cell, "server", null, "db-server:1521");
+    field.setAttribute("tabindex", tabindex++);
+    
+    cell = createCell(flexColumns, "column-db");
+    cell.classList.add("cell-field");
+    field = addField(cell, "db", null, "MYDATABASE");
+    field.setAttribute("tabindex", tabindex++);
+    
+    cell = createCell(flexColumns, "column-user");
+    cell.classList.add("cell-field");
+    field = addField(cell, "user", null, "me");
+    field.setAttribute("tabindex", tabindex++);
+    
+    cell = createCell(flexColumns, "column-password");
+    cell.classList.add("cell-field");
+    field = addField(cell, "password", null, "mysecret");
+    field.setAttribute("tabindex", tabindex++);
+    
+    El deleteButton = addFieldDelete(cellDelete);
+    deleteButton.setAttribute("tabindex", tabindex++);
+    
+    row.appendChild(flexColumns);
+    
+    return row;
+  }
+  
+  private El createHeader() {
+    El row = new El("div");
+    row.classList.add("header");
+    
+    El cell, div;
+    Label label;
+    
+    // active
+    cell = createCell(row, "column-active");// empty cell
+    cell.classList.add("column-left");
+    
+    cell = createCell(row, "column-delete");// empty cell
+    
+    div = new El("div");
+    div.classList.add("flexColumns");
+    
+    cell = createCell(div, "column-name");
+    label = new Label("Название"); // NON-NLS
+    cell.appendChild(label);
+    
+    cell = createCell(div, "column-server");
+    label = new Label("Сервер базы данных"); // NON-NLS
+    cell.appendChild(label);
+    
+    cell = createCell(div, "column-db");
+    label = new Label("Имя базы"); // NON-NLS
+    cell.appendChild(label);
+    
+    cell = createCell(div, "column-user");
+    label = new Label("Пользователь базы"); // NON-NLS
+    cell.appendChild(label);
+    
+    cell = createCell(div, "column-password");
+    label = new Label("Пароль к базе"); // NON-NLS
+    cell.appendChild(label);
+    
+    row.appendChild(div);
+    
+    return row;
+  }
+  
+  private El createRowButtonCreate() {
+    El row = new El("div");
+    row.classList.add("row-button-create");
+    
+    El cell;
+    
+    // active
+    cell = createCell(row, "column-button-create");
+    cell.classList.add("column-left");
+    
+    El buttonCreate = new El("button");
+    buttonCreate.classList.add("row-button-create__button-create");
+    buttonCreate.classList.add("big-black-button");
+    buttonCreate.setInnerHTML("НОВАЯ ЗАПИСЬ"); // NON-NLS
+    
+    El wrapper = wrapCellPad(buttonCreate);
+    
+    cell.appendChild(wrapper);
+    
+    return row;
   }
 }

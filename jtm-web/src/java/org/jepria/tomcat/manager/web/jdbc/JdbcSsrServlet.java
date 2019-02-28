@@ -20,19 +20,17 @@ public class JdbcSsrServlet extends HttpServlet {
     
     String path = req.getPathInfo();
     
-    if ("/table".equals(path)) {
+    if ("/table".equals(path) || "/table/html".equals(path)) {
       
       try {
         final List<ConnectionDto> connections = new JdbcApi().list(req);
-
         
-        final String responseBody = new JdbcRenderer().renderTable(connections);
+        final String responseBody = new JdbcRenderer().tableHtml(connections);
         
-
         // write response
-        resp.setContentType("text/html; charset=UTF-8");
         if (responseBody != null) {
-          resp.getOutputStream().print(responseBody);
+          resp.setContentType("text/html; charset=UTF-8");
+          resp.getWriter().print(responseBody);
         }
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
@@ -45,6 +43,28 @@ public class JdbcSsrServlet extends HttpServlet {
         resp.flushBuffer();
         return;
       }
+
+    } else if ("/table/js".equals(path)) {
+        
+        try {
+          final String responseBody = new JdbcRenderer().tableJs();
+          
+          // write response
+          if (responseBody != null) {
+            resp.setContentType("application/javascript; charset=UTF-8");
+            resp.getWriter().print(responseBody);
+          }
+          resp.setStatus(HttpServletResponse.SC_OK);
+          resp.flushBuffer();
+          return;
+          
+        } catch (Throwable e) {
+          e.printStackTrace();
+
+          resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+          resp.flushBuffer();
+          return;
+        }
 
     } else {
       
