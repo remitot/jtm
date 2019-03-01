@@ -1,31 +1,18 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.tomcat.manager.core.jdbc.Connection;
-import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
-import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
-import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ModResponse;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
@@ -158,21 +145,20 @@ public class JdbcApiServlet extends HttpServlet {
         
         if (modResponse.allModSuccess) {
           responseJsonMap.put("_list", modResponse.list);
-          
-          // TODO check whether or not tomcat reloads context WHILE processing requests. If not, remove this
-          saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
-          
-        } else {
-          
-          try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
-            new Gson().toJson(responseJsonMap, osw);
-          }
         }
         
-        resp.setContentType("application/json; charset=UTF-8");
+        
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        final String responseBody = gson.toJson(responseJsonMap);
+        
+        
+        // write response
+        if (responseBody != null) {
+          resp.setContentType("application/json; charset=UTF-8");
+          resp.getWriter().print(responseBody);
+        }
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
-        
         return;
       
       } catch (Throwable e) {
@@ -188,45 +174,6 @@ public class JdbcApiServlet extends HttpServlet {
       resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
-    }
-  }
-  
-
-  
-  /**
-   * Assumes the resp has the {@code Content-Type=application/json;charset=UTF-8}
-   * header already set
-   * @param tomcatConf
-   * @param environment
-   * @param responseJsonMap
-   * @param resp
-   * @throws IOException
-   */
-  private static void saveAndWriteResponse(TomcatConfJdbc tomcatConf, Environment environment,
-      Map<String, Object> responseJsonMap, HttpServletResponse resp) throws IOException {
-    // prepare response to write as fast as possible, after save completes
-    ByteArrayOutputStream preparedResponse = new ByteArrayOutputStream();
-    
-    try (OutputStreamWriter osw = new OutputStreamWriter(preparedResponse, "UTF-8")) {
-      new Gson().toJson(responseJsonMap, osw);
-    }
-    
-    // do save
-    tomcatConf.save(environment.getContextXmlOutputStream(), 
-        environment.getServerXmlOutputStream());
-    
-    // XXX potential vulnerability here!
-    // If tomcat configuration has autodeploy=true option,
-    // then it will reload the server by context.xml change event. 
-    // Although we try to write response as fast as possible further,
-    // the server may have already started reloading. 
-    // In this case, the servlet may behave unexpectedly:
-    // respond 500, or wait to respond after the server reloading finishes, whatever.
-    
-    // write response as fast as possible
-    OutputStream os = resp.getOutputStream();
-    for (byte b: preparedResponse.toByteArray()) {
-      os.write(b);
     }
   }
 }

@@ -176,7 +176,7 @@ public class JdbcApi {
     if (ret.allModSuccess) {
       // save modifications and add a new _list to the response
       
-      // because the new connection list needed in response, do a fake save (to a temporary storage) and get after-save connections from there
+      // fake save: to be sure, save the modified conf to a temporary storage and get after-save list from there
       ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
       ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
       
@@ -188,6 +188,14 @@ public class JdbcApi {
           isCreateContextResources(environment));
       
       listAfterSave = getConnections(tomcatConfAfterSave);
+      
+      
+      // real save: it is safe to save modifications to context.xml file here (before servlet response), 
+      // because although Tomcat is about to reload the context after such saving, 
+      // it still fulfills the servlet requests currently under processing. 
+      tomcatConf.save(environment.getContextXmlOutputStream(), 
+          environment.getServerXmlOutputStream());
+      
     } else {
       
       listAfterSave = null;
