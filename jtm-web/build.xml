@@ -119,38 +119,12 @@
     </antcall>
   </target>
   
-  <!-- получаем домен и порт из DEPLOYMENT_PATH и PORT, если не задан localhost:80 -->
-  <target name="get-server-domain">
-    <fail unless="DEPLOYMENT_PATH" message="DEPLOYMENT_PATH not specified. Use -DEPLOYMENT_PATH=... command line argument." />
-    <propertyregex property="DOMAIN"
-              input="${DEPLOYMENT_PATH}"           
-              regexp="^(?:https?:\/\/)?([^:\/]+)"
-              select="\0" 
-              casesensitive="false" />
-    <propertyregex property="PORT"
-              input="${DEPLOYMENT_PATH}"           
-              regexp="(?&lt;=:)[0-9]{2,5}"
-              select="\0" 
-              casesensitive="false" />      
-    <condition property="DEPLOYMENT_PATH" value="http://localhost">
-        <not>  
-            <isset property="DEPLOYMENT_PATH"/>
-        </not>
-    </condition>
-    <condition property="PORT" value="80">
-        <not>  
-            <isset property="PORT"/>
-        </not>
-    </condition>
-    <echo message="${DOMAIN}:${PORT}" />
-  </target>
-
   <target name="define-tomcat">
     <taskdef name="tomcat.deploy" classname="org.apache.catalina.ant.DeployTask" classpathref="tomcat-libs" />
     <taskdef name="tomcat.undeploy" classname="org.apache.catalina.ant.UndeployTask" classpathref="tomcat-libs" />
   </target>
   
-  <target name="tomcat.undeploy" description="Undeploy from Tomcat" depends="define-tomcat, available-tomcat">
+  <target name="tomcat.undeploy" description="Undeploy from Tomcat" depends="define-tomcat">
     <tomcat.undeploy 
       failonerror="no"
       url="${DEPLOYMENT_PATH}"
@@ -160,27 +134,7 @@
     />
   </target>
 
-  <target name="available-tomcat">
-    <!-- проверяем соединение с Tomcat + проверка логин пароль--> 
-    <trycatch property="errorMessage">
-        <try>
-          <get src="${DOMAIN}:${PORT}/manager/html" 
-              dest="NUL"
-              maxtime="3"
-              username="${LOGIN}"
-              password="${PASSWORD}"/>
-        </try>
-        <catch>
-            <fail>
-                [ERROR]: Tomcat is not available on ${DOMAIN}:${PORT} OR incorrect LOGIN/PASSWORD!
-                ${errorMessage}
-            </fail>
-        </catch>
-    </trycatch>   
-    <echo message="OK" />
-  </target>
-  
-  <target name="tomcat.deploy" description="Deploy to Tomcat" depends="get-server-domain, tomcat.undeploy, define-tomcat, available-tomcat">
+  <target name="tomcat.deploy" description="Deploy to Tomcat" depends="tomcat.undeploy, define-tomcat">
     <echo message="Deploying ${DISTR_DIR}/${DISTR_NAME}.war to:${DEPLOYMENT_PATH}"/>
     <echo message="Deploy to Tomcat..." />
     <echo message="LOGIN: ${LOGIN}" />
