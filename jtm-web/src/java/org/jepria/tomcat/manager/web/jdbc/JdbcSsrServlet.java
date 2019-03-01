@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.table.Table;
@@ -27,7 +28,7 @@ public class JdbcSsrServlet extends HttpServlet {
     if (path == null || "".equals(path) || "/".equals(path)) {
       
       try {
-        final List<ConnectionDto> connections = new JdbcApi().list(req);
+        final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
         
         final Table<ConnectionDto> table = new JdbcTable();
         table.load(connections);

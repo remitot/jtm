@@ -27,6 +27,7 @@ import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ModResponse;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
@@ -47,7 +48,7 @@ public class JdbcApiServlet extends HttpServlet {
     if ("/list".equals(path)) {
       
       try {
-        final List<ConnectionDto> connections = new JdbcApi().list(req);
+        final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
 
         
         Map<String, Object> responseJsonMap = new HashMap<>();
@@ -82,437 +83,115 @@ public class JdbcApiServlet extends HttpServlet {
     }
   }
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  ////////// legacy, moved to JdbcApi: /////////////
-  
-  private static boolean isCreateContextResources(Environment environment) {
-    return "true".equals(environment.getProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
-  }
-  
-  private static List<ConnectionDto> getConnections(TomcatConfJdbc tomcatConf) {
-    Map<String, Connection> connections = tomcatConf.getConnections();
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    // list all connections
-    return connections.entrySet().stream().map(
-        entry -> connectionToDto(entry.getKey(), entry.getValue()))
-        .sorted(connectionSorter()).collect(Collectors.toList());
-  }
-  
-  private static Comparator<ConnectionDto> connectionSorter() {
-    return new Comparator<ConnectionDto>() {
-      @Override
-      public int compare(ConnectionDto o1, ConnectionDto o2) {
-        int nameCmp = o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
-        if (nameCmp == 0) {
-          // the active is the first
-          if (o1.getActive() && !o2.getActive()) {
-            return -1;
-          } else if (o2.getActive() && !o1.getActive()) {
-            return 1;
-          } else {
-            return 0;
-          }
-        } else {
-          return nameCmp;
-        }
-      }
-    };
-  }
-
-  private static ConnectionDto connectionToDto(String id, Connection connection) {
-    Objects.requireNonNull(id);
+    String path = req.getPathInfo();
     
-    ConnectionDto dto = new ConnectionDto();
-    
-    dto.setDataModifiable(connection.isDataModifiable());
-    dto.setActive(connection.isActive());
-    dto.setDb(connection.getDb());
-    dto.setId(id);
-    dto.setName(connection.getName());
-    dto.setPassword(connection.getPassword());
-    dto.setServer(connection.getServer());
-    dto.setUser(connection.getUser());
-    
-    return dto;
-  }
-  ////////// :legacy, moved to JdbcApi /////////////
-
-  private static void mod(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    
-    // the content type is defined for the entire method
-    resp.setContentType("application/json; charset=UTF-8");
-
-    try {
-
-      // read list from request body
-      final List<ModRequestDto> modRequests;
+    if ("/mod".equals(path)) {
       
       try {
-        Type type = new TypeToken<ArrayList<ModRequestDto>>(){}.getType();
-        modRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
+
+        // read list from request body
+        final List<ModRequestDto> modRequests;
         
+        try {
+          Type type = new TypeToken<ArrayList<ModRequestDto>>(){}.getType();
+          modRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
+          
+        } catch (Throwable e) {
+          e.printStackTrace();
+
+          resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          resp.flushBuffer();
+          return;
+        } 
+        
+        
+        // convert list to map
+        final Map<String, ModRequestBodyDto> modRequestBodyMap = new HashMap<>();
+        
+        if (modRequests != null) {
+          for (ModRequestDto modRequest: modRequests) {
+            final String modRequestId = modRequest.getModRequestId();
+            
+            // validate modRequestId fields
+            if (modRequestId == null || "".equals(modRequestId)) {
+              resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                  "Found missing or empty modRequestId fields");
+              resp.flushBuffer();
+              return;
+              
+            } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
+              
+              resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                  "Duplicate modRequestId field values found: [" + modRequestId + "]");
+              resp.flushBuffer();
+              return;
+            }
+          }
+        }
+        
+        
+        ModResponse modResponse = new JdbcApi().mod(EnvironmentFactory.get(req), modRequestBodyMap);
+      
+        
+        
+        // prepare response map
+        final Map<String, Object> responseJsonMap = new HashMap<>();
+        
+        // convert map to list of JSON objects
+        List<Map<String, Object>> modStatusList = new ArrayList<>();
+        for (Map.Entry<String, ModStatus> entry: modResponse.modStatusMap.entrySet()) {
+          Map<String, Object> jsonMap = new HashMap<>();
+          jsonMap.put("modRequestId", entry.getKey());
+          int code = entry.getValue().code;
+          jsonMap.put("modStatusCode", code);
+          if (code == ModStatus.SC_INVALID_FIELD_DATA) {
+            jsonMap.put("invalidFieldData", entry.getValue().invalidFieldDataMap);
+          }
+          modStatusList.add(jsonMap);
+        }
+        
+        responseJsonMap.put("modStatusList", modStatusList);
+        
+        
+        if (modResponse.allModSuccess) {
+          responseJsonMap.put("_list", modResponse.list);
+          
+          // TODO check whether or not tomcat reloads context WHILE processing requests. If not, remove this
+          saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
+          
+        } else {
+          
+          try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
+            new Gson().toJson(responseJsonMap, osw);
+          }
+        }
+        
+        resp.setContentType("application/json; charset=UTF-8");
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.flushBuffer();
+        
+        return;
+      
       } catch (Throwable e) {
         e.printStackTrace();
 
-        resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         resp.flushBuffer();
         return;
-      } 
-      
-      
-      // convert list to map
-      final Map<String, ModRequestBodyDto> modRequestBodyMap = new HashMap<>();
-      
-      if (modRequests != null) {
-        for (ModRequestDto modRequest: modRequests) {
-          final String modRequestId = modRequest.getModRequestId();
-          
-          // validate modRequestId fields
-          if (modRequestId == null || "".equals(modRequestId)) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
-                "Found missing or empty modRequestId fields");
-            resp.flushBuffer();
-            return;
-            
-          } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
-            
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
-                "Duplicate modRequestId field values found: [" + modRequestId + "]");
-            resp.flushBuffer();
-            return;
-          }
-        }
       }
       
-
+    } else {
       
-      final Environment environment = EnvironmentFactory.get(req);
-      
-      final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
-          () -> environment.getContextXmlInputStream(), 
-          () -> environment.getServerXmlInputStream(),
-          isCreateContextResources(environment));
-
-      // collect processed modRequests
-      final Set<String> processedModRequestIds = new HashSet<>();
-      
-      
-      // response map
-      final Map<String, ModStatus> modStatusMap = new HashMap<>();
-      
-      // all modifications succeeded
-      boolean allModSuccess = true; 
-      
-      // 1) perform all updates
-      for (String modRequestId: modRequestBodyMap.keySet()) {
-        ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
-
-        if ("update".equals(mreq.getAction())) {
-          processedModRequestIds.add(modRequestId);
-
-          ModStatus modStatus = updateConnection(mreq, tomcatConf);
-          if (modStatus.code != ModStatus.SC_SUCCESS) {
-            allModSuccess = false;
-          }
-
-          modStatusMap.put(modRequestId, modStatus);
-        }
-      }
-
-
-      // 2) perform all deletions
-      for (String modRequestId: modRequestBodyMap.keySet()) {
-        ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
-
-        if ("delete".equals(mreq.getAction())) {
-          processedModRequestIds.add(modRequestId);
-
-          ModStatus modStatus = deleteConnection(mreq, tomcatConf);
-          if (modStatus.code != ModStatus.SC_SUCCESS) {
-            allModSuccess = false;
-          }
-          
-          modStatusMap.put(modRequestId, modStatus);
-        }
-      }
-
-
-      // 3) perform all creations
-      for (String modRequestId: modRequestBodyMap.keySet()) {
-        ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
-
-        if ("create".equals(mreq.getAction())) {
-          processedModRequestIds.add(modRequestId);
-
-          ModStatus modStatus = createConnection(mreq, tomcatConf, 
-              environment.getResourceInitialParams());
-          if (modStatus.code != ModStatus.SC_SUCCESS) {
-            allModSuccess = false;
-          }
-          
-          modStatusMap.put(modRequestId, modStatus);
-        }
-      }
-
-
-      // 4) ignore illegal actions
-
-
-      // prepare response map
-      final Map<String, Object> responseJsonMap = new HashMap<>();
-      
-      // convert map to list of JSON objects
-      List<Map<String, Object>> modStatusList = new ArrayList<>();
-      for (Map.Entry<String, ModStatus> entry: modStatusMap.entrySet()) {
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("modRequestId", entry.getKey());
-        int code = entry.getValue().code;
-        jsonMap.put("modStatusCode", code);
-        if (code == ModStatus.SC_INVALID_FIELD_DATA) {
-          jsonMap.put("invalidFieldData", entry.getValue().invalidFieldDataMap);
-        }
-        modStatusList.add(jsonMap);
-      }
-      
-      responseJsonMap.put("modStatusList", modStatusList);
-      
-      
-      if (allModSuccess) {
-        // save modifications and add a new _list to the response
-        
-        // because the new connection list needed in response, do a fake save (to a temporary storage) and get after-save connections from there
-        ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
-        ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
-        
-        tomcatConf.save(contextXmlBaos, serverXmlBaos);
-        
-        final TomcatConfJdbc tomcatConfAfterSave = new TomcatConfJdbc(
-            () -> new ByteArrayInputStream(contextXmlBaos.toByteArray()),
-            () -> new ByteArrayInputStream(serverXmlBaos.toByteArray()),
-            isCreateContextResources(environment));
-        
-        List<ConnectionDto> connectionDtos = getConnections(tomcatConfAfterSave);
-        responseJsonMap.put("_list", connectionDtos);
-        
-        saveAndWriteResponse(tomcatConf, environment, responseJsonMap, resp);
-        
-      } else {
-        
-        try (OutputStreamWriter osw = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
-          new Gson().toJson(responseJsonMap, osw);
-        }
-      }
-      
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.flushBuffer();
-      
-      return;
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-
-      // response body must either be empty or match the declared content type
-      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
     }
   }
   
-  /**
-   * Validate mandatory fields
-   * @param dto
-   * @return list of field names whose values are empty (but must not be empty), or else empty list
-   */
-  private static List<String> validateMandatoryFields(ConnectionDto dto) {
-    List<String> emptyFields = new ArrayList<>();
 
-    if (empty(dto.getDb())) {
-      emptyFields.add("db");
-    }
-    if (empty(dto.getName())) {
-      emptyFields.add("name");
-    }
-    if (empty(dto.getPassword())) {
-      emptyFields.add("password");
-    }
-    if (empty(dto.getServer())) {
-      emptyFields.add("server");
-    }
-    if (empty(dto.getUser())) {
-      emptyFields.add("user");
-    }
-    
-    return emptyFields;
-  }
-  
-  private static boolean empty(String string) {
-    return string == null || "".equals(string);
-  }
-  
-  private static ModStatus updateConnection(
-      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
-    
-    try {
-      final String id = mreq.getId();
-
-      if (id == null) {
-        return ModStatus.errEmptyId();
-      }
-
-      final Map<String, Connection> connections = tomcatConf.getConnections();
-      final Connection connection = connections.get(id);
-
-      if (connection == null) {
-        return ModStatus.errNoItemFoundById();
-      }
-        
-      final ConnectionDto connectionDto = mreq.getData();
-      
-      
-      // validate name
-      final String name = connectionDto.getName();
-      if (name != null) {
-        int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
-        if (validateNameResult == 1) {
-          return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
-        } else if (validateNameResult == 2) {
-          return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
-        }
-      }
-      
-      
-      return updateFields(connectionDto, connection);
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-      
-      return ModStatus.errServerException();
-    }
-  }
-  
-  /**
-   * Updates target's fields with source's values
-   * @param sourceDto
-   * @param target non null
-   * @return
-   */
-  private static ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
-    
-    // validate illegal action due to dataModifiable field
-    if (!target.isDataModifiable() && (
-        sourceDto.getActive() != null || sourceDto.getServer() != null 
-        || sourceDto.getDb() != null || sourceDto.getUser() != null
-        || sourceDto.getPassword() != null)) {
-      
-      return ModStatus.errDataNotModifiable();
-    }
-    
-    
-    if (sourceDto.getActive() != null) {
-      target.setActive(sourceDto.getActive());
-    }
-    if (sourceDto.getDb() != null) {
-      target.setDb(sourceDto.getDb());
-    }
-    if (sourceDto.getName() != null) {
-      target.setName(sourceDto.getName());
-    }
-    if (sourceDto.getPassword() != null) {
-      target.setPassword(sourceDto.getPassword());
-    }
-    if (sourceDto.getServer() != null) {
-      target.setServer(sourceDto.getServer());
-    }
-    if (sourceDto.getUser() != null) {
-      target.setUser(sourceDto.getUser());
-    }
-    
-    return ModStatus.success();
-  }
-  
-  private static ModStatus deleteConnection(
-      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
-
-    try {
-      String id = mreq.getId();
-
-      if (id == null) {
-        return ModStatus.errEmptyId();
-      }
-
-
-      Map<String, Connection> connections = tomcatConf.getConnections();
-      Connection connection = connections.get(id);
-
-      if (connection == null) {
-        return ModStatus.errNoItemFoundById();
-      }
-        
-      if (!connection.isDataModifiable()) {
-        return ModStatus.errDataNotModifiable();
-      }
-      
-      tomcatConf.delete(id);
-
-      return ModStatus.success();
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-      
-      return ModStatus.errServerException();
-    }
-  }
-  
-  private static ModStatus createConnection(
-      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf,
-      ResourceInitialParams initialParams) {
-
-    try {
-      ConnectionDto connectionDto = mreq.getData();
-
-      
-      // validate mandatory fields
-      List<String> emptyMandatoryFields = validateMandatoryFields(connectionDto);
-      if (!emptyMandatoryFields.isEmpty()) {
-        String[] invalidFields = new String[emptyMandatoryFields.size() * 3];
-        int i = 0;
-        for (String fieldName: emptyMandatoryFields) {
-          invalidFields[i++] = fieldName;
-          invalidFields[i++] = "MANDATORY_EMPTY";
-          invalidFields[i++] = null;
-        }
-        return ModStatus.errInvalidFieldData(invalidFields);
-      }
-      
-          
-      // validate name
-      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
-      if (validateNameResult == 1) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
-      } else if (validateNameResult == 2) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
-      }
-      
-      
-      final Connection newConnection = tomcatConf.create(connectionDto.getName(), initialParams);
-
-      return updateFields(connectionDto, newConnection);
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-      
-      return ModStatus.errServerException();
-    }
-  }
   
   /**
    * Assumes the resp has the {@code Content-Type=application/json;charset=UTF-8}
@@ -548,24 +227,6 @@ public class JdbcApiServlet extends HttpServlet {
     OutputStream os = resp.getOutputStream();
     for (byte b: preparedResponse.toByteArray()) {
       os.write(b);
-    }
-  }
-  
-  @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-    String path = req.getPathInfo();
-    
-    if ("/mod".equals(path)) {
-      mod(req, resp);
-      return;
-      
-    } else {
-      
-      // TODO set content type for the error case?
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-      resp.flushBuffer();
-      return;
     }
   }
 }

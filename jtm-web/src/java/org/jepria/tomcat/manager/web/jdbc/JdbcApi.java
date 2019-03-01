@@ -1,28 +1,31 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.jepria.tomcat.manager.core.jdbc.Connection;
+import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
-import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
 
 public class JdbcApi {
   
-  private static boolean isCreateContextResources(Environment environment) {
+  protected boolean isCreateContextResources(Environment environment) {
     return "true".equals(environment.getProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
   }
   
-  public List<ConnectionDto> list(HttpServletRequest request) {
-    
-    final Environment environment = EnvironmentFactory.get(request);
+  public List<ConnectionDto> list(Environment environment) {
     
     final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
         () -> environment.getContextXmlInputStream(), 
@@ -32,7 +35,7 @@ public class JdbcApi {
     return getConnections(tomcatConf);
   }
   
-  private static List<ConnectionDto> getConnections(TomcatConfJdbc tomcatConf) {
+  protected List<ConnectionDto> getConnections(TomcatConfJdbc tomcatConf) {
     Map<String, Connection> connections = tomcatConf.getConnections();
 
     // list all connections
@@ -41,7 +44,7 @@ public class JdbcApi {
         .sorted(connectionSorter()).collect(Collectors.toList());
   }
   
-  private static Comparator<ConnectionDto> connectionSorter() {
+  protected Comparator<ConnectionDto> connectionSorter() {
     return new Comparator<ConnectionDto>() {
       @Override
       public int compare(ConnectionDto o1, ConnectionDto o2) {
@@ -62,7 +65,7 @@ public class JdbcApi {
     };
   }
 
-  private static ConnectionDto connectionToDto(String id, Connection connection) {
+  protected ConnectionDto connectionToDto(String id, Connection connection) {
     Objects.requireNonNull(id);
     
     ConnectionDto dto = new ConnectionDto();
@@ -77,5 +80,309 @@ public class JdbcApi {
     dto.setUser(connection.getUser());
     
     return dto;
+  }
+  
+  public static class ModResponse {
+    /**
+     * {@code Map<modRequestId, modStatus>}
+     */
+    public Map<String, ModStatus> modStatusMap;
+    
+    /**
+     * all modRequests succeeded
+     */
+    public boolean allModSuccess;
+    
+    /**
+     * Optional (only if all modRequests succeeded): list of connections after all modifications performed
+     */
+    public List<ConnectionDto> list;
+  }
+  
+  public ModResponse mod(Environment environment, Map<String, ModRequestBodyDto> modRequestBodyMap) {
+    
+    final ModResponse ret = new ModResponse();
+    
+    final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
+        () -> environment.getContextXmlInputStream(), 
+        () -> environment.getServerXmlInputStream(),
+        isCreateContextResources(environment));
+
+    // collect processed modRequests
+    final Set<String> processedModRequestIds = new HashSet<>();
+    
+    
+    ret.allModSuccess = true; 
+    ret.modStatusMap = new HashMap<>();
+    
+    // 1) perform all updates
+    for (String modRequestId: modRequestBodyMap.keySet()) {
+      ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
+
+      if ("update".equals(mreq.getAction())) {
+        processedModRequestIds.add(modRequestId);
+
+        ModStatus modStatus = updateConnection(mreq, tomcatConf);
+        if (modStatus.code != ModStatus.SC_SUCCESS) {
+          ret.allModSuccess = false;
+        }
+
+        ret.modStatusMap.put(modRequestId, modStatus);
+      }
+    }
+
+
+    // 2) perform all deletions
+    for (String modRequestId: modRequestBodyMap.keySet()) {
+      ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
+
+      if ("delete".equals(mreq.getAction())) {
+        processedModRequestIds.add(modRequestId);
+
+        ModStatus modStatus = deleteConnection(mreq, tomcatConf);
+        if (modStatus.code != ModStatus.SC_SUCCESS) {
+          ret.allModSuccess = false;
+        }
+        
+        ret.modStatusMap.put(modRequestId, modStatus);
+      }
+    }
+
+
+    // 3) perform all creations
+    for (String modRequestId: modRequestBodyMap.keySet()) {
+      ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
+
+      if ("create".equals(mreq.getAction())) {
+        processedModRequestIds.add(modRequestId);
+
+        ModStatus modStatus = createConnection(mreq, tomcatConf, 
+            environment.getResourceInitialParams());
+        if (modStatus.code != ModStatus.SC_SUCCESS) {
+          ret.allModSuccess = false;
+        }
+        
+        ret.modStatusMap.put(modRequestId, modStatus);
+      }
+    }
+
+
+    // 4) ignore illegal actions
+
+    
+    // list after save
+    final List<ConnectionDto> listAfterSave;
+    
+    if (ret.allModSuccess) {
+      // save modifications and add a new _list to the response
+      
+      // because the new connection list needed in response, do a fake save (to a temporary storage) and get after-save connections from there
+      ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
+      ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
+      
+      tomcatConf.save(contextXmlBaos, serverXmlBaos);
+      
+      final TomcatConfJdbc tomcatConfAfterSave = new TomcatConfJdbc(
+          () -> new ByteArrayInputStream(contextXmlBaos.toByteArray()),
+          () -> new ByteArrayInputStream(serverXmlBaos.toByteArray()),
+          isCreateContextResources(environment));
+      
+      listAfterSave = getConnections(tomcatConfAfterSave);
+    } else {
+      
+      listAfterSave = null;
+    }
+    
+    ret.list = listAfterSave;
+    
+    
+    return ret;
+  }
+  
+  protected ModStatus updateConnection(
+      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
+    
+    try {
+      final String id = mreq.getId();
+
+      if (id == null) {
+        return ModStatus.errEmptyId();
+      }
+
+      final Map<String, Connection> connections = tomcatConf.getConnections();
+      final Connection connection = connections.get(id);
+
+      if (connection == null) {
+        return ModStatus.errNoItemFoundById();
+      }
+        
+      final ConnectionDto connectionDto = mreq.getData();
+      
+      
+      // validate name
+      final String name = connectionDto.getName();
+      if (name != null) {
+        int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
+        if (validateNameResult == 1) {
+          return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
+        } else if (validateNameResult == 2) {
+          return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
+        }
+      }
+      
+      
+      return updateFields(connectionDto, connection);
+      
+    } catch (Throwable e) {
+      e.printStackTrace();
+      
+      return ModStatus.errServerException();
+    }
+  }
+  
+  /**
+   * Updates target's fields with source's values
+   * @param sourceDto
+   * @param target non null
+   * @return
+   */
+  protected ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
+    
+    // validate illegal action due to dataModifiable field
+    if (!target.isDataModifiable() && (
+        sourceDto.getActive() != null || sourceDto.getServer() != null 
+        || sourceDto.getDb() != null || sourceDto.getUser() != null
+        || sourceDto.getPassword() != null)) {
+      
+      return ModStatus.errDataNotModifiable();
+    }
+    
+    
+    if (sourceDto.getActive() != null) {
+      target.setActive(sourceDto.getActive());
+    }
+    if (sourceDto.getDb() != null) {
+      target.setDb(sourceDto.getDb());
+    }
+    if (sourceDto.getName() != null) {
+      target.setName(sourceDto.getName());
+    }
+    if (sourceDto.getPassword() != null) {
+      target.setPassword(sourceDto.getPassword());
+    }
+    if (sourceDto.getServer() != null) {
+      target.setServer(sourceDto.getServer());
+    }
+    if (sourceDto.getUser() != null) {
+      target.setUser(sourceDto.getUser());
+    }
+    
+    return ModStatus.success();
+  }
+  
+  protected ModStatus deleteConnection(
+      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
+
+    try {
+      String id = mreq.getId();
+
+      if (id == null) {
+        return ModStatus.errEmptyId();
+      }
+
+
+      Map<String, Connection> connections = tomcatConf.getConnections();
+      Connection connection = connections.get(id);
+
+      if (connection == null) {
+        return ModStatus.errNoItemFoundById();
+      }
+        
+      if (!connection.isDataModifiable()) {
+        return ModStatus.errDataNotModifiable();
+      }
+      
+      tomcatConf.delete(id);
+
+      return ModStatus.success();
+      
+    } catch (Throwable e) {
+      e.printStackTrace();
+      
+      return ModStatus.errServerException();
+    }
+  }
+  
+  protected ModStatus createConnection(
+      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf,
+      ResourceInitialParams initialParams) {
+
+    try {
+      ConnectionDto connectionDto = mreq.getData();
+
+      
+      // validate mandatory fields
+      List<String> emptyMandatoryFields = validateMandatoryFields(connectionDto);
+      if (!emptyMandatoryFields.isEmpty()) {
+        String[] invalidFields = new String[emptyMandatoryFields.size() * 3];
+        int i = 0;
+        for (String fieldName: emptyMandatoryFields) {
+          invalidFields[i++] = fieldName;
+          invalidFields[i++] = "MANDATORY_EMPTY";
+          invalidFields[i++] = null;
+        }
+        return ModStatus.errInvalidFieldData(invalidFields);
+      }
+      
+          
+      // validate name
+      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
+      if (validateNameResult == 1) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
+      } else if (validateNameResult == 2) {
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
+      }
+      
+      
+      final Connection newConnection = tomcatConf.create(connectionDto.getName(), initialParams);
+
+      return updateFields(connectionDto, newConnection);
+      
+    } catch (Throwable e) {
+      e.printStackTrace();
+      
+      return ModStatus.errServerException();
+    }
+  }
+  
+  /**
+   * Validate mandatory fields
+   * @param dto
+   * @return list of field names whose values are empty (but must not be empty), or else empty list
+   */
+  protected List<String> validateMandatoryFields(ConnectionDto dto) {
+    List<String> emptyFields = new ArrayList<>();
+
+    if (empty(dto.getDb())) {
+      emptyFields.add("db");
+    }
+    if (empty(dto.getName())) {
+      emptyFields.add("name");
+    }
+    if (empty(dto.getPassword())) {
+      emptyFields.add("password");
+    }
+    if (empty(dto.getServer())) {
+      emptyFields.add("server");
+    }
+    if (empty(dto.getUser())) {
+      emptyFields.add("user");
+    }
+    
+    return emptyFields;
+  }
+  
+  protected boolean empty(String string) {
+    return string == null || "".equals(string);
   }
 }
