@@ -36,7 +36,7 @@ public class JdbcSsrServlet extends HttpServlet {
         final String tableHtml = table.print();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
         
-        req.getRequestDispatcher("/gui/jdbc/jdbc-ssr-target.jsp").forward(req, resp);
+        req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-ssr-target.jsp").forward(req, resp);
         return;
         
       } catch (Throwable e) {

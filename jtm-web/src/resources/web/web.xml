@@ -51,7 +51,7 @@
     <!-- <jsp-file>/gui/jdbc/jdbc.jsp</jsp-file> -->
    
     <!-- Server-side-rendered GUI -->
-    <jsp-file>/gui/jdbc/jdbc-ssr.jsp</jsp-file>
+    <jsp-file>/gui/jdbc-ssr/jdbc-ssr.jsp</jsp-file>
       
   </servlet>
   <servlet-mapping>

@@ -15,7 +15,7 @@
     <script type="text/javascript" src="gui/table.js"></script>
     
     <link rel="stylesheet" href="gui/jdbc/jdbc.css">
-    <script type="text/javascript" src="gui/jdbc/jdbc.js"></script>
+    <script type="text/javascript" src="gui/jdbc-ssr/jdbc-ssr.js"></script>
     
   </head>
   
