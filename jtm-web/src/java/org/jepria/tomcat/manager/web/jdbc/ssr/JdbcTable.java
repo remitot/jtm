@@ -3,7 +3,6 @@ package org.jepria.tomcat.manager.web.jdbc.ssr;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.web.ssr.table.CheckBox;
 import org.jepria.web.ssr.table.El;
-import org.jepria.web.ssr.table.Label;
 import org.jepria.web.ssr.table.Table;
 
 public class JdbcTable extends Table<ConnectionDto> {
@@ -162,8 +161,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     El row = new El("div");
     row.classList.add("header");
     
-    El cell, div;
-    Label label;
+    El cell, div, label;
     
     // active
     cell = createCell(row, "column-active");// empty cell
@@ -175,23 +173,28 @@ public class JdbcTable extends Table<ConnectionDto> {
     div.classList.add("flexColumns");
     
     cell = createCell(div, "column-name");
-    label = new Label("Название"); // NON-NLS
+    label = new El("label");
+    label.setInnerHTML("Название"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-server");
-    label = new Label("Сервер базы данных"); // NON-NLS
+    label = new El("label");
+    label.setInnerHTML("Сервер базы данных"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-db");
-    label = new Label("Имя базы"); // NON-NLS
+    label = new El("label");
+    label.setInnerHTML("Имя базы"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-user");
-    label = new Label("Пользователь базы"); // NON-NLS
+    label = new El("label");
+    label.setInnerHTML("Пользователь базы"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-password");
-    label = new Label("Пароль к базе"); // NON-NLS
+    label = new El("label");
+    label.setInnerHTML("Пароль к базе"); // NON-NLS
     cell.appendChild(label);
     
     row.appendChild(div);
