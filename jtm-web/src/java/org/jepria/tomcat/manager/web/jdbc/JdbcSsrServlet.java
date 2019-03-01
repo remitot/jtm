@@ -12,6 +12,9 @@ import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.table.Table;
 
+/**
+ * Servlet producing server-side-rendered pages
+ */
 public class JdbcSsrServlet extends HttpServlet {
 
   private static final long serialVersionUID = -2556094883694667549L;
@@ -19,9 +22,9 @@ public class JdbcSsrServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
-    String path = req.getPathInfo();
+    final String path = req.getPathInfo();
     
-    if ("/table".equals(path) || "/table/html".equals(path)) {
+    if (path == null || "".equals(path) || "/".equals(path)) {
       
       try {
         final List<ConnectionDto> connections = new JdbcApi().list(req);
@@ -29,12 +32,10 @@ public class JdbcSsrServlet extends HttpServlet {
         final Table<ConnectionDto> table = new JdbcTable();
         table.load(connections);
         
+        final String tableHtml = table.print();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
         
-        // write response
-        resp.setContentType("text/html; charset=UTF-8");
-        table.print(resp.getWriter());
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.flushBuffer();
+        req.getRequestDispatcher("/gui/jdbc/jdbc-ssr-target.jsp").forward(req, resp);
         return;
         
       } catch (Throwable e) {

@@ -13,29 +13,43 @@ public abstract class Table<T> extends El {
     setAttribute("style", "width: 100%;");
   }
   
-  protected int tabindex; 
+  private TabIndex tabIndex;
+  
+  protected interface TabIndex {
+    int next();
+  }
+  
+  private void resetTabIndex() {
+    tabIndex = new TabIndex() {
+      private int i = 1;
+      @Override
+      public int next() {
+        return i++;
+      }
+    };
+  }
   
   protected boolean isEditable() {
     return true;
   }
   
   public void load(List<T> items) {
-    tabindex = 1;
-    
+    resetTabIndex();
+     
     if (items != null && !items.isEmpty()) {
       
       // TODO here are table CONTENTS only (but better to return the whole table from the root <div class="table">)
       appendChild(createHeader());
       
       for (T item: items) {
-        appendChild(createRow(item));
+        appendChild(createRow(item, tabIndex));
       }
     }
     
     appendChild(createRowButtonCreate());
   }
   
-  protected abstract El createRow(T item);
+  protected abstract El createRow(T item, TabIndex tabIndex);
   
   protected El addField(El cell, String name, String value, String placeholder) {
     El field = createField(name, value, placeholder);
@@ -148,7 +162,7 @@ public abstract class Table<T> extends El {
     return checkbox;
   }
   
-  protected abstract El createRowCreate();
+  protected abstract El createRowCreate(TabIndex tabIndex);
   
   protected abstract El createHeader();
   

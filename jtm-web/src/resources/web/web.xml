@@ -46,7 +46,13 @@
 
   <servlet>
     <servlet-name>JdbcGui</servlet-name>
+    
+    <!-- Client-side-rendered GUI -->
+    <!-- <jsp-file>/gui/jdbc/jdbc.jsp</jsp-file> -->
+   
+    <!-- Server-side-rendered GUI -->
     <jsp-file>/gui/jdbc/jdbc-ssr.jsp</jsp-file>
+      
   </servlet>
   <servlet-mapping>
     <servlet-name>JdbcGui</servlet-name>

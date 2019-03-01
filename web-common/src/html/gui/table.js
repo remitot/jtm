@@ -166,7 +166,6 @@ function recreateTable(jsonItemList, editable) {
   var table = document.getElementById("table");
   table.innerHTML = "";
   
-  // structure:
   if (jsonItemList.length > 0) {
     
     addHeaderFooter();
@@ -184,15 +183,12 @@ function recreateTable(jsonItemList, editable) {
   
   var rowButtonCreate = createRowButtonCreate();
   table.appendChild(rowButtonCreate);
-  // :structure
-  
-  // behavior:
-  addTableScript(table);
-  // :behavior
-  
-  setTableDisabled(!editable);
 
   
+  addTableScript(table);
+  
+  
+  setTableDisabled(!editable);
   // hide control buttons, if any
   var controlButtons = document.querySelectorAll("div.control-buttons")[0];
   if (controlButtons) {

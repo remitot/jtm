@@ -1,4 +1,4 @@
-<%-- Entry point of the JDBC page for the SSR clients --%>
+<%-- Target (output) page for the server-side-rendered GUI --%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <!DOCTYPE html>
 <html>
@@ -19,13 +19,14 @@
     
   </head>
   
-  <body onload="table_reload();jtm_onload();">
+  <body onload="jtm_onload();">
   
     <%@ include file="/gui/page-header.fragment.jsp" %>
     
     <div id="statusBar" class="statusBar statusBar-none"></div>
     
-    <div id="table" style="width:100%"></div>
+    <div id="table-container"><%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml") %></div>
+    <script type="text/javascript">addTableScript(document.getElementById("table-container").firstChild);</script>
     
     <%@ include file="/gui/control-buttons.fragment.html" %>
     

@@ -9,7 +9,7 @@ import org.jepria.web.ssr.table.Table;
 public class JdbcTable extends Table<ConnectionDto> {
   
   @Override
-  protected El createRow(ConnectionDto listItem) {
+  protected El createRow(ConnectionDto listItem, TabIndex tabIndex) {
     final boolean dataModifiable = !Boolean.FALSE.equals(listItem.getDataModifiable());
 
     El row = new El("div");
@@ -29,7 +29,7 @@ public class JdbcTable extends Table<ConnectionDto> {
       checkBox.setEnabled(false);
     } else {
       // TODO bad direct access
-      checkBox.input.setAttribute("tabindex", tabindex++);
+      checkBox.input.setAttribute("tabindex", tabIndex.next());
     }
     
     if (Boolean.FALSE.equals(listItem.getActive())) {
@@ -45,7 +45,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     cell.classList.add("cell-field");
     field = addField(cell, "name", listItem.getName(), null);
     field.setAttribute("value-original", listItem.getName());
-    field.setAttribute("tabindex", tabindex++);
+    field.setAttribute("tabindex", tabIndex.next());
     
     cell = createCell(div, "column-server");
     cell.classList.add("cell-field");
@@ -54,7 +54,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabindex++);
+      field.setAttribute("tabindex", tabIndex.next());
     }
     
     cell = createCell(div, "column-db");
@@ -64,7 +64,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabindex++);
+      field.setAttribute("tabindex", tabIndex.next());
     }
     
     cell = createCell(div, "column-user");
@@ -74,7 +74,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabindex++);
+      field.setAttribute("tabindex", tabIndex.next());
     }
     
     cell = createCell(div, "column-password");
@@ -84,12 +84,12 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabindex++);
+      field.setAttribute("tabindex", tabIndex.next());
     }
     
     if (dataModifiable) {
       El deleteButton = addFieldDelete(cellDelete);
-      deleteButton.setAttribute("tabindex", tabindex++);
+      deleteButton.setAttribute("tabindex", tabIndex.next());
     }
     
     row.appendChild(div);
@@ -104,7 +104,7 @@ public class JdbcTable extends Table<ConnectionDto> {
   }
   
   @Override
-  protected El createRowCreate() {
+  protected El createRowCreate(TabIndex tabIndex) {
     El row = new El("div");
     row.classList.add("row");
     row.classList.add("created");
@@ -127,30 +127,30 @@ public class JdbcTable extends Table<ConnectionDto> {
     cell = createCell(flexColumns, "column-name");
     cell.classList.add("cell-field");
     field = addField(cell, "name", null, "jdbc/MyDataSource");
-    field.setAttribute("tabindex", tabindex++);
+    field.setAttribute("tabindex", tabIndex.next());
    
     cell = createCell(flexColumns, "column-server");
     cell.classList.add("cell-field");
     field = addField(cell, "server", null, "db-server:1521");
-    field.setAttribute("tabindex", tabindex++);
+    field.setAttribute("tabindex", tabIndex.next());
     
     cell = createCell(flexColumns, "column-db");
     cell.classList.add("cell-field");
     field = addField(cell, "db", null, "MYDATABASE");
-    field.setAttribute("tabindex", tabindex++);
+    field.setAttribute("tabindex", tabIndex.next());
     
     cell = createCell(flexColumns, "column-user");
     cell.classList.add("cell-field");
     field = addField(cell, "user", null, "me");
-    field.setAttribute("tabindex", tabindex++);
+    field.setAttribute("tabindex", tabIndex.next());
     
     cell = createCell(flexColumns, "column-password");
     cell.classList.add("cell-field");
     field = addField(cell, "password", null, "mysecret");
-    field.setAttribute("tabindex", tabindex++);
+    field.setAttribute("tabindex", tabIndex.next());
     
     El deleteButton = addFieldDelete(cellDelete);
-    deleteButton.setAttribute("tabindex", tabindex++);
+    deleteButton.setAttribute("tabindex", tabIndex.next());
     
     row.appendChild(flexColumns);
     

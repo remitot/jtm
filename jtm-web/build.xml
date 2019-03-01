@@ -26,7 +26,7 @@
   <!-- Общие наборы файлов -->
   <path id="libs">
   	<pathelement location="${JTM-CORE_LIB}" />
-  	<pathelement location="${JTM-WEB-COMMON_LIB}" />
+  	<pathelement location="${WEB-COMMON_JAR}" />
     <pathelement location="${SERVLET-API_LIB}" />
     <pathelement location="${GSON_LIB}" />
   </path>
@@ -66,8 +66,8 @@
     <outofdate>
       <sourcefiles>
         <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
-      	<fileset file="${JTM-WEB-COMMON_LIB}" />
-      	<fileset file="${WEB-COMMON_LIB}" />
+      	<fileset file="${WEB-COMMON_WAR}" />
+      	<fileset file="${WEB-COMMON_JAR}" />
       	<fileset file="src/html/**/" />
         <fileset file="src/resources/**/" />
       </sourcefiles>
@@ -82,7 +82,7 @@
         
         <copy todir="temp-war/WEB-INF/lib">
         	<fileset file="${JTM-CORE_LIB}" />
-        	<fileset file="${JTM-WEB-COMMON_LIB}" />
+        	<fileset file="${WEB-COMMON_JAR}" />
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
           <fileset file="${GSON_LIB}" />
         </copy>
@@ -91,7 +91,7 @@
           <fileset file="app-conf-default.properties" />
         </copy>
         
-      	<unzip src="${WEB-COMMON_LIB}" dest="temp-war"/>	
+      	<unzip src="${WEB-COMMON_WAR}" dest="temp-war"/>	
       	
         <copy todir="temp-war">
           <fileset file="src/html/**/" />
