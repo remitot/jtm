@@ -2,7 +2,6 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Scanner;
 
 /**
@@ -11,10 +10,11 @@ import java.util.Scanner;
 public class TableCheckBox extends CheckBox {
   public TableCheckBox(boolean active) {
     super(active);
+    classList.add("table__checkbox");
   }
   
   @Override
-  protected void addScript(Collection<String> scripts) throws IOException {
+  protected void addScript(Scripts scripts) throws IOException {
     super.addScript(scripts);
     
     

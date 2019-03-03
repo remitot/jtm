@@ -3,10 +3,10 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -169,8 +169,16 @@ public class El {
    * @throws IOException
    */
   public void printScript(Appendable sb) throws IOException {
-    Set<String> scripts = new HashSet<>();
-    collectScripts(scripts);
+    // LinkedHashSet to maintain (parent,descendant) order of adding scripts
+    // (if super.addScript is invoked first in elements)
+    Set<String> scripts = new LinkedHashSet<>();
+    
+    collectScripts(new Scripts() {
+      @Override
+      public void add(String script) {
+        scripts.add(script);
+      }
+    });
     
     // remove scripts contained in others
     Iterator<String> it = scripts.iterator();
@@ -201,7 +209,7 @@ public class El {
    * @throws IOException 
    */
   // private final: not for overriding or direct invocation
-  private final void collectScripts(Collection<String> scripts) throws IOException {
+  private final void collectScripts(Scripts scripts) throws IOException {
     addScript(scripts);
     for (El child: childs) {
       child.collectScripts(scripts);
@@ -209,13 +217,12 @@ public class El {
   }
   
   /**
-   * Adds a script (none, single or multiple), specific to this element class 
-   * (not for the particular element).
+   * Adds a script (none, single or multiple), specific to this element or elements class 
    * 
    * @param scripts a collection to add a script to, not null
    * @throws IOException
    */
-  protected void addScript(Collection<String> scripts) throws IOException {
+  protected void addScript(Scripts scripts) throws IOException {
   }
   
   /**

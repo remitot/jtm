@@ -16,14 +16,31 @@ function onCheckboxInput(checkbox) {
   }
   
   if (!input.checked) {
-    //TODO resolve the relative path:
+    //TODO resolve the relative path to ".row" :
     checkbox.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
     checkbox.title = "Запись неактивна"; // NON-NLS
   } else {
-    //TODO resolve the relative path:
+    //TODO resolve the relative path to ".row":
     checkbox.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
     checkbox.title = "Запись активна"; // NON-NLS
   }
   
   checkModifications();
 }
+
+(function() {
+  var tableCheckboxes = document.getElementsByClassName("table__checkbox");
+  for (var i = 0; i < tableCheckboxes.length; i++) {
+    var checkbox = tableCheckboxes[i];
+    
+    checkbox.onclick = function(checkbox) {// javascript doesn't use block scope for variables
+      return function(event) {
+        // JS note: the handler is being invoked twice per single click 
+        // (first for onclick:event.target=SPAN, second for onclick:event.target=INPUT)
+        if (event.target.tagName.toLowerCase() == "input") {
+          onCheckboxInput(checkbox);
+        }
+      }
+    }(checkbox);
+  }
+}());

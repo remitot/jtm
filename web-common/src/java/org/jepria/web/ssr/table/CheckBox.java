@@ -2,7 +2,6 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Scanner;
 
 public class CheckBox extends El {
@@ -39,7 +38,7 @@ public class CheckBox extends El {
   }
   
   @Override
-  protected void addScript(Collection<String> scripts) throws IOException {
+  protected void addScript(Scripts scripts) throws IOException {
     super.addScript(scripts);
     
     
