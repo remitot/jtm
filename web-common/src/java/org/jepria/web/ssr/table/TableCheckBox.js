@@ -1,3 +1,4 @@
+// script for the TableCheckBox class
 function onCheckboxInput(checkbox) {
   var input = checkbox.getElementsByTagName("input")[0];
     

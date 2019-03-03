@@ -2,6 +2,7 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Scanner;
 
 public class CheckBox extends El {
@@ -38,7 +39,10 @@ public class CheckBox extends El {
   }
   
   @Override
-  protected String getScript() throws IOException {
+  protected void addScript(Collection<String> scripts) throws IOException {
+    super.addScript(scripts);
+    
+    
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     if (classLoader == null) {
       classLoader = CheckBox.class.getClassLoader(); // fallback
@@ -51,9 +55,8 @@ public class CheckBox extends El {
         Scanner sc = new Scanner(in, "UTF-8")) {
       sc.useDelimiter("\\Z");
       if (sc.hasNext()) {
-        return sc.next();
+        scripts.add(sc.next());
       }
     }
-    return null;
   }
 }

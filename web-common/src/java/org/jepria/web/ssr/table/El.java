@@ -3,6 +3,7 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -169,7 +170,7 @@ public class El {
    */
   public void printScript(Appendable sb) throws IOException {
     Set<String> scripts = new HashSet<>();
-    addScript(scripts);
+    collectScripts(scripts);
     
     // remove scripts contained in others
     Iterator<String> it = scripts.iterator();
@@ -194,6 +195,30 @@ public class El {
   }
   
   /**
+   * Collect all scripts of this element and its children recursively
+   * 
+   * @param scripts a collection to add a script to, not null
+   * @throws IOException 
+   */
+  // private final: not for overriding or direct invocation
+  private final void collectScripts(Collection<String> scripts) throws IOException {
+    addScript(scripts);
+    for (El child: childs) {
+      child.collectScripts(scripts);
+    }
+  }
+  
+  /**
+   * Adds a script (none, single or multiple), specific to this element class 
+   * (not for the particular element).
+   * 
+   * @param scripts a collection to add a script to, not null
+   * @throws IOException
+   */
+  protected void addScript(Collection<String> scripts) throws IOException {
+  }
+  
+  /**
    * Prints all scripts related to this elements and its children recursively
    * @return
    * @throws IOException
@@ -202,28 +227,5 @@ public class El {
     StringBuilder sb = new StringBuilder();
     printScript(sb);
     return sb.toString();
-  }
-  
-  /**
-   * Adds all scripts related to this elements and its children recursively to the set
-   * @param scripts
-   * @throws IOException
-   */
-  protected void addScript(Set<String> scripts) throws IOException {
-    String script = getScript();
-    if (script != null) {
-      scripts.add(script);
-    }
-    for (El child: childs) {
-      child.addScript(scripts);
-    }
-  }
-  
-  /**
-   * @return script related to this element only, or else {@code null}
-   * @throws IOException
-   */
-  protected String getScript() throws IOException {
-    return null;
   }
 }

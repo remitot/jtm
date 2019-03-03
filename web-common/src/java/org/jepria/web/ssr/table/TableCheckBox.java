@@ -2,6 +2,7 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Scanner;
 
 /**
@@ -13,10 +14,10 @@ public class TableCheckBox extends CheckBox {
   }
   
   @Override
-  protected String getScript() throws IOException {
-    final String superScript = super.getScript(); 
+  protected void addScript(Collection<String> scripts) throws IOException {
+    super.addScript(scripts);
     
-    final String script;
+    
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     if (classLoader == null) {
       classLoader = TableCheckBox.class.getClassLoader(); // fallback
@@ -29,12 +30,8 @@ public class TableCheckBox extends CheckBox {
         Scanner sc = new Scanner(in, "UTF-8")) {
       sc.useDelimiter("\\Z");
       if (sc.hasNext()) {
-        script = sc.next();
-      } else {
-        script = null;
+        scripts.add(sc.next());
       }
     }
-    
-    return superScript + "\n\n" + script;
   }
 }
