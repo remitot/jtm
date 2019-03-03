@@ -49,6 +49,11 @@ public abstract class Table<T> extends El {
     appendChild(createRowButtonCreate());
   }
   
+  /**
+   * @param item
+   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
+   * @return
+   */
   protected abstract El createRow(T item, TabIndex tabIndex);
   
   protected El addField(El cell, String name, String value, String placeholder) {
@@ -147,7 +152,7 @@ public abstract class Table<T> extends El {
   }
   
   protected CheckBox addCheckbox(El cell, boolean active, boolean enabled) {
-    CheckBox checkbox = new CheckBox(active);
+    CheckBox checkbox = new TableCheckBox(active);
     
     checkbox.setEnabled(enabled);
     
@@ -162,6 +167,11 @@ public abstract class Table<T> extends El {
     return checkbox;
   }
   
+  /**
+   * 
+   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
+   * @return
+   */
   protected abstract El createRowCreate(TabIndex tabIndex);
   
   protected abstract El createHeader();

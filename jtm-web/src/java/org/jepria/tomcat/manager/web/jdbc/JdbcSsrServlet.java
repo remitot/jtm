@@ -28,14 +28,21 @@ public class JdbcSsrServlet extends HttpServlet {
     if (path == null || "".equals(path) || "/".equals(path)) {
       
       try {
+        // get table html
         final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
         
         final Table<ConnectionDto> table = new JdbcTable();
         table.load(connections);
         
-        final String tableHtml = table.print();
+        final String tableHtml = table.printHtml();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
         
+        
+        // get table script
+        final String tableScript = table.printScript();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript", tableScript);
+        
+        // forward to the target page
         req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-ssr-target.jsp").forward(req, resp);
         return;
         

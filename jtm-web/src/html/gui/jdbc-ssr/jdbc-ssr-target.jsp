@@ -12,10 +12,9 @@
     <link rel="stylesheet" href="gui/table.css">
     <link rel="stylesheet" href="gui/checkbox.css">
     <script type="text/javascript" src="gui/jtm.js"></script>
-    <script type="text/javascript" src="gui/table.js"></script>
     
     <link rel="stylesheet" href="gui/jdbc/jdbc.css">
-    <script type="text/javascript" src="gui/jdbc-ssr/jdbc-ssr.js"></script>
+    <script type="text/javascript" src="gui/jdbc-ssr/table.js"></script>
     
   </head>
   
@@ -25,8 +24,15 @@
     
     <div id="statusBar" class="statusBar statusBar-none"></div>
     
-    <div id="table-container"><%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml") %></div>
-    <script type="text/javascript">addTableScript(document.getElementById("table-container").firstChild);</script>
+    <div id="table-container">
+      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml") %>
+    </div>
+    <script type="text/javascript">
+      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript") %>
+    </script>
+    <script type="text/javascript">
+      addTableScript(document.getElementById("table-container").firstElementChild);
+    </script>
     
     <%@ include file="/gui/control-buttons.fragment.html" %>
     

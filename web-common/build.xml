@@ -22,9 +22,21 @@
   
   
   <target name="jar" depends="java-compile">
-    <jar destfile="${DISTR_DIR}/${DISTR_NAME}.jar">
-      <fileset refid="class-jar" />
-    </jar>
+  	<mkdir dir="temp-jar" />
+  	
+  	<copy todir="temp-jar">
+      <fileset dir="src/java">
+      	<exclude name="**/*.java"/>
+      </fileset>
+    </copy>
+  	
+  	<copy todir="temp-jar">
+  		<fileset refid="class-jar" />
+    </copy>
+  	
+    <jar basedir="temp-jar" destfile="${DISTR_DIR}/${DISTR_NAME}.jar"/>
+  	
+  	<delete dir="temp-jar" failonerror="false"/>
   </target>
 
 
