@@ -14,7 +14,6 @@
     <script type="text/javascript" src="gui/jtm.js"></script>
     
     <link rel="stylesheet" href="gui/jdbc/jdbc.css">
-    <script type="text/javascript" src="gui/jdbc-ssr/table.js"></script>
     
   </head>
   

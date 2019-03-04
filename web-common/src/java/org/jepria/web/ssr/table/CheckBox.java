@@ -46,11 +46,7 @@ public class CheckBox extends El {
     if (classLoader == null) {
       classLoader = CheckBox.class.getClassLoader(); // fallback
     }
-    final String resourceName 
-        = CheckBox.class.getCanonicalName() // org.jepria.web.ssr.table.CheckBox
-        .replaceAll("\\.", "/") + ".js"; // org/jepria/web/ssr/table/CheckBox.js
-    
-    try (InputStream in = classLoader.getResourceAsStream(resourceName);
+    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/checkbox.js");
         Scanner sc = new Scanner(in, "UTF-8")) {
       sc.useDelimiter("\\Z");
       if (sc.hasNext()) {

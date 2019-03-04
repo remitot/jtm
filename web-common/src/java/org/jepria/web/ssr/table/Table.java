@@ -1,7 +1,10 @@
 package org.jepria.web.ssr.table;
 
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Scanner;
 
 public abstract class Table<T> extends El {
   
@@ -38,7 +41,6 @@ public abstract class Table<T> extends El {
      
     if (items != null && !items.isEmpty()) {
       
-      // TODO here are table CONTENTS only (but better to return the whole table from the root <div class="table">)
       appendChild(createHeader());
       
       for (T item: items) {
@@ -50,6 +52,7 @@ public abstract class Table<T> extends El {
   }
   
   /**
+   * Creates a table row representing a single item
    * @param item
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
@@ -151,24 +154,26 @@ public abstract class Table<T> extends El {
     return cell;
   }
   
+  protected boolean hasCheckboxes = false;
+  
   protected CheckBox addCheckbox(El cell, boolean active, boolean enabled) {
-    CheckBox checkbox = new TableCheckBox(active);
+    CheckBox checkbox = new CheckBox(active);
+    checkbox.classList.add("table__checkbox");
     
     checkbox.setEnabled(enabled);
     
     checkbox.classList.add("deletable");
 
     El wrapper = wrapCellPad(checkbox);  
-    
     cell.appendChild(wrapper);
-    
     addStrike(cell);
     
+    hasCheckboxes = true;
     return checkbox;
   }
   
   /**
-   * 
+   * Creates a new (empty) table row for creating a new item
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
    */
@@ -176,9 +181,13 @@ public abstract class Table<T> extends El {
   
   protected abstract El createHeader();
   
+  /**
+   * Creates a table row containing the button "create new row"
+   * @return
+   */
   protected El createRowButtonCreate() {
     El row = new El("div");
-    row.classList.add("row-button-create");
+    row.classList.add("table__row-button-create");
     
     El cell;
     
@@ -196,5 +205,36 @@ public abstract class Table<T> extends El {
     cell.appendChild(wrapper);
     
     return row;
+  }
+  
+  @Override
+  protected void addScript(Scripts scripts) throws IOException {
+    super.addScript(scripts);
+    
+    
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    if (classLoader == null) {
+      classLoader = Table.class.getClassLoader(); // fallback
+    }
+
+    
+    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/table.js");
+        Scanner sc = new Scanner(in, "UTF-8")) {
+      sc.useDelimiter("\\Z");
+      if (sc.hasNext()) {
+        scripts.add(sc.next());
+      }
+    }
+    
+    
+    if (hasCheckboxes) {
+      try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/table__checkbox.js");
+          Scanner sc = new Scanner(in, "UTF-8")) {
+        sc.useDelimiter("\\Z");
+        if (sc.hasNext()) {
+          scripts.add(sc.next());
+        }
+      }
+    }
   }
 }

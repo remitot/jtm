@@ -1,6 +1,4 @@
-// reduced clone of web-common/table.js 
-// TODO stopped here: restore the MINIMAL client functionality
-
+// table.js:
 function addTableScript(table) {
   var fieldsText = table.querySelectorAll("input.field-text");
   for (var i = 0; i < fieldsText.length; i++) {
@@ -9,26 +7,11 @@ function addTableScript(table) {
   
   addFieldsDeleteScript(table);
   
-  var checkboxes = table.querySelectorAll(".checkbox");
-  for (var i = 0; i < checkboxes.length; i++) {
-    var checkbox = checkboxes[i];
-    
-    checkbox.onclick = function(checkbox) {// javascript doesn't use block scope for variables
-      return function(event) {
-        // JS note: the handler is being invoked twice per single click 
-        // (first for onclick:event.target=SPAN, second for onclick:event.target=INPUT)
-        if (event.target.tagName.toLowerCase() == "input") {
-          onCheckboxInput(checkbox);
-        }
-      }
-    }(checkbox);
-  }
-  
   addRowButtonCreateScript(table);
 }
 
-function addRowButtonCreateScript(rowButtonCreate) {
-  var buttonCreate = table.querySelectorAll(".row-button-create__button-create")[0];
+function addRowButtonCreateScript(table) {
+  var buttonCreate = table.querySelectorAll(".table__row-button-create .row-button-create__button-create")[0];
   buttonCreate.onclick = function(event){onButtonCreateClick();};
   addHoverForBigBlackButton(buttonCreate);
 }
@@ -178,3 +161,4 @@ function removeHeaderFooter() {
     }
   }
 }
+// :table.js
