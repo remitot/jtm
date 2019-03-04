@@ -9,12 +9,13 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 public class El {
   
-  public final String tag;
+  public String tagName;
   
   public final Map<String, Optional<String>> attributes = new HashMap<>();
   
@@ -25,23 +26,30 @@ public class El {
   private String innerHTML;
   
   public El(String tag) {
-    this.tag = tag;
+    this.tagName = tag;
+  }
+  
+  public El() {
+    
   }
   
   /**
    * Sets attribute with no value (name only)
    * @param name
+   * @return {@code this}
    */
-  public void setAttribute(String name) {
+  public El setAttribute(String name) {
     attributes.put(name, Optional.empty());
+    return this;
   }
   
   /**
    * 
    * @param name
    * @param value {@code null} removes the attribute
+   * @return {@code this}
    */
-  public void setAttribute(String name, Object value) {
+  public El setAttribute(String name, Object value) {
     if ("class".equals(name)) {
       classList.clear();
       if (value != null) {
@@ -60,24 +68,43 @@ public class El {
     } else {
       setAttributeRegular(name, value);
     }
+    return this;
   }
   
-  private void setAttributeRegular(String name, Object value) {
+  /**
+   * 
+   * @param name
+   * @param value
+   * @return {@code this}
+   */
+  private El setAttributeRegular(String name, Object value) {
     if (value != null) {
       attributes.put(name, Optional.of(String.valueOf(value)));
     } else {
       attributes.remove(name);
     }
+    return this;
   }
 
-  public void appendChild(El child) {
+  /**
+   * 
+   * @param child
+   * @return {@code this}
+   */
+  public El appendChild(El child) {
     childs.add(child);
+    return this;
   }
   
-  public void setInnerHTML(String innerHTML) {
+  /**
+   * @param innerHTML
+   * @return {@code this}
+   */
+  public El setInnerHTML(String innerHTML) {
     this.innerHTML = innerHTML;
     // setting innerHTML destroys the children
     childs.clear();
+    return this;
   }
 
   public String getInnerHTML() {
@@ -102,7 +129,10 @@ public class El {
    */
   // TODO escape HTML
   public void printHtml(Appendable sb) throws IOException {
-    sb.append('<').append(tag);
+    
+    Objects.requireNonNull(tagName);
+    
+    sb.append('<').append(tagName);
     
     if (!classList.isEmpty()) {
       sb.append(' ').append("class=\"");
@@ -147,7 +177,7 @@ public class El {
         }
       }
       
-      sb.append('<').append('/').append(tag).append('>');
+      sb.append('<').append('/').append(tagName).append('>');
     }
     
   }
