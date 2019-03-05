@@ -19,15 +19,19 @@ public abstract class Table<T> extends El {
   private TabIndex tabIndex;
   
   protected interface TabIndex {
-    int next();
+    /**
+     * Assigns the next {@code tabindex} to the element
+     * @param el
+     */
+    void setNext(El el);
   }
   
   private void resetTabIndex() {
     tabIndex = new TabIndex() {
       private int i = 1;
       @Override
-      public int next() {
-        return i++;
+      public void setNext(El el) {
+        el.setAttribute("tabindex", i++);
       }
     };
   }

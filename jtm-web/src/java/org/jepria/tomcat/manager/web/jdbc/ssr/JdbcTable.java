@@ -28,7 +28,7 @@ public class JdbcTable extends Table<ConnectionDto> {
       checkBox.setEnabled(false);
     } else {
       // TODO bad direct access
-      checkBox.input.setAttribute("tabindex", tabIndex.next());
+      tabIndex.setNext(checkBox.input);
     }
     
     if (Boolean.FALSE.equals(listItem.getActive())) {
@@ -44,7 +44,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     cell.classList.add("cell-field");
     field = addField(cell, "name", listItem.getName(), null);
     field.setAttribute("value-original", listItem.getName());
-    field.setAttribute("tabindex", tabIndex.next());
+    tabIndex.setNext(field);
     
     cell = createCell(div, "column-server");
     cell.classList.add("cell-field");
@@ -53,7 +53,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabIndex.next());
+      tabIndex.setNext(field);
     }
     
     cell = createCell(div, "column-db");
@@ -63,7 +63,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabIndex.next());
+      tabIndex.setNext(field);
     }
     
     cell = createCell(div, "column-user");
@@ -73,7 +73,7 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabIndex.next());
+      tabIndex.setNext(field);
     }
     
     cell = createCell(div, "column-password");
@@ -83,12 +83,12 @@ public class JdbcTable extends Table<ConnectionDto> {
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
-      field.setAttribute("tabindex", tabIndex.next());
+      tabIndex.setNext(field);
     }
     
     if (dataModifiable) {
       El deleteButton = addFieldDelete(cellDelete);
-      deleteButton.setAttribute("tabindex", tabIndex.next());
+      tabIndex.setNext(deleteButton);
     }
     
     row.appendChild(div);
@@ -126,30 +126,30 @@ public class JdbcTable extends Table<ConnectionDto> {
     cell = createCell(flexColumns, "column-name");
     cell.classList.add("cell-field");
     field = addField(cell, "name", null, "jdbc/MyDataSource");
-    field.setAttribute("tabindex", tabIndex.next());
+    tabIndex.setNext(field);
    
     cell = createCell(flexColumns, "column-server");
     cell.classList.add("cell-field");
     field = addField(cell, "server", null, "db-server:1521");
-    field.setAttribute("tabindex", tabIndex.next());
+    tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-db");
     cell.classList.add("cell-field");
     field = addField(cell, "db", null, "MYDATABASE");
-    field.setAttribute("tabindex", tabIndex.next());
+    tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-user");
     cell.classList.add("cell-field");
     field = addField(cell, "user", null, "me");
-    field.setAttribute("tabindex", tabIndex.next());
+    tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-password");
     cell.classList.add("cell-field");
     field = addField(cell, "password", null, "mysecret");
-    field.setAttribute("tabindex", tabIndex.next());
+    tabIndex.setNext(field);
     
     El deleteButton = addFieldDelete(cellDelete);
-    deleteButton.setAttribute("tabindex", tabIndex.next());
+    tabIndex.setNext(deleteButton);
     
     row.appendChild(flexColumns);
     
