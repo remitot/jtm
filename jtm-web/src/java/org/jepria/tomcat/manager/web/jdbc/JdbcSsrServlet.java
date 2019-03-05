@@ -11,7 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
-import org.jepria.web.ssr.table.Table;
+import org.jepria.web.ssr.table.El;
+import org.jepria.web.ssr.table.Table.TabIndex;
 
 /**
  * Servlet producing server-side-rendered pages
@@ -31,7 +32,7 @@ public class JdbcSsrServlet extends HttpServlet {
         // table html
         final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
         
-        final Table<ConnectionDto> table = new JdbcTable();
+        final JdbcTable table = new JdbcTable();
         table.load(connections);
         
         final String tableHtml = table.printHtml();
@@ -44,6 +45,19 @@ public class JdbcSsrServlet extends HttpServlet {
         // table style
         final String tableStyle = table.printStyles();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableStyle", tableStyle);
+        
+        // table row-create template
+        final TabIndex rowCreateTabIndex = new TabIndex() {
+          private int i = 0;
+          @Override
+          public void setNext(El el) {
+            el.classList.add("has-tabindex-rel");
+            el.setAttribute("tabindex-rel", i++);
+          }
+        };
+        
+        final String tableRowCreateHtml = table.createRowCreate(rowCreateTabIndex).printHtml();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableRowCreateHtml", tableRowCreateHtml);
         
         // forward to the target page
         req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-ssr-target.jsp").forward(req, resp);

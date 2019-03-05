@@ -11,7 +11,7 @@ function addTableScript(table) {
 }
 
 function addRowButtonCreateScript(table) {
-  var buttonCreate = table.querySelectorAll(".table__row-button-create .row-button-create__button-create")[0];
+  var buttonCreate = table.querySelectorAll(".row-button-create__button-create")[0];
   buttonCreate.onclick = function(event){onButtonCreateClick();};
   addHoverForBigBlackButton(buttonCreate);
 }
@@ -117,8 +117,6 @@ function onDeleteButtonClick(button) {
     // for newly created rows just remove them from table
     row.parentNode.removeChild(row);
     
-    removeHeaderFooter();
-      
   } else if (!row.classList.contains("deleted")) {
     row.classList.add("deleted");
     
@@ -146,19 +144,53 @@ function onDeleteButtonClick(button) {
   checkModifications();
 }
 
-/**
- * Removes header and footer if the table is empty
- */
-function removeHeaderFooter() {
-  var table = document.getElementById("table");
+var createRowId = 1;
+
+function onButtonCreateClick() {
   
-  rows = table.getElementsByClassName("row");
-  if (rows.length == 0) {
-    var tableHeaders = table.getElementsByClassName("header");
-    if (tableHeaders.length != 0) {
-      var header = tableHeaders[0];
-      header.parentNode.removeChild(header);
-    }
+  var table = document.getElementById("table");
+
+  var tableRowCreateTemplate = document.getElementById("table-row-create-template-container").firstElementChild;
+  var rowCreate = tableRowCreateTemplate.cloneNode(true);
+  
+  rowCreate.setAttribute("item-id", "row-create-" + createRowId++);
+  
+  var createRowCreate = table.getElementsByClassName("table__row-button-create")[0];
+  table.insertBefore(rowCreate, createRowCreate);
+  
+  addRowCreateScript(rowCreate);
+  
+  
+  //set 'tabindex' attributes by 'tabindex-rel' attribute
+  var tabIndexAnchor = +table.getAttribute("tabindex-next");
+  var maxTabIndexRel = 0;
+  var hasTabIndexRels = Array.from(rowCreate.getElementsByClassName("has-tabindex-rel"));// element.getElementsByClassName FETCHES the elements 
+  for (var i = 0; i < hasTabIndexRels.length; i++) {
+    var hasTabIndexRel = hasTabIndexRels[i];
+    var tabIndexRel = +hasTabIndexRel.getAttribute("tabindex-rel");
+    maxTabIndexRel = Math.max(maxTabIndexRel, tabIndexRel);
+    hasTabIndexRel.setAttribute("tabindex", tabIndexAnchor + tabIndexRel);
+    
+    // cleanup
+    hasTabIndexRel.removeAttribute("tabindex-rel");
+    hasTabIndexRel.classList.remove("has-tabindex-rel");
   }
+  table.setAttribute("tabindex-next", tabIndexAnchor + maxTabIndexRel + 1);
+  
+  
+  checkModifications();
+}
+
+function addRowCreateScript(rowCreate) {
+  addFieldsDeleteScript(rowCreate);
+  
+  // trigger initial events
+  var fields = rowCreate.querySelectorAll("input.field-text");
+  for (var i = 0; i < fields.length; i++) {
+    onFieldInput(fields[i]);
+  }
+  
+  // focus on the first text input field
+  rowCreate.querySelectorAll(".cell input[type='text']")[0].focus();
 }
 // :table.js

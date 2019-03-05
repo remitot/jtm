@@ -252,7 +252,7 @@ function addTableScript(table) {
   addRowButtonCreateScript(table);
 }
 
-function addRowButtonCreateScript(rowButtonCreate) {
+function addRowButtonCreateScript(table) {
   var buttonCreate = table.querySelectorAll(".row-button-create__button-create")[0];
   buttonCreate.onclick = function(event){onButtonCreateClick();};
   addHoverForBigBlackButton(buttonCreate);

@@ -1,5 +1,4 @@
-/* Common code to draw and manipulate main page tables */
-
+/* table.css: */
 #table {
   margin-top: 15px;
   display: table;
@@ -191,7 +190,4 @@
 #table .field-text.invalid {
   border-color: red;
 }
-
-.table__row-create-template-container {
-  display: none;
-}
+/* :table.css */

@@ -27,7 +27,6 @@ public class JdbcTable extends Table<ConnectionDto> {
       checkBox.classList.add("readonly");
       checkBox.setEnabled(false);
     } else {
-      // TODO bad direct access
       tabIndex.setNext(checkBox.input);
     }
     
@@ -102,8 +101,12 @@ public class JdbcTable extends Table<ConnectionDto> {
     field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
   }
   
-  @Override
-  protected El createRowCreate(TabIndex tabIndex) {
+  /**
+   * Creates a new (empty) table row for creating a new item
+   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
+   * @return
+   */
+  public El createRowCreate(TabIndex tabIndex) {
     El row = new El("div");
     row.classList.add("row");
     row.classList.add("created");

@@ -8,6 +8,16 @@ import java.util.Scanner;
 
 public abstract class Table<T> extends El {
   
+  private int tabIndexValue;
+  
+  public static interface TabIndex {
+    /**
+     * Assigns the next {@code tabindex} to the element
+     * @param el
+     */
+    void setNext(El el);
+  }
+  
   public Table() {
     super("div");
     
@@ -16,32 +26,24 @@ public abstract class Table<T> extends El {
     setAttribute("style", "width: 100%;");
   }
   
-  private TabIndex tabIndex;
-  
-  protected interface TabIndex {
-    /**
-     * Assigns the next {@code tabindex} to the element
-     * @param el
-     */
-    void setNext(El el);
-  }
-  
-  private void resetTabIndex() {
-    tabIndex = new TabIndex() {
-      private int i = 1;
-      @Override
-      public void setNext(El el) {
-        el.setAttribute("tabindex", i++);
-      }
-    };
-  }
-  
   protected boolean isEditable() {
     return true;
   }
   
+  /**
+   * 
+   * @param items
+   * @param nextTabIndexOutref reference to store the next proper {@code tabindex} value after load
+   */
   public void load(List<T> items) {
-    resetTabIndex();
+    tabIndexValue = 1;
+    
+    TabIndex tabIndex = new TabIndex() {
+      @Override
+      public void setNext(El el) {
+        el.setAttribute("tabindex", tabIndexValue++);
+      }
+    };
      
     if (items != null && !items.isEmpty()) {
       
@@ -53,18 +55,8 @@ public abstract class Table<T> extends El {
     }
     
     appendChild(createRowButtonCreate());
-    
-    El rowCreateTemplateContainer = new El("div");
-    rowCreateTemplateContainer.classList.add("table__row-create-template-container");
-    TabIndex createRowTabIndex = new TabIndex() {
-      private int i = 0;
-      @Override
-      public void setNext(El el) {
-        el.setAttribute("tabindex-rel", i++);
-      }
-    };
-    rowCreateTemplateContainer.appendChild(createRowCreate(createRowTabIndex));
-    appendChild(rowCreateTemplateContainer);
+
+    setAttribute("tabindex-next", tabIndexValue);
   }
   
   /**
@@ -188,13 +180,6 @@ public abstract class Table<T> extends El {
     return checkbox;
   }
   
-  /**
-   * Creates a new (empty) table row for creating a new item
-   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
-   * @return
-   */
-  protected abstract El createRowCreate(TabIndex tabIndex);
-  
   protected abstract El createHeader();
   
   /**
@@ -215,6 +200,7 @@ public abstract class Table<T> extends El {
     buttonCreate.classList.add("row-button-create__button-create");
     buttonCreate.classList.add("big-black-button");
     buttonCreate.setInnerHTML("НОВАЯ ЗАПИСЬ"); // NON-NLS
+    // the tabindex for this button is being set in script
     
     El wrapper = wrapCellPad(buttonCreate);
     
