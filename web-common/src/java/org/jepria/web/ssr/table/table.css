@@ -50,15 +50,6 @@
   margin-left: 8px;
 }
 
-#table div.cell.column-button-create {
-  width: 212px;
-}
-
-/* the same height as row inputs have */
-#table div.cell.column-button-create .big-black-button {
-  height: 28px;
-}
-
 #table .cell-pad-left {
   width: 6px;
   height: 6px;

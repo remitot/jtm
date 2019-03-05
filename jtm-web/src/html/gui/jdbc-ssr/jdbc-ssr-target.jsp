@@ -16,7 +16,7 @@
     
   </head>
   
-  <body onload="jtm_onload();">
+  <body onload="jtm_onload();table_onload();controlButtons_onload();">
   
     <%@ include file="/gui/page-header.fragment.jsp" %>
     
@@ -34,12 +34,8 @@
     <script type="text/javascript">
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsScript") %>
     </script>
-    <%-- Table's script comes after ContronButton's script --%>
     <script type="text/javascript">
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript") %>
-    </script>
-    <script type="text/javascript">
-      addTableScript(document.getElementById("table-container").firstElementChild);
     </script>
     
     <%@ include file="/gui/login.fragment.html" %>    
@@ -47,6 +43,5 @@
     <style type="text/css">
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableStyle") %>
     </style>
-    
   </body>
 </html>

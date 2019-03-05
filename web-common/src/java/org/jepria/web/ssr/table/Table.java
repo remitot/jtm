@@ -62,8 +62,6 @@ public abstract class Table<T> extends El {
       }
     }
     
-    appendChild(createRowButtonCreate());
-
     setAttribute("tabindex-next", tabIndexValue);
   }
   
@@ -199,33 +197,6 @@ public abstract class Table<T> extends El {
   }
   
   protected abstract El createHeader();
-  
-  /**
-   * Creates a table row containing the button "create new row"
-   * @return
-   */
-  protected El createRowButtonCreate() {
-    El row = new El("div");
-    row.classList.add("table__row-button-create");
-    
-    El cell;
-    
-    // active
-    cell = createCell(row, "column-button-create");
-    cell.classList.add("column-left");
-    
-    El buttonCreate = new El("button");
-    buttonCreate.classList.add("row-button-create__button-create");
-    buttonCreate.classList.add("big-black-button");
-    buttonCreate.setInnerHTML("НОВАЯ ЗАПИСЬ"); // NON-NLS
-    // the tabindex for this button is being set in script
-    
-    El wrapper = wrapCellPad(buttonCreate);
-    
-    cell.appendChild(wrapper);
-    
-    return row;
-  }
   
   @Override
   protected void addScripts(Collection scripts) throws IOException {

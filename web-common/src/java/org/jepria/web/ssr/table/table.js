@@ -1,7 +1,7 @@
 // table.js:
-checkModifications();
-
-function addTableScript(table) {
+function table_onload() {
+  var table = document.getElementById("table-container").firstElementChild;
+  
   var fieldsText = table.querySelectorAll("input.field-text");
   for (var i = 0; i < fieldsText.length; i++) {
     fieldsText[i].oninput = function(event){onFieldInput(event.target)};
@@ -9,13 +9,7 @@ function addTableScript(table) {
   
   addFieldsDeleteScript(table);
   
-  addRowButtonCreateScript(table);
-}
-
-function addRowButtonCreateScript(table) {
-  var buttonCreate = table.querySelectorAll(".row-button-create__button-create")[0];
-  buttonCreate.onclick = function(event){onButtonCreateClick();};
-  addHoverForBigBlackButton(buttonCreate);
+  checkModifications(); // initial
 }
 
 function onFieldInput(field) {
@@ -51,7 +45,7 @@ function checkModifications() {
       - document.querySelectorAll(".row.created.deleted .modified").length
       + document.getElementsByClassName("row deleted").length;
   
-  setControlButtonsEnabled(totalModifications > 0);
+  setSaveButtonEnabled(totalModifications > 0);
 }
 
 function addFieldsDeleteScript(composite) {
@@ -107,8 +101,7 @@ function onButtonCreateClick() {
   
   rowCreate.setAttribute("item-id", "row-create-" + createRowId++);
   
-  var createRowCreate = table.getElementsByClassName("table__row-button-create")[0];
-  table.insertBefore(rowCreate, createRowCreate);
+  table.appendChild(rowCreate);
   
   addRowCreateScript(rowCreate);
   
@@ -129,8 +122,13 @@ function onButtonCreateClick() {
   }
   table.setAttribute("tabindex-next", tabIndexAnchor + maxTabIndexRel + 1);
   
+  // TODO set proper tabindexes for control buttons
   
   checkModifications();
+}
+
+function onButtonSaveClick() {
+	alert("save");
 }
 
 function addRowCreateScript(rowCreate) {
@@ -144,5 +142,8 @@ function addRowCreateScript(rowCreate) {
   
   // focus on the first text input field
   rowCreate.querySelectorAll(".cell input[type='text']")[0].focus();
+  
+  // scroll to the created row (bottom)
+  window.scrollTo(0, document.body.scrollHeight);
 }
 // :table.js

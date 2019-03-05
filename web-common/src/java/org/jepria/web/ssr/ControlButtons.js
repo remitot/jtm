@@ -1,5 +1,5 @@
 // ControlButtons.js:
-function setControlButtonsEnabled(enabled) {
+function setSaveButtonEnabled(enabled) {
   var saveButton = document.getElementsByClassName("control-button_save")[0];
   if (enabled) {
     saveButton.disabled = false;
@@ -26,4 +26,11 @@ function adjustBottomShadow() {
 }
 
 window.onscroll = adjustBottomShadow;
+
+function controlButtons_onload() {
+  var controlButtons = document.getElementsByClassName("control-buttons")[0];
+  
+  controlButtons.getElementsByClassName("control-button_create")[0].onclick = onButtonCreateClick; // TODO reference to function from Table.js
+  controlButtons.getElementsByClassName("control-button_save")[0].onclick = onButtonSaveClick; // TODO reference to function from Table.js
+}
 // :ControlButtons.js

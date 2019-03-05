@@ -8,20 +8,26 @@ import org.jepria.web.ssr.table.Collection;
 
 public class ControlButtons extends El {
   
+  public final El buttonCreate;
   public final El buttonSave;
   
   public ControlButtons() {
     super("div");
     classList.add("control-buttons");
     
+    buttonCreate = new El("button")
+        .addClass("control-button")
+        .addClass("control-button_create")
+        .addClass("big-black-button")
+        .setInnerHTML("НОВАЯ ЗАПИСЬ"); // NON-NLS
+    
     buttonSave = new El("button")
-        .setAttribute("onclick", "onSaveButtonClick()")
         .addClass("control-button")
         .addClass("control-button_save")
         .addClass("big-black-button")
-        .setAttribute("disabled") // initial
         .setInnerHTML("СОХРАНИТЬ ВСЁ"); // NON-NLS
     
+    appendChild(buttonCreate);
     appendChild(buttonSave);
   }
   
