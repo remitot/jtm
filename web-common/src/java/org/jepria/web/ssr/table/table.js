@@ -34,32 +34,11 @@ function onFieldValueChanged(field, newValue) {
   }
   
   // clear field 'invalid' state
-  uiOnFieldValidate(field, true, null);
   field.classList.remove("invalid");
   
   checkModifications();
 }
 
-/**
- * @param field
- * @param fieldValid
- * @param invalidMessage message to display if the field is invalid (currently the input's title)
- * @returns
- */
-function uiOnFieldValidate(field, fieldValid, invalidMessage) {
-  if (!fieldValid) {
-    
-    field.classList.add("invalid");
-    if (invalidMessage) {
-      field.setAttribute("title", invalidMessage);
-    } else {
-      field.removeAttribute("title");
-    }
-  } else {
-    field.classList.remove("invalid");
-    field.removeAttribute("title");
-  }
-}
 
 /**
  * Checks for any user modifications throughout the table
@@ -75,23 +54,6 @@ function checkModifications() {
   // graphics:
   adjustBottomShadow();
 }
-
-// TODO the function affects the control buttons only. 
-// Better to move into control-buttons.fragment script?
-function adjustBottomShadow() {
-  var controlButtons = document.getElementsByClassName("control-buttons")[0];
-  
-  if (controlButtons != null) {
-    if (document.getElementById("table").getBoundingClientRect().bottom <= 
-      controlButtons.getBoundingClientRect().top) {
-      controlButtons.classList.remove("bottom-shadow");
-    } else {
-      controlButtons.classList.add("bottom-shadow");
-    }
-  }
-}
-
-window.onscroll = adjustBottomShadow;
 
 /**
  * Sets enability of control buttons (which depend on the table elements modification status)
@@ -193,4 +155,22 @@ function addRowCreateScript(rowCreate) {
   // focus on the first text input field
   rowCreate.querySelectorAll(".cell input[type='text']")[0].focus();
 }
+
+
+// TODO the function affects the control buttons only. 
+// Better to move into control-buttons.fragment script?
+function adjustBottomShadow() {
+  var controlButtons = document.getElementsByClassName("control-buttons")[0];
+  
+  if (controlButtons != null) {
+    if (document.getElementById("table").getBoundingClientRect().bottom <= 
+      controlButtons.getBoundingClientRect().top) {
+      controlButtons.classList.remove("bottom-shadow");
+    } else {
+      controlButtons.classList.add("bottom-shadow");
+    }
+  }
+}
+
+window.onscroll = adjustBottomShadow;
 // :table.js

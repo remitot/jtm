@@ -31,12 +31,18 @@ public abstract class Table<T> extends El {
   }
   
   /**
+   * Clear the table and load new items 
+   * (these items will be treated as 'original' against the overlaying provided by {@link #overlay(List)})
    * 
    * @param items
    * @param nextTabIndexOutref reference to store the next proper {@code tabindex} value after load
    */
   public void load(List<T> items) {
+    
+    // reset
+    childs.clear();
     tabIndexValue = 1;
+    
     
     TabIndex tabIndex = new TabIndex() {
       @Override
@@ -57,6 +63,16 @@ public abstract class Table<T> extends El {
     appendChild(createRowButtonCreate());
 
     setAttribute("tabindex-next", tabIndexValue);
+  }
+  
+  /**
+   * Overlay the 'original' items provided by {@link #load(List)} with the new values, 
+   * so that the table data becomes modified
+   * 
+   * @param items
+   */
+  public void overlay(List<T> items) { 
+    
   }
   
   /**
