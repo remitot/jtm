@@ -9,7 +9,6 @@
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
     
     <link rel="stylesheet" href="gui/jtm.css">
-    <link rel="stylesheet" href="gui/table.css">
     <link rel="stylesheet" href="gui/checkbox.css">
     <script type="text/javascript" src="gui/jtm.js"></script>
     
@@ -36,6 +35,10 @@
     <%@ include file="/gui/control-buttons.fragment.html" %>
     
     <%@ include file="/gui/login.fragment.html" %>    
+    
+    <style type="text/css">
+      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableStyle") %>
+    </style>
     
   </body>
 </html>

@@ -38,8 +38,8 @@ public class CheckBox extends El {
   }
   
   @Override
-  protected void addScript(Scripts scripts) throws IOException {
-    super.addScript(scripts);
+  protected void addScripts(Collection scripts) throws IOException {
+    super.addScripts(scripts);
     
     
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();

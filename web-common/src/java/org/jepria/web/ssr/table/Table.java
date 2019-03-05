@@ -53,6 +53,18 @@ public abstract class Table<T> extends El {
     }
     
     appendChild(createRowButtonCreate());
+    
+    El rowCreateTemplateContainer = new El("div");
+    rowCreateTemplateContainer.classList.add("table__row-create-template-container");
+    TabIndex createRowTabIndex = new TabIndex() {
+      private int i = 0;
+      @Override
+      public void setNext(El el) {
+        el.setAttribute("tabindex-rel", i++);
+      }
+    };
+    rowCreateTemplateContainer.appendChild(createRowCreate(createRowTabIndex));
+    appendChild(rowCreateTemplateContainer);
   }
   
   /**
@@ -212,8 +224,8 @@ public abstract class Table<T> extends El {
   }
   
   @Override
-  protected void addScript(Scripts scripts) throws IOException {
-    super.addScript(scripts);
+  protected void addScripts(Collection scripts) throws IOException {
+    super.addScripts(scripts);
     
     
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -238,6 +250,26 @@ public abstract class Table<T> extends El {
         if (sc.hasNext()) {
           scripts.add(sc.next());
         }
+      }
+    }
+  }
+  
+  @Override
+  protected void addStyles(Collection styles) throws IOException {
+    super.addStyles(styles);
+    
+    
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    if (classLoader == null) {
+      classLoader = Table.class.getClassLoader(); // fallback
+    }
+
+    
+    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/table.css");
+        Scanner sc = new Scanner(in, "UTF-8")) {
+      sc.useDelimiter("\\Z");
+      if (sc.hasNext()) {
+        styles.add(sc.next());
       }
     }
   }

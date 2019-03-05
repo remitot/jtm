@@ -198,24 +198,24 @@ public class El {
    * @param sb
    * @throws IOException
    */
-  public void printScript(Appendable sb) throws IOException {
-    // LinkedHashSet to maintain (parent,descendant) order of adding scripts
+  public void printScripts(Appendable sb) throws IOException {
+    // LinkedHashSet to maintain (parent,descendant) order of adding
     // (if super.addScript is invoked first in elements)
     Set<String> scripts = new LinkedHashSet<>();
     
-    collectScripts(new Scripts() {
+    collectScripts(new Collection() {
       @Override
       public void add(String script) {
         scripts.add(script);
       }
     });
     
-    // remove scripts contained in others
+    // remove items contained in others
     Iterator<String> it = scripts.iterator();
     while (it.hasNext()) {
       String script = it.next();
-      if (scripts.stream().anyMatch(anotherScript -> 
-          anotherScript != script && anotherScript.contains(script))) {
+      if (scripts.stream().anyMatch(anotherItem -> 
+          anotherItem != script && anotherItem.contains(script))) {
         it.remove();
       }
     }
@@ -239,8 +239,8 @@ public class El {
    * @throws IOException 
    */
   // private final: not for overriding or direct invocation
-  private final void collectScripts(Scripts scripts) throws IOException {
-    addScript(scripts);
+  private final void collectScripts(Collection scripts) throws IOException {
+    addScripts(scripts);
     for (El child: childs) {
       child.collectScripts(scripts);
     }
@@ -252,7 +252,7 @@ public class El {
    * @param scripts a collection to add a script to, not null
    * @throws IOException
    */
-  protected void addScript(Scripts scripts) throws IOException {
+  protected void addScripts(Collection scripts) throws IOException {
   }
   
   /**
@@ -260,9 +260,82 @@ public class El {
    * @return
    * @throws IOException
    */
-  public String printScript() throws IOException {
+  public String printScripts() throws IOException {
     StringBuilder sb = new StringBuilder();
-    printScript(sb);
+    printScripts(sb);
+    return sb.toString();
+  }
+  
+  /**
+   * Prints all styles related to this elements and its children recursively
+   * @param sb
+   * @throws IOException
+   */
+  public void printStyles(Appendable sb) throws IOException {
+    // LinkedHashSet to maintain (parent,descendant) order of adding
+    // (if super.addScript is invoked first in elements)
+    Set<String> styles = new LinkedHashSet<>();
+    
+    collectStyles(new Collection() {
+      @Override
+      public void add(String item) {
+        styles.add(item);
+      }
+    });
+    
+    // remove items contained in others
+    Iterator<String> it = styles.iterator();
+    while (it.hasNext()) {
+      String style = it.next();
+      if (styles.stream().anyMatch(anotherItem -> 
+          anotherItem != style && anotherItem.contains(style))) {
+        it.remove();
+      }
+    }
+    
+    // print
+    boolean first = true;
+    for (String style: styles) {
+      if (!first) {
+        sb.append("\n\n\n");// TODO replace with os-dependent newline
+      } else {
+        first = false;
+      }
+      sb.append(style);
+    }
+  }
+  
+  /**
+   * Collect all styles of this element and its children recursively
+   * 
+   * @param styles a collection to add a style to, not null
+   * @throws IOException 
+   */
+  // private final: not for overriding or direct invocation
+  private final void collectStyles(Collection styles) throws IOException {
+    addStyles(styles);
+    for (El child: childs) {
+      child.collectStyles(styles);
+    }
+  }
+  
+  /**
+   * Adds a style (none, single or multiple), specific to this element or elements class 
+   * 
+   * @param styles a collection to add a style to, not null
+   * @throws IOException
+   */
+  protected void addStyles(Collection styles) throws IOException {
+  }
+  
+  /**
+   * Prints all styles related to this elements and its children recursively
+   * @return
+   * @throws IOException
+   */
+  public String printStyles() throws IOException {
+    StringBuilder sb = new StringBuilder();
+    printStyles(sb);
     return sb.toString();
   }
 }
