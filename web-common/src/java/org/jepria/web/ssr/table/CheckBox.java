@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
+import org.jepria.web.ssr.El;
+
 public class CheckBox extends El {
   
   public final El input;

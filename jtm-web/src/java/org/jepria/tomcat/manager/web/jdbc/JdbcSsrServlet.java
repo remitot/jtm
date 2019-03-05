@@ -11,7 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
-import org.jepria.web.ssr.table.El;
+import org.jepria.web.ssr.ControlButtons;
+import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.Table.TabIndex;
 
 /**
@@ -55,9 +56,18 @@ public class JdbcSsrServlet extends HttpServlet {
             el.setAttribute("tabindex-rel", i++);
           }
         };
-        
         final String tableRowCreateHtml = table.createRowCreate(rowCreateTabIndex).printHtml();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableRowCreateHtml", tableRowCreateHtml);
+        
+        // control buttons
+        ControlButtons controlButtons = new ControlButtons();
+        
+        final String controlButtonsHtml = controlButtons.printHtml();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsHtml", controlButtonsHtml);
+        
+        final String controlButtonsScript = controlButtons.printScripts();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsScript", controlButtonsScript);
+        
         
         // forward to the target page
         req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-ssr-target.jsp").forward(req, resp);

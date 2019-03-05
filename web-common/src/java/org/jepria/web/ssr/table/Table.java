@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Scanner;
 
+import org.jepria.web.ssr.El;
+
 public abstract class Table<T> extends El {
   
   private int tabIndexValue;

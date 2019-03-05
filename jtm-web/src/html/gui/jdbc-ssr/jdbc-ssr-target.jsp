@@ -25,18 +25,22 @@
     <div id="table-container">
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml") %>
     </div>
+    
+    <div id="table-row-create-template-container" style="display: none;">
+      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableRowCreateHtml") %>
+    </div>
+    
+    <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsHtml") %>
+    <script type="text/javascript">
+      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsScript") %>
+    </script>
+    <%-- Table's script comes after ContronButton's script --%>
     <script type="text/javascript">
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript") %>
     </script>
     <script type="text/javascript">
       addTableScript(document.getElementById("table-container").firstElementChild);
     </script>
-    
-    <div id="table-row-create-template-container" style="display: none;">
-      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableRowCreateHtml") %>
-    </div>
-    
-    <%@ include file="/gui/control-buttons.fragment.html" %>
     
     <%@ include file="/gui/login.fragment.html" %>    
     

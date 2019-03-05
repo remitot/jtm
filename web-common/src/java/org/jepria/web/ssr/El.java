@@ -1,10 +1,9 @@
-package org.jepria.web.ssr.table;
+package org.jepria.web.ssr;
 
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -12,6 +11,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import org.jepria.web.ssr.table.Collection;
 
 public class El {
   
@@ -21,7 +22,7 @@ public class El {
   
   public final List<El> childs = new ArrayList<>();
   
-  public final Set<String> classList = new HashSet<>();
+  public final Set<String> classList = new LinkedHashSet<String>();
   
   private String innerHTML;
   
@@ -31,6 +32,16 @@ public class El {
   
   public El() {
     
+  }
+  
+  /**
+   * 
+   * @param className
+   * @return {@code this}
+   */
+  public El addClass(String className) {
+    classList.add(className);
+    return this;
   }
   
   /**

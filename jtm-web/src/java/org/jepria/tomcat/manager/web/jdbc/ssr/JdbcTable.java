@@ -1,8 +1,8 @@
 package org.jepria.tomcat.manager.web.jdbc.ssr;
 
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;
-import org.jepria.web.ssr.table.El;
 import org.jepria.web.ssr.table.Table;
 
 public class JdbcTable extends Table<ConnectionDto> {

@@ -1,4 +1,6 @@
 // table.js:
+checkModifications();
+
 function addTableScript(table) {
   var fieldsText = table.querySelectorAll("input.field-text");
   for (var i = 0; i < fieldsText.length; i++) {
@@ -50,19 +52,7 @@ function checkModifications() {
       + document.getElementsByClassName("row deleted").length;
   
   setControlButtonsEnabled(totalModifications > 0);
-  
-  // graphics:
-  adjustBottomShadow();
 }
-
-/**
- * Sets enability of control buttons (which depend on the table elements modification status)
- */
-function setControlButtonsEnabled(enabled) {
-  // the function affects the control buttons only, so it is overridden in control-buttons.fragment script
-  return null;
-}
-
 
 function addFieldsDeleteScript(composite) {
   var fieldsDelete = composite.querySelectorAll("input.field-delete");
@@ -155,22 +145,4 @@ function addRowCreateScript(rowCreate) {
   // focus on the first text input field
   rowCreate.querySelectorAll(".cell input[type='text']")[0].focus();
 }
-
-
-// TODO the function affects the control buttons only. 
-// Better to move into control-buttons.fragment script?
-function adjustBottomShadow() {
-  var controlButtons = document.getElementsByClassName("control-buttons")[0];
-  
-  if (controlButtons != null) {
-    if (document.getElementById("table").getBoundingClientRect().bottom <= 
-      controlButtons.getBoundingClientRect().top) {
-      controlButtons.classList.remove("bottom-shadow");
-    } else {
-      controlButtons.classList.add("bottom-shadow");
-    }
-  }
-}
-
-window.onscroll = adjustBottomShadow;
 // :table.js
