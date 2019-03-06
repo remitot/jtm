@@ -12,5 +12,9 @@ public class Dto {
 
   public final void setId(String id) {
     this.id = id;
-  }  
+  }
+  
+  public void overlay(Dto another) {
+    throw new UnsupportedOperationException("The method must be overridden by the applicational Dto classes");
+  }
 }

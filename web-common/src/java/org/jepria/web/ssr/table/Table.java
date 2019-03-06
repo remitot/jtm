@@ -3,8 +3,12 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.jepria.web.Dto;
 import org.jepria.web.ssr.El;
@@ -35,44 +39,130 @@ public abstract class Table<T extends Dto> extends El {
   
   /**
    * Clear the table and load new items 
-   * (these items will be treated as 'original' against the overlaying provided by {@link #overlay(List)})
    * 
-   * @param items
-   * @param nextTabIndexOutref reference to store the next proper {@code tabindex} value after load
+   * @param items the 'original' items
+   * @param itemsOverlay optional items to overlay 'original' items with (by {@link Dto#id}) 
+   * to render {@code .created} or {@code .modified} table rows, may be null
+   * @param itemsDeletedIds optional item ids (refs to {@link Dto#id}) to render {@code .deleted} table rows, may be null
    */
-  public void load(List<T> items) {
+  public void load(List<T> items, List<T> itemsOverlay, Set<String> itemsDeletedIds) {
     
     // reset
     childs.clear();
     tabIndexValue = 1;
     
     
-    TabIndex tabIndex = new TabIndex() {
+    final TabIndex tabIndex = new TabIndex() {
       @Override
       public void setNext(El el) {
         el.setAttribute("tabindex", tabIndexValue++);
       }
     };
-     
-    if (items != null && !items.isEmpty()) {
-      
-      appendChild(createHeader());
-      
-      for (T item: items) {
-        appendChild(createRow(item, tabIndex));
+    
+    
+    // Map<Dto.id, Dto>
+    final Map<String, T> itemsModified = new HashMap<>();
+    final List<T> itemsCreated = new ArrayList<>();
+    if (itemsOverlay != null) {
+      for (T item: itemsOverlay) {
+        String id = item.getId(); 
+        if (id != null) {
+          itemsModified.put(id, item);
+        } else {
+          // TODO safe to treat every non-id dto as created?
+          itemsCreated.add(item);
+        }
       }
+    }
+    
+    
+    appendChild(createHeader());
+    
+    if (items != null) {
+      for (T item: items) {
+        final El row;
+        final String itemId = item.getId();
+        if (itemsDeletedIds != null && itemsDeletedIds.contains(itemId)) {
+          row = createRowDeletedInternal(item, tabIndex);
+        } else {
+          final T itemModified = itemsModified.get(itemId);
+          if (itemModified != null) {
+            row = createRowModifiedInternal(item, itemModified, tabIndex);
+          } else {
+            row = createRowInternal(item, tabIndex);
+          }
+        }
+        appendChild(row);
+      }
+    }
+    for (T item: itemsCreated) {
+      appendChild(createRowCreated(item, tabIndex));
     }
     
     setAttribute("tabindex-next", tabIndexValue);
   }
   
+  private El createRowInternal(T item, TabIndex tabIndex) {
+    El row = createRow(item, tabIndex);
+    row.setAttribute("item-id", item.getId());
+    return row;
+  }
+  
+  private El createRowDeletedInternal(T item, TabIndex tabIndex) {
+    El row = createRowDeleted(item, tabIndex);
+    row.setAttribute("item-id", item.getId());
+    return row;
+  }
+  
+  private El createRowModifiedInternal(T itemOriginal, T item, TabIndex tabIndex) {
+    El row = createRowModified(itemOriginal, item, tabIndex);
+    row.setAttribute("item-id", item.getId());
+    return row;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /**
-   * Creates a table row representing a single item
-   * @param item
+   * Creates a table row (in its original: non-modified, non-deleted state) representing a single item
+   * @param item data from the server, non-null
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
    */
-  protected abstract El createRow(T item, TabIndex tabIndex);
+  public abstract El createRow(T item, TabIndex tabIndex);
+  
+  /**
+   * Creates a table row (in created state) representing a single item, that has not been saved to the server yet,
+   * but having a UI table row created for saving
+   * @param item optional data from the UI to fill the created table row with, may be null
+   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
+   * @return
+   */
+  public abstract El createRowCreated(T item, TabIndex tabIndex);
+  
+  /**
+   * Creates a table row (in deleted state) representing a single item, that is still present on the server,
+   * and having the corresponding UI table row deleted
+   * @param item data from the server, non-null
+   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
+   * @return
+   */
+  public abstract El createRowDeleted(T item, TabIndex tabIndex);
+  
+  /**
+   * Creates a table row (in modified state) representing a single item, that is both present on the server,
+   * and having the corresponding UI table row data modified
+   * @param itemOriginal original data from the server, non-null
+   * @param item optional data from the UI to overlay the original data with, may be null
+   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
+   * @return
+   */
+  public abstract El createRowModified(T itemOriginal, T item, TabIndex tabIndex);
   
   protected El addField(El cell, String name, String value, String placeholder) {
     El field = createField(name, value, placeholder);
@@ -146,19 +236,33 @@ public abstract class Table<T extends Dto> extends El {
     return wrapper;
   }
   
-  protected El addFieldDelete(El cell) {
+  protected void addFieldDelete(El cell, TabIndex tabIndex) {
 
-    El button = new El("input");
-    button.classList.add("field-delete");
+    El field = new El("div");
     
-    button.setAttribute("type", "image");
-    button.setAttribute("src", "gui/img/delete.png");
-    button.setAttribute("title", "Удалить"); // NON-NLS
+    El buttonDelete = new El("input");
+    buttonDelete.classList.add("button-delete");
+    buttonDelete.classList.add("button-delete_delete");
+    buttonDelete.setAttribute("type", "image");
+    buttonDelete.setAttribute("src", "gui/img/delete.png");
+    buttonDelete.setAttribute("title", "Удалить"); // NON-NLS
+    tabIndex.setNext(buttonDelete);
     
-    El wrapper = wrapCellPad(button);  
+    El buttonUndelete = new El("input");
+    buttonUndelete.classList.add("button-delete");
+    buttonUndelete.classList.add("button-delete_undelete");
+    buttonUndelete.setAttribute("type", "image");
+    buttonUndelete.setAttribute("src", "gui/img/undelete.png");
+    buttonUndelete.setAttribute("title", "Удалить"); // NON-NLS
+    tabIndex.setNext(buttonUndelete);
+    
+    field.appendChild(buttonDelete);
+    field.appendChild(buttonUndelete);
+    
+    El wrapper = wrapCellPad(field);  
     cell.appendChild(wrapper);
     
-    return button;
+    //return field;
   }
   
   protected El createCell(El row, String columnClass) {

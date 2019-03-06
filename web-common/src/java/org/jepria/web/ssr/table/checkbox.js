@@ -40,4 +40,14 @@ function getInput(checkbox) {
     }(checkmark));
   }
 }());
+
+function setCheckboxEnabled(checkbox, enabled) {
+  if (enabled) {
+    checkbox.classList.remove("checkbox-disabled");
+    getInput(checkbox).disabled = false;
+  } else {
+    checkbox.classList.add("checkbox-disabled");
+    getInput(checkbox).disabled = true;
+  }
+}
 // :checkbox.js

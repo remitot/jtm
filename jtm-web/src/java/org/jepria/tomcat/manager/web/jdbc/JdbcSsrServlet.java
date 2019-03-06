@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -45,7 +44,24 @@ public class JdbcSsrServlet extends HttpServlet {
         final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
         
         final JdbcTable table = new JdbcTable();
-        table.load(connections);
+        
+        final List<ConnectionDto> itemsOverlay = new ArrayList<>();
+        final Set<String> itemsDeletedIds = new HashSet<>();
+        @SuppressWarnings("unchecked")
+        final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
+            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
+        if (modRequests != null) {
+          for (ModRequestDto modRequest: modRequests) {
+            final ModRequestBodyDto modRequestBody = modRequest.getModRequestBody(); 
+            final String action = modRequest.getModRequestBody().getAction();
+            if ("create".equals(action) || "update".equals(action)) {
+              itemsOverlay.add(modRequest.getModRequestBody().getData());
+            } else if ("delete".equals(action)) {
+              itemsDeletedIds.add(modRequestBody.getId());
+            }
+          }
+        }
+        table.load(connections, itemsOverlay, itemsDeletedIds);
         
         final String tableHtml = table.printHtml();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
@@ -59,7 +75,7 @@ public class JdbcSsrServlet extends HttpServlet {
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableStyle", tableStyle);
         
         // table row-create template
-        final TabIndex rowCreateTabIndex = new TabIndex() {
+        final TabIndex newRowTemplateTabIndex = new TabIndex() {
           private int i = 0;
           @Override
           public void setNext(El el) {
@@ -67,8 +83,8 @@ public class JdbcSsrServlet extends HttpServlet {
             el.setAttribute("tabindex-rel", i++);
           }
         };
-        final String tableRowCreateHtml = table.createRowCreate(rowCreateTabIndex).printHtml();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableRowCreateHtml", tableRowCreateHtml);
+        final String tableNewRowTemplateHtml = table.createRowCreated(null, newRowTemplateTabIndex).printHtml();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableNewRowTemplateHtml", tableNewRowTemplateHtml);
         
         // control buttons
         ControlButtons controlButtons = new ControlButtons();
@@ -120,6 +136,8 @@ public class JdbcSsrServlet extends HttpServlet {
           // TODO
           throw new RuntimeException(e);
         }
+        
+        //TODO validate structure here (non-emptiness of service fields, such as 'action', 'modRequestBody')
         
         req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests", modRequests);
         

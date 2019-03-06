@@ -26,8 +26,8 @@
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml") %>
     </div>
     
-    <div id="table-row-create-template-container" style="display: none;">
-      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableRowCreateHtml") %>
+    <div id="table-new-row-template-container" style="display: none;">
+      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableNewRowTemplateHtml") %>
     </div>
     
     <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsHtml") %>

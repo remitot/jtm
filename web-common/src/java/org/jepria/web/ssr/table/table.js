@@ -9,6 +9,12 @@ function table_onload() {
   
   addFieldsDeleteScript(table);
   
+  // disable deleted rows
+  var deletedRows = table.querySelectorAll(".row.deleted");
+  for (var i = 0; i < deletedRows.length; i++) {
+    setDisabled(deletedRows[i], true);
+  }
+  
   checkModifications(); // initial
 }
 
@@ -50,8 +56,31 @@ function checkModifications() {
   setButtonResetEnabled(buttonEnabled);
 }
 
+/**
+ * Disable everything '.deletable' in a composite
+ * @param disabled
+ * @returns
+ */
+function setDisabled(composite, disabled) {
+  var disableableElements = composite.querySelectorAll("input.deletable, button.deletable");
+
+  for (var i = 0; i < disableableElements.length; i++) {
+    var disableableElement = disableableElements[i]; 
+    disableableElement.disabled = disabled;
+    // disableableElement.setAttribute("readonly", true); // alternative
+  }
+  
+  var checkboxes = composite.querySelectorAll(".checkbox.deletable");
+  for (var i = 0; i < checkboxes.length; i++) {
+    var checkbox = checkboxes[i];
+    if (!checkbox.classList.contains("readonly")) {
+      setCheckboxEnabled(checkbox, !disabled);
+    }
+  }
+}
+
 function addFieldsDeleteScript(composite) {
-  var fieldsDelete = composite.querySelectorAll("input.field-delete");
+  var fieldsDelete = composite.querySelectorAll("input.button-delete");
   for (var i = 0; i < fieldsDelete.length; i++) {
     fieldsDelete[i].onclick = function(event){onDeleteButtonClick(event.target)};
   }
@@ -59,7 +88,7 @@ function addFieldsDeleteScript(composite) {
 
 function onDeleteButtonClick(button) {
   //TODO resolve the relative path:
-  var row = button.parentElement.parentElement.parentElement.parentElement;
+  var row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
   
   if (row.classList.contains("created")) {
     // for newly created rows just remove them from table
@@ -67,26 +96,13 @@ function onDeleteButtonClick(button) {
     
   } else if (!row.classList.contains("deleted")) {
     row.classList.add("deleted");
-    
-    // button changes image
-    button.src = "gui/img/undelete.png";
-    button.title = "Не удалять"; // NON-NLS
 
-    setRowDisabled(row, true);
-    // show all delete buttons (as they were disabled too)
-    var deleteButtons = document.querySelectorAll("#table .row .cell.column-delete input");
-    for (var i = 0; i < deleteButtons.length; i++) {
-      deleteButtons[i].classList.remove("hidden");
-    }
+    setDisabled(row, true);
     
   } else {
     row.classList.remove("deleted");
     
-    // button changes image
-    button.src = "gui/img/delete.png";
-    button.title = "Удалить"; // NON-NLS
-    
-    setRowDisabled(row, false);
+    setDisabled(row, false);
   }
   
   checkModifications();
@@ -98,20 +114,20 @@ function onButtonCreateClick() {
   
   var table = document.getElementById("table");
 
-  var tableRowCreateTemplate = document.getElementById("table-row-create-template-container").firstElementChild;
-  var rowCreate = tableRowCreateTemplate.cloneNode(true);
+  var newRowTemplate = document.getElementById("table-new-row-template-container").firstElementChild;
+  var newRow = newRowTemplate.cloneNode(true);
   
-  rowCreate.setAttribute("item-id", "row-create-" + createRowId++);
+  newRow.setAttribute("item-id", "row-create-" + createRowId++);
   
-  table.appendChild(rowCreate);
+  table.appendChild(newRow);
   
-  addRowCreateScript(rowCreate);
+  addNewRowScript(newRow);
   
   
   //set 'tabindex' attributes by 'tabindex-rel' attribute
   var tabIndexAnchor = +table.getAttribute("tabindex-next");
   var maxTabIndexRel = 0;
-  var hasTabIndexRels = Array.from(rowCreate.getElementsByClassName("has-tabindex-rel"));// element.getElementsByClassName FETCHES the elements 
+  var hasTabIndexRels = Array.from(newRow.getElementsByClassName("has-tabindex-rel"));// element.getElementsByClassName FETCHES the elements 
   for (var i = 0; i < hasTabIndexRels.length; i++) {
     var hasTabIndexRel = hasTabIndexRels[i];
     var tabIndexRel = +hasTabIndexRel.getAttribute("tabindex-rel");
@@ -249,7 +265,7 @@ function collectRowData(row) {
   return data;
 }
 
-function addRowCreateScript(rowCreate) {
+function addNewRowScript(rowCreate) {
   addFieldsDeleteScript(rowCreate);
   
   // trigger initial events

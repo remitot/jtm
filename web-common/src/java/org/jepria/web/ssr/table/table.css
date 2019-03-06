@@ -181,4 +181,15 @@
 #table .field-text.invalid {
   border-color: red;
 }
+
+#table .row .column-delete .button-delete_undelete {
+  display: none;
+}
+#table .row.deleted .column-delete .button-delete_undelete {
+  display: block;
+}
+
+#table .row.deleted .column-delete .button-delete_delete {
+  display: none;
+}
 /* :table.css */
