@@ -35,6 +35,9 @@
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsScript") %>
     </script>
     <script type="text/javascript">
+      function getSsrUrl() {
+        return "ssr/jdbc";
+      }
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript") %>
     </script>
     

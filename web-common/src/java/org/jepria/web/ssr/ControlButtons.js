@@ -10,8 +10,6 @@ function setSaveButtonEnabled(enabled) {
   }
 }
 
-//TODO the function affects the control buttons only. 
-//Better to move into control-buttons.fragment script?
 function adjustBottomShadow() {
   var controlButtons = document.getElementsByClassName("control-buttons")[0];
   

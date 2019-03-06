@@ -128,7 +128,123 @@ function onButtonCreateClick() {
 }
 
 function onButtonSaveClick() {
-	alert("save");
+  
+  var rowsModified = getRowsModified();
+  var rowsDeleted = getRowsDeleted();
+  var rowsCreated = getRowsCreated();
+  
+  modRequestList = [];
+  
+  if (rowsModified.length > 0) {
+    for (var i = 0; i < rowsModified.length; i++) {
+      modRequestList.push(
+          {
+            modRequestId: rowsModified[i].itemId, // same as id
+            modRequestBody: {
+              action: "update", 
+              id: rowsModified[i].itemId, 
+              data: rowsModified[i].itemData
+            }
+          }
+      );
+    }
+  }
+  
+  if (rowsDeleted.length > 0) {
+    for (var i = 0; i < rowsDeleted.length; i++) {
+      modRequestList.push(
+          {
+            modRequestId: rowsDeleted[i], // same as id
+            modRequestBody: {
+              action: "delete", 
+              id: rowsDeleted[i]
+            }
+          }
+      );
+    }
+  }
+  
+  if (rowsCreated.length > 0) {
+    for (var i = 0; i < rowsCreated.length; i++) {
+      modRequestList.push(
+          {
+            modRequestId: rowsCreated[i].itemId, // same as id
+            modRequestBody: {
+              action: "create", 
+              data: rowsCreated[i].itemData
+            }
+          }
+      );
+    }
+  }
+  
+  if (modRequestList.length > 0) {
+    xhttp = new XMLHttpRequest();
+    xhttp.open("POST", getSsrUrl(), true); // TODO reference to the applicational function. maybe to replace with window.location.href?
+    xhttp.send(JSON.stringify(modRequestList));
+  } else {
+    // TODO report nothing to save
+  }
+}
+
+function getRowsModified() {
+  var rows = document.querySelectorAll("#table div.row");
+  var data = [];
+  for (var i = 0; i < rows.length; i++) {
+    row = rows[i];
+    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.getElementsByClassName("modified").length > 0) {
+      var rowData = collectRowData(row);
+      data.push({itemId: row.getAttribute("item-id"), itemData: rowData});
+    }
+  }
+  return data;
+}
+
+function getRowsDeleted() {
+  var rows = document.querySelectorAll("#table div.row");
+  rowsDeletedIds = [];
+  for (var i = 0; i < rows.length; i++) {
+    row = rows[i];
+    if (row.classList.contains("deleted") && !row.classList.contains("created")) {
+      rowsDeletedIds.push(row.getAttribute("item-id"));
+    }
+  }
+  return rowsDeletedIds;
+}
+
+function getRowsCreated() {
+  var rows = document.querySelectorAll("#table div.row");
+  var data = [];
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (row.classList.contains("created") && !row.classList.contains("deleted")) {
+      var rowData = collectRowData(row);
+      data.push({itemId: row.getAttribute("item-id"), itemData: rowData});
+    }
+  }
+  return data;
+}
+
+/**
+ * Collect modified row fields
+ * @param row to collect data from
+ */
+function collectRowData(row) {
+  var data = {};
+  
+  var fields = row.querySelectorAll(".cell-field input.modified");
+  
+  for (var j = 0; j < fields.length; j++) {
+    var field = fields[j];
+    if (field.name === "active") {
+      // TODO workaround. If checkbox becomes a class, make its own property 'value'
+      data[field.name] = field.checked;
+    } else {
+      data[field.name] = field.value;
+    }
+  }
+  
+  return data;
 }
 
 function addRowCreateScript(rowCreate) {
