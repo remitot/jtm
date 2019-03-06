@@ -35,8 +35,11 @@
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsScript") %>
     </script>
     <script type="text/javascript">
-      function getSsrUrl() {
-        return "ssr/jdbc";
+      function getSsrUrlMod() {
+        return "jdbc?mod"; // as in web.xml mapping
+      }
+      function getSsrUrlBase() {
+        return "jdbc"; // as in web.xml mapping
       }
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript") %>
     </script>

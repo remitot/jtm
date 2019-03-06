@@ -45,7 +45,9 @@ function checkModifications() {
       - document.querySelectorAll(".row.created.deleted .modified").length
       + document.getElementsByClassName("row deleted").length;
   
-  setSaveButtonEnabled(totalModifications > 0);
+  var buttonEnabled = totalModifications > 0;
+  setButtonSaveEnabled(buttonEnabled);
+  setButtonResetEnabled(buttonEnabled);
 }
 
 function addFieldsDeleteScript(composite) {
@@ -180,7 +182,7 @@ function onButtonSaveClick() {
   
   if (modRequestList.length > 0) {
     xhttp = new XMLHttpRequest();
-    xhttp.open("POST", getSsrUrl(), true); // TODO reference to the applicational function. maybe to replace with window.location.href?
+    xhttp.open("POST", getSsrUrlMod(), true); // TODO reference to the applicational function
     xhttp.send(JSON.stringify(modRequestList));
   } else {
     // TODO report nothing to save

@@ -1,8 +1,8 @@
 package org.jepria.tomcat.manager.web.jdbc.dto;
 
-public class ConnectionDto {
-  
-  private String id;
+import org.jepria.web.Dto;
+
+public class ConnectionDto extends Dto {
   
   private Boolean dataModifiable;
   private Boolean active;
@@ -15,14 +15,6 @@ public class ConnectionDto {
   
   
   public ConnectionDto() {
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
   }
 
   public Boolean getDataModifiable() {

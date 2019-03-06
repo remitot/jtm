@@ -13,7 +13,6 @@ public class JdbcTable extends Table<ConnectionDto> {
 
     El row = new El("div");
     row.classList.add("row");
-    row.setAttribute("item-id", listItem.getId());
     
     El cell, field;
     

@@ -35,23 +35,13 @@
   </servlet-mapping>
   
   <servlet>
-    <servlet-name>JdbcSsrServlet</servlet-name>
-    <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcSsrServlet
-    </servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>JdbcSsrServlet</servlet-name>
-    <url-pattern>/ssr/jdbc/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
     <servlet-name>JdbcGui</servlet-name>
     
     <!-- Client-side-rendered GUI -->
     <!-- <jsp-file>/gui/jdbc/jdbc.jsp</jsp-file> -->
    
     <!-- Server-side-rendered GUI -->
-    <jsp-file>/gui/jdbc-ssr/jdbc-ssr.jsp</jsp-file>
+    <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcSsrServlet</servlet-class>
       
   </servlet>
   <servlet-mapping>

@@ -1,7 +1,13 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -10,10 +16,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.Table.TabIndex;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * Servlet producing server-side-rendered pages
@@ -27,7 +38,7 @@ public class JdbcSsrServlet extends HttpServlet {
     
     final String path = req.getPathInfo();
     
-    if (path == null || "".equals(path) || "/".equals(path)) {
+    if (path == null || "".equals(path)) {
       
       try {
         // table html
@@ -70,7 +81,7 @@ public class JdbcSsrServlet extends HttpServlet {
         
         
         // forward to the target page
-        req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-ssr-target.jsp").forward(req, resp);
+        req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-target.jsp").forward(req, resp);
         return;
         
       } catch (Throwable e) {
@@ -86,6 +97,64 @@ public class JdbcSsrServlet extends HttpServlet {
       resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;
+    }
+  }
+  
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    String path = req.getPathInfo();
+    
+    if ((path == null || "".equals(path)) && req.getParameter("mod") != null) {
+      
+      try {
+
+        // read list from request body
+        final List<ModRequestDto> modRequests;
+        
+        try {
+          Type type = new TypeToken<ArrayList<ModRequestDto>>(){}.getType();
+          modRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
+          
+        } catch (Throwable e) {
+          // TODO
+          throw new RuntimeException(e);
+        }
+        
+        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests", modRequests);
+        
+        
+//        // convert list to map
+//        final Map<String, ModRequestBodyDto> modRequestBodyMap = new HashMap<>();
+//        
+//        if (modRequests != null) {
+//          for (ModRequestDto modRequest: modRequests) {
+//            final String modRequestId = modRequest.getModRequestId();
+//            
+//            // validate modRequestId fields
+//            if (modRequestId == null || "".equals(modRequestId)) {
+//              // TODO
+//              throw new RuntimeException("Found missing or empty modRequestId fields"); 
+//              
+//            } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
+//              // TODO
+//              throw new RuntimeException("Duplicate modRequestId field values found: [" + modRequestId + "]");
+//            }
+//          }
+//        }
+//        
+//
+//        ModResponse modResponse = new JdbcApi().mod(EnvironmentFactory.get(req), modRequestBodyMap);
+        
+      
+      } catch (Throwable e) {
+        // TODO
+        throw new RuntimeException(e);
+      }
+      
+    } else {
+   // TODO
+      throw new RuntimeException();
     }
   }
   

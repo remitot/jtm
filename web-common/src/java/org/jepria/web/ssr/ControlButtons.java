@@ -10,6 +10,7 @@ public class ControlButtons extends El {
   
   public final El buttonCreate;
   public final El buttonSave;
+  public final El buttonReset;
   
   public ControlButtons() {
     super("div");
@@ -27,8 +28,15 @@ public class ControlButtons extends El {
         .addClass("big-black-button")
         .setInnerHTML("СОХРАНИТЬ ВСЁ"); // NON-NLS
     
+    buttonReset = new El("button")
+        .addClass("control-button")
+        .addClass("control-button_reset")
+        .addClass("big-black-button")
+        .setInnerHTML("СБРОСИТЬ ВСЁ"); // NON-NLS
+    
     appendChild(buttonCreate);
     appendChild(buttonSave);
+    appendChild(buttonReset);
   }
   
   @Override
@@ -42,7 +50,7 @@ public class ControlButtons extends El {
     }
 
     
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/ControlButtons.js");
+    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/control-buttons.js");
         Scanner sc = new Scanner(in, "UTF-8")) {
       sc.useDelimiter("\\Z");
       if (sc.hasNext()) {

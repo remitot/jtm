@@ -6,9 +6,10 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Scanner;
 
+import org.jepria.web.Dto;
 import org.jepria.web.ssr.El;
 
-public abstract class Table<T> extends El {
+public abstract class Table<T extends Dto> extends El {
   
   private int tabIndexValue;
   
@@ -63,16 +64,6 @@ public abstract class Table<T> extends El {
     }
     
     setAttribute("tabindex-next", tabIndexValue);
-  }
-  
-  /**
-   * Overlay the 'original' items provided by {@link #load(List)} with the new values, 
-   * so that the table data becomes modified
-   * 
-   * @param items
-   */
-  public void overlay(List<T> items) { 
-    
   }
   
   /**
