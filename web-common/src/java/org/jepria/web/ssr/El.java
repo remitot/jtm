@@ -124,8 +124,8 @@ public class El {
   
   /**
    * 
-   * @return {@code true} if to short-close empty tag while {@link #printHtml(Appendable)}: {@code <empty/>};
-   * {@code false} if to full-close empty tags on {@link #printHtml(Appendable)}: {@code <empty></empty>}.
+   * @return {@code true} if to short-close empty tag while {@link #render(Appendable)}: {@code <empty/>};
+   * {@code false} if to full-close empty tags on {@link #render(Appendable)}: {@code <empty></empty>}.
    * <br/>
    * <strong>Note:</strong> the Chrome browser fails rendering html if there are short-closed tags present. So, the default value is {@code false}.  
    */
@@ -134,12 +134,12 @@ public class El {
   }
   
   /**
-   * Prints the entire html DOM tree of this element and its children recursively
+   * Render the entire HTML DOM tree of this element and its children recursively
    * @param sb
    * @throws IOException
    */
   // TODO escape HTML
-  public void printHtml(Appendable sb) throws IOException {
+  public void render(Appendable sb) throws IOException {
     
     Objects.requireNonNull(tagName);
     
@@ -184,7 +184,7 @@ public class El {
       
       if (!childs.isEmpty()) {// recursively
         for (El child: childs) {
-          child.printHtml(sb);
+          child.render(sb);
         }
       }
       
@@ -194,13 +194,13 @@ public class El {
   }
   
   /**
-   * Prints the entire html DOM tree of this element and its children recursively
+   * Prints the entire HTML DOM tree of this element and its children recursively
    * @return
    * @throws IOException
    */
   public String printHtml() throws IOException {
     StringBuilder sb = new StringBuilder();
-    printHtml(sb);
+    render(sb);
     return sb.toString();
   }
   

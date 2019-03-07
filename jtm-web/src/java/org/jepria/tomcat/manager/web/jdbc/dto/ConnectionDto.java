@@ -5,7 +5,7 @@ import java.util.HashMap;
 public class ConnectionDto extends HashMap<String, String> {
   private static final long serialVersionUID = 1L;
   
-  // non-api field
+  // not a field
   private boolean dataModifiable;
   
   public ConnectionDto() {}

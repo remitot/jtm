@@ -71,7 +71,11 @@ public class JdbcSsrServlet extends HttpServlet {
             "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
         if (modResponse != null) {
           for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
-            
+            ModStatus modStatus = e.getValue(); 
+            if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
+              // TODO stopped here: mark fields in table invalid
+//              modStatus.invalidFieldDataMap
+            }
           }
         }
         
