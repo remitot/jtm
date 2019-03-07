@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -20,9 +21,11 @@ import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ModResponse;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
+import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcItem;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
 
 import com.google.gson.Gson;
@@ -46,40 +49,55 @@ public class JdbcSsrServlet extends HttpServlet {
         // table html
         final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
         
+        // forward compatibility
+        final List<JdbcItem> items = connections.stream().map(conn -> {
+          JdbcItem item = new JdbcItem();
+          for (String name: conn.keySet()) {
+            Field field = item.get(name);
+            if (field != null) {
+              field.value = field.valueOriginal = conn.get(name);
+            }
+          }
+          item.setId(conn.get("id"));
+          item.dataModifiable = conn.getDataModifiable();
+          return item;
+        }).collect(Collectors.toList());
+        
+        
         final JdbcTable table = new JdbcTable();
         
-        final List<ConnectionDto> itemsCreated = new ArrayList<>();
-        final Map<String, ConnectionDto> itemsModified = new HashMap<>();
+        final List<JdbcItem> itemsCreated = new ArrayList<>();
+        final Map<String, JdbcItem> itemsModified = new HashMap<>();
         final Set<String> itemsDeleted = new HashSet<>();
-        final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
-            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
-        if (modRequests != null) {
-          for (ModRequestDto modRequest: modRequests) {
-            final ModRequestBodyDto modRequestBody = modRequest.getModRequestBody(); 
-            final String action = modRequestBody.getAction();
-            if ("create".equals(action)) {
-              itemsCreated.add(modRequestBody.getData());
-            } else if ("update".equals(action)) {
-              itemsModified.put(modRequestBody.getId(), modRequestBody.getData());
-            } else if ("delete".equals(action)) {
-              itemsDeleted.add(modRequestBody.getId());
-            }
-          }
-        }
+//        final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
+//            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
+//        if (modRequests != null) {
+//          for (ModRequestDto modRequest: modRequests) {
+//            final ModRequestBodyDto modRequestBody = modRequest.getModRequestBody(); 
+//            final String action = modRequestBody.getAction();
+//            if ("create".equals(action)) {
+//              itemsCreated.add(modRequestBody.getData());
+//            } else if ("update".equals(action)) {
+//              itemsModified.put(modRequestBody.getId(), modRequestBody.getData());
+//            } else if ("delete".equals(action)) {
+//              itemsDeleted.add(modRequestBody.getId());
+//            }
+//          }
+//        }
+//        
+//        final ModResponse modResponse = (ModResponse)req.getSession().getAttribute(
+//            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
+//        if (modResponse != null) {
+//          for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
+//            ModStatus modStatus = e.getValue(); 
+//            if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
+//              // TODO stopped here: mark fields in table invalid
+////              modStatus.invalidFieldDataMap
+//            }
+//          }
+//        }
         
-        final ModResponse modResponse = (ModResponse)req.getSession().getAttribute(
-            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
-        if (modResponse != null) {
-          for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
-            ModStatus modStatus = e.getValue(); 
-            if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
-              // TODO stopped here: mark fields in table invalid
-//              modStatus.invalidFieldDataMap
-            }
-          }
-        }
-        
-        table.load(connections, itemsCreated, itemsModified, itemsDeleted);
+        table.load(items, itemsCreated, itemsModified, itemsDeleted);
         
         final String tableHtml = table.printHtml();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
@@ -101,7 +119,10 @@ public class JdbcSsrServlet extends HttpServlet {
             el.setAttribute("tabindex-rel", i++);
           }
         };
-        final String tableNewRowTemplateHtml = table.createRowCreated(null, newRowTemplateTabIndex).printHtml();
+        final JdbcItem emptyItem = new JdbcItem();
+        emptyItem.active().readonly = true;
+        emptyItem.active().value = "true";
+        final String tableNewRowTemplateHtml = table.createRowCreated(emptyItem, newRowTemplateTabIndex).printHtml();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableNewRowTemplateHtml", tableNewRowTemplateHtml);
         
         // control buttons

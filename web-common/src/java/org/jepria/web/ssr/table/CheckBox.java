@@ -12,6 +12,7 @@ public class CheckBox extends El {
   
   public final El checkmark;
   
+  // enabled by default
   public CheckBox(boolean active) {
     super("label");
     classList.add("checkbox");
@@ -29,7 +30,10 @@ public class CheckBox extends El {
     appendChild(checkmark);
   }
   
+  @Override
   public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    
     if (enabled) {
       classList.remove("checkbox-disabled");
       input.attributes.remove("disabled");
@@ -37,6 +41,13 @@ public class CheckBox extends El {
       classList.add("checkbox-disabled");
       input.setAttribute("disabled", true);
     }
+  }
+  
+  @Override
+  public void setReadonly(boolean readonly) {
+    super.setReadonly(readonly);
+    
+    setEnabled(false);
   }
   
   @Override

@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.jepria.web.ssr.El;
 
-public abstract class Table<T extends Map<String, String>> extends El {
+public abstract class Table<T extends ItemData> extends El {
   
   private int tabIndexValue;
   
@@ -62,19 +62,27 @@ public abstract class Table<T extends Map<String, String>> extends El {
     if (items != null) {
       for (T item: items) {
         final El row;
-        final String itemId = item.get("id");
+        final String itemId = item.getId();
         if (itemsDeleted != null && itemsDeleted.contains(itemId)) {
           row = createRowDeleted(item, tabIndex);
         } else {
           final T itemModified = itemsModified.get(itemId);
           if (itemModified != null) {
-            row = createRowModified(item, itemModified, tabIndex);
+            // merge items
+            for (String name: item.keySet()) {
+              Field fieldModified = itemModified.get(name);
+              if (fieldModified != null) {
+                Field field = item.get(name);
+                field.value = fieldModified.value;
+              }
+            }
+            row = createRowModified(item, tabIndex);
           } else {
             row = createRow(item, tabIndex);
           }
         }
         
-        row.setAttribute("item-id", item.get("id"));
+        row.setAttribute("item-id", item.getId());
         
         appendChild(row);
       }
@@ -122,19 +130,30 @@ public abstract class Table<T extends Map<String, String>> extends El {
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
    */
-  public abstract El createRowModified(T itemOriginal, T item, TabIndex tabIndex);
+  public abstract El createRowModified(T item, TabIndex tabIndex);
   
-  protected El addField(El cell, String name, String value, String placeholder) {
-    El field = createField(name, value, placeholder);
+  protected El addField(El cell, Field field, String placeholder) {
+    El fieldEl = createField(field.name, field.value, placeholder);
     
-    El wrapper = wrapCellPad(field);
+    if (field.readonly) {
+      setFieldReadonly(fieldEl);
+    } else {
+      fieldEl.setAttribute("value-original", field.valueOriginal);
+    }
+    
+    El wrapper = wrapCellPad(fieldEl);
     cell.appendChild(wrapper);
 
     if (isEditable()) {
       addStrike(cell);
     }
       
-    return field;
+    return fieldEl;
+  }
+  
+  protected void setFieldReadonly(El field) {
+    field.setReadonly(true);
+    field.setAttribute("readonly", "true");
   }
   
   protected El createField(String name, String value, String placeholder) {
@@ -235,12 +254,20 @@ public abstract class Table<T extends Map<String, String>> extends El {
   
   protected boolean hasCheckboxes = false;
   
-  protected CheckBox addCheckbox(El cell, boolean active, boolean enabled) {
+  protected CheckBox addCheckbox(El cell, Field field) {
+    
+    boolean active = !"false".equals(field.value);
     CheckBox checkbox = new CheckBox(active);
+    
+    checkbox.setEnabled(!field.readonly);
+
+    if (field.readonly) {
+      checkbox.setReadonly(true);
+    } else {
+      checkbox.setAttribute("value-original", !"false".equals(field.valueOriginal));
+    }
+    
     checkbox.classList.add("table__checkbox");
-    
-    checkbox.setEnabled(enabled);
-    
     checkbox.classList.add("deletable");
 
     El wrapper = wrapCellPad(checkbox);  

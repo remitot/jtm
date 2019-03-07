@@ -1,13 +1,10 @@
 package org.jepria.tomcat.manager.web.jdbc.ssr;
 
-import java.util.Optional;
-
-import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;
 import org.jepria.web.ssr.table.Table;
 
-public class JdbcTable extends Table<ConnectionDto> {
+public class JdbcTable extends Table<JdbcItem> {
   
   @Override
   protected El createHeader() {
@@ -56,27 +53,23 @@ public class JdbcTable extends Table<ConnectionDto> {
   }
   
   @Override
-  public El createRow(ConnectionDto item, TabIndex tabIndex) {
-    return createRowInternal(item, null, tabIndex);
+  public El createRow(JdbcItem item, TabIndex tabIndex) {
+    return createRowInternal(item, tabIndex);
   }
   
   @Override
-  public El createRowCreated(ConnectionDto item, TabIndex tabIndex) {
-    final Optional<ConnectionDto> itemOpt = Optional.ofNullable(item);
-    
+  public El createRowCreated(JdbcItem item, TabIndex tabIndex) {
+
     El row = new El("div");
     row.classList.add("row");
     row.classList.add("created");
     
     El cell, field;
     
-    // active
     cell = createCell(row, "column-active");
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
-    CheckBox checkBox = addCheckbox(cell, true, false);
-    checkBox.classList.add("readonly");
-    checkBox.setEnabled(false);
+    addCheckbox(cell, item.active());
     
     El cellDelete = createCell(row, "column-delete");
     
@@ -85,27 +78,27 @@ public class JdbcTable extends Table<ConnectionDto> {
     
     cell = createCell(flexColumns, "column-name");
     cell.classList.add("cell-field");
-    field = addField(cell, "name", itemOpt.isPresent() ? itemOpt.get().get("name") : null, "jdbc/MyDataSource");
+    field = addField(cell, item.name(), "jdbc/MyDataSource");
     tabIndex.setNext(field);
    
     cell = createCell(flexColumns, "column-server");
     cell.classList.add("cell-field");
-    field = addField(cell, "server", itemOpt.isPresent() ? itemOpt.get().get("server") : null, "db-server:1521");
+    field = addField(cell, item.server(), "db-server:1521");
     tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-db");
     cell.classList.add("cell-field");
-    field = addField(cell, "db", itemOpt.isPresent() ? itemOpt.get().get("db") : null, "MYDATABASE");
+    field = addField(cell, item.db(), "MYDATABASE");
     tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-user");
     cell.classList.add("cell-field");
-    field = addField(cell, "user", itemOpt.isPresent() ? itemOpt.get().get("user") : null, "me");
+    field = addField(cell, item.user(), "me");
     tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-password");
     cell.classList.add("cell-field");
-    field = addField(cell, "password", itemOpt.isPresent() ? itemOpt.get().get("password") : null, "mysecret");
+    field = addField(cell, item.password(), "mysecret");
     tabIndex.setNext(field);
     
     
@@ -118,8 +111,8 @@ public class JdbcTable extends Table<ConnectionDto> {
   }
   
   @Override
-  public El createRowModified(ConnectionDto itemOriginal, ConnectionDto item, TabIndex tabIndex) {
-    El row = createRowInternal(itemOriginal, item, tabIndex);
+  public El createRowModified(JdbcItem item, TabIndex tabIndex) {
+    El row = createRowInternal(item, tabIndex);
     row.classList.add("modified");
     return row;
   }
@@ -131,29 +124,21 @@ public class JdbcTable extends Table<ConnectionDto> {
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
    */
-  private El createRowInternal(ConnectionDto itemOriginal, ConnectionDto item, TabIndex tabIndex) {
-    final boolean dataModifiable = !Boolean.FALSE.equals(itemOriginal.getDataModifiable());
-
+  private El createRowInternal(JdbcItem item, TabIndex tabIndex) {
     El row = new El("div");
     row.classList.add("row");
     
     El cell, field;
     
-    // active
-    final boolean active = item != null && item.get("active") != null ? !"false".equals(item.get("active")) : !"false".equals(itemOriginal.get("active"));
     cell = createCell(row, "column-active");
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
-    CheckBox checkBox = addCheckbox(cell, active, true);
-    checkBox.setAttribute("value-original", !"false".equals(itemOriginal.get("active")));
-    if (!dataModifiable) {
-      checkBox.classList.add("readonly");
-      checkBox.setEnabled(false);
-    } else {
+    CheckBox checkBox = addCheckbox(cell, item.active());
+    if (!item.active().readonly) {
       tabIndex.setNext(checkBox.input);
     }
     
-    if ("false".equals(itemOriginal.get("active"))) {
+    if ("false".equals(item.active().value)) {
       row.classList.add("inactive");
     }
     
@@ -162,58 +147,48 @@ public class JdbcTable extends Table<ConnectionDto> {
     El div = new El("div");
     div.classList.add("flexColumns");
     
-    final String name = item != null && item.get("name") != null ? item.get("name") : itemOriginal.get("name");
     cell = createCell(div, "column-name");
     cell.classList.add("cell-field");
-    field = addField(cell, "name", name, null);
-    field.setAttribute("value-original", itemOriginal.get("name"));
+    field = addField(cell, item.name(), null);
     tabIndex.setNext(field);
     
-    final String server = item != null && item.get("server") != null ? item.get("server") : itemOriginal.get("server");
     cell = createCell(div, "column-server");
     cell.classList.add("cell-field");
-    field = addField(cell, "server", server, null);
-    field.setAttribute("value-original", itemOriginal.get("server"));
-    if (!dataModifiable) {
+    field = addField(cell, item.server(), null);
+    if (!item.dataModifiable) {
       setFieldReadonly(field);
     } else {
       tabIndex.setNext(field);
     }
     
-    final String db = item != null && item.get("db") != null ? item.get("db") : itemOriginal.get("db");
     cell = createCell(div, "column-db");
     cell.classList.add("cell-field");
-    field = addField(cell, "db", db, null);
-    field.setAttribute("value-original", itemOriginal.get("db"));
-    if (!dataModifiable) {
+    field = addField(cell, item.db(), null);
+    if (!item.dataModifiable) {
       setFieldReadonly(field);
     } else {
       tabIndex.setNext(field);
     }
     
-    final String user = item != null && item.get("user") != null ? item.get("user") : itemOriginal.get("user");
     cell = createCell(div, "column-user");
     cell.classList.add("cell-field");
-    field = addField(cell, "user", user, null);
-    field.setAttribute("value-original", itemOriginal.get("user"));
-    if (!dataModifiable) {
+    field = addField(cell, item.user(), null);
+    if (!item.dataModifiable) {
       setFieldReadonly(field);
     } else {
       tabIndex.setNext(field);
     }
     
-    final String password = item != null && item.get("password") != null ? item.get("password") : itemOriginal.get("password");
     cell = createCell(div, "column-password");
     cell.classList.add("cell-field");
-    field = addField(cell, "password", password, null);
-    field.setAttribute("value-original", itemOriginal.get("password"));
-    if (!dataModifiable) {
+    field = addField(cell, item.password(), null);
+    if (!item.dataModifiable) {
       setFieldReadonly(field);
     } else {
       tabIndex.setNext(field);
     }
     
-    if (dataModifiable) {
+    if (item.dataModifiable) {
       addFieldDelete(cellDelete, tabIndex);
     }
     
@@ -223,15 +198,15 @@ public class JdbcTable extends Table<ConnectionDto> {
   }
   
   @Override
-  public El createRowDeleted(ConnectionDto item, TabIndex tabIndex) {
-    El row = createRowInternal(item, null, tabIndex);
+  public El createRowDeleted(JdbcItem item, TabIndex tabIndex) {
+    El row = createRowInternal(item, tabIndex);
     row.classList.add("deleted");
     return row;
   }
   
+  @Override
   protected void setFieldReadonly(El field) {
-    field.setAttribute("readonly", "true");
-    field.classList.add("readonly");
+    super.setFieldReadonly(field);
     field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
   }
 
