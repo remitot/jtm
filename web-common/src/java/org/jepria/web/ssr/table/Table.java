@@ -3,8 +3,6 @@ package org.jepria.web.ssr.table;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -41,11 +39,11 @@ public abstract class Table<T extends Dto> extends El {
    * Clear the table and load new items 
    * 
    * @param items the 'original' items
-   * @param itemsOverlay optional items to overlay 'original' items with (by {@link Dto#id}) 
-   * to render {@code .created} or {@code .modified} table rows, may be null
-   * @param itemsDeletedIds optional item ids (refs to {@link Dto#id}) to render {@code .deleted} table rows, may be null
+   * @param itemsCreated optional items to render {@code .created} table rows, may be null
+   * @param itemsModified optional items ({@code Map<item.id, item>}) to render {@code .modified} table rows, may be null
+   * @param itemsDeleted optional item (set of {@link Dto#id}) to render {@code .deleted} table rows, may be null
    */
-  public void load(List<T> items, List<T> itemsOverlay, Set<String> itemsDeletedIds) {
+  public void load(List<T> items, List<T> itemsCreated, Map<String, T> itemsModified, Set<String> itemsDeleted) {
     
     // reset
     childs.clear();
@@ -60,29 +58,13 @@ public abstract class Table<T extends Dto> extends El {
     };
     
     
-    // Map<Dto.id, Dto>
-    final Map<String, T> itemsModified = new HashMap<>();
-    final List<T> itemsCreated = new ArrayList<>();
-    if (itemsOverlay != null) {
-      for (T item: itemsOverlay) {
-        String id = item.getId(); 
-        if (id != null) {
-          itemsModified.put(id, item);
-        } else {
-          // TODO safe to treat every non-id dto as created?
-          itemsCreated.add(item);
-        }
-      }
-    }
-    
-    
     appendChild(createHeader());
     
     if (items != null) {
       for (T item: items) {
         final El row;
         final String itemId = item.getId();
-        if (itemsDeletedIds != null && itemsDeletedIds.contains(itemId)) {
+        if (itemsDeleted != null && itemsDeleted.contains(itemId)) {
           row = createRowDeletedInternal(item, tabIndex);
         } else {
           final T itemModified = itemsModified.get(itemId);
@@ -95,8 +77,10 @@ public abstract class Table<T extends Dto> extends El {
         appendChild(row);
       }
     }
-    for (T item: itemsCreated) {
-      appendChild(createRowCreated(item, tabIndex));
+    if (itemsCreated != null) {
+      for (T item: itemsCreated) {
+        appendChild(createRowCreated(item, tabIndex));
+      }
     }
     
     setAttribute("tabindex-next", tabIndexValue);
@@ -116,7 +100,7 @@ public abstract class Table<T extends Dto> extends El {
   
   private El createRowModifiedInternal(T itemOriginal, T item, TabIndex tabIndex) {
     El row = createRowModified(itemOriginal, item, tabIndex);
-    row.setAttribute("item-id", item.getId());
+    row.setAttribute("item-id", itemOriginal.getId());
     return row;
   }
   
@@ -253,7 +237,7 @@ public abstract class Table<T extends Dto> extends El {
     buttonUndelete.classList.add("button-delete_undelete");
     buttonUndelete.setAttribute("type", "image");
     buttonUndelete.setAttribute("src", "gui/img/undelete.png");
-    buttonUndelete.setAttribute("title", "Удалить"); // NON-NLS
+    buttonUndelete.setAttribute("title", "Не удалять"); // NON-NLS
     tabIndex.setNext(buttonUndelete);
     
     field.appendChild(buttonDelete);

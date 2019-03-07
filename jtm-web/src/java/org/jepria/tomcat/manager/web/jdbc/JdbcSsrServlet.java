@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -14,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ModResponse;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
@@ -45,23 +48,27 @@ public class JdbcSsrServlet extends HttpServlet {
         
         final JdbcTable table = new JdbcTable();
         
-        final List<ConnectionDto> itemsOverlay = new ArrayList<>();
-        final Set<String> itemsDeletedIds = new HashSet<>();
+        final List<ConnectionDto> itemsCreated = new ArrayList<>();
+        final Map<String, ConnectionDto> itemsModified = new HashMap<>();
+        final Set<String> itemsDeleted = new HashSet<>();
         @SuppressWarnings("unchecked")
         final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
             "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
         if (modRequests != null) {
           for (ModRequestDto modRequest: modRequests) {
             final ModRequestBodyDto modRequestBody = modRequest.getModRequestBody(); 
-            final String action = modRequest.getModRequestBody().getAction();
-            if ("create".equals(action) || "update".equals(action)) {
-              itemsOverlay.add(modRequest.getModRequestBody().getData());
+            final String action = modRequestBody.getAction();
+            if ("create".equals(action)) {
+              itemsCreated.add(modRequestBody.getData());
+            } else if ("update".equals(action)) {
+              itemsModified.put(modRequestBody.getId(), modRequestBody.getData());
             } else if ("delete".equals(action)) {
-              itemsDeletedIds.add(modRequestBody.getId());
+              itemsDeleted.add(modRequestBody.getId());
             }
           }
         }
-        table.load(connections, itemsOverlay, itemsDeletedIds);
+        
+        table.load(connections, itemsCreated, itemsModified, itemsDeleted);
         
         final String tableHtml = table.printHtml();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
@@ -137,34 +144,59 @@ public class JdbcSsrServlet extends HttpServlet {
           throw new RuntimeException(e);
         }
         
-        //TODO validate structure here (non-emptiness of service fields, such as 'action', 'modRequestBody')
         
-        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests", modRequests);
+        // convert list to map
+        final Map<String, ModRequestBodyDto> modRequestBodyMap = new HashMap<>();
+        
+        if (modRequests != null) {
+          for (ModRequestDto modRequest: modRequests) {
+            final String modRequestId = modRequest.getModRequestId();
+            
+            // validate modRequestId fields
+            if (modRequestId == null || "".equals(modRequestId)) {
+              resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                  "Some modRequestId fields are missing or empty");
+              resp.flushBuffer();
+              return;
+              
+            } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
+              
+              resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                  "Duplicate modRequestId field values found: [" + modRequestId + "]");
+              resp.flushBuffer();
+              return;
+            }
+          }
+        }
         
         
-//        // convert list to map
-//        final Map<String, ModRequestBodyDto> modRequestBodyMap = new HashMap<>();
-//        
-//        if (modRequests != null) {
-//          for (ModRequestDto modRequest: modRequests) {
-//            final String modRequestId = modRequest.getModRequestId();
-//            
-//            // validate modRequestId fields
-//            if (modRequestId == null || "".equals(modRequestId)) {
-//              // TODO
-//              throw new RuntimeException("Found missing or empty modRequestId fields"); 
-//              
-//            } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
-//              // TODO
-//              throw new RuntimeException("Duplicate modRequestId field values found: [" + modRequestId + "]");
-//            }
-//          }
-//        }
-//        
-//
-//        ModResponse modResponse = new JdbcApi().mod(EnvironmentFactory.get(req), modRequestBodyMap);
+        ModResponse modResponse = new JdbcApi().mod(EnvironmentFactory.get(req), modRequestBodyMap);
         
-      
+        
+        for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
+          if (e.getValue().code == ModStatus.SC_INVALID_FIELD_DATA) {
+            for (Map.Entry<String, Object> invalidField: e.getValue().invalidFieldDataMap.entrySet()) {
+              String modRequestId = e.getKey();
+              String fieldName = invalidField.getKey();
+              Map<String, String> invalidFieldData = (Map<String, String>)invalidField.getValue(); 
+              String errorCode = invalidFieldData.get("errorCode");
+              String errorMessage = invalidFieldData.get("errorMessage");
+           // TODO stopped here: see at table.js
+              System.out.println("///inv:" + modRequestId + ":field=" + fieldName + ":" + errorCode + ":" + errorMessage);
+//              onInvalidFieldData(modRequestId, fieldName, errorCode, errorMessage);
+            }
+          }
+        }
+        
+        if (modResponse.allModSuccess) {
+          req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
+        } else {
+          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests", modRequests);
+        }
+        
+        resp.sendRedirect("jdbc");
+        return;
+        
       } catch (Throwable e) {
         // TODO
         throw new RuntimeException(e);

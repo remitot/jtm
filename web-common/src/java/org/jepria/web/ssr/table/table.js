@@ -15,7 +15,7 @@ function table_onload() {
     setDisabled(deletedRows[i], true);
   }
   
-  checkModifications(); // initial
+  triggerFieldsInput(table);
 }
 
 function onFieldInput(field) {
@@ -142,6 +142,14 @@ function onButtonCreateClick() {
   
   // TODO set proper tabindexes for control buttons
   
+  
+  // focus on the first text input field
+  newRow.querySelectorAll(".cell input[type='text']")[0].focus();
+  
+  // scroll to the created row (bottom)
+  window.scrollTo(0, document.body.scrollHeight);
+  
+  
   checkModifications();
 }
 
@@ -267,17 +275,18 @@ function collectRowData(row) {
 
 function addNewRowScript(rowCreate) {
   addFieldsDeleteScript(rowCreate);
-  
-  // trigger initial events
-  var fields = rowCreate.querySelectorAll("input.field-text");
+  triggerFieldsInput(rowCreate);
+}
+
+function triggerFieldsInput(composite) {
+  var fields = composite.querySelectorAll("input.field-text");
   for (var i = 0; i < fields.length; i++) {
     onFieldInput(fields[i]);
   }
   
-  // focus on the first text input field
-  rowCreate.querySelectorAll(".cell input[type='text']")[0].focus();
-  
-  // scroll to the created row (bottom)
-  window.scrollTo(0, document.body.scrollHeight);
+  var checkboxes = composite.querySelectorAll(".checkbox");
+  for (var i = 0; i < checkboxes.length; i++) {
+    onCheckboxInput(checkboxes[i]);
+  }
 }
 // :table.js
