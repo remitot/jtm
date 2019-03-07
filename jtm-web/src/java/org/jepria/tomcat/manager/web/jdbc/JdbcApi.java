@@ -315,9 +315,9 @@ public class JdbcApi {
       // validate name
       int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
       if (validateNameResult == 1) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
       } else if (validateNameResult == 2) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
       }
       
       
