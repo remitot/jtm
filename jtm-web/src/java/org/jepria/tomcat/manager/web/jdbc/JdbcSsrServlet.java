@@ -51,7 +51,6 @@ public class JdbcSsrServlet extends HttpServlet {
         final List<ConnectionDto> itemsCreated = new ArrayList<>();
         final Map<String, ConnectionDto> itemsModified = new HashMap<>();
         final Set<String> itemsDeleted = new HashSet<>();
-        @SuppressWarnings("unchecked")
         final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
             "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
         if (modRequests != null) {
@@ -65,6 +64,14 @@ public class JdbcSsrServlet extends HttpServlet {
             } else if ("delete".equals(action)) {
               itemsDeleted.add(modRequestBody.getId());
             }
+          }
+        }
+        
+        final ModResponse modResponse = (ModResponse)req.getSession().getAttribute(
+            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
+        if (modResponse != null) {
+          for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
+            
           }
         }
         
@@ -173,25 +180,11 @@ public class JdbcSsrServlet extends HttpServlet {
         ModResponse modResponse = new JdbcApi().mod(EnvironmentFactory.get(req), modRequestBodyMap);
         
         
-        for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
-          if (e.getValue().code == ModStatus.SC_INVALID_FIELD_DATA) {
-            for (Map.Entry<String, Object> invalidField: e.getValue().invalidFieldDataMap.entrySet()) {
-              String modRequestId = e.getKey();
-              String fieldName = invalidField.getKey();
-              Map<String, String> invalidFieldData = (Map<String, String>)invalidField.getValue(); 
-              String errorCode = invalidFieldData.get("errorCode");
-              String errorMessage = invalidFieldData.get("errorMessage");
-           // TODO stopped here: see at table.js
-              System.out.println("///inv:" + modRequestId + ":field=" + fieldName + ":" + errorCode + ":" + errorMessage);
-//              onInvalidFieldData(modRequestId, fieldName, errorCode, errorMessage);
-            }
-          }
-        }
-        
         if (modResponse.allModSuccess) {
           req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
         } else {
           req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests", modRequests);
+          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse", modResponse);
         }
         
         resp.sendRedirect("jdbc");

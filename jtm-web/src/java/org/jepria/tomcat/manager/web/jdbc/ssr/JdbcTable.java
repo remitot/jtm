@@ -85,27 +85,27 @@ public class JdbcTable extends Table<ConnectionDto> {
     
     cell = createCell(flexColumns, "column-name");
     cell.classList.add("cell-field");
-    field = addField(cell, "name", itemOpt.isPresent() ? itemOpt.get().getName() : null, "jdbc/MyDataSource");
+    field = addField(cell, "name", itemOpt.isPresent() ? itemOpt.get().get("name") : null, "jdbc/MyDataSource");
     tabIndex.setNext(field);
    
     cell = createCell(flexColumns, "column-server");
     cell.classList.add("cell-field");
-    field = addField(cell, "server", itemOpt.isPresent() ? itemOpt.get().getServer() : null, "db-server:1521");
+    field = addField(cell, "server", itemOpt.isPresent() ? itemOpt.get().get("server") : null, "db-server:1521");
     tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-db");
     cell.classList.add("cell-field");
-    field = addField(cell, "db", itemOpt.isPresent() ? itemOpt.get().getDb() : null, "MYDATABASE");
+    field = addField(cell, "db", itemOpt.isPresent() ? itemOpt.get().get("db") : null, "MYDATABASE");
     tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-user");
     cell.classList.add("cell-field");
-    field = addField(cell, "user", itemOpt.isPresent() ? itemOpt.get().getUser() : null, "me");
+    field = addField(cell, "user", itemOpt.isPresent() ? itemOpt.get().get("user") : null, "me");
     tabIndex.setNext(field);
     
     cell = createCell(flexColumns, "column-password");
     cell.classList.add("cell-field");
-    field = addField(cell, "password", itemOpt.isPresent() ? itemOpt.get().getPassword() : null, "mysecret");
+    field = addField(cell, "password", itemOpt.isPresent() ? itemOpt.get().get("password") : null, "mysecret");
     tabIndex.setNext(field);
     
     
@@ -140,12 +140,12 @@ public class JdbcTable extends Table<ConnectionDto> {
     El cell, field;
     
     // active
-    final boolean active = item != null && item.getActive() != null ? item.getActive() : itemOriginal.getActive();
+    final boolean active = item != null && item.get("active") != null ? !"false".equals(item.get("active")) : !"false".equals(itemOriginal.get("active"));
     cell = createCell(row, "column-active");
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
     CheckBox checkBox = addCheckbox(cell, active, true);
-    checkBox.setAttribute("value-original", itemOriginal.getActive());
+    checkBox.setAttribute("value-original", !"false".equals(itemOriginal.get("active")));
     if (!dataModifiable) {
       checkBox.classList.add("readonly");
       checkBox.setEnabled(false);
@@ -153,7 +153,7 @@ public class JdbcTable extends Table<ConnectionDto> {
       tabIndex.setNext(checkBox.input);
     }
     
-    if (Boolean.FALSE.equals(itemOriginal.getActive())) {
+    if ("false".equals(itemOriginal.get("active"))) {
       row.classList.add("inactive");
     }
     
@@ -162,51 +162,51 @@ public class JdbcTable extends Table<ConnectionDto> {
     El div = new El("div");
     div.classList.add("flexColumns");
     
-    final String name = item != null && item.getName() != null ? item.getName() : itemOriginal.getName();
+    final String name = item != null && item.get("name") != null ? item.get("name") : itemOriginal.get("name");
     cell = createCell(div, "column-name");
     cell.classList.add("cell-field");
     field = addField(cell, "name", name, null);
-    field.setAttribute("value-original", itemOriginal.getName());
+    field.setAttribute("value-original", itemOriginal.get("name"));
     tabIndex.setNext(field);
     
-    final String server = item != null && item.getServer() != null ? item.getServer() : itemOriginal.getServer();
+    final String server = item != null && item.get("server") != null ? item.get("server") : itemOriginal.get("server");
     cell = createCell(div, "column-server");
     cell.classList.add("cell-field");
     field = addField(cell, "server", server, null);
-    field.setAttribute("value-original", itemOriginal.getServer());
+    field.setAttribute("value-original", itemOriginal.get("server"));
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
       tabIndex.setNext(field);
     }
     
-    final String db = item != null && item.getDb() != null ? item.getDb() : itemOriginal.getDb();
+    final String db = item != null && item.get("db") != null ? item.get("db") : itemOriginal.get("db");
     cell = createCell(div, "column-db");
     cell.classList.add("cell-field");
     field = addField(cell, "db", db, null);
-    field.setAttribute("value-original", itemOriginal.getDb());
+    field.setAttribute("value-original", itemOriginal.get("db"));
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
       tabIndex.setNext(field);
     }
     
-    final String user = item != null && item.getUser() != null ? item.getUser() : itemOriginal.getUser();
+    final String user = item != null && item.get("user") != null ? item.get("user") : itemOriginal.get("user");
     cell = createCell(div, "column-user");
     cell.classList.add("cell-field");
     field = addField(cell, "user", user, null);
-    field.setAttribute("value-original", itemOriginal.getUser());
+    field.setAttribute("value-original", itemOriginal.get("user"));
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {
       tabIndex.setNext(field);
     }
     
-    final String password = item != null && item.getPassword() != null ? item.getPassword() : itemOriginal.getPassword();
+    final String password = item != null && item.get("password") != null ? item.get("password") : itemOriginal.get("password");
     cell = createCell(div, "column-password");
     cell.classList.add("cell-field");
     field = addField(cell, "password", password, null);
-    field.setAttribute("value-original", itemOriginal.getPassword());
+    field.setAttribute("value-original", itemOriginal.get("password"));
     if (!dataModifiable) {
       setFieldReadonly(field);
     } else {

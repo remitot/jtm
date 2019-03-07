@@ -8,10 +8,9 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-import org.jepria.web.Dto;
 import org.jepria.web.ssr.El;
 
-public abstract class Table<T extends Dto> extends El {
+public abstract class Table<T extends Map<String, String>> extends El {
   
   private int tabIndexValue;
   
@@ -63,17 +62,20 @@ public abstract class Table<T extends Dto> extends El {
     if (items != null) {
       for (T item: items) {
         final El row;
-        final String itemId = item.getId();
+        final String itemId = item.get("id");
         if (itemsDeleted != null && itemsDeleted.contains(itemId)) {
-          row = createRowDeletedInternal(item, tabIndex);
+          row = createRowDeleted(item, tabIndex);
         } else {
           final T itemModified = itemsModified.get(itemId);
           if (itemModified != null) {
-            row = createRowModifiedInternal(item, itemModified, tabIndex);
+            row = createRowModified(item, itemModified, tabIndex);
           } else {
-            row = createRowInternal(item, tabIndex);
+            row = createRow(item, tabIndex);
           }
         }
+        
+        row.setAttribute("item-id", item.get("id"));
+        
         appendChild(row);
       }
     }
@@ -85,32 +87,6 @@ public abstract class Table<T extends Dto> extends El {
     
     setAttribute("tabindex-next", tabIndexValue);
   }
-  
-  private El createRowInternal(T item, TabIndex tabIndex) {
-    El row = createRow(item, tabIndex);
-    row.setAttribute("item-id", item.getId());
-    return row;
-  }
-  
-  private El createRowDeletedInternal(T item, TabIndex tabIndex) {
-    El row = createRowDeleted(item, tabIndex);
-    row.setAttribute("item-id", item.getId());
-    return row;
-  }
-  
-  private El createRowModifiedInternal(T itemOriginal, T item, TabIndex tabIndex) {
-    El row = createRowModified(itemOriginal, item, tabIndex);
-    row.setAttribute("item-id", itemOriginal.getId());
-    return row;
-  }
-  
-  
-  
-  
-  
-  
-  
-  
   
   /**
    * Creates a table row (in its original: non-modified, non-deleted state) representing a single item

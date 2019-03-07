@@ -46,12 +46,12 @@ public class JdbcApi {
     return new Comparator<ConnectionDto>() {
       @Override
       public int compare(ConnectionDto o1, ConnectionDto o2) {
-        int nameCmp = o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+        int nameCmp = o1.get("name").toLowerCase().compareTo(o2.get("name").toLowerCase());
         if (nameCmp == 0) {
           // the active is the first
-          if (o1.getActive() && !o2.getActive()) {
+          if ("true".equals(o1.get("active")) && "false".equals(o2.get("active"))) {
             return -1;
-          } else if (o2.getActive() && !o1.getActive()) {
+          } else if ("true".equals(o2.get("active")) && "false".equals(o1.get("active"))) {
             return 1;
           } else {
             return 0;
@@ -69,13 +69,13 @@ public class JdbcApi {
     ConnectionDto dto = new ConnectionDto();
     
     dto.setDataModifiable(connection.isDataModifiable());
-    dto.setActive(connection.isActive());
-    dto.setDb(connection.getDb());
-    dto.setId(id);
-    dto.setName(connection.getName());
-    dto.setPassword(connection.getPassword());
-    dto.setServer(connection.getServer());
-    dto.setUser(connection.getUser());
+    dto.put("active", Boolean.FALSE.equals(connection.isActive()) ? "false" : "true");
+    dto.put("id", id);
+    dto.put("name", connection.getName());
+    dto.put("server", connection.getServer());
+    dto.put("db", connection.getDb());
+    dto.put("user", connection.getUser());
+    dto.put("password", connection.getPassword());
     
     return dto;
   }
@@ -197,9 +197,9 @@ public class JdbcApi {
       
       
       // validate name
-      final String name = connectionDto.getName();
+      final String name = connectionDto.get("name");
       if (name != null) {
-        int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
+        int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.get("name"));
         if (validateNameResult == 1) {
           return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
         } else if (validateNameResult == 2) {
@@ -227,31 +227,31 @@ public class JdbcApi {
     
     // validate illegal action due to dataModifiable field
     if (!target.isDataModifiable() && (
-        sourceDto.getActive() != null || sourceDto.getServer() != null 
-        || sourceDto.getDb() != null || sourceDto.getUser() != null
-        || sourceDto.getPassword() != null)) {
+        sourceDto.get("active") != null || sourceDto.get("server") != null 
+        || sourceDto.get("db") != null || sourceDto.get("user") != null
+        || sourceDto.get("password") != null)) {
       
       return ModStatus.errDataNotModifiable();
     }
     
     
-    if (sourceDto.getActive() != null) {
-      target.setActive(sourceDto.getActive());
+    if (sourceDto.get("active") != null) {
+      target.setActive(!"false".equals(sourceDto.get("active")));
     }
-    if (sourceDto.getDb() != null) {
-      target.setDb(sourceDto.getDb());
+    if (sourceDto.get("db") != null) {
+      target.setDb(sourceDto.get("db"));
     }
-    if (sourceDto.getName() != null) {
-      target.setName(sourceDto.getName());
+    if (sourceDto.get("name") != null) {
+      target.setName(sourceDto.get("name"));
     }
-    if (sourceDto.getPassword() != null) {
-      target.setPassword(sourceDto.getPassword());
+    if (sourceDto.get("password") != null) {
+      target.setPassword(sourceDto.get("password"));
     }
-    if (sourceDto.getServer() != null) {
-      target.setServer(sourceDto.getServer());
+    if (sourceDto.get("server") != null) {
+      target.setServer(sourceDto.get("server"));
     }
-    if (sourceDto.getUser() != null) {
-      target.setUser(sourceDto.getUser());
+    if (sourceDto.get("user") != null) {
+      target.setUser(sourceDto.get("user"));
     }
     
     return ModStatus.success();
@@ -313,7 +313,7 @@ public class JdbcApi {
       
           
       // validate name
-      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.getName());
+      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.get("name"));
       if (validateNameResult == 1) {
         return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
       } else if (validateNameResult == 2) {
@@ -321,7 +321,7 @@ public class JdbcApi {
       }
       
       
-      final Connection newConnection = tomcatConf.create(connectionDto.getName(), initialParams);
+      final Connection newConnection = tomcatConf.create(connectionDto.get("name"), initialParams);
 
       return updateFields(connectionDto, newConnection);
       
@@ -340,19 +340,19 @@ public class JdbcApi {
   protected List<String> validateMandatoryFields(ConnectionDto dto) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (empty(dto.getDb())) {
+    if (empty(dto.get("db"))) {
       emptyFields.add("db");
     }
-    if (empty(dto.getName())) {
+    if (empty(dto.get("name"))) {
       emptyFields.add("name");
     }
-    if (empty(dto.getPassword())) {
+    if (empty(dto.get("password"))) {
       emptyFields.add("password");
     }
-    if (empty(dto.getServer())) {
+    if (empty(dto.get("server"))) {
       emptyFields.add("server");
     }
-    if (empty(dto.getUser())) {
+    if (empty(dto.get("user"))) {
       emptyFields.add("user");
     }
     
