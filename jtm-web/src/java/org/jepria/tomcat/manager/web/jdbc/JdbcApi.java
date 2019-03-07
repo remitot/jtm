@@ -1,7 +1,5 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -92,11 +90,6 @@ public class JdbcApi {
      * all modRequests succeeded
      */
     public boolean allModSuccess;
-    
-    /**
-     * Optional (only if all modRequests succeeded): list of connections after all modifications performed
-     */
-    public List<ConnectionDto> list;
   }
   
   public ModResponse mod(Environment environment, Map<String, ModRequestBodyDto> modRequestBodyMap) {
@@ -170,39 +163,15 @@ public class JdbcApi {
     // 4) ignore illegal actions
 
     
-    // list after save
-    final List<ConnectionDto> listAfterSave;
-    
     if (ret.allModSuccess) {
       // save modifications and add a new _list to the response
       
-      // fake save: to be sure, save the modified conf to a temporary storage and get after-save list from there
-      ByteArrayOutputStream contextXmlBaos = new ByteArrayOutputStream();
-      ByteArrayOutputStream serverXmlBaos = new ByteArrayOutputStream();
-      
-      tomcatConf.save(contextXmlBaos, serverXmlBaos);
-      
-      final TomcatConfJdbc tomcatConfAfterSave = new TomcatConfJdbc(
-          () -> new ByteArrayInputStream(contextXmlBaos.toByteArray()),
-          () -> new ByteArrayInputStream(serverXmlBaos.toByteArray()),
-          isCreateContextResources(environment));
-      
-      listAfterSave = getConnections(tomcatConfAfterSave);
-      
-      
-      // real save: it is safe to save modifications to context.xml file here (before servlet response), 
-      // because although Tomcat is about to reload the context after such saving, 
+      // Note: it is safe to save modifications to context.xml file here (before servlet response), 
+      // because although Tomcat reloads the context after context.xml modification, 
       // it still fulfills the servlet requests currently under processing. 
       tomcatConf.save(environment.getContextXmlOutputStream(), 
           environment.getServerXmlOutputStream());
-      
-    } else {
-      
-      listAfterSave = null;
     }
-    
-    ret.list = listAfterSave;
-    
     
     return ret;
   }

@@ -144,7 +144,7 @@ public class JdbcApiServlet extends HttpServlet {
         
         
         if (modResponse.allModSuccess) {
-          responseJsonMap.put("_list", modResponse.list);
+          responseJsonMap.put("_list", new JdbcApi().list(EnvironmentFactory.get(req)));
         }
         
         
