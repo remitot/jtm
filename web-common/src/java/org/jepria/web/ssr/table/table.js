@@ -185,12 +185,9 @@ function onButtonSaveClick() {
     for (var i = 0; i < rowsModified.length; i++) {
       modRequestList.push(
           {
-            modRequestId: rowsModified[i].itemId, // same as id
-            modRequestBody: {
-              action: "update", 
-              id: rowsModified[i].itemId, 
-              data: rowsModified[i].itemData
-            }
+            id: rowsModified[i].itemId, // same as id
+            action: "update", 
+            data: rowsModified[i].itemData
           }
       );
     }
@@ -200,11 +197,8 @@ function onButtonSaveClick() {
     for (var i = 0; i < rowsDeleted.length; i++) {
       modRequestList.push(
           {
-            modRequestId: rowsDeleted[i], // same as id
-            modRequestBody: {
-              action: "delete", 
-              id: rowsDeleted[i]
-            }
+            id: rowsDeleted[i], // same as id
+            action: "delete"
           }
       );
     }
@@ -214,11 +208,9 @@ function onButtonSaveClick() {
     for (var i = 0; i < rowsCreated.length; i++) {
       modRequestList.push(
           {
-            modRequestId: "row-create-" + (i + 1),
-            modRequestBody: {
-              action: "create", 
-              data: rowsCreated[i].itemData
-            }
+            id: "row-create-" + (i + 1),
+            action: "create",
+            data: rowsCreated[i].itemData
           }
       );
     }

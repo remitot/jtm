@@ -3,11 +3,9 @@ package org.jepria.tomcat.manager.web.jdbc;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.core.jdbc.Connection;
@@ -15,7 +13,6 @@ import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
-import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestBodyDto;
 
 public class JdbcApi {
   
@@ -92,96 +89,10 @@ public class JdbcApi {
     public boolean allModSuccess;
   }
   
-  public ModResponse mod(Environment environment, Map<String, ModRequestBodyDto> modRequestBodyMap) {
-    
-    final ModResponse ret = new ModResponse();
-    
-    final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
-        () -> environment.getContextXmlInputStream(), 
-        () -> environment.getServerXmlInputStream(),
-        isCreateContextResources(environment));
-
-    // collect processed modRequests
-    final Set<String> processedModRequestIds = new HashSet<>();
-    
-    
-    ret.allModSuccess = true; 
-    ret.modStatusMap = new HashMap<>();
-    
-    // 1) perform all updates
-    for (String modRequestId: modRequestBodyMap.keySet()) {
-      ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
-
-      if ("update".equals(mreq.getAction())) {
-        processedModRequestIds.add(modRequestId);
-
-        ModStatus modStatus = updateConnection(mreq, tomcatConf);
-        if (modStatus.code != ModStatus.SC_SUCCESS) {
-          ret.allModSuccess = false;
-        }
-
-        ret.modStatusMap.put(modRequestId, modStatus);
-      }
-    }
-
-
-    // 2) perform all deletions
-    for (String modRequestId: modRequestBodyMap.keySet()) {
-      ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
-
-      if ("delete".equals(mreq.getAction())) {
-        processedModRequestIds.add(modRequestId);
-
-        ModStatus modStatus = deleteConnection(mreq, tomcatConf);
-        if (modStatus.code != ModStatus.SC_SUCCESS) {
-          ret.allModSuccess = false;
-        }
-        
-        ret.modStatusMap.put(modRequestId, modStatus);
-      }
-    }
-
-
-    // 3) perform all creations
-    for (String modRequestId: modRequestBodyMap.keySet()) {
-      ModRequestBodyDto mreq = modRequestBodyMap.get(modRequestId);
-
-      if ("create".equals(mreq.getAction())) {
-        processedModRequestIds.add(modRequestId);
-
-        ModStatus modStatus = createConnection(mreq, tomcatConf, 
-            environment.getResourceInitialParams());
-        if (modStatus.code != ModStatus.SC_SUCCESS) {
-          ret.allModSuccess = false;
-        }
-        
-        ret.modStatusMap.put(modRequestId, modStatus);
-      }
-    }
-
-
-    // 4) ignore illegal actions
-
-    
-    if (ret.allModSuccess) {
-      // save modifications and add a new _list to the response
-      
-      // Note: it is safe to save modifications to context.xml file here (before servlet response), 
-      // because although Tomcat reloads the context after context.xml modification, 
-      // it still fulfills the servlet requests currently under processing. 
-      tomcatConf.save(environment.getContextXmlOutputStream(), 
-          environment.getServerXmlOutputStream());
-    }
-    
-    return ret;
-  }
-  
-  protected ModStatus updateConnection(
-      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
+  protected ModStatus updateConnection(String id,
+      Map<String, String> fields, TomcatConfJdbc tomcatConf) {
     
     try {
-      final String id = mreq.getId();
-
       if (id == null) {
         return ModStatus.errEmptyId();
       }
@@ -193,22 +104,22 @@ public class JdbcApi {
         return ModStatus.errNoItemFoundById();
       }
         
-      final ConnectionDto connectionDto = mreq.getData();
-      
-      
       // validate name
-      final String name = connectionDto.get("name");
+      final String name = fields.get("name");
       if (name != null) {
-        int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.get("name"));
+        int validateNameResult = tomcatConf.validateNewResourceName(fields.get("name"));
         if (validateNameResult == 1) {
-          return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
+          final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
         } else if (validateNameResult == 2) {
-          return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
+          final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
+          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
         }
       }
       
-      
-      return updateFields(connectionDto, connection);
+      return updateFields(fields, connection);
       
     } catch (Throwable e) {
       e.printStackTrace();
@@ -219,50 +130,47 @@ public class JdbcApi {
   
   /**
    * Updates target's fields with source's values
-   * @param sourceDto
+   * @param fields
    * @param target non null
    * @return
    */
-  protected ModStatus updateFields(ConnectionDto sourceDto, Connection target) {
+  protected ModStatus updateFields(Map<String, String> fields, Connection target) {
     
     // validate illegal action due to dataModifiable field
     if (!target.isDataModifiable() && (
-        sourceDto.get("active") != null || sourceDto.get("server") != null 
-        || sourceDto.get("db") != null || sourceDto.get("user") != null
-        || sourceDto.get("password") != null)) {
+        fields.get("active") != null || fields.get("server") != null 
+        || fields.get("db") != null || fields.get("user") != null
+        || fields.get("password") != null)) {
       
       return ModStatus.errDataNotModifiable();
     }
     
     
-    if (sourceDto.get("active") != null) {
-      target.setActive(!"false".equals(sourceDto.get("active")));
+    if (fields.get("active") != null) {
+      target.setActive(!"false".equals(fields.get("active")));
     }
-    if (sourceDto.get("db") != null) {
-      target.setDb(sourceDto.get("db"));
+    if (fields.get("db") != null) {
+      target.setDb(fields.get("db"));
     }
-    if (sourceDto.get("name") != null) {
-      target.setName(sourceDto.get("name"));
+    if (fields.get("name") != null) {
+      target.setName(fields.get("name"));
     }
-    if (sourceDto.get("password") != null) {
-      target.setPassword(sourceDto.get("password"));
+    if (fields.get("password") != null) {
+      target.setPassword(fields.get("password"));
     }
-    if (sourceDto.get("server") != null) {
-      target.setServer(sourceDto.get("server"));
+    if (fields.get("server") != null) {
+      target.setServer(fields.get("server"));
     }
-    if (sourceDto.get("user") != null) {
-      target.setUser(sourceDto.get("user"));
+    if (fields.get("user") != null) {
+      target.setUser(fields.get("user"));
     }
     
     return ModStatus.success();
   }
   
-  protected ModStatus deleteConnection(
-      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf) {
+  protected ModStatus deleteConnection(String id, TomcatConfJdbc tomcatConf) {
 
     try {
-      String id = mreq.getId();
-
       if (id == null) {
         return ModStatus.errEmptyId();
       }
@@ -291,38 +199,37 @@ public class JdbcApi {
   }
   
   protected ModStatus createConnection(
-      ModRequestBodyDto mreq, TomcatConfJdbc tomcatConf,
+      Map<String, String> fields, TomcatConfJdbc tomcatConf,
       ResourceInitialParams initialParams) {
 
     try {
-      ConnectionDto connectionDto = mreq.getData();
-
-      
       // validate mandatory fields
-      List<String> emptyMandatoryFields = validateMandatoryFields(connectionDto);
+      List<String> emptyMandatoryFields = validateMandatoryFields(fields);
       if (!emptyMandatoryFields.isEmpty()) {
-        String[] invalidFields = new String[emptyMandatoryFields.size() * 2];
-        int i = 0;
+        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
         for (String fieldName: emptyMandatoryFields) {
-          invalidFields[i++] = fieldName;
-          invalidFields[i++] = "MANDATORY_EMPTY";
+          invalidFieldDataMap.put(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
         }
-        return ModStatus.errInvalidFieldData(invalidFields);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
       }
       
           
       // validate name
-      int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.get("name"));
+      int validateNameResult = tomcatConf.validateNewResourceName(fields.get("name"));
       if (validateNameResult == 1) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
+        final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
       } else if (validateNameResult == 2) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
+        final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
       }
       
       
-      final Connection newConnection = tomcatConf.create(connectionDto.get("name"), initialParams);
+      final Connection newConnection = tomcatConf.create(fields.get("name"), initialParams);
 
-      return updateFields(connectionDto, newConnection);
+      return updateFields(fields, newConnection);
       
     } catch (Throwable e) {
       e.printStackTrace();
@@ -336,22 +243,22 @@ public class JdbcApi {
    * @param dto
    * @return list of field names whose values are empty (but must not be empty), or else empty list
    */
-  protected List<String> validateMandatoryFields(ConnectionDto dto) {
+  protected List<String> validateMandatoryFields(Map<String, String> fields) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (empty(dto.get("db"))) {
+    if (empty(fields.get("db"))) {
       emptyFields.add("db");
     }
-    if (empty(dto.get("name"))) {
+    if (empty(fields.get("name"))) {
       emptyFields.add("name");
     }
-    if (empty(dto.get("password"))) {
+    if (empty(fields.get("password"))) {
       emptyFields.add("password");
     }
-    if (empty(dto.get("server"))) {
+    if (empty(fields.get("server"))) {
       emptyFields.add("server");
     }
-    if (empty(dto.get("user"))) {
+    if (empty(fields.get("user"))) {
       emptyFields.add("user");
     }
     

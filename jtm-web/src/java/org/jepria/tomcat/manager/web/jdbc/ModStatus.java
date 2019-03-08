@@ -1,6 +1,5 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,11 +40,11 @@ public class ModStatus {
    */
   public final int code;
   /**
-   * if {@link #code} == {@link #SC_INVALID_FIELD_DATA} only: invalid field name mapped to error in format {errorCode: ..., errorMessage: ...}
+   * if {@link #code} == {@link #SC_INVALID_FIELD_DATA} only: invalid field names mapped to error codes
    */
-  public final Map<String, String> invalidFieldDataMap;
+  public final Map<String, InvalidFieldDataCode> invalidFieldDataMap;
   
-  private ModStatus(int code, Map<String, String> invalidFieldDataMap) {
+  private ModStatus(int code, Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
     this.code = code;
     this.invalidFieldDataMap = invalidFieldDataMap;
   }
@@ -54,23 +53,18 @@ public class ModStatus {
     return new ModStatus(SC_SUCCESS, null); 
   }
   
+  public static enum InvalidFieldDataCode {
+    MANDATORY_EMPTY,
+    DUPLICATE_NAME,
+    DUPLICATE_GLOBAL,
+  }
+  
   /**
    * 
-   * @param invalidFields tuples each of length 2: [fieldName1, fieldErrorCode1, fieldName2, fieldErrorCode2, ...]
+   * @param invalidFieldDataMap {@code Map<fieldName, errorCode>}
    */
-  public static ModStatus errInvalidFieldData(String...invalidFields) {
-    if (invalidFields != null) {
-      if (invalidFields.length % 2 != 0) {
-        throw new IllegalArgumentException("Expected tuples each of length 2");
-      }
-      Map<String, String> invalidFieldDataMap = new HashMap<>();
-      for (int i = 0; i < invalidFields.length; i += 3) {
-        invalidFieldDataMap.put(invalidFields[i], invalidFields[i + 1]);
-      }
-      return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
-    } else {
-      return new ModStatus(SC_INVALID_FIELD_DATA, null);
-    }
+  public static ModStatus errInvalidFieldData(Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
+    return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
   }
   
   public static ModStatus errServerException() {

@@ -67,4 +67,21 @@ public class CheckBox extends El {
       }
     }
   }
+  
+  @Override
+  protected void addStyles(Collection styles) throws IOException {
+    super.addStyles(styles);
+    
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    if (classLoader == null) {
+      classLoader = CheckBox.class.getClassLoader(); // fallback
+    }
+    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/checkbox.css");
+        Scanner sc = new Scanner(in, "UTF-8")) {
+      sc.useDelimiter("\\Z");
+      if (sc.hasNext()) {
+        styles.add(sc.next());
+      }
+    }
+  }
 }
