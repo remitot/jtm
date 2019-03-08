@@ -203,6 +203,10 @@ function onButtonSaveClick() {
   if (modRequestList.length > 0) {
     xhttp = new XMLHttpRequest();
     xhttp.open("POST", getSsrUrlMod(), true); // TODO reference to the applicational function
+    xhttp.onreadystatechange = function() {
+      if (xhttp.readyState != 4) return;
+      window.location.href = getSsrUrlBase(); // TODO reference to the applicational function
+    }
     xhttp.send(JSON.stringify(modRequestList));
   } else {
     // TODO report nothing to save
@@ -284,5 +288,15 @@ function triggerFieldsInput(composite) {
   for (var i = 0; i < checkboxes.length; i++) {
     onCheckboxInput(checkboxes[i]);
   }
+}
+
+function onButtonResetClick() {
+  xhttp = new XMLHttpRequest();
+  xhttp.open("POST", getSsrUrlReset(), true); // TODO reference to the applicational function
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState != 4) return;
+    window.location.href = getSsrUrlBase(); // TODO reference to the applicational function
+  } 
+  xhttp.send();
 }
 // :table.js

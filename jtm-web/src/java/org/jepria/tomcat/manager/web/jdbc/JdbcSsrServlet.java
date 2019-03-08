@@ -196,10 +196,10 @@ public class JdbcSsrServlet extends HttpServlet {
 
     String path = req.getPathInfo();
     
-    if ((path == null || "".equals(path)) && req.getParameter("mod") != null) {
+    if ((path == null || "".equals(path))) {
       
-      try {
-
+      if (req.getParameter("mod") != null) {
+      
         // read list from request body
         final List<ModRequestDto> modRequests;
         
@@ -232,18 +232,19 @@ public class JdbcSsrServlet extends HttpServlet {
         
         
         if (modResponse.allModSuccess) {
-          req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
+          modReset(req);
         } else {
           req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests", modRequests);
           req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse", modResponse);
         }
-        
-        resp.sendRedirect("jdbc");
+        // redirect to the base ssr url must be made by the client
         return;
         
-      } catch (Throwable e) {
-        // TODO
-        throw new RuntimeException(e);
+      } else if (req.getParameter("mod-reset") != null) {
+        modReset(req);
+        
+        // redirect to the base ssr url must be made by the client
+        return;
       }
       
     } else {
@@ -252,4 +253,8 @@ public class JdbcSsrServlet extends HttpServlet {
     }
   }
   
+  private void modReset(HttpServletRequest req) {
+    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
+    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
+  }
 }
