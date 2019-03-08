@@ -108,16 +108,12 @@ function onDeleteButtonClick(button) {
   checkModifications();
 }
 
-var createRowId = 1;
-
 function onButtonCreateClick() {
   
   var table = document.getElementById("table");
 
   var newRowTemplate = document.getElementById("table-new-row-template-container").firstElementChild;
   var newRow = newRowTemplate.cloneNode(true);
-  
-  newRow.setAttribute("item-id", "row-create-" + createRowId++);
   
   table.appendChild(newRow);
   
@@ -194,7 +190,7 @@ function onButtonSaveClick() {
     for (var i = 0; i < rowsCreated.length; i++) {
       modRequestList.push(
           {
-            modRequestId: rowsCreated[i].itemId, // same as id
+            modRequestId: "row-create-" + (i + 1),
             modRequestBody: {
               action: "create", 
               data: rowsCreated[i].itemData

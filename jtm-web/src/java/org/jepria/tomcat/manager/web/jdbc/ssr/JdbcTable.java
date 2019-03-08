@@ -110,13 +110,6 @@ public class JdbcTable extends Table<JdbcItem> {
     return row;
   }
   
-  @Override
-  public El createRowModified(JdbcItem item, TabIndex tabIndex) {
-    El row = createRowInternal(item, tabIndex);
-    row.classList.add("modified");
-    return row;
-  }
-  
   /**
    * Creates a table row, fills it with original data and (possibly) overlays that data with new data 
    * @param itemOriginal original data from the server, non-null

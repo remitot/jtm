@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,36 @@ public class JdbcSsrServlet extends HttpServlet {
 
   private static final long serialVersionUID = -2556094883694667549L;
 
+  private static JdbcItem dtoToItem(ConnectionDto dto) {
+    JdbcItem item = new JdbcItem();
+    for (String name: dto.keySet()) {
+      Field field = item.get(name);
+      if (field != null) {
+        field.value = field.valueOriginal = dto.get(name);
+      }
+    }
+    item.setId(dto.get("id"));
+    item.dataModifiable = dto.getDataModifiable();
+    return item;
+  }
+  
+  private static JdbcItem dtoToCreateItem(ConnectionDto dto) {
+    JdbcItem item = new JdbcItem();
+    for (String name: dto.keySet()) {
+      Field field = item.get(name);
+      if (field != null) {
+        field.value = dto.get(name);
+      }
+    }
+    item.active().value = "true";
+    item.active().readonly = true;
+    
+    // create items do not have client 'item-id's
+    
+    item.dataModifiable = true;
+    return item;
+  }
+  
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
@@ -50,54 +81,59 @@ public class JdbcSsrServlet extends HttpServlet {
         final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
         
         // forward compatibility
-        final List<JdbcItem> items = connections.stream().map(conn -> {
-          JdbcItem item = new JdbcItem();
-          for (String name: conn.keySet()) {
-            Field field = item.get(name);
-            if (field != null) {
-              field.value = field.valueOriginal = conn.get(name);
-            }
-          }
-          item.setId(conn.get("id"));
-          item.dataModifiable = conn.getDataModifiable();
-          return item;
-        }).collect(Collectors.toList());
+        final List<JdbcItem> items = connections.stream()
+            .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
         
         
         final JdbcTable table = new JdbcTable();
         
         final List<JdbcItem> itemsCreated = new ArrayList<>();
-        final Map<String, JdbcItem> itemsModified = new HashMap<>();
         final Set<String> itemsDeleted = new HashSet<>();
-//        final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
-//            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
-//        if (modRequests != null) {
-//          for (ModRequestDto modRequest: modRequests) {
-//            final ModRequestBodyDto modRequestBody = modRequest.getModRequestBody(); 
-//            final String action = modRequestBody.getAction();
-//            if ("create".equals(action)) {
-//              itemsCreated.add(modRequestBody.getData());
-//            } else if ("update".equals(action)) {
-//              itemsModified.put(modRequestBody.getId(), modRequestBody.getData());
-//            } else if ("delete".equals(action)) {
-//              itemsDeleted.add(modRequestBody.getId());
-//            }
-//          }
-//        }
-//        
-//        final ModResponse modResponse = (ModResponse)req.getSession().getAttribute(
-//            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
-//        if (modResponse != null) {
-//          for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
-//            ModStatus modStatus = e.getValue(); 
-//            if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
-//              // TODO stopped here: mark fields in table invalid
-////              modStatus.invalidFieldDataMap
-//            }
-//          }
-//        }
         
-        table.load(items, itemsCreated, itemsModified, itemsDeleted);
+        final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
+            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
+        if (modRequests != null) {
+          for (ModRequestDto modRequest: modRequests) {
+            final ModRequestBodyDto modRequestBody = modRequest.getModRequestBody(); 
+            final String action = modRequestBody.getAction();
+            if ("create".equals(action)) {
+              itemsCreated.add(dtoToCreateItem(modRequestBody.getData()));
+            } else if ("update".equals(action)) {
+              
+              // merger modifications into the existing item
+              final String id = modRequestBody.getId();
+              JdbcItem target = items.stream().filter(
+                  item0 -> item0.getId().equals(id)).findAny().orElse(null);
+              if (target == null) {
+                // TODO cannot even treat as a new (because it can be filled only partially)
+                throw new IllegalStateException("The item requested to modification not found: " + id);
+              }
+              ConnectionDto source = modRequestBody.getData();
+              for (String sourceName: source.keySet()) {
+                Field targetField = target.get(sourceName);
+                if (targetField != null) {
+                  targetField.value = source.get(sourceName);
+                }
+              }
+            } else if ("delete".equals(action)) {
+              itemsDeleted.add(modRequestBody.getId());
+            }
+          }
+        }
+        
+        final ModResponse modResponse = (ModResponse)req.getSession().getAttribute(
+            "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
+        if (modResponse != null) {
+          for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
+            ModStatus modStatus = e.getValue(); 
+            if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
+              // TODO stopped here: mark fields in table invalid
+//              modStatus.invalidFieldDataMap
+            }
+          }
+        }
+        
+        table.load(items, itemsCreated, itemsDeleted);
         
         final String tableHtml = table.printHtml();
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
@@ -183,21 +219,11 @@ public class JdbcSsrServlet extends HttpServlet {
         if (modRequests != null) {
           for (ModRequestDto modRequest: modRequests) {
             final String modRequestId = modRequest.getModRequestId();
+
+            // TODO or return 400?
+            Objects.requireNonNull(modRequestId, "modRequestId must not be null");
             
-            // validate modRequestId fields
-            if (modRequestId == null || "".equals(modRequestId)) {
-              resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
-                  "Some modRequestId fields are missing or empty");
-              resp.flushBuffer();
-              return;
-              
-            } else if (modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody()) != null) {
-              
-              resp.sendError(HttpServletResponse.SC_BAD_REQUEST, 
-                  "Duplicate modRequestId field values found: [" + modRequestId + "]");
-              resp.flushBuffer();
-              return;
-            }
+            modRequestBodyMap.put(modRequestId, modRequest.getModRequestBody());
           }
         }
         

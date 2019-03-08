@@ -34,6 +34,18 @@ public class El {
     
   }
   
+  public void setEnabled(boolean enabled) {
+    
+  }
+  
+  public void setReadonly(boolean readonly) {
+    if (readonly) {
+      classList.add("readonly");
+    } else {
+      classList.remove("readonly");
+    }
+  }
+  
   /**
    * 
    * @param className

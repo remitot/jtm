@@ -4,7 +4,7 @@ package org.jepria.web.ssr.table;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -37,12 +37,11 @@ public abstract class Table<T extends ItemData> extends El {
   /**
    * Clear the table and load new items 
    * 
-   * @param items the 'original' items
+   * @param items basic table items, possibly modified
    * @param itemsCreated optional items to render {@code .created} table rows, may be null
-   * @param itemsModified optional items ({@code Map<item.id, item>}) to render {@code .modified} table rows, may be null
    * @param itemsDeleted optional item (set of {@link Dto#id}) to render {@code .deleted} table rows, may be null
    */
-  public void load(List<T> items, List<T> itemsCreated, Map<String, T> itemsModified, Set<String> itemsDeleted) {
+  public void load(List<T> items, List<T> itemsCreated, Set<String> itemsDeleted) {
     
     // reset
     childs.clear();
@@ -63,22 +62,16 @@ public abstract class Table<T extends ItemData> extends El {
       for (T item: items) {
         final El row;
         final String itemId = item.getId();
+        
         if (itemsDeleted != null && itemsDeleted.contains(itemId)) {
           row = createRowDeleted(item, tabIndex);
         } else {
-          final T itemModified = itemsModified.get(itemId);
-          if (itemModified != null) {
-            // merge items
-            for (String name: item.keySet()) {
-              Field fieldModified = itemModified.get(name);
-              if (fieldModified != null) {
-                Field field = item.get(name);
-                field.value = fieldModified.value;
-              }
-            }
-            row = createRowModified(item, tabIndex);
-          } else {
-            row = createRow(item, tabIndex);
+          row = createRow(item, tabIndex);
+          
+          // check any field modified
+          if (item.values().stream().anyMatch(
+              field -> !Objects.equals(field.value, field.valueOriginal))) {
+            row.classList.add("modified");
           }
         }
         
@@ -89,7 +82,9 @@ public abstract class Table<T extends ItemData> extends El {
     }
     if (itemsCreated != null) {
       for (T item: itemsCreated) {
-        appendChild(createRowCreated(item, tabIndex));
+        final El row = createRowCreated(item, tabIndex);
+        row.setAttribute("item-id", item.getId());
+        appendChild(row);
       }
     }
     
@@ -97,7 +92,7 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   /**
-   * Creates a table row (in its original: non-modified, non-deleted state) representing a single item
+   * Create a basic table row (possibly modified) representing a single item
    * @param item data from the server, non-null
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
@@ -121,16 +116,6 @@ public abstract class Table<T extends ItemData> extends El {
    * @return
    */
   public abstract El createRowDeleted(T item, TabIndex tabIndex);
-  
-  /**
-   * Creates a table row (in modified state) representing a single item, that is both present on the server,
-   * and having the corresponding UI table row data modified
-   * @param itemOriginal original data from the server, non-null
-   * @param item optional data from the UI to overlay the original data with, may be null
-   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
-   * @return
-   */
-  public abstract El createRowModified(T item, TabIndex tabIndex);
   
   protected El addField(El cell, Field field, String placeholder) {
     El fieldEl = createField(field.name, field.value, placeholder);
