@@ -4,7 +4,34 @@ function table_onload() {
   
   var fieldsText = table.querySelectorAll("input.field-text");
   for (var i = 0; i < fieldsText.length; i++) {
-    fieldsText[i].oninput = function(event){onFieldInput(event.target)};
+    var fieldText = fieldsText[i];
+     
+    fieldText.oninput = function(field) {// javascript doesn't use block scope for variables
+      return function() {
+        onFieldInput(field);
+      
+        // clear field 'invalid' state on manual value change only
+        field.classList.remove("invalid");
+        field.removeAttribute("title"); // TODO what if a field's title is not related to the invalid state?
+      }
+    }(fieldText);
+  }
+  
+  var checkboxes = document.getElementsByClassName("table__checkbox");
+  for (var i = 0; i < checkboxes.length; i++) {
+    var checkbox = checkboxes[i];
+    
+    checkbox.onclick = function(checkbox) {// javascript doesn't use block scope for variables
+      return function(event) {
+        // JS note: the handler is being invoked twice per single click 
+        // (first for onclick:event.target=SPAN, second for onclick:event.target=INPUT)
+        if (event.target.tagName.toLowerCase() == "input") {
+          onCheckboxInput(checkbox);
+          
+          // checkbox cannot have invalid value: either it is not modifiable at all, or the value is valid
+        }
+      }
+    }(checkbox);
   }
   
   addFieldsDeleteScript(table);
@@ -34,9 +61,6 @@ function onFieldValueChanged(field, newValue) {
       field.classList.remove("modified");
     }
   }
-  
-  // clear field 'invalid' state
-  field.classList.remove("invalid");
   
   checkModifications();
 }

@@ -201,9 +201,9 @@ public class JdbcApi {
       if (name != null) {
         int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.get("name"));
         if (validateNameResult == 1) {
-          return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
+          return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
         } else if (validateNameResult == 2) {
-          return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
+          return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
         }
       }
       
@@ -301,12 +301,11 @@ public class JdbcApi {
       // validate mandatory fields
       List<String> emptyMandatoryFields = validateMandatoryFields(connectionDto);
       if (!emptyMandatoryFields.isEmpty()) {
-        String[] invalidFields = new String[emptyMandatoryFields.size() * 3];
+        String[] invalidFields = new String[emptyMandatoryFields.size() * 2];
         int i = 0;
         for (String fieldName: emptyMandatoryFields) {
           invalidFields[i++] = fieldName;
           invalidFields[i++] = "MANDATORY_EMPTY";
-          invalidFields[i++] = null;
         }
         return ModStatus.errInvalidFieldData(invalidFields);
       }
@@ -315,9 +314,9 @@ public class JdbcApi {
       // validate name
       int validateNameResult = tomcatConf.validateNewResourceName(connectionDto.get("name"));
       if (validateNameResult == 1) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME", null);
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_NAME");
       } else if (validateNameResult == 2) {
-        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL", null);
+        return ModStatus.errInvalidFieldData("name", "DUPLICATE_GLOBAL");
       }
       
       

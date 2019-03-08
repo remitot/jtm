@@ -93,7 +93,7 @@
 
 
 /* elements that go opaque when inactive */
-#table .row.inactive .inactivatible {
+#table .row.inactive .field-text_inactivatible {
   color: #888;
 }
 

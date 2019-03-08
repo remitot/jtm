@@ -25,7 +25,7 @@ public abstract class Table<T extends ItemData> extends El {
   public Table() {
     super("div");
     
-    // TODO remove, use class and css
+    // TODO remove id, use class and css
     setAttribute("id", "table");
     setAttribute("style", "width: 100%;");
   }
@@ -60,14 +60,13 @@ public abstract class Table<T extends ItemData> extends El {
     
     if (items != null) {
       for (T item: items) {
-        final El row;
         final String itemId = item.getId();
         
+        final El row = createRow(item, tabIndex);
+        
         if (itemsDeleted != null && itemsDeleted.contains(itemId)) {
-          row = createRowDeleted(item, tabIndex);
+          row.classList.add("deleted");
         } else {
-          row = createRow(item, tabIndex);
-          
           // check any field modified
           if (item.values().stream().anyMatch(
               field -> !Objects.equals(field.value, field.valueOriginal))) {
@@ -108,22 +107,32 @@ public abstract class Table<T extends ItemData> extends El {
    */
   public abstract El createRowCreated(T item, TabIndex tabIndex);
   
-  /**
-   * Creates a table row (in deleted state) representing a single item, that is still present on the server,
-   * and having the corresponding UI table row deleted
-   * @param item data from the server, non-null
-   * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
-   * @return
-   */
-  public abstract El createRowDeleted(T item, TabIndex tabIndex);
-  
   protected El addField(El cell, Field field, String placeholder) {
-    El fieldEl = createField(field.name, field.value, placeholder);
+    final El fieldEl;
+    if (isEditable()) {
+      fieldEl = createFieldInput(field.name, field.value, placeholder);
+    } else {
+      fieldEl = createFieldLabel(field.value);
+    }
+    
+    fieldEl.classList.add("field-text");
+    fieldEl.classList.add("field-text_inactivatible");
+    fieldEl.classList.add("deletable");
     
     if (field.readonly) {
       setFieldReadonly(fieldEl);
     } else {
       fieldEl.setAttribute("value-original", field.valueOriginal);
+    }
+    
+    String id = System.currentTimeMillis() + "";
+    fieldEl.setAttribute("id8", id);
+    
+    if (field.invalid) {
+      fieldEl.classList.add("invalid");
+      if (field.invalidMessage != null) {
+        fieldEl.setAttribute("title", field.invalidMessage);
+      }
     }
     
     El wrapper = wrapCellPad(fieldEl);
@@ -141,25 +150,12 @@ public abstract class Table<T extends ItemData> extends El {
     field.setAttribute("readonly", "true");
   }
   
-  protected El createField(String name, String value, String placeholder) {
-    if (isEditable()) {
-      return createFieldInput(name, value, placeholder);
-    } else {
-      return createFieldLabel(value);
-    }
-  }
-
   protected El createFieldInput(String name, String value, String placeholder) {
     El field = new El("input");
     field.setAttribute("type", "text");
     field.setAttribute("name", name);
     field.setAttribute("value", value);
     field.setAttribute("placeholder", placeholder);
-    
-    field.classList.add("field-text");
-    field.classList.add("inactivatible");
-    field.classList.add("deletable");
-    
     return field;
   }
 
@@ -172,11 +168,6 @@ public abstract class Table<T extends ItemData> extends El {
   protected El createFieldLabel(String value) {
     El field = new El("label");
     field.setInnerHTML(value);
-    
-    field.classList.add("field-text");
-    field.classList.add("inactivatible");
-    field.classList.add("deletable");
-    
     return field;
   }
 
@@ -253,11 +244,22 @@ public abstract class Table<T extends ItemData> extends El {
     }
     
     checkbox.classList.add("table__checkbox");
+    
     checkbox.classList.add("deletable");
 
+    if (field.invalid) {
+      checkbox.classList.add("invalid");
+      if (field.invalidMessage != null) {
+        checkbox.setAttribute("title", field.invalidMessage);
+      }
+    }
+    
     El wrapper = wrapCellPad(checkbox);  
     cell.appendChild(wrapper);
-    addStrike(cell);
+    
+    if (isEditable()) {
+      addStrike(cell);
+    }
     
     hasCheckboxes = true;
     return checkbox;

@@ -43,9 +43,9 @@ public class ModStatus {
   /**
    * if {@link #code} == {@link #SC_INVALID_FIELD_DATA} only: invalid field name mapped to error in format {errorCode: ..., errorMessage: ...}
    */
-  public final Map<String, Object> invalidFieldDataMap;
+  public final Map<String, String> invalidFieldDataMap;
   
-  private ModStatus(int code, Map<String, Object> invalidFieldDataMap) {
+  private ModStatus(int code, Map<String, String> invalidFieldDataMap) {
     this.code = code;
     this.invalidFieldDataMap = invalidFieldDataMap;
   }
@@ -56,19 +56,16 @@ public class ModStatus {
   
   /**
    * 
-   * @param invalidFields tuples each of length 3: [fieldName1, fieldErrorCode1, errorMessage1, fieldName2, fieldErrorCode2, errorMessage2, ...]
+   * @param invalidFields tuples each of length 2: [fieldName1, fieldErrorCode1, fieldName2, fieldErrorCode2, ...]
    */
   public static ModStatus errInvalidFieldData(String...invalidFields) {
     if (invalidFields != null) {
-      if (invalidFields.length % 3 != 0) {
-        throw new IllegalArgumentException("Expected tuples each of length 3");
+      if (invalidFields.length % 2 != 0) {
+        throw new IllegalArgumentException("Expected tuples each of length 2");
       }
-      Map<String, Object> invalidFieldDataMap = new HashMap<>();
+      Map<String, String> invalidFieldDataMap = new HashMap<>();
       for (int i = 0; i < invalidFields.length; i += 3) {
-        Map<String, Object> errorMap = new HashMap<>();
-        errorMap.put("errorCode", invalidFields[i + 1]);
-        errorMap.put("errorMessage", invalidFields[i + 2]);
-        invalidFieldDataMap.put(invalidFields[i], errorMap);
+        invalidFieldDataMap.put(invalidFields[i], invalidFields[i + 1]);
       }
       return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
     } else {

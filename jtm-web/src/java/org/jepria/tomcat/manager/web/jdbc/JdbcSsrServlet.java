@@ -90,6 +90,7 @@ public class JdbcSsrServlet extends HttpServlet {
         final List<JdbcItem> itemsCreated = new ArrayList<>();
         final Set<String> itemsDeleted = new HashSet<>();
         
+        // obtain created and deleted items, apply modifications
         final List<ModRequestDto> modRequests = (List<ModRequestDto>)req.getSession().getAttribute(
             "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modRequests");
         if (modRequests != null) {
@@ -121,14 +122,40 @@ public class JdbcSsrServlet extends HttpServlet {
           }
         }
         
+        // mark fields invalid
         final ModResponse modResponse = (ModResponse)req.getSession().getAttribute(
             "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
         if (modResponse != null) {
           for (Map.Entry<String, ModStatus> e: modResponse.modStatusMap.entrySet()) {
-            ModStatus modStatus = e.getValue(); 
-            if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
-              // TODO stopped here: mark fields in table invalid
-//              modStatus.invalidFieldDataMap
+            String modRequestId = e.getKey();
+            
+            if (!itemsDeleted.contains(modRequestId)) { //ignore items deleted
+              
+              ModStatus modStatus = e.getValue(); 
+              if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
+                
+                // lookup items
+                JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                    .findAny().orElse(null);
+                if (item == null) {
+                  // lookup items created
+                  item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                  .findAny().orElse(null);
+                }
+                if (item == null) {
+                  // TODO
+                  throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
+                }
+                
+                Map<String, String> errorMap = modStatus.invalidFieldDataMap;
+                for (String fieldName: errorMap.keySet()) {
+                  Field field = item.get(fieldName);
+                  if (field != null) {
+                    field.invalid = true;
+                    field.invalidMessage = errorMap.get(fieldName); 
+                  }
+                }
+              }
             }
           }
         }
