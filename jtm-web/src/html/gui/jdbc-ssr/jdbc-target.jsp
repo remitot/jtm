@@ -8,8 +8,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
     
-    <link rel="stylesheet" href="gui/jtm.css">
-    <script type="text/javascript" src="gui/jtm.js"></script>
+    <link rel="stylesheet" href="gui/jtm-no-statusBar.css">
+    <script type="text/javascript" src="gui/jtm-no-statusBar.js"></script>
     
     <link rel="stylesheet" href="gui/jdbc-ssr/jdbc.css">
     
@@ -19,7 +19,22 @@
   
     <%@ include file="/gui/page-header.fragment.jsp" %>
     
-    <div id="statusBar" class="statusBar statusBar-none"></div>
+    <%
+      final Object statusBarHtml = request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarHtml");
+      if (statusBarHtml != null) {
+    %>
+      <%= statusBarHtml %>
+    <%
+      }
+      final Object statusBarScript = request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarScript");
+      if (statusBarScript != null) {
+    %>
+      <style type="text/css">
+        <%= statusBarScript %>
+      </style>
+    <%
+      } 
+    %>
     
     <div id="table-container">
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml") %>
