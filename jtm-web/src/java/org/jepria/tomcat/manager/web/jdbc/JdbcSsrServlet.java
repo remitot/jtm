@@ -25,6 +25,7 @@ import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcItem;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.Node;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.StatusBar;
@@ -77,19 +78,25 @@ public class JdbcSsrServlet extends HttpServlet {
       
       try {
         
+        final El html = new El("html");
+        
+        final El head = new El("head")
+            .appendChild(new El("title").setInnerHTML("Tomcat manager: датасорсы (JDBC)")) // NON-NLS
+            .appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
+            .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"))
+            .appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", "gui/jtm-no-statusBar.css"))
+            .appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", "gui/jdbc-ssr/jdbc.css"))
+            .appendChild(new El("script").setAttribute("type", "text/javascript").setAttribute("src", "gui/jtm-no-statusBar.js"));
+        
+        final El body = new El("body").setAttribute("onload", "jtm_onload();table_onload();controlButtons_onload();");
+        
         final String managerApacheHref = EnvironmentFactory.get(req).getProperty(
             "org.jepria.tomcat.manager.web.managerApacheHref");
         final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
         
-        // page header script
-        final String pageHeaderHtml = pageHeader.printHtml();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.pageHeaderHtml", pageHeaderHtml);
-        
-        // page header style
-        final String pageHeaderStyle = pageHeader.printStyles();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.pageHeaderStyle", pageHeaderStyle);
-        
-        StatusBar statusBar = null; 
+
+        body.appendChild(pageHeader);
+        body.appendChild(Node.fromHtml("<style type=\"text/css\">" + pageHeader.printStyles() + "</style>"));
         
         // table html
         final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
@@ -110,14 +117,19 @@ public class JdbcSsrServlet extends HttpServlet {
         if (mod != null) {
           
           if (mod.success) {
+            
             final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
-            statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
+            StatusBar statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
+            body.appendChild(statusBar);
+            body.appendChild(Node.fromHtml("<style type=\"text/css\">" + pageHeader.printStyles() + "</style>"));
             
           } else {
           
             final String statusBarHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
                 "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
-            statusBar = new StatusBar(StatusBar.Type.ERROR, statusBarHTML);
+            StatusBar statusBar = new StatusBar(StatusBar.Type.ERROR, statusBarHTML);
+            body.appendChild(statusBar);
+            body.appendChild(Node.fromHtml("<style type=\"text/css\">" + pageHeader.printStyles() + "</style>"));
             
             // obtain created and deleted items, apply modifications
             final List<ModRequestDto> modRequests = mod.modRequests;
@@ -213,17 +225,8 @@ public class JdbcSsrServlet extends HttpServlet {
         
         table.load(items, itemsCreated, itemsDeleted);
         
-        final String tableHtml = table.printHtml();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableHtml", tableHtml);
-        
-        // table script
-        final String tableScript = table.printScripts();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript", tableScript);
-        
-        // table style
-        final String tableStyle = table.printStyles();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableStyle", tableStyle);
-        
+        body.appendChild(table);
+
         // table row-create template
         final TabIndex newRowTemplateTabIndex = new TabIndex() {
           private int i = 0;
@@ -236,34 +239,33 @@ public class JdbcSsrServlet extends HttpServlet {
         final JdbcItem emptyItem = new JdbcItem();
         emptyItem.active().readonly = true;
         emptyItem.active().value = "true";
-        final String tableNewRowTemplateHtml = table.createRowCreated(emptyItem, newRowTemplateTabIndex).printHtml();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableNewRowTemplateHtml", tableNewRowTemplateHtml);
+        final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
+        
+        final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
+            .appendChild(tableNewRowTemplate);
+        body.appendChild(tableNewRowTemplateContainer);
+        
         
         // control buttons
         final ControlButtons controlButtons = new ControlButtons();
+        body.appendChild(controlButtons);
+        body.appendChild(Node.fromHtml("<script type=\"text/javascript\">" + controlButtons.printScripts() + "</script>"));
         
-        final String controlButtonsHtml = controlButtons.printHtml();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsHtml", controlButtonsHtml);
         
-        final String controlButtonsScript = controlButtons.printScripts();
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.controlButtonsScript", controlButtonsScript);
+        body.appendChild(Node.fromHtml("<script type=\"text/javascript\">" 
+            // TODO extract into a separate file
+            + "function getSsrUrlBase() {return \"jdbc\";} function getSsrUrlMod() {return \"jdbc?mod\";} function getSsrUrlReset() {return \"jdbc?mod-reset\";} "
+            + table.printScripts() 
+            + "</script>"));
+        body.appendChild(Node.fromHtml("<style type=\"text/css\">" + table.printStyles() + "</style>"));
         
-        // status bar
-        final String statusBarHtml;
-        final String statusBarStyle;
         
-        if (statusBar != null) {
-          statusBarHtml = statusBar.printHtml();
-          statusBarStyle = statusBar.printStyles();
-        } else {
-          statusBarHtml = statusBarStyle = "";
-        }
+        html.appendChild(head);
+        html.appendChild(body);
         
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarHtml", statusBarHtml);
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarStyle", statusBarStyle);
-        
-        // forward to the target page
-        req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-target.jsp").forward(req, resp);
+        resp.setContentType("text/html; charset=UTF-8");
+        html.render(resp.getWriter());
+        resp.flushBuffer();
         return;
         
       } catch (Throwable e) {

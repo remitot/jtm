@@ -1,7 +1,12 @@
 package org.jepria.tomcat.manager.web.jdbc.ssr;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
+
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;
+import org.jepria.web.ssr.table.Collection;
 import org.jepria.web.ssr.table.Table;
 
 public class JdbcTable extends Table<JdbcItem> {
@@ -183,5 +188,25 @@ public class JdbcTable extends Table<JdbcItem> {
   protected void setFieldReadonly(El field) {
     super.setFieldReadonly(field);
     field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
+  }
+  
+  @Override
+  protected void addScripts(Collection scripts) throws IOException {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    if (classLoader == null) {
+      classLoader = JdbcTable.class.getClassLoader(); // fallback
+    }
+
+    
+    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/control-buttons.js");
+        Scanner sc = new Scanner(in, "UTF-8")) {
+      sc.useDelimiter("\\Z");
+      if (sc.hasNext()) {
+        scripts.add(sc.next());
+      }
+    }
+    
+    
+    super.addScripts(scripts);
   }
 }

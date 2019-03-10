@@ -1,6 +1,6 @@
 // table.js:
 function table_onload() {
-  var table = document.getElementById("table-container").firstElementChild;
+  var table = document.getElementById("table");
   
   var fieldsText = table.querySelectorAll("input.field-text");
   for (var i = 0; i < fieldsText.length; i++) {

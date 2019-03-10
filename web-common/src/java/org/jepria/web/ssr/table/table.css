@@ -192,4 +192,8 @@
 #table .row.deleted .column-delete .button-delete_delete {
   display: none;
 }
+
+#table-new-row-template-container {
+  display: none;
+}
 /* :table.css */
