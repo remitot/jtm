@@ -31,7 +31,7 @@ public class BasicEnvironment implements Environment {
    * @return tomcat 'conf' directory
    */
   protected File getConfDirectory(HttpServletRequest request) {
-    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf2").toFile();
+    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf").toFile();
   }
   
   /**

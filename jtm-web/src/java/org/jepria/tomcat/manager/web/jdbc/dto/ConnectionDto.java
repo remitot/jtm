@@ -10,7 +10,7 @@ public class ConnectionDto extends HashMap<String, String> {
   
   public ConnectionDto() {}
   
-  public boolean getDataModifiable() {
+  public boolean isDataModifiable() {
     return dataModifiable;
   }
 

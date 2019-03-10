@@ -39,10 +39,10 @@ public class JdbcApi {
         .sorted(connectionSorter()).collect(Collectors.toList());
   }
   
-  protected Comparator<ConnectionDto> connectionSorter() {
-    return new Comparator<ConnectionDto>() {
+  protected Comparator<Map<String, String>> connectionSorter() {
+    return new Comparator<Map<String, String>>() {
       @Override
-      public int compare(ConnectionDto o1, ConnectionDto o2) {
+      public int compare(Map<String, String> o1, Map<String, String> o2) {
         int nameCmp = o1.get("name").toLowerCase().compareTo(o2.get("name").toLowerCase());
         if (nameCmp == 0) {
           // the active is the first
