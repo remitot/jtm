@@ -25,6 +25,8 @@ import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcItem;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.PageHeader;
+import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
@@ -74,6 +76,18 @@ public class JdbcSsrServlet extends HttpServlet {
     if (path == null || "".equals(path)) {
       
       try {
+        
+        final String managerApacheHref = EnvironmentFactory.get(req).getProperty(
+            "org.jepria.tomcat.manager.web.managerApacheHref");
+        final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+        
+        // page header script
+        final String pageHeaderHtml = pageHeader.printHtml();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.pageHeaderHtml", pageHeaderHtml);
+        
+        // page header style
+        final String pageHeaderStyle = pageHeader.printStyles();
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.pageHeaderStyle", pageHeaderStyle);
         
         StatusBar statusBar = null; 
         
@@ -236,17 +250,17 @@ public class JdbcSsrServlet extends HttpServlet {
         
         // status bar
         final String statusBarHtml;
-        final String statusBarScript;
+        final String statusBarStyle;
         
         if (statusBar != null) {
           statusBarHtml = statusBar.printHtml();
-          statusBarScript = statusBar.printScripts();
+          statusBarStyle = statusBar.printStyles();
         } else {
-          statusBarHtml = statusBarScript = "";
+          statusBarHtml = statusBarStyle = "";
         }
         
         req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarHtml", statusBarHtml);
-        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarScript", statusBarScript);
+        req.setAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarStyle", statusBarStyle);
         
         // forward to the target page
         req.getRequestDispatcher("/gui/jdbc-ssr/jdbc-target.jsp").forward(req, resp);

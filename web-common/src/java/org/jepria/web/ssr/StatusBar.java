@@ -49,8 +49,8 @@ public class StatusBar extends El {
   }
   
   @Override
-  protected void addScripts(Collection scripts) throws IOException {
-    super.addScripts(scripts);
+  protected void addStyles(Collection styles) throws IOException {
+    super.addStyles(styles);
     
     
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -63,7 +63,7 @@ public class StatusBar extends El {
         Scanner sc = new Scanner(in, "UTF-8")) {
       sc.useDelimiter("\\Z");
       if (sc.hasNext()) {
-        scripts.add(sc.next());
+        styles.add(sc.next());
       }
     }
   }

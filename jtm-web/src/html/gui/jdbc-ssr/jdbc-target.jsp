@@ -17,7 +17,10 @@
   
   <body onload="jtm_onload();table_onload();controlButtons_onload();">
   
-    <%@ include file="/gui/page-header.fragment.jsp" %>
+    <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.pageHeaderHtml") %>
+    <style type="text/css">
+      <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.pageHeaderStyle") %>
+    </style>
     
     <%
       final Object statusBarHtml = request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarHtml");
@@ -26,11 +29,11 @@
       <%= statusBarHtml %>
     <%
       }
-      final Object statusBarScript = request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarScript");
-      if (statusBarScript != null) {
+      final Object statusBarStyle = request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.statusBarStyle");
+      if (statusBarStyle != null) {
     %>
       <style type="text/css">
-        <%= statusBarScript %>
+        <%= statusBarStyle %>
       </style>
     <%
       } 
@@ -60,8 +63,6 @@
       }
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableScript") %>
     </script>
-    
-    <%@ include file="/gui/login.fragment.html" %>    
     
     <style type="text/css">
       <%= request.getAttribute("org.jepria.tomcat.manager.web.jdbc.ssr.tableStyle") %>

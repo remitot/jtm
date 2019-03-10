@@ -14,13 +14,13 @@ import java.util.Set;
 
 import org.jepria.web.ssr.table.Collection;
 
-public class El {
+public class El implements Node {
   
   public String tagName;
   
   public final Map<String, Optional<String>> attributes = new HashMap<>();
   
-  public final List<El> childs = new ArrayList<>();
+  public final List<Node> childs = new ArrayList<>();
   
   public final Set<String> classList = new LinkedHashSet<String>();
   
@@ -114,7 +114,7 @@ public class El {
    * @param child
    * @return {@code this}
    */
-  public El appendChild(El child) {
+  public El appendChild(Node child) {
     childs.add(child);
     return this;
   }
@@ -151,6 +151,7 @@ public class El {
    * @throws IOException
    */
   // TODO escape HTML
+  @Override
   public void render(Appendable sb) throws IOException {
     
     Objects.requireNonNull(tagName);
@@ -195,7 +196,7 @@ public class El {
       }
       
       if (!childs.isEmpty()) {// recursively
-        for (El child: childs) {
+        for (Node child: childs) {
           child.render(sb);
         }
       }
@@ -206,14 +207,19 @@ public class El {
   }
   
   /**
-   * Prints the entire HTML DOM tree of this element and its children recursively
+   * Prints the HTML of this node
    * @return
    * @throws IOException
    */
   public String printHtml() throws IOException {
     StringBuilder sb = new StringBuilder();
     render(sb);
-    return sb.toString();
+    
+    if (sb.length() > 0) {
+      return sb.toString();
+    } else {
+      return null;
+    }
   }
   
   /**
@@ -264,8 +270,10 @@ public class El {
   // private final: not for overriding or direct invocation
   private final void collectScripts(Collection scripts) throws IOException {
     addScripts(scripts);
-    for (El child: childs) {
-      child.collectScripts(scripts);
+    for (Node child: childs) {
+      if (child instanceof El) {
+        ((El)child).collectScripts(scripts);
+      }
     }
   }
   
@@ -286,7 +294,12 @@ public class El {
   public String printScripts() throws IOException {
     StringBuilder sb = new StringBuilder();
     printScripts(sb);
-    return sb.toString();
+    
+    if (sb.length() > 0) {
+      return sb.toString();
+    } else {
+      return null;
+    }
   }
   
   /**
@@ -337,8 +350,10 @@ public class El {
   // private final: not for overriding or direct invocation
   private final void collectStyles(Collection styles) throws IOException {
     addStyles(styles);
-    for (El child: childs) {
-      child.collectStyles(styles);
+    for (Node child: childs) {
+      if (child instanceof El) {
+        ((El)child).collectStyles(styles);
+      }
     }
   }
   
@@ -359,6 +374,11 @@ public class El {
   public String printStyles() throws IOException {
     StringBuilder sb = new StringBuilder();
     printStyles(sb);
-    return sb.toString();
+    
+    if (sb.length() > 0) {
+      return sb.toString();
+    } else {
+      return null;
+    }
   }
 }
