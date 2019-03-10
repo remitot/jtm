@@ -60,12 +60,9 @@ public class JdbcSsrServlet extends HttpServlet {
         field.value = dto.get(name);
       }
     }
+    item.dataModifiable = true;
     item.active().value = "true";
     item.active().readonly = true;
-    
-    // create items do not have client 'item-id's
-    
-    item.dataModifiable = true;
     return item;
   }
   
@@ -115,7 +112,9 @@ public class JdbcSsrServlet extends HttpServlet {
                 final String action = modRequest.getAction();
                 
                 if ("create".equals(action)) {
-                  itemsCreated.add(dtoToItemCreated(modRequest.getData()));
+                  JdbcItem item = dtoToItemCreated(modRequest.getData());
+                  item.setId(modRequest.getId());
+                  itemsCreated.add(item);
                   
                 } else if ("update".equals(action)) {
                   
