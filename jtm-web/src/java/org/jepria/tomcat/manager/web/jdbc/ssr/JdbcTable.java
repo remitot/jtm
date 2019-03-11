@@ -191,10 +191,4 @@ public class JdbcTable extends Table<JdbcItem> {
     super.addStyles(styles);
     styles.add("css/jdbc/jdbc.css");
   }
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/jdbc/jdbc.js");
-  }
 }

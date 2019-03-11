@@ -217,12 +217,15 @@ function onButtonSaveClick() {
   
   if (modRequestList.length > 0) {
     xhttp = new XMLHttpRequest();
-    xhttp.open("POST", getSsrUrlMod(), true); // TODO reference to the applicational function
+    xhttp.open("POST", window.location.href, true);
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState != 4) return;
-      window.location.href = getSsrUrlBase(); // TODO reference to the applicational function
+      
+      // reload page; location.reload() not working in FF and Chrome 
+      window.location.href = window.location.href;
     }
-    xhttp.send(JSON.stringify(modRequestList));
+    var body = {action: "mod", "data": modRequestList};
+    xhttp.send(JSON.stringify(body));
   } else {
     // TODO report nothing to save
   }
@@ -278,7 +281,6 @@ function collectRowData(row) {
   for (var j = 0; j < fields.length; j++) {
     var field = fields[j];
     if (field.name === "active") {
-      // TODO workaround. If checkbox becomes a class, make its own property 'value'
       data[field.name] = field.checked;
     } else {
       data[field.name] = field.value;
@@ -307,10 +309,13 @@ function triggerFieldsInput(composite) {
 
 function onButtonResetClick() {
   xhttp = new XMLHttpRequest();
-  xhttp.open("POST", getSsrUrlReset(), true); // TODO reference to the applicational function
+  xhttp.open("POST", window.location.href, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.readyState != 4) return;
-    window.location.href = getSsrUrlBase(); // TODO reference to the applicational function
+    
+    // reload page; location.reload() not working in FF and Chrome 
+    window.location.href = window.location.href;
   } 
-  xhttp.send();
+  var body = {action: "mod-reset"};
+  xhttp.send(JSON.stringify(body));
 }

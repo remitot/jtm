@@ -20,6 +20,7 @@ import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ModDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcItem;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
@@ -71,235 +72,213 @@ public class JdbcSsrServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     
-    final String path = req.getPathInfo();
+    final El html = new El("html");
     
-    if (path == null || "".equals(path)) {
-      
-      try {
-        
-        final El html = new El("html");
-        
-        final El head = new El("head")
-            .appendChild(new El("title").setInnerHTML("Tomcat manager: датасорсы (JDBC)")) // NON-NLS
-            .appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
-            .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
-        
-        final El body = new El("body").setAttribute("onload", "jtm_onload();table_onload();controlButtons_onload();");
-        
-        final String managerApacheHref = EnvironmentFactory.get(req).getProperty(
-            "org.jepria.tomcat.manager.web.managerApacheHref");
-        final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
-        
+    final El head = new El("head")
+        .appendChild(new El("title").setInnerHTML("Tomcat manager: датасорсы (JDBC)")) // NON-NLS
+        .appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
+        .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
+    
+    final El body = new El("body").setAttribute("onload", "jtm_onload();table_onload();controlButtons_onload();");
+    
+    final String managerApacheHref = EnvironmentFactory.get(req).getProperty(
+        "org.jepria.tomcat.manager.web.managerApacheHref");
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+    
 
-        body.appendChild(pageHeader);
+    body.appendChild(pageHeader);
+    
+    // table html
+    final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
+    
+    // forward compatibility
+    final List<JdbcItem> items = connections.stream()
+        .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
+    
+    
+    final JdbcTable table = new JdbcTable();
+    
+    final List<JdbcItem> itemsCreated = new ArrayList<>();
+    final Set<String> itemsDeleted = new HashSet<>();
+    
+    
+    final ModResponse mod = (ModResponse)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
+    
+    if (mod != null) {
+      
+      if (mod.success) {
         
-        // table html
-        final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
+        final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
+        StatusBar statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
+        body.appendChild(statusBar);
         
-        // forward compatibility
-        final List<JdbcItem> items = connections.stream()
-            .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
+      } else {
+      
+        final String statusBarHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
+            "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
+        StatusBar statusBar = new StatusBar(StatusBar.Type.ERROR, statusBarHTML);
+        body.appendChild(statusBar);
         
-        
-        final JdbcTable table = new JdbcTable();
-        
-        final List<JdbcItem> itemsCreated = new ArrayList<>();
-        final Set<String> itemsDeleted = new HashSet<>();
-        
-        
-        final Mod mod = (Mod)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod");
-        
-        if (mod != null) {
-          
-          if (mod.success) {
+        // obtain created and deleted items, apply modifications
+        final List<ModRequestDto> modRequests = mod.modRequests;
+        if (modRequests != null) {
+          for (ModRequestDto modRequest: modRequests) {
+            final String action = modRequest.getAction();
             
-            final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
-            StatusBar statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
-            body.appendChild(statusBar);
-            
-          } else {
-          
-            final String statusBarHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
-                "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
-            StatusBar statusBar = new StatusBar(StatusBar.Type.ERROR, statusBarHTML);
-            body.appendChild(statusBar);
-            
-            // obtain created and deleted items, apply modifications
-            final List<ModRequestDto> modRequests = mod.modRequests;
-            if (modRequests != null) {
-              for (ModRequestDto modRequest: modRequests) {
-                final String action = modRequest.getAction();
-                
-                if ("create".equals(action)) {
-                  JdbcItem item = dtoToItemCreated(modRequest.getData());
-                  item.setId(modRequest.getId());
-                  itemsCreated.add(item);
-                  
-                } else if ("update".equals(action)) {
-                  
-                  // merge modifications into the existing item
-                  final String id = modRequest.getId();
-                  JdbcItem target = items.stream().filter(
-                      item0 -> item0.getId().equals(id)).findAny().orElse(null);
-                  if (target == null) {
-                    // TODO cannot even treat as a new (because it can be filled only partially)
-                    throw new IllegalStateException("The item requested to modification not found: " + id);
-                  }
-                  Map<String, String> source = modRequest.getData();
-                  for (String sourceName: source.keySet()) {
-                    Field targetField = target.get(sourceName);
-                    if (targetField != null) {
-                      targetField.value = source.get(sourceName);
-                    }
-                  }
-                  
-                } else if ("delete".equals(action)) {
-                  itemsDeleted.add(modRequest.getId());
+            if ("create".equals(action)) {
+              JdbcItem item = dtoToItemCreated(modRequest.getData());
+              item.setId(modRequest.getId());
+              itemsCreated.add(item);
+              
+            } else if ("update".equals(action)) {
+              
+              // merge modifications into the existing item
+              final String id = modRequest.getId();
+              JdbcItem target = items.stream().filter(
+                  item0 -> item0.getId().equals(id)).findAny().orElse(null);
+              if (target == null) {
+                // TODO cannot even treat as a new (because it can be filled only partially)
+                throw new IllegalStateException("The item requested to modification not found: " + id);
+              }
+              Map<String, String> source = modRequest.getData();
+              for (String sourceName: source.keySet()) {
+                Field targetField = target.get(sourceName);
+                if (targetField != null) {
+                  targetField.value = source.get(sourceName);
                 }
               }
+              
+            } else if ("delete".equals(action)) {
+              itemsDeleted.add(modRequest.getId());
             }
+          }
+        }
+        
+        // process invalid field data
+        final Map<String, ModStatus> modStatuses = mod.modStatuses;
+        if (modStatuses != null) {
+          for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: modStatuses.entrySet()) {
+            String modRequestId = modRequestIdAndModStatus.getKey();
             
-            // process invalid field data
-            final Map<String, ModStatus> modStatuses = mod.modStatuses;
-            if (modStatuses != null) {
-              for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: modStatuses.entrySet()) {
-                String modRequestId = modRequestIdAndModStatus.getKey();
+            if (!itemsDeleted.contains(modRequestId)) { //ignore deleted items
+              
+              ModStatus modStatus = modRequestIdAndModStatus.getValue(); 
+              if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
                 
-                if (!itemsDeleted.contains(modRequestId)) { //ignore deleted items
-                  
-                  ModStatus modStatus = modRequestIdAndModStatus.getValue(); 
-                  if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
-                    
-                    // lookup items
-                    JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
-                        .findAny().orElse(null);
-                    if (item == null) {
-                      // lookup items created
-                      item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
-                      .findAny().orElse(null);
-                    }
-                    if (item == null) {
-                      // TODO
-                      throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
-                    }
-                    
-                    if (modStatus.invalidFieldDataMap != null) {
-                      for (Map.Entry<String, ModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
-                          modStatus.invalidFieldDataMap.entrySet()) {
-                        Field field = item.get(idAndInvalidFieldDataCode.getKey());
-                        if (field != null) {
-                          field.invalid = true;
-                          switch (idAndInvalidFieldDataCode.getValue()) {
-                          case MANDATORY_EMPTY: {
-                            field.invalidMessage = "Поле не должно быть пустым"; // NON-NLS
-                            break;
-                          }
-                          case DUPLICATE_NAME: {
-                            field.invalidMessage = "Такое название уже есть"; // NON-NLS
-                            break;
-                          }
-                          case DUPLICATE_GLOBAL: {
-                            field.invalidMessage = "Такое название уже есть среди Context/ResourceLink.global " 
-                                + "или Server/GlobalNamingResources/Resource.name"; // NON-NLS
-                            break;
-                          }
-                          }
-                        }
+                // lookup items
+                JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                    .findAny().orElse(null);
+                if (item == null) {
+                  // lookup items created
+                  item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                  .findAny().orElse(null);
+                }
+                if (item == null) {
+                  // TODO
+                  throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
+                }
+                
+                if (modStatus.invalidFieldDataMap != null) {
+                  for (Map.Entry<String, ModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
+                      modStatus.invalidFieldDataMap.entrySet()) {
+                    Field field = item.get(idAndInvalidFieldDataCode.getKey());
+                    if (field != null) {
+                      field.invalid = true;
+                      switch (idAndInvalidFieldDataCode.getValue()) {
+                      case MANDATORY_EMPTY: {
+                        field.invalidMessage = "Поле не должно быть пустым"; // NON-NLS
+                        break;
+                      }
+                      case DUPLICATE_NAME: {
+                        field.invalidMessage = "Такое название уже есть"; // NON-NLS
+                        break;
+                      }
+                      case DUPLICATE_GLOBAL: {
+                        field.invalidMessage = "Такое название уже есть среди Context/ResourceLink.global " 
+                            + "или Server/GlobalNamingResources/Resource.name"; // NON-NLS
+                        break;
+                      }
                       }
                     }
-                  } else {
-                    // TODO process other statuses
                   }
                 }
+              } else {
+                // TODO process other statuses
               }
             }
           }
         }
-        
-        table.load(items, itemsCreated, itemsDeleted);
-        
-        body.appendChild(table);
-
-        // table row-create template
-        final TabIndex newRowTemplateTabIndex = new TabIndex() {
-          private int i = 0;
-          @Override
-          public void setNext(El el) {
-            el.classList.add("has-tabindex-rel");
-            el.setAttribute("tabindex-rel", i++);
-          }
-        };
-        final JdbcItem emptyItem = new JdbcItem();
-        emptyItem.active().readonly = true;
-        emptyItem.active().value = "true";
-        final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
-        
-        final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
-            .appendChild(tableNewRowTemplate);
-        body.appendChild(tableNewRowTemplateContainer);
-        
-        
-        // control buttons
-        final ControlButtons controlButtons = new ControlButtons();
-        body.appendChild(controlButtons);
-        
-        
-
-        // add all scripts and styles to the head
-        for (String style: body.getStyles()) {
-          head.appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", style));
-        }
-        for (String script: body.getScripts()) {
-          head.appendChild(new El("script").setAttribute("type", "text/javascript").setAttribute("src", script));
-        }
-        
-        
-        html.appendChild(head);
-        html.appendChild(body);
-        
-        resp.setContentType("text/html; charset=UTF-8");
-        resp.getWriter().print("<!DOCTYPE html>");
-        html.render(resp.getWriter());
-        resp.flushBuffer();
-        return;
-        
-      } catch (Throwable e) {
-        e.printStackTrace();
-
-        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        resp.flushBuffer();
-        return;
       }
-
-    } else {
-      
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-      resp.flushBuffer();
-      return;
     }
+    
+    table.load(items, itemsCreated, itemsDeleted);
+    
+    body.appendChild(table);
+
+    // table row-create template
+    final TabIndex newRowTemplateTabIndex = new TabIndex() {
+      private int i = 0;
+      @Override
+      public void setNext(El el) {
+        el.classList.add("has-tabindex-rel");
+        el.setAttribute("tabindex-rel", i++);
+      }
+    };
+    final JdbcItem emptyItem = new JdbcItem();
+    emptyItem.active().readonly = true;
+    emptyItem.active().value = "true";
+    final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
+    
+    final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
+        .appendChild(tableNewRowTemplate);
+    body.appendChild(tableNewRowTemplateContainer);
+    
+    
+    // control buttons
+    final ControlButtons controlButtons = new ControlButtons();
+    body.appendChild(controlButtons);
+    
+    
+
+    // add all scripts and styles to the head
+    for (String style: body.getStyles()) {
+      head.appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", style));
+    }
+    for (String script: body.getScripts()) {
+      head.appendChild(new El("script").setAttribute("type", "text/javascript").setAttribute("src", script));
+    }
+    
+    
+    html.appendChild(head);
+    html.appendChild(body);
+    
+    resp.setContentType("text/html; charset=UTF-8");
+    resp.getWriter().print("<!DOCTYPE html>");
+    html.render(resp.getWriter());
+    resp.flushBuffer();
+    return;
   }
   
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    String path = req.getPathInfo();
+    final ModDto mod;
     
-    if ((path == null || "".equals(path))) {
+    try {
+      Type type = new TypeToken<ModDto>(){}.getType();
+      mod = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
+    } catch (Throwable e) {
+      // TODO
+      throw new RuntimeException(e);
+    }
+    
+    if ("mod".equals(mod.getAction())) {
+    
+      // read list from request body
+      final List<ModRequestDto> modRequests = mod.getData();
       
-      if (req.getParameter("mod") != null) {
+      if (modRequests != null && modRequests.size() > 0) {
       
-        // read list from request body
-        final List<ModRequestDto> modRequests;
-        
-        try {
-          Type type = new TypeToken<ArrayList<ModRequestDto>>(){}.getType();
-          modRequests = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
-          
-        } catch (Throwable e) {
-          // TODO
-          throw new RuntimeException(e);
-        }
-        
         // Map<modRequestId, modStatus>
         final Map<String, ModStatus> modStatuses = new HashMap<>();
         
@@ -312,7 +291,7 @@ public class JdbcSsrServlet extends HttpServlet {
             () -> env.getContextXmlInputStream(), 
             () -> env.getServerXmlInputStream(),
             createContextResources);
-
+  
         final JdbcApi api = new JdbcApi();
         
         boolean allModSuccess = true; 
@@ -328,8 +307,8 @@ public class JdbcSsrServlet extends HttpServlet {
             modStatuses.put(modRequest.getId(), modStatus);
           }
         }
-
-
+  
+  
         // 2) perform all deletions
         for (ModRequestDto modRequest: modRequests) {
           if ("delete".equals(modRequest.getAction())) {
@@ -341,8 +320,8 @@ public class JdbcSsrServlet extends HttpServlet {
             modStatuses.put(modRequest.getId(), modStatus);
           }
         }
-
-
+  
+  
         // 3) perform all creations
         for (ModRequestDto modRequest: modRequests) {
           if ("create".equals(modRequest.getAction())) {
@@ -354,12 +333,12 @@ public class JdbcSsrServlet extends HttpServlet {
             modStatuses.put(modRequest.getId(), modStatus);
           }
         }
-
-
+  
+  
         // 4) ignore illegal actions
-
+  
         
-        final Mod mod = new Mod();
+        final ModResponse modResponse = new ModResponse();
         
         if (allModSuccess) {
           // save modifications and add a new _list to the response
@@ -370,38 +349,37 @@ public class JdbcSsrServlet extends HttpServlet {
           tomcatConf.save(env.getContextXmlOutputStream(), 
               env.getServerXmlOutputStream());
           
-          mod.success = true;
+          modResponse.success = true;
           
         } else {
           
-          mod.success = false;
-          mod.modRequests = modRequests;
-          mod.modStatuses = modStatuses;
+          modResponse.success = false;
+          modResponse.modRequests = modRequests;
+          modResponse.modStatuses = modStatuses;
         }
         
-        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod", mod);
-        
-        // redirect to the base ssr url must be made by the client
-        return;
-        
-      } else if (req.getParameter("mod-reset") != null) {
-        modReset(req);
+        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse", modResponse);
         
         // redirect to the base ssr url must be made by the client
         return;
       }
       
-    } else {
-   // TODO
-      throw new RuntimeException();
+    } else if ("mod-reset".equals(mod.getAction())) {
+      modReset(req);
+      
+      // redirect to the base ssr url must be made by the client
+      return;
     }
   }
   
   private void modReset(HttpServletRequest req) {
-    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod");
+    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
   }
   
-  private static class Mod {
+  /**
+   * response for the mod request
+   */
+  private static class ModResponse {
     public boolean success;
     public List<ModRequestDto> modRequests;
     public Map<String, ModStatus> modStatuses;

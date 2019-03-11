@@ -40,7 +40,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>JdbcGui</servlet-name>
-    <url-pattern>/jdbc</url-pattern>
+    <url-pattern>/jdbc/*</url-pattern>
   </servlet-mapping>
 
 
