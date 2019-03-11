@@ -189,10 +189,11 @@ public class WorkerFactory {
       while (lines.hasNext()) {
         final TextLineReference line = lines.next();
         
+        // Apache actually uses the last declared property (over the the same worker types) 
         tryParseWorkerProperty(line, 
-            m -> typeProperties.putIfAbsent(m.getWorkerName(), m),
-            m -> hostProperties.putIfAbsent(m.getWorkerName(), m),
-            m -> portProperties.putIfAbsent(m.getWorkerName(), m));
+            m -> typeProperties.put(m.getWorkerName(), m), 
+            m -> hostProperties.put(m.getWorkerName(), m),
+            m -> portProperties.put(m.getWorkerName(), m));
       }
       
       
