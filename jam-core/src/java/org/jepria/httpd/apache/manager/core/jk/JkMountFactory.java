@@ -96,9 +96,10 @@ public class JkMountFactory {
       Map<String, JkMountDirective> asterMounts = new HashMap<>();
 
       for (TextLineReference line: lines) {
+        // Apache actually uses the last declared directive (over the the same applications)
         tryParseJkMountDirective(line, 
-            m -> rootMounts.putIfAbsent(m.getApplication(), m),
-            m -> asterMounts.putIfAbsent(m.getApplication(), m));
+            m -> rootMounts.put(m.getApplication(), m),
+            m -> asterMounts.put(m.getApplication(), m));
       }
       
       // assemble JkMounts from JkMountDirectives with both root and asterisk mounted to the same application and worker

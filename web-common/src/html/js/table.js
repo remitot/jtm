@@ -1,11 +1,10 @@
-// table.js:
 function table_onload() {
   var table = document.getElementById("table");
   
   var fieldsText = table.querySelectorAll("input.field-text");
   for (var i = 0; i < fieldsText.length; i++) {
     var fieldText = fieldsText[i];
-     
+    
     fieldText.oninput = function(field) {// javascript doesn't use block scope for variables
       return function() {
         onFieldInput(field);
@@ -46,7 +45,9 @@ function table_onload() {
 }
 
 function onFieldInput(field) {
-  onFieldValueChanged(field, field.value);
+  if (!field.classList.contains("readonly")) {// ignore events for readonly fields
+    onFieldValueChanged(field, field.value);
+  }
 }
 
 function onFieldValueChanged(field, newValue) {
@@ -64,6 +65,37 @@ function onFieldValueChanged(field, newValue) {
   
   checkModifications();
 }
+
+function onCheckboxInput(checkbox) {
+  if (!checkbox.classList.contains("readonly")) {// ignore events for readonly fields
+    
+    if (getInput(checkbox).checked && checkbox.getAttribute("value-original") == "true" 
+        || !getInput(checkbox).checked && checkbox.getAttribute("value-original") == "false") {
+      // affect both input (to get the modified fields selected by input.modified) 
+      // and label (to graphically display the field modification state)
+      checkbox.classList.remove("modified");
+      getInput(checkbox).classList.remove("modified");
+    } else {
+      // affect both input (to get the modified fields selected by input.modified) 
+      // and label (to graphically display the field modification state)
+      checkbox.classList.add("modified");
+      getInput(checkbox).classList.add("modified");
+    }
+    
+    if (!getInput(checkbox).checked) {
+      //TODO resolve the relative path to ".row" :
+      checkbox.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
+      checkbox.title = "Запись неактивна"; // NON-NLS
+    } else {
+      //TODO resolve the relative path to ".row":
+      checkbox.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
+      checkbox.title = "Запись активна"; // NON-NLS
+    }
+    
+    checkModifications();
+  }
+}
+
 
 
 /**
@@ -218,12 +250,15 @@ function onButtonSaveClick() {
   
   if (modRequestList.length > 0) {
     xhttp = new XMLHttpRequest();
-    xhttp.open("POST", getSsrUrlMod(), true); // TODO reference to the applicational function
+    xhttp.open("POST", window.location.href, true);
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState != 4) return;
-      window.location.href = getSsrUrlBase(); // TODO reference to the applicational function
+      
+      // reload page; location.reload() not working in FF and Chrome 
+      window.location.href = window.location.href;
     }
-    xhttp.send(JSON.stringify(modRequestList));
+    var body = {action: "mod", "data": modRequestList};
+    xhttp.send(JSON.stringify(body));
   } else {
     // TODO report nothing to save
   }
@@ -279,7 +314,6 @@ function collectRowData(row) {
   for (var j = 0; j < fields.length; j++) {
     var field = fields[j];
     if (field.name === "active") {
-      // TODO workaround. If checkbox becomes a class, make its own property 'value'
       data[field.name] = field.checked;
     } else {
       data[field.name] = field.value;
@@ -308,11 +342,13 @@ function triggerFieldsInput(composite) {
 
 function onButtonResetClick() {
   xhttp = new XMLHttpRequest();
-  xhttp.open("POST", getSsrUrlReset(), true); // TODO reference to the applicational function
+  xhttp.open("POST", window.location.href, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.readyState != 4) return;
-    window.location.href = getSsrUrlBase(); // TODO reference to the applicational function
+    
+    // reload page; location.reload() not working in FF and Chrome 
+    window.location.href = window.location.href;
   } 
-  xhttp.send();
+  var body = {action: "mod-reset"};
+  xhttp.send(JSON.stringify(body));
 }
-// :table.js

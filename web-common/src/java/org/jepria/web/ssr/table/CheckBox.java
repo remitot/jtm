@@ -1,9 +1,5 @@
 package org.jepria.web.ssr.table;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
-
 import org.jepria.web.ssr.El;
 
 public class CheckBox extends El {
@@ -51,37 +47,14 @@ public class CheckBox extends El {
   }
   
   @Override
-  protected void addScripts(Collection scripts) throws IOException {
+  protected void addScripts(Collection scripts) {
     super.addScripts(scripts);
-    
-    
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = CheckBox.class.getClassLoader(); // fallback
-    }
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/checkbox.js");
-        Scanner sc = new Scanner(in, "UTF-8")) {
-      sc.useDelimiter("\\Z");
-      if (sc.hasNext()) {
-        scripts.add(sc.next());
-      }
-    }
+    scripts.add("js/checkbox.js");
   }
   
   @Override
-  protected void addStyles(Collection styles) throws IOException {
+  protected void addStyles(Collection styles) {
     super.addStyles(styles);
-    
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = CheckBox.class.getClassLoader(); // fallback
-    }
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/checkbox.css");
-        Scanner sc = new Scanner(in, "UTF-8")) {
-      sc.useDelimiter("\\Z");
-      if (sc.hasNext()) {
-        styles.add(sc.next());
-      }
-    }
+    styles.add("css/checkbox.css");
   }
 }

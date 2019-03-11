@@ -2,7 +2,10 @@ package org.jepria.tomcat.manager.web.jdbc.dto;
 
 import java.util.Map;
 
-public class ModRequestDto {
+/**
+ * Class representing a single data item modification request
+ */
+public class ItemModRequestDto {
   
   private String id;
   private String action;
@@ -11,7 +14,7 @@ public class ModRequestDto {
    */
   private Map<String, String> data;
   
-  public ModRequestDto() {}
+  public ItemModRequestDto() {}
 
   public String getId() {
     return id;

@@ -1,9 +1,5 @@
 package org.jepria.tomcat.manager.web.jdbc.ssr;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
-
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;
 import org.jepria.web.ssr.table.Collection;
@@ -68,8 +64,10 @@ public class JdbcTable extends Table<JdbcItem> {
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
     CheckBox checkBox = addCheckbox(cell, item.active());
-    if (!item.active().readonly) {
+    if (item.dataModifiable) {
       tabIndex.setNext(checkBox.input);
+    } else {
+      addFieldUnmodifiableTitle(checkBox);
     }
     
     if ("false".equals(item.active().value)) {
@@ -89,37 +87,37 @@ public class JdbcTable extends Table<JdbcItem> {
     cell = createCell(div, "column-server");
     cell.classList.add("cell-field");
     field = addField(cell, item.server(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     cell = createCell(div, "column-db");
     cell.classList.add("cell-field");
     field = addField(cell, item.db(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     cell = createCell(div, "column-user");
     cell.classList.add("cell-field");
     field = addField(cell, item.user(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     cell = createCell(div, "column-password");
     cell.classList.add("cell-field");
     field = addField(cell, item.password(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     if (item.dataModifiable) {
@@ -129,6 +127,10 @@ public class JdbcTable extends Table<JdbcItem> {
     row.appendChild(div);
     
     return row;
+  }
+  
+  protected void addFieldUnmodifiableTitle(El field) {
+    field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
   }
   
   @Override
@@ -185,28 +187,8 @@ public class JdbcTable extends Table<JdbcItem> {
   }
   
   @Override
-  protected void setFieldReadonly(El field) {
-    super.setFieldReadonly(field);
-    field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
-  }
-  
-  @Override
-  protected void addScripts(Collection scripts) throws IOException {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = JdbcTable.class.getClassLoader(); // fallback
-    }
-
-    
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/control-buttons.js");
-        Scanner sc = new Scanner(in, "UTF-8")) {
-      sc.useDelimiter("\\Z");
-      if (sc.hasNext()) {
-        scripts.add(sc.next());
-      }
-    }
-    
-    
-    super.addScripts(scripts);
+  protected void addStyles(Collection styles) {
+    super.addStyles(styles);
+    styles.add("css/jdbc/jdbc.css");
   }
 }

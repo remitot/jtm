@@ -36,17 +36,11 @@
   
   <servlet>
     <servlet-name>JdbcGui</servlet-name>
-    
-    <!-- Client-side-rendered GUI -->
-    <!-- <jsp-file>/gui/jdbc/jdbc.jsp</jsp-file> -->
-   
-    <!-- Server-side-rendered GUI -->
     <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcSsrServlet</servlet-class>
-      
   </servlet>
   <servlet-mapping>
     <servlet-name>JdbcGui</servlet-name>
-    <url-pattern>/jdbc</url-pattern>
+    <url-pattern>/jdbc/*</url-pattern>
   </servlet-mapping>
 
 
