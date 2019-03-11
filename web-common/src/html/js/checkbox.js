@@ -2,7 +2,7 @@ function getInput(checkbox) {
   return checkbox.getElementsByTagName("input")[0];
 }
 
-(function() {
+function checkbox_onload() {
   var checkboxes = document.querySelectorAll(".checkbox");
   for (var i = 0; i < checkboxes.length; i++) {
     var checkbox = checkboxes[i];
@@ -38,7 +38,7 @@ function getInput(checkbox) {
       }
     }(checkmark));
   }
-}());
+}
 
 function setCheckboxEnabled(checkbox, enabled) {
   if (enabled) {

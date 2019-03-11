@@ -79,7 +79,7 @@ public class JdbcSsrServlet extends HttpServlet {
         .appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
         .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
     
-    final El body = new El("body").setAttribute("onload", "jtm_onload();table_onload();controlButtons_onload();");
+    final El body = new El("body").setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
     
     final String managerApacheHref = EnvironmentFactory.get(req).getProperty(
         "org.jepria.tomcat.manager.web.managerApacheHref");
