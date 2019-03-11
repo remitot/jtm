@@ -4,7 +4,6 @@ package org.jepria.web.ssr;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +39,10 @@ public class El implements Node {
   
   public void setReadonly(boolean readonly) {
     if (readonly) {
+      setAttribute("readonly", "true");
       classList.add("readonly");
     } else {
+      removeAttribute("readonly");
       classList.remove("readonly");
     }
   }
@@ -91,6 +92,16 @@ public class El implements Node {
     } else {
       setAttributeRegular(name, value);
     }
+    return this;
+  }
+  
+  /**
+   * 
+   * @param name
+   * @return {@code this}
+   */
+  public El removeAttribute(String name) {
+    attributes.remove(name);
     return this;
   }
   
@@ -227,7 +238,8 @@ public class El implements Node {
    * @param sb
    */
   public Set<String> getScripts() {
-    final Set<String> scripts = new HashSet<>();
+    // maintain adding order
+    final Set<String> scripts = new LinkedHashSet<>();
     
     collectScripts(new Collection() {
       @Override
@@ -268,7 +280,8 @@ public class El implements Node {
    * @return
    */
   public Set<String> getStyles() {
-    Set<String> styles = new HashSet<>();
+    // maintain adding order
+    Set<String> styles = new LinkedHashSet<>();
     
     collectStyles(new Collection() {
       @Override

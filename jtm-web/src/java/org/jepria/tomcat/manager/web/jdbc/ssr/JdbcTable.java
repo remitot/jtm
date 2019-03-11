@@ -64,7 +64,7 @@ public class JdbcTable extends Table<JdbcItem> {
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
     CheckBox checkBox = addCheckbox(cell, item.active());
-    if (!item.active().readonly) {
+    if (item.dataModifiable) {
       tabIndex.setNext(checkBox.input);
     }
     
@@ -85,36 +85,28 @@ public class JdbcTable extends Table<JdbcItem> {
     cell = createCell(div, "column-server");
     cell.classList.add("cell-field");
     field = addField(cell, item.server(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
     }
     
     cell = createCell(div, "column-db");
     cell.classList.add("cell-field");
     field = addField(cell, item.db(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
     }
     
     cell = createCell(div, "column-user");
     cell.classList.add("cell-field");
     field = addField(cell, item.user(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
     }
     
     cell = createCell(div, "column-password");
     cell.classList.add("cell-field");
     field = addField(cell, item.password(), null);
-    if (!item.dataModifiable) {
-      setFieldReadonly(field);
-    } else {
+    if (item.dataModifiable) {
       tabIndex.setNext(field);
     }
     

@@ -117,7 +117,7 @@ public abstract class Table<T extends ItemData> extends El {
     fieldEl.classList.add("deletable");
     
     if (field.readonly) {
-      setFieldReadonly(fieldEl);
+      fieldEl.setReadonly(true);
     } else {
       fieldEl.setAttribute("value-original", field.valueOriginal);
     }
@@ -140,11 +140,6 @@ public abstract class Table<T extends ItemData> extends El {
     }
       
     return fieldEl;
-  }
-  
-  protected void setFieldReadonly(El field) {
-    field.setReadonly(true);
-    field.setAttribute("readonly", "true");
   }
   
   protected El createFieldInput(String name, String value, String placeholder) {
@@ -225,8 +220,6 @@ public abstract class Table<T extends ItemData> extends El {
     return cell;
   }
   
-  protected boolean hasCheckboxes = false;
-  
   protected CheckBox addCheckbox(El cell, Field field) {
     
     boolean active = !"false".equals(field.value);
@@ -258,7 +251,6 @@ public abstract class Table<T extends ItemData> extends El {
       addStrike(cell);
     }
     
-    hasCheckboxes = true;
     return checkbox;
   }
   
@@ -268,9 +260,6 @@ public abstract class Table<T extends ItemData> extends El {
   protected void addScripts(Collection scripts) {
     super.addScripts(scripts);
     scripts.add("js/table.js");
-    if (hasCheckboxes) {
-      scripts.add("js/table__checkbox.js");
-    }
   }
   
   @Override

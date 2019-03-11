@@ -4,7 +4,7 @@ function table_onload() {
   var fieldsText = table.querySelectorAll("input.field-text");
   for (var i = 0; i < fieldsText.length; i++) {
     var fieldText = fieldsText[i];
-     
+    
     fieldText.oninput = function(field) {// javascript doesn't use block scope for variables
       return function() {
         onFieldInput(field);
@@ -45,7 +45,9 @@ function table_onload() {
 }
 
 function onFieldInput(field) {
-  onFieldValueChanged(field, field.value);
+  if (!field.classList.contains("readonly")) {// ignore events for readonly fields
+    onFieldValueChanged(field, field.value);
+  }
 }
 
 function onFieldValueChanged(field, newValue) {
@@ -63,6 +65,37 @@ function onFieldValueChanged(field, newValue) {
   
   checkModifications();
 }
+
+function onCheckboxInput(checkbox) {
+  if (!checkbox.classList.contains("readonly")) {// ignore events for readonly fields
+    
+    if (getInput(checkbox).checked && checkbox.getAttribute("value-original") == "true" 
+        || !getInput(checkbox).checked && checkbox.getAttribute("value-original") == "false") {
+      // affect both input (to get the modified fields selected by input.modified) 
+      // and label (to graphically display the field modification state)
+      checkbox.classList.remove("modified");
+      getInput(checkbox).classList.remove("modified");
+    } else {
+      // affect both input (to get the modified fields selected by input.modified) 
+      // and label (to graphically display the field modification state)
+      checkbox.classList.add("modified");
+      getInput(checkbox).classList.add("modified");
+    }
+    
+    if (!getInput(checkbox).checked) {
+      //TODO resolve the relative path to ".row" :
+      checkbox.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
+      checkbox.title = "Запись неактивна"; // NON-NLS
+    } else {
+      //TODO resolve the relative path to ".row":
+      checkbox.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
+      checkbox.title = "Запись активна"; // NON-NLS
+    }
+    
+    checkModifications();
+  }
+}
+
 
 
 /**

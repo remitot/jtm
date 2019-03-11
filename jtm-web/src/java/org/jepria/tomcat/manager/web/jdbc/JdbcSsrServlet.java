@@ -52,6 +52,14 @@ public class JdbcSsrServlet extends HttpServlet {
     }
     item.setId(dto.get("id"));
     item.dataModifiable = dto.isDataModifiable();
+    
+    if (!item.dataModifiable) {
+      item.active().readonly = true;
+      item.server().readonly = true;
+      item.db().readonly = true;
+      item.user().readonly = true;
+      item.password().readonly = true;
+    }
     return item;
   }
   
