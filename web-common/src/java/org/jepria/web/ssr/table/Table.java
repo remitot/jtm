@@ -1,11 +1,8 @@
 package org.jepria.web.ssr.table;
 
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
-import java.util.Scanner;
 import java.util.Set;
 
 import org.jepria.web.ssr.El;
@@ -199,7 +196,7 @@ public abstract class Table<T extends ItemData> extends El {
     buttonDelete.classList.add("button-delete");
     buttonDelete.classList.add("button-delete_delete");
     buttonDelete.setAttribute("type", "image");
-    buttonDelete.setAttribute("src", "gui/img/delete.png");
+    buttonDelete.setAttribute("src", "img/delete.png");
     buttonDelete.setAttribute("title", "Удалить"); // NON-NLS
     tabIndex.setNext(buttonDelete);
     
@@ -207,7 +204,7 @@ public abstract class Table<T extends ItemData> extends El {
     buttonUndelete.classList.add("button-delete");
     buttonUndelete.classList.add("button-delete_undelete");
     buttonUndelete.setAttribute("type", "image");
-    buttonUndelete.setAttribute("src", "gui/img/undelete.png");
+    buttonUndelete.setAttribute("src", "img/undelete.png");
     buttonUndelete.setAttribute("title", "Не удалять"); // NON-NLS
     tabIndex.setNext(buttonUndelete);
     
@@ -268,53 +265,18 @@ public abstract class Table<T extends ItemData> extends El {
   protected abstract El createHeader();
   
   @Override
-  protected void addScripts(Collection scripts) throws IOException {
+  protected void addScripts(Collection scripts) {
     super.addScripts(scripts);
-    
-    
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = Table.class.getClassLoader(); // fallback
-    }
-
-    
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/table.js");
-        Scanner sc = new Scanner(in, "UTF-8")) {
-      sc.useDelimiter("\\Z");
-      if (sc.hasNext()) {
-        scripts.add(sc.next());
-      }
-    }
-    
-    
+    scripts.add("js/table.js");
     if (hasCheckboxes) {
-      try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/table__checkbox.js");
-          Scanner sc = new Scanner(in, "UTF-8")) {
-        sc.useDelimiter("\\Z");
-        if (sc.hasNext()) {
-          scripts.add(sc.next());
-        }
-      }
+      scripts.add("js/table__checkbox.js");
     }
   }
   
   @Override
-  protected void addStyles(Collection styles) throws IOException {
+  protected void addStyles(Collection styles) {
     super.addStyles(styles);
-    
-    
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = Table.class.getClassLoader(); // fallback
-    }
-
-    
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/table/table.css");
-        Scanner sc = new Scanner(in, "UTF-8")) {
-      sc.useDelimiter("\\Z");
-      if (sc.hasNext()) {
-        styles.add(sc.next());
-      }
-    }
+    styles.add("css/table.css");
+    styles.add("css/jtm-common.css"); // for .field-text
   }
 }

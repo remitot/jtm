@@ -25,7 +25,6 @@ import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcItem;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.Node;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.StatusBar;
@@ -83,10 +82,7 @@ public class JdbcSsrServlet extends HttpServlet {
         final El head = new El("head")
             .appendChild(new El("title").setInnerHTML("Tomcat manager: датасорсы (JDBC)")) // NON-NLS
             .appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
-            .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"))
-            .appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", "gui/jtm-no-statusBar.css"))
-            .appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", "gui/jdbc-ssr/jdbc.css"))
-            .appendChild(new El("script").setAttribute("type", "text/javascript").setAttribute("src", "gui/jtm-no-statusBar.js"));
+            .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
         
         final El body = new El("body").setAttribute("onload", "jtm_onload();table_onload();controlButtons_onload();");
         
@@ -96,7 +92,6 @@ public class JdbcSsrServlet extends HttpServlet {
         
 
         body.appendChild(pageHeader);
-        body.appendChild(Node.fromHtml("<style type=\"text/css\">" + pageHeader.printStyles() + "</style>"));
         
         // table html
         final List<ConnectionDto> connections = new JdbcApi().list(EnvironmentFactory.get(req));
@@ -121,7 +116,6 @@ public class JdbcSsrServlet extends HttpServlet {
             final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
             StatusBar statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
             body.appendChild(statusBar);
-            body.appendChild(Node.fromHtml("<style type=\"text/css\">" + pageHeader.printStyles() + "</style>"));
             
           } else {
           
@@ -129,7 +123,6 @@ public class JdbcSsrServlet extends HttpServlet {
                 "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
             StatusBar statusBar = new StatusBar(StatusBar.Type.ERROR, statusBarHTML);
             body.appendChild(statusBar);
-            body.appendChild(Node.fromHtml("<style type=\"text/css\">" + pageHeader.printStyles() + "</style>"));
             
             // obtain created and deleted items, apply modifications
             final List<ModRequestDto> modRequests = mod.modRequests;
@@ -249,21 +242,23 @@ public class JdbcSsrServlet extends HttpServlet {
         // control buttons
         final ControlButtons controlButtons = new ControlButtons();
         body.appendChild(controlButtons);
-        body.appendChild(Node.fromHtml("<script type=\"text/javascript\">" + controlButtons.printScripts() + "</script>"));
         
         
-        body.appendChild(Node.fromHtml("<script type=\"text/javascript\">" 
-            // TODO extract into a separate file
-            + "function getSsrUrlBase() {return \"jdbc\";} function getSsrUrlMod() {return \"jdbc?mod\";} function getSsrUrlReset() {return \"jdbc?mod-reset\";} "
-            + table.printScripts() 
-            + "</script>"));
-        body.appendChild(Node.fromHtml("<style type=\"text/css\">" + table.printStyles() + "</style>"));
+
+        // add all scripts and styles to the head
+        for (String style: body.getStyles()) {
+          head.appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", style));
+        }
+        for (String script: body.getScripts()) {
+          head.appendChild(new El("script").setAttribute("type", "text/javascript").setAttribute("src", script));
+        }
         
         
         html.appendChild(head);
         html.appendChild(body);
         
         resp.setContentType("text/html; charset=UTF-8");
+        resp.getWriter().print("<!DOCTYPE html>");
         html.render(resp.getWriter());
         resp.flushBuffer();
         return;

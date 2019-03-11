@@ -1,4 +1,3 @@
-// table__checkbox.js:
 function onCheckboxInput(checkbox) {
     
   if (getInput(checkbox).checked && checkbox.getAttribute("value-original") == "true" 
@@ -26,4 +25,3 @@ function onCheckboxInput(checkbox) {
   
   checkModifications();
 }
-// :table__checkbox.js

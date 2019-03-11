@@ -1,9 +1,5 @@
 package org.jepria.web.ssr;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
-
 import org.jepria.web.ssr.table.Collection;
 
 public class PageHeader extends El {
@@ -89,22 +85,15 @@ public class PageHeader extends El {
   }
   
   @Override
-  protected void addStyles(Collection styles) throws IOException {
+  protected void addStyles(Collection styles) {
     super.addStyles(styles);
-    
-    
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = PageHeader.class.getClassLoader(); // fallback
-    }
-
-    
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/page-header.css");
-        Scanner sc = new Scanner(in, "UTF-8")) {
-      sc.useDelimiter("\\Z");
-      if (sc.hasNext()) {
-        styles.add(sc.next());
-      }
-    }
+    styles.add("css/page-header.css");
+    styles.add("css/jtm-common.css"); // for .big-black-button
+  }
+  
+  @Override
+  protected void addScripts(Collection scripts) {
+    super.addScripts(scripts);
+    scripts.add("js/jtm-common.js"); // for .big-black-button
   }
 }

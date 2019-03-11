@@ -4,7 +4,7 @@ package org.jepria.web.ssr;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -223,14 +223,11 @@ public class El implements Node {
   }
   
   /**
-   * Prints all scripts related to this elements and its children recursively
+   * Get all scripts related to this elements and its children recursively
    * @param sb
-   * @throws IOException
    */
-  public void printScripts(Appendable sb) throws IOException {
-    // LinkedHashSet to maintain (parent,descendant) order of adding
-    // (if super.addScript is invoked first in elements)
-    Set<String> scripts = new LinkedHashSet<>();
+  public Set<String> getScripts() {
+    final Set<String> scripts = new HashSet<>();
     
     collectScripts(new Collection() {
       @Override
@@ -239,36 +236,16 @@ public class El implements Node {
       }
     });
     
-    // remove items contained in others
-    Iterator<String> it = scripts.iterator();
-    while (it.hasNext()) {
-      String script = it.next();
-      if (scripts.stream().anyMatch(anotherItem -> 
-          anotherItem != script && anotherItem.contains(script))) {
-        it.remove();
-      }
-    }
-    
-    // print
-    boolean first = true;
-    for (String script: scripts) {
-      if (!first) {
-        sb.append("\n\n\n");// TODO replace with os-dependent newline
-      } else {
-        first = false;
-      }
-      sb.append(script);
-    }
+    return scripts;
   }
   
   /**
    * Collect all scripts of this element and its children recursively
    * 
    * @param scripts a collection to add a script to, not null
-   * @throws IOException 
    */
   // private final: not for overriding or direct invocation
-  private final void collectScripts(Collection scripts) throws IOException {
+  private final void collectScripts(Collection scripts) {
     addScripts(scripts);
     for (Node child: childs) {
       if (child instanceof El) {
@@ -278,39 +255,20 @@ public class El implements Node {
   }
   
   /**
-   * Adds a script (none, single or multiple), specific to this element or elements class 
+   * Adds .js scripts (none, single or multiple) specific to this element or element class.
+   * A script is added by its relative path (same as {@code src} attribute value of a {@code <script>} tag) 
    * 
-   * @param scripts a collection to add a script to, not null
-   * @throws IOException
+   * @param scripts a collection to add script's relative path to, not null
    */
-  protected void addScripts(Collection scripts) throws IOException {
+  protected void addScripts(Collection scripts) {
   }
   
   /**
-   * Prints all scripts related to this elements and its children recursively
+   * Get all styles related to this elements and its children recursively
    * @return
-   * @throws IOException
    */
-  public String printScripts() throws IOException {
-    StringBuilder sb = new StringBuilder();
-    printScripts(sb);
-    
-    if (sb.length() > 0) {
-      return sb.toString();
-    } else {
-      return null;
-    }
-  }
-  
-  /**
-   * Prints all styles related to this elements and its children recursively
-   * @param sb
-   * @throws IOException
-   */
-  public void printStyles(Appendable sb) throws IOException {
-    // LinkedHashSet to maintain (parent,descendant) order of adding
-    // (if super.addScript is invoked first in elements)
-    Set<String> styles = new LinkedHashSet<>();
+  public Set<String> getStyles() {
+    Set<String> styles = new HashSet<>();
     
     collectStyles(new Collection() {
       @Override
@@ -319,36 +277,16 @@ public class El implements Node {
       }
     });
     
-    // remove items contained in others
-    Iterator<String> it = styles.iterator();
-    while (it.hasNext()) {
-      String style = it.next();
-      if (styles.stream().anyMatch(anotherItem -> 
-          anotherItem != style && anotherItem.contains(style))) {
-        it.remove();
-      }
-    }
-    
-    // print
-    boolean first = true;
-    for (String style: styles) {
-      if (!first) {
-        sb.append("\n\n\n");// TODO replace with os-dependent newline
-      } else {
-        first = false;
-      }
-      sb.append(style);
-    }
+    return styles;
   }
   
   /**
    * Collect all styles of this element and its children recursively
    * 
    * @param styles a collection to add a style to, not null
-   * @throws IOException 
    */
   // private final: not for overriding or direct invocation
-  private final void collectStyles(Collection styles) throws IOException {
+  private final void collectStyles(Collection styles) {
     addStyles(styles);
     for (Node child: childs) {
       if (child instanceof El) {
@@ -358,27 +296,11 @@ public class El implements Node {
   }
   
   /**
-   * Adds a style (none, single or multiple), specific to this element or elements class 
+   * Adds .css styles (none, single or multiple) specific to this element or element class.
+   * A style is added by its relative path (same as {@code href} attribute value of a {@code <link rel="stylesheet">} tag) 
    * 
-   * @param styles a collection to add a style to, not null
-   * @throws IOException
+   * @param styles a collection to add style's relative path to, not null
    */
-  protected void addStyles(Collection styles) throws IOException {
-  }
-  
-  /**
-   * Prints all styles related to this elements and its children recursively
-   * @return
-   * @throws IOException
-   */
-  public String printStyles() throws IOException {
-    StringBuilder sb = new StringBuilder();
-    printStyles(sb);
-    
-    if (sb.length() > 0) {
-      return sb.toString();
-    } else {
-      return null;
-    }
+  protected void addStyles(Collection styles) {
   }
 }

@@ -1,4 +1,3 @@
-// table.js:
 function table_onload() {
   var table = document.getElementById("table");
   
@@ -315,4 +314,3 @@ function onButtonResetClick() {
   } 
   xhttp.send();
 }
-// :table.js

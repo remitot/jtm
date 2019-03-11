@@ -1,4 +1,3 @@
-// checkbox.js:
 function getInput(checkbox) {
   return checkbox.getElementsByTagName("input")[0];
 }
@@ -50,4 +49,3 @@ function setCheckboxEnabled(checkbox, enabled) {
     getInput(checkbox).disabled = true;
   }
 }
-// :checkbox.js

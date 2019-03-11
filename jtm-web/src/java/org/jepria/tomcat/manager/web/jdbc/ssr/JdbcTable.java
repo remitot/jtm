@@ -1,9 +1,5 @@
 package org.jepria.tomcat.manager.web.jdbc.ssr;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
-
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;
 import org.jepria.web.ssr.table.Collection;
@@ -191,22 +187,14 @@ public class JdbcTable extends Table<JdbcItem> {
   }
   
   @Override
-  protected void addScripts(Collection scripts) throws IOException {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = JdbcTable.class.getClassLoader(); // fallback
-    }
-
-    
-    try (InputStream in = classLoader.getResourceAsStream("org/jepria/web/ssr/control-buttons.js");
-        Scanner sc = new Scanner(in, "UTF-8")) {
-      sc.useDelimiter("\\Z");
-      if (sc.hasNext()) {
-        scripts.add(sc.next());
-      }
-    }
-    
-    
+  protected void addStyles(Collection styles) {
+    super.addStyles(styles);
+    styles.add("css/jdbc/jdbc.css");
+  }
+  
+  @Override
+  protected void addScripts(Collection scripts) {
     super.addScripts(scripts);
+    scripts.add("js/jdbc/jdbc.js");
   }
 }
