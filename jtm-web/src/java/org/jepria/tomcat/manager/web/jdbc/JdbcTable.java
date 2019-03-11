@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.web.jdbc.ssr;
+package org.jepria.tomcat.manager.web.jdbc;
 
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;

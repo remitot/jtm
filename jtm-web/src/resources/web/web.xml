@@ -112,6 +112,7 @@
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
       <url-pattern>/api/*</url-pattern>
+      <url-pattern>/jdbc/*</url-pattern>
       <url-pattern>/log-monitor</url-pattern>
     </web-resource-collection>
     <auth-constraint>
