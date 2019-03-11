@@ -14,8 +14,7 @@ body {
   cursor: pointer;
 }
 
-.big-black-button:disabled {
-  
+.big-black-button:disabled {  
   background-color: #888;
   color: #ddd;
   cursor: default;
@@ -23,6 +22,11 @@ body {
 
 .big-black-button.hovered {
   background-color: #0089bd
+}
+
+/* for firefox: cancel .hovered highlight for :disabled */
+.big-black-button:disabled.hovered {  
+  background-color: #888;
 }
 
 .big-black-button.control-button {
