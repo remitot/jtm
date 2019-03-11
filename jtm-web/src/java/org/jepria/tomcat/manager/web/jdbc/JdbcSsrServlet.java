@@ -105,15 +105,12 @@ public class JdbcSsrServlet extends HttpServlet {
     final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
     
     if (servletModStatus != null) {
-      
+
       if (servletModStatus.success) {
         
         final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
         StatusBar statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
         body.appendChild(statusBar);
-        
-        // reset the successful mod status after the first request 
-        modReset(req);
         
       } else {
       
@@ -212,6 +209,9 @@ public class JdbcSsrServlet extends HttpServlet {
           }
         }
       }
+      
+      // reset the servlet mod status after the first request 
+      modReset(req);
     }
     
     table.load(items, itemsCreated, itemsDeleted);
