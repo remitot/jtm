@@ -81,7 +81,7 @@ public class JdbcApi {
     /**
      * {@code Map<modRequestId, modStatus>}
      */
-    public Map<String, ModStatus> modStatusMap;
+    public Map<String, ItemModStatus> itemModStatusMap;
     
     /**
      * all modRequests succeeded
@@ -89,19 +89,19 @@ public class JdbcApi {
     public boolean allModSuccess;
   }
   
-  protected ModStatus updateConnection(String id,
+  protected ItemModStatus updateConnection(String id,
       Map<String, String> fields, TomcatConfJdbc tomcatConf) {
     
     try {
       if (id == null) {
-        return ModStatus.errEmptyId();
+        return ItemModStatus.errEmptyId();
       }
 
       final Map<String, Connection> connections = tomcatConf.getConnections();
       final Connection connection = connections.get(id);
 
       if (connection == null) {
-        return ModStatus.errNoItemFoundById();
+        return ItemModStatus.errNoItemFoundById();
       }
         
       // validate name
@@ -109,13 +109,13 @@ public class JdbcApi {
       if (name != null) {
         int validateNameResult = tomcatConf.validateNewResourceName(fields.get("name"));
         if (validateNameResult == 1) {
-          final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
-          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+          final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+          return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
         } else if (validateNameResult == 2) {
-          final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
-          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+          final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
+          return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
         }
       }
       
@@ -124,7 +124,7 @@ public class JdbcApi {
     } catch (Throwable e) {
       e.printStackTrace();
       
-      return ModStatus.errServerException();
+      return ItemModStatus.errServerException();
     }
   }
   
@@ -134,7 +134,7 @@ public class JdbcApi {
    * @param target non null
    * @return
    */
-  protected ModStatus updateFields(Map<String, String> fields, Connection target) {
+  protected ItemModStatus updateFields(Map<String, String> fields, Connection target) {
     
     // validate illegal action due to dataModifiable field
     if (!target.isDataModifiable() && (
@@ -142,7 +142,7 @@ public class JdbcApi {
         || fields.get("db") != null || fields.get("user") != null
         || fields.get("password") != null)) {
       
-      return ModStatus.errDataNotModifiable();
+      return ItemModStatus.errDataNotModifiable();
     }
     
     
@@ -165,14 +165,14 @@ public class JdbcApi {
       target.setUser(fields.get("user"));
     }
     
-    return ModStatus.success();
+    return ItemModStatus.success();
   }
   
-  protected ModStatus deleteConnection(String id, TomcatConfJdbc tomcatConf) {
+  protected ItemModStatus deleteConnection(String id, TomcatConfJdbc tomcatConf) {
 
     try {
       if (id == null) {
-        return ModStatus.errEmptyId();
+        return ItemModStatus.errEmptyId();
       }
 
 
@@ -180,25 +180,25 @@ public class JdbcApi {
       Connection connection = connections.get(id);
 
       if (connection == null) {
-        return ModStatus.errNoItemFoundById();
+        return ItemModStatus.errNoItemFoundById();
       }
         
       if (!connection.isDataModifiable()) {
-        return ModStatus.errDataNotModifiable();
+        return ItemModStatus.errDataNotModifiable();
       }
       
       tomcatConf.delete(id);
 
-      return ModStatus.success();
+      return ItemModStatus.success();
       
     } catch (Throwable e) {
       e.printStackTrace();
       
-      return ModStatus.errServerException();
+      return ItemModStatus.errServerException();
     }
   }
   
-  protected ModStatus createConnection(
+  protected ItemModStatus createConnection(
       Map<String, String> fields, TomcatConfJdbc tomcatConf,
       ResourceInitialParams initialParams) {
 
@@ -206,24 +206,24 @@ public class JdbcApi {
       // validate mandatory fields
       List<String> emptyMandatoryFields = validateMandatoryFields(fields);
       if (!emptyMandatoryFields.isEmpty()) {
-        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
         for (String fieldName: emptyMandatoryFields) {
-          invalidFieldDataMap.put(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
+          invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
         }
-        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
       }
       
           
       // validate name
       int validateNameResult = tomcatConf.validateNewResourceName(fields.get("name"));
       if (validateNameResult == 1) {
-        final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-        invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
-        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+        final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
       } else if (validateNameResult == 2) {
-        final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-        invalidFieldDataMap.put("name", ModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
-        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+        final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
+        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
       }
       
       
@@ -234,7 +234,7 @@ public class JdbcApi {
     } catch (Throwable e) {
       e.printStackTrace();
       
-      return ModStatus.errServerException();
+      return ItemModStatus.errServerException();
     }
   }
   

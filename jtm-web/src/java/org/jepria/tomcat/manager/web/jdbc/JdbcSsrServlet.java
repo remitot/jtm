@@ -21,7 +21,7 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ModDto;
-import org.jepria.tomcat.manager.web.jdbc.dto.ModRequestDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcItem;
 import org.jepria.tomcat.manager.web.jdbc.ssr.JdbcTable;
 import org.jepria.web.ssr.ControlButtons;
@@ -102,15 +102,18 @@ public class JdbcSsrServlet extends HttpServlet {
     final Set<String> itemsDeleted = new HashSet<>();
     
     
-    final ModResponse mod = (ModResponse)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
+    final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
     
-    if (mod != null) {
+    if (servletModStatus != null) {
       
-      if (mod.success) {
+      if (servletModStatus.success) {
         
         final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
         StatusBar statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
         body.appendChild(statusBar);
+        
+        // reset the successful mod status after the first request 
+        modReset(req);
         
       } else {
       
@@ -120,9 +123,9 @@ public class JdbcSsrServlet extends HttpServlet {
         body.appendChild(statusBar);
         
         // obtain created and deleted items, apply modifications
-        final List<ModRequestDto> modRequests = mod.modRequests;
+        final List<ItemModRequestDto> modRequests = servletModStatus.itemModRequests;
         if (modRequests != null) {
-          for (ModRequestDto modRequest: modRequests) {
+          for (ItemModRequestDto modRequest: modRequests) {
             final String action = modRequest.getAction();
             
             if ("create".equals(action)) {
@@ -155,15 +158,15 @@ public class JdbcSsrServlet extends HttpServlet {
         }
         
         // process invalid field data
-        final Map<String, ModStatus> modStatuses = mod.modStatuses;
+        final Map<String, ItemModStatus> modStatuses = servletModStatus.itemModStatuses;
         if (modStatuses != null) {
-          for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: modStatuses.entrySet()) {
+          for (Map.Entry<String, ItemModStatus> modRequestIdAndModStatus: modStatuses.entrySet()) {
             String modRequestId = modRequestIdAndModStatus.getKey();
             
             if (!itemsDeleted.contains(modRequestId)) { //ignore deleted items
               
-              ModStatus modStatus = modRequestIdAndModStatus.getValue(); 
-              if (modStatus.code == ModStatus.SC_INVALID_FIELD_DATA) {
+              ItemModStatus modStatus = modRequestIdAndModStatus.getValue(); 
+              if (modStatus.code == ItemModStatus.SC_INVALID_FIELD_DATA) {
                 
                 // lookup items
                 JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
@@ -179,7 +182,7 @@ public class JdbcSsrServlet extends HttpServlet {
                 }
                 
                 if (modStatus.invalidFieldDataMap != null) {
-                  for (Map.Entry<String, ModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
+                  for (Map.Entry<String, ItemModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
                       modStatus.invalidFieldDataMap.entrySet()) {
                     Field field = item.get(idAndInvalidFieldDataCode.getKey());
                     if (field != null) {
@@ -275,12 +278,12 @@ public class JdbcSsrServlet extends HttpServlet {
     if ("mod".equals(mod.getAction())) {
     
       // read list from request body
-      final List<ModRequestDto> modRequests = mod.getData();
+      final List<ItemModRequestDto> itemModRequests = mod.getData();
       
-      if (modRequests != null && modRequests.size() > 0) {
+      if (itemModRequests != null && itemModRequests.size() > 0) {
       
         // Map<modRequestId, modStatus>
-        final Map<String, ModStatus> modStatuses = new HashMap<>();
+        final Map<String, ItemModStatus> itemModStatuses = new HashMap<>();
         
         final Environment env = EnvironmentFactory.get(req);
         
@@ -294,43 +297,43 @@ public class JdbcSsrServlet extends HttpServlet {
   
         final JdbcApi api = new JdbcApi();
         
-        boolean allModSuccess = true; 
+        boolean modSuccess = true; 
         
         // 1) perform all updates
-        for (ModRequestDto modRequest: modRequests) {
-          if ("update".equals(modRequest.getAction())) {
-            ModStatus modStatus = api.updateConnection(
-                modRequest.getId(), modRequest.getData(), tomcatConf);
-            if (modStatus.code != ModStatus.SC_SUCCESS) {
-              allModSuccess = false;
+        for (ItemModRequestDto itemModRequest: itemModRequests) {
+          if ("update".equals(itemModRequest.getAction())) {
+            ItemModStatus itemModStatus = api.updateConnection(
+                itemModRequest.getId(), itemModRequest.getData(), tomcatConf);
+            if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+              modSuccess = false;
             }
-            modStatuses.put(modRequest.getId(), modStatus);
+            itemModStatuses.put(itemModRequest.getId(), itemModStatus);
           }
         }
   
   
         // 2) perform all deletions
-        for (ModRequestDto modRequest: modRequests) {
-          if ("delete".equals(modRequest.getAction())) {
-            ModStatus modStatus = api.deleteConnection(
-                modRequest.getId(), tomcatConf);
-            if (modStatus.code != ModStatus.SC_SUCCESS) {
-              allModSuccess = false;
+        for (ItemModRequestDto itemModRequest: itemModRequests) {
+          if ("delete".equals(itemModRequest.getAction())) {
+            ItemModStatus itemModStatus = api.deleteConnection(
+                itemModRequest.getId(), tomcatConf);
+            if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+              modSuccess = false;
             }
-            modStatuses.put(modRequest.getId(), modStatus);
+            itemModStatuses.put(itemModRequest.getId(), itemModStatus);
           }
         }
   
   
         // 3) perform all creations
-        for (ModRequestDto modRequest: modRequests) {
-          if ("create".equals(modRequest.getAction())) {
-            ModStatus modStatus = api.createConnection(modRequest.getData(), tomcatConf, 
+        for (ItemModRequestDto itemModRequest: itemModRequests) {
+          if ("create".equals(itemModRequest.getAction())) {
+            ItemModStatus itemModStatus = api.createConnection(itemModRequest.getData(), tomcatConf, 
                 env.getResourceInitialParams());
-            if (modStatus.code != ModStatus.SC_SUCCESS) {
-              allModSuccess = false;
+            if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+              modSuccess = false;
             }
-            modStatuses.put(modRequest.getId(), modStatus);
+            itemModStatuses.put(itemModRequest.getId(), itemModStatus);
           }
         }
   
@@ -338,9 +341,9 @@ public class JdbcSsrServlet extends HttpServlet {
         // 4) ignore illegal actions
   
         
-        final ModResponse modResponse = new ModResponse();
+        final ServletModStatus servletModStatus = new ServletModStatus();
         
-        if (allModSuccess) {
+        if (modSuccess) {
           // save modifications and add a new _list to the response
           
           // Note: it is safe to save modifications to context.xml file here (before servlet response), 
@@ -349,16 +352,16 @@ public class JdbcSsrServlet extends HttpServlet {
           tomcatConf.save(env.getContextXmlOutputStream(), 
               env.getServerXmlOutputStream());
           
-          modResponse.success = true;
+          servletModStatus.success = true;
           
         } else {
           
-          modResponse.success = false;
-          modResponse.modRequests = modRequests;
-          modResponse.modStatuses = modStatuses;
+          servletModStatus.success = false;
+          servletModStatus.itemModRequests = itemModRequests;
+          servletModStatus.itemModStatuses = itemModStatuses;
         }
         
-        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse", modResponse);
+        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus", servletModStatus);
         
         // redirect to the base ssr url must be made by the client
         return;
@@ -373,15 +376,15 @@ public class JdbcSsrServlet extends HttpServlet {
   }
   
   private void modReset(HttpServletRequest req) {
-    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.modResponse");
+    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
   }
   
   /**
-   * response for the mod request
+   * Class representing a servlet status of the entire modification request
    */
-  private static class ModResponse {
+  private static class ServletModStatus {
     public boolean success;
-    public List<ModRequestDto> modRequests;
-    public Map<String, ModStatus> modStatuses;
+    public List<ItemModRequestDto> itemModRequests;
+    public Map<String, ItemModStatus> itemModStatuses;
   }
 }

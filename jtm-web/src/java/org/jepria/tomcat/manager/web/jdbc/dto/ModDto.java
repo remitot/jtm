@@ -4,7 +4,7 @@ import java.util.List;
 
 public class ModDto {
   private String action;
-  private List<ModRequestDto> data;
+  private List<ItemModRequestDto> data;
   
   public ModDto() {
   }
@@ -17,11 +17,11 @@ public class ModDto {
     this.action = action;
   }
 
-  public List<ModRequestDto> getData() {
+  public List<ItemModRequestDto> getData() {
     return data;
   }
 
-  public void setData(List<ModRequestDto> data) {
+  public void setData(List<ItemModRequestDto> data) {
     this.data = data;
   }
   

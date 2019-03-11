@@ -3,9 +3,9 @@ package org.jepria.tomcat.manager.web.jdbc;
 import java.util.Map;
 
 /**
- * Class representing status of an arbitrary data modification request
+ * Class representing status of a single data item modification request
  */
-public class ModStatus {
+public class ItemModStatus {
   
   /**
    * Modification succeeded
@@ -44,13 +44,13 @@ public class ModStatus {
    */
   public final Map<String, InvalidFieldDataCode> invalidFieldDataMap;
   
-  private ModStatus(int code, Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
+  private ItemModStatus(int code, Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
     this.code = code;
     this.invalidFieldDataMap = invalidFieldDataMap;
   }
 
-  public static ModStatus success() {
-    return new ModStatus(SC_SUCCESS, null); 
+  public static ItemModStatus success() {
+    return new ItemModStatus(SC_SUCCESS, null); 
   }
   
   public static enum InvalidFieldDataCode {
@@ -63,24 +63,24 @@ public class ModStatus {
    * 
    * @param invalidFieldDataMap {@code Map<fieldName, errorCode>}
    */
-  public static ModStatus errInvalidFieldData(Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
-    return new ModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
+  public static ItemModStatus errInvalidFieldData(Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
+    return new ItemModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
   }
   
-  public static ModStatus errServerException() {
-    return new ModStatus(SC_SERVER_EXCEPTION, null); 
+  public static ItemModStatus errServerException() {
+    return new ItemModStatus(SC_SERVER_EXCEPTION, null); 
   }
   
   
-  public static ModStatus errEmptyId() {
-    return new ModStatus(SC_EMPTY_ID, null);
+  public static ItemModStatus errEmptyId() {
+    return new ItemModStatus(SC_EMPTY_ID, null);
   }
   
-  public static ModStatus errDataNotModifiable() {
-    return new ModStatus(SC_DATA_NOT_MODIFIABLE, null);
+  public static ItemModStatus errDataNotModifiable() {
+    return new ItemModStatus(SC_DATA_NOT_MODIFIABLE, null);
   }
   
-  public static ModStatus errNoItemFoundById() {
-    return new ModStatus(SC_NO_ITEM_FOUND_BY_ID, null);
+  public static ItemModStatus errNoItemFoundById() {
+    return new ItemModStatus(SC_NO_ITEM_FOUND_BY_ID, null);
   }
 }
