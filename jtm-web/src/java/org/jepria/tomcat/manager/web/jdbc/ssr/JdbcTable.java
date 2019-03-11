@@ -66,6 +66,8 @@ public class JdbcTable extends Table<JdbcItem> {
     CheckBox checkBox = addCheckbox(cell, item.active());
     if (item.dataModifiable) {
       tabIndex.setNext(checkBox.input);
+    } else {
+      addFieldUnmodifiableTitle(checkBox);
     }
     
     if ("false".equals(item.active().value)) {
@@ -87,6 +89,8 @@ public class JdbcTable extends Table<JdbcItem> {
     field = addField(cell, item.server(), null);
     if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     cell = createCell(div, "column-db");
@@ -94,6 +98,8 @@ public class JdbcTable extends Table<JdbcItem> {
     field = addField(cell, item.db(), null);
     if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     cell = createCell(div, "column-user");
@@ -101,6 +107,8 @@ public class JdbcTable extends Table<JdbcItem> {
     field = addField(cell, item.user(), null);
     if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     cell = createCell(div, "column-password");
@@ -108,6 +116,8 @@ public class JdbcTable extends Table<JdbcItem> {
     field = addField(cell, item.password(), null);
     if (item.dataModifiable) {
       tabIndex.setNext(field);
+    } else {
+      addFieldUnmodifiableTitle(field);
     }
     
     if (item.dataModifiable) {
@@ -117,6 +127,10 @@ public class JdbcTable extends Table<JdbcItem> {
     row.appendChild(div);
     
     return row;
+  }
+  
+  protected void addFieldUnmodifiableTitle(El field) {
+    field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
   }
   
   @Override
@@ -170,12 +184,6 @@ public class JdbcTable extends Table<JdbcItem> {
     row.appendChild(flexColumns);
     
     return row;
-  }
-  
-  @Override
-  protected void setFieldReadonly(El field) {
-    super.setFieldReadonly(field);
-    field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
   }
   
   @Override
