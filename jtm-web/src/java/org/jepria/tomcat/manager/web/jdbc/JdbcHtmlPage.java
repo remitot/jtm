@@ -168,7 +168,7 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
     
     
     // add onload scripts
-    body.setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
+    body.setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();pageHeader_onload();");
   }
   
   protected JdbcItem dtoToItem(ConnectionDto dto) {

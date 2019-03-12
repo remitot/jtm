@@ -27,7 +27,7 @@ public class JdbcHtmlPageUnauthorized extends JdbcHtmlPageBase {
     body.appendChild(loginFragment);
     
     // add onload scripts
-    body.setAttribute("onload", "loginFragment_onload();");
+    body.setAttribute("onload", "loginFragment_onload();pageHeader_onload();");
     
     body.addClass("login-background");
     
