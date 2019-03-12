@@ -43,7 +43,10 @@ public class JdbcSsrServlet extends HttpServlet {
     // reset the servlet mod status after the first request 
     modReset(req);
     
-    jdbcHtmlPage.response(resp);
+    
+    resp.setContentType("text/html; charset=UTF-8");
+    jdbcHtmlPage.render(resp.getWriter());
+    resp.flushBuffer();
     return;
   }
   

@@ -1,5 +1,6 @@
 <%@ page language="java" pageEncoding="utf-8"%>
 <%@ page import="org.jepria.tomcat.manager.web.jdbc.JdbcHtmlPageUnauthorized"%>
+<%@ page import="org.jepria.tomcat.manager.web.HtmlPage"%>
 <%
   String requestUri = (String)request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
   if (requestUri != null) {
@@ -23,7 +24,13 @@
           // reset the servlet login status after the first request
           request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure");
           
-          new JdbcHtmlPageUnauthorized(request, loginAlreadyFailed).response(response);
+          
+          HtmlPage htmlPage = new JdbcHtmlPageUnauthorized(request, loginAlreadyFailed);
+          
+          response.setContentType("text/html; charset=UTF-8");
+          htmlPage.render(response.getWriter());
+          response.flushBuffer();
+          return;
         }
       }
     }

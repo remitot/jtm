@@ -2,11 +2,8 @@ package org.jepria.tomcat.manager.web;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.jepria.web.ssr.El;
 
-// TODO better to move to web-common, but it requeires servlet-api dependency...
 public class HtmlPage extends El {
   
   protected final El head;
@@ -39,11 +36,5 @@ public class HtmlPage extends El {
     
     sb.append("<!DOCTYPE html>");
     super.render(sb);
-  }
-  
-  public void response(HttpServletResponse response) throws IOException {
-    response.setContentType("text/html; charset=UTF-8");
-    render(response.getWriter());
-    response.flushBuffer();
   }
 }
