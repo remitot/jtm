@@ -15,9 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.dto.PostDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
-import org.jepria.tomcat.manager.web.jdbc.dto.ModDto;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -33,6 +33,7 @@ public class JdbcSsrServlet extends HttpServlet {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
     final Environment env = EnvironmentFactory.get(req);
+    
     final List<ConnectionDto> connections = new JdbcApi().list(env);
     final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
     
@@ -49,20 +50,26 @@ public class JdbcSsrServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final ModDto mod;
-    
+    final PostDto post;
     try {
-      Type type = new TypeToken<ModDto>(){}.getType();
-      mod = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
+      Type type = new TypeToken<PostDto>(){}.getType();
+      post = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
     } catch (Throwable e) {
       // TODO
       throw new RuntimeException(e);
     }
     
-    if ("mod".equals(mod.getAction())) {
+    if ("mod".equals(post.getAction())) {
     
       // read list from request body
-      final List<ItemModRequestDto> itemModRequests = mod.getData();
+      final List<ItemModRequestDto> itemModRequests;
+      try {
+        Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
+        itemModRequests = new Gson().fromJson(post.getData(), type);
+      } catch (Throwable e) {
+        // TODO
+        throw new RuntimeException(e);
+      }
       
       if (itemModRequests != null && itemModRequests.size() > 0) {
       
@@ -151,7 +158,7 @@ public class JdbcSsrServlet extends HttpServlet {
         return;
       }
       
-    } else if ("mod-reset".equals(mod.getAction())) {
+    } else if ("mod-reset".equals(post.getAction())) {
       modReset(req);
       
       // redirect to the base ssr url must be made by the client

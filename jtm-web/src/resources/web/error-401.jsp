@@ -7,12 +7,23 @@
     if (contextPath != null) {
       int index = requestUri.indexOf(contextPath);
       if (index != -1) {
-        String path = requestUri.substring(index + contextPath.length());
+        final String path = requestUri.substring(index + contextPath.length());
         if (path.equals("/log-monitor") || path.startsWith("/log-monitor/")) {
           request.getRequestDispatcher("/gui/log-monitor/log-monitor-error-401.jsp").forward(request, response);
         } else 
         if (path.equals("/jdbc") || path.startsWith("/jdbc/")) {
-          new JdbcHtmlPageUnauthorized(request).response(response);
+          
+          final boolean loginAlreadyFailed;
+          if (request.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure") != null) {
+            loginAlreadyFailed = true;
+          } else {
+            loginAlreadyFailed = false;
+          }
+          
+          // reset the servlet login status after the first request
+          request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure");
+          
+          new JdbcHtmlPageUnauthorized(request, loginAlreadyFailed).response(response);
         }
       }
     }

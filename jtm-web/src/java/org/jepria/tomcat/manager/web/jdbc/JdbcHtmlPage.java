@@ -22,7 +22,6 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
       ServletModStatus servletModStatus) {
     super(env);
 
-    
     // table html
     final JdbcTable table = new JdbcTable();
     
@@ -165,6 +164,10 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
     // control buttons
     final ControlButtons controlButtons = new ControlButtons();
     body.appendChild(controlButtons);
+    
+    
+    // add onload scripts
+    body.setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
   }
   
   protected JdbcItem dtoToItem(ConnectionDto dto) {

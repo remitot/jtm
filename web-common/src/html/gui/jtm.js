@@ -91,7 +91,7 @@ function logout(afterLogoutCallback) {
       }
     }
   };
-  xhttp.open("POST", "api/logout", true);
+  xhttp.open("POST", "logout", true);
   xhttp.send();
 }
 

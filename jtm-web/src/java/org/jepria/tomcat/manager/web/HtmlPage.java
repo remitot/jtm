@@ -15,7 +15,10 @@ public class HtmlPage extends El {
   public HtmlPage() {
     super("html");
     
-    head = new El("head");
+    head = new El("head")
+        .appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
+        .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
+    
     body = new El("body");
 
     appendChild(head);

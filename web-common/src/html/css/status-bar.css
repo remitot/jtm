@@ -1,7 +1,7 @@
 .statusBar {
-  padding: 14px;
-  
+  padding-left: 18px;
   font-size: 14px;
+  line-height: 45px;
 }
 
 .statusBar .span-bold {

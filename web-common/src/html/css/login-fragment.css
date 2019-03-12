@@ -1,0 +1,41 @@
+.login-background {
+  background-color: #777;
+}
+
+#loginScreen {
+  position: fixed;
+  left: 0;
+  top: 90px;
+  right: 0;
+  bottom: 0;
+}
+
+#loginScreen #loginFrame {
+  position: fixed;
+  left: 50%;
+  margin-left: -150px;
+  top: 50%;
+  margin-top: -116px;
+  text-align: center;
+  background-color: white;
+}
+
+#login-form {
+  padding: 40px 40px 20px 40px;
+  background-color: white;
+}
+
+#login-form .row {
+  text-align: center;
+}
+
+#login-form .row .field-text {
+  width: 200px;
+  margin-top: 15px;
+}
+
+#login-form .big-black-button {
+  width: 200px;
+  height: 44px;
+  margin-top: 40px;
+}

@@ -52,6 +52,7 @@ public class LoginServlet extends HttpServlet {
         
         req.login(username, password);
         
+        setServletLoginStatus(req, true);
         
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
@@ -59,6 +60,8 @@ public class LoginServlet extends HttpServlet {
         
       } catch (ServletException e) {
         e.printStackTrace();
+        
+        setServletLoginStatus(req, false);
         
         resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         resp.flushBuffer();
@@ -69,9 +72,20 @@ public class LoginServlet extends HttpServlet {
     
     if (req.getUserPrincipal() == null) {
       // unauthorized
+      
+      setServletLoginStatus(req, false);
+      
       resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       resp.flushBuffer();
       return;
+    }
+  }
+  
+  private void setServletLoginStatus(HttpServletRequest request, boolean success) {
+    if (success) {
+      request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure");
+    } else {
+      request.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure", new Object());
     }
   }
 }
