@@ -11,7 +11,7 @@ public class LoginFragment extends El {
     final El loginFrame = new El("div").setAttribute("id", "loginFrame");
     appendChild(loginFrame);
 
-    final El loginStatusBar = new StatusBar(StatusBar.Type.INFO, "Доступ только админам"); // NON-NLS
+    final El loginStatusBar = new StatusBar(Status.Type.INFO, "Доступ только админам"); // NON-NLS
     loginFrame.appendChild(loginStatusBar);
     
     final El loginForm = new El("form").setAttribute("id", "login-form");

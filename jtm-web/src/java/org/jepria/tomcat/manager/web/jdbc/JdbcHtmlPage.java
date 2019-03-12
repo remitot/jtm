@@ -12,6 +12,7 @@ import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.Status;
 import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
@@ -36,14 +37,14 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
       if (servletModStatus.success) {
         
         final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
-        StatusBar statusBar = new StatusBar(StatusBar.Type.SUCCESS, statusBarHTML);
+        StatusBar statusBar = new StatusBar(Status.Type.SUCCESS, statusBarHTML);
         body.appendChild(statusBar);
         
       } else {
       
         final String statusBarHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
             "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
-        StatusBar statusBar = new StatusBar(StatusBar.Type.ERROR, statusBarHTML);
+        StatusBar statusBar = new StatusBar(Status.Type.ERROR, statusBarHTML);
         body.appendChild(statusBar);
         
         // obtain created and deleted items, apply modifications

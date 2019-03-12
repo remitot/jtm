@@ -252,10 +252,10 @@ function onButtonSaveClick() {
     xhttp = new XMLHttpRequest();
     xhttp.open("POST", window.location.href, true);
     xhttp.onreadystatechange = function() {
-      if (xhttp.readyState != 4) return;
-      
-      // reload page; location.reload() not working in FF and Chrome 
-      window.location.href = window.location.href;
+      if (xhttp.readyState == 4) {
+        // reload page; location.reload() not working in FF and Chrome 
+        window.location.href = window.location.href;
+      }
     }
     var body = {action: "mod", "data": modRequestList};
     xhttp.send(JSON.stringify(body));
@@ -344,10 +344,10 @@ function onButtonResetClick() {
   xhttp = new XMLHttpRequest();
   xhttp.open("POST", window.location.href, true);
   xhttp.onreadystatechange = function() {
-    if (xhttp.readyState != 4) return;
-    
-    // reload page; location.reload() not working in FF and Chrome 
-    window.location.href = window.location.href;
+    if (xhttp.readyState == 4) {
+      // reload page; location.reload() not working in FF and Chrome 
+      window.location.href = window.location.href;
+    }
   } 
   var body = {action: "mod-reset"};
   xhttp.send(JSON.stringify(body));

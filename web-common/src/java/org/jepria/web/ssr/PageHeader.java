@@ -94,6 +94,7 @@ public class PageHeader extends El {
   @Override
   protected void addScripts(Collection scripts) {
     super.addScripts(scripts);
+    scripts.add("js/page-header.js"); // for logout button
     scripts.add("js/jtm-common.js"); // for .big-black-button
   }
 }

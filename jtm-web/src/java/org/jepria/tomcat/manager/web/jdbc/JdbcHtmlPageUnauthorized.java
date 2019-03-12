@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.web.ssr.LoginFragment;
+import org.jepria.web.ssr.Status;
 import org.jepria.web.ssr.StatusBar;
 
 public class JdbcHtmlPageUnauthorized extends JdbcHtmlPageBase {
@@ -18,7 +19,7 @@ public class JdbcHtmlPageUnauthorized extends JdbcHtmlPageBase {
     
     if (loginAlreadyFailed) {
       final String statusBarHTML = "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"; // NON-NLS
-      StatusBar statusBar = new StatusBar(StatusBar.Type.ERROR, statusBarHTML);
+      StatusBar statusBar = new StatusBar(Status.Type.ERROR, statusBarHTML);
       body.appendChild(statusBar);
     }
     
