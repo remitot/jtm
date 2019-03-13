@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jepria.web.ssr.Status;
+
 public class LoginServlet extends HttpServlet {
   
   private static final long serialVersionUID = 7988979181448679156L;
@@ -43,8 +45,6 @@ public class LoginServlet extends HttpServlet {
       
       req.login(username, password);
       
-      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure");
-      
       resp.setStatus(HttpServletResponse.SC_OK);
       resp.flushBuffer();
       return;
@@ -52,7 +52,9 @@ public class LoginServlet extends HttpServlet {
     } catch (ServletException e) {
       e.printStackTrace();
       
-      req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure", new Object());
+      final String statusHTML = "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"; // NON-NLS
+      final Status pageStatus = new Status(Status.Type.ERROR, statusHTML);
+      req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", pageStatus);
       
       resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       resp.flushBuffer();

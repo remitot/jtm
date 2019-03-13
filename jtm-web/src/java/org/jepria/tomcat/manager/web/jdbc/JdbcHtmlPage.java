@@ -12,8 +12,6 @@ import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.Status;
-import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
 
@@ -22,7 +20,7 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
   public JdbcHtmlPage(Environment env, List<ConnectionDto> connections, 
       ServletModStatus servletModStatus) {
     super(env);
-
+    
     // table html
     final JdbcTable table = new JdbcTable();
     
@@ -34,18 +32,7 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
     
     if (servletModStatus != null) {
 
-      if (servletModStatus.success) {
-        
-        final String statusBarHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS
-        StatusBar statusBar = new StatusBar(Status.Type.SUCCESS, statusBarHTML);
-        body.appendChild(statusBar);
-        
-      } else {
-      
-        final String statusBarHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
-            "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS 
-        StatusBar statusBar = new StatusBar(Status.Type.ERROR, statusBarHTML);
-        body.appendChild(statusBar);
+      if (!servletModStatus.success) {
         
         // obtain created and deleted items, apply modifications
         final List<ItemModRequestDto> modRequests = servletModStatus.itemModRequests;
@@ -141,7 +128,7 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
     
     table.load(items, itemsCreated, itemsDeleted);
     
-    body.appendChild(table);
+    getBodyChilds().add(table);
 
     // table row-create template
     final TabIndex newRowTemplateTabIndex = new TabIndex() {
@@ -159,12 +146,12 @@ public class JdbcHtmlPage extends JdbcHtmlPageBase {
     
     final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
-    body.appendChild(tableNewRowTemplateContainer);
+    getBodyChilds().add(tableNewRowTemplateContainer);
     
     
     // control buttons
     final ControlButtons controlButtons = new ControlButtons();
-    body.appendChild(controlButtons);
+    getBodyChilds().add(controlButtons);
     
     
     // add onload scripts

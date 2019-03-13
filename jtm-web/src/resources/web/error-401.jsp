@@ -1,6 +1,8 @@
 <%@ page language="java" pageEncoding="utf-8"%>
 <%@ page import="org.jepria.tomcat.manager.web.jdbc.JdbcHtmlPageUnauthorized"%>
 <%@ page import="org.jepria.tomcat.manager.web.HtmlPage"%>
+<%@ page import="org.jepria.web.ssr.Status"%>
+<%@ page import="org.jepria.web.ssr.StatusBar"%>
 <%
   String requestUri = (String)request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
   if (requestUri != null) {
@@ -14,22 +16,18 @@
         } else 
         if (path.equals("/jdbc") || path.startsWith("/jdbc/")) {
           
-          final boolean loginAlreadyFailed;
-          if (request.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure") != null) {
-            loginAlreadyFailed = true;
-          } else {
-            loginAlreadyFailed = false;
+          HtmlPage htmlPage = new JdbcHtmlPageUnauthorized(request);
+          
+          final Status pageStatus = (Status)request.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus");
+          if (pageStatus != null) {
+            final StatusBar statusBar = new StatusBar(pageStatus.type, pageStatus.statusHTML);
+            htmlPage.setStatusBar(statusBar);
           }
           
-          // reset the servlet login status after the first request
-          request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletLoginStatus.failure");
+          // reset the page status after the first request
+          request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus");
           
-          
-          HtmlPage htmlPage = new JdbcHtmlPageUnauthorized(request, loginAlreadyFailed);
-          
-          response.setContentType("text/html; charset=UTF-8");
-          htmlPage.render(response.getWriter());
-          response.flushBuffer();
+          htmlPage.respond(response);
           return;
         }
       }

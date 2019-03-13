@@ -18,6 +18,8 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.dto.PostDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.ssr.Status;
+import org.jepria.web.ssr.StatusBar;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -37,16 +39,17 @@ public class JdbcSsrServlet extends HttpServlet {
     final List<ConnectionDto> connections = new JdbcApi().list(env);
     final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
     
-    
     final JdbcHtmlPage jdbcHtmlPage = new JdbcHtmlPage(env, connections, servletModStatus);
-    
+
+    final Status pageStatus = (Status)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus");
+    if (pageStatus != null) {
+      jdbcHtmlPage.setStatusBar(new StatusBar(pageStatus));
+    }
+     
     // reset the servlet mod status after the first request 
-    modReset(req);
+    resetState(req);
     
-    
-    resp.setContentType("text/html; charset=UTF-8");
-    jdbcHtmlPage.render(resp.getWriter());
-    resp.flushBuffer();
+    jdbcHtmlPage.respond(resp);
     return;
   }
   
@@ -134,7 +137,7 @@ public class JdbcSsrServlet extends HttpServlet {
   
         // 4) ignore illegal actions
   
-        
+        final Status pageStatus;
         final ServletModStatus servletModStatus = new ServletModStatus();
         
         if (modSuccess) {
@@ -148,13 +151,23 @@ public class JdbcSsrServlet extends HttpServlet {
           
           servletModStatus.success = true;
           
+          
+          final String statusHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS 
+          pageStatus = new Status(Status.Type.SUCCESS, statusHTML);
+          
         } else {
           
           servletModStatus.success = false;
           servletModStatus.itemModRequests = itemModRequests;
           servletModStatus.itemModStatuses = itemModStatuses;
+          
+          
+          final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
+              "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
+          pageStatus = new Status(Status.Type.ERROR, statusHTML);
         }
-        
+
+        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", pageStatus);
         req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus", servletModStatus);
         
         // redirect to the base ssr url must be made by the client
@@ -162,14 +175,15 @@ public class JdbcSsrServlet extends HttpServlet {
       }
       
     } else if ("mod-reset".equals(post.getAction())) {
-      modReset(req);
+      resetState(req);
       
       // redirect to the base ssr url must be made by the client
       return;
     }
   }
   
-  private void modReset(HttpServletRequest req) {
+  private void resetState(HttpServletRequest req) {
+    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus");
     req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
   }
 }
