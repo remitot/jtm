@@ -154,7 +154,7 @@ public class JdbcHtmlPage extends HtmlPage {
     
     
     // control buttons
-    final ControlButtons controlButtons = new ControlButtons();
+    final ControlButtons controlButtons = new ControlButtons("jdbc/mod", "jdbc/mod-reset"); // TODO this will erase any path- or request params of the current page
     getBodyChilds().add(controlButtons);
     
     

@@ -1,7 +1,6 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
@@ -127,10 +126,11 @@ public class JdbcSsrServlet extends HttpServlet {
       final Gson gson = new Gson();
       final List<ItemModRequestDto> itemModRequests;
         
-      // read list from request body
+      // read list from request parameter (as passed by form.submit)
       try {
+        String data = req.getParameter("data");
         Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
-        itemModRequests = gson.fromJson(new InputStreamReader(req.getInputStream()), type);
+        itemModRequests = gson.fromJson(data, type);
       } catch (Throwable e) {
         // TODO
         throw new RuntimeException(e);
@@ -228,9 +228,6 @@ public class JdbcSsrServlet extends HttpServlet {
           }
   
           req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus", servletModStatus);
-          
-          // redirect to the base ssr url must be made by the client
-          return;
         }
         
       } else {

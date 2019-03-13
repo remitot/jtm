@@ -42,6 +42,18 @@ function table_onload() {
   }
   
   triggerFieldsInput(table);
+  
+  var formSave = document.getElementsByClassName("control-button-form_save")[0];
+  if (formSave) { // the save form (as indeed the control buttons) might not be present
+    formSave.onsubmit = function(event) {
+      var dataField = document.createElement("input");
+      dataField.type = "hidden";
+      dataField.name = "data";
+      dataField.value = JSON.stringify(prepareModData());
+      formSave.appendChild(dataField);
+      return true;
+    }
+  }
 }
 
 function onFieldInput(field) {
@@ -205,7 +217,7 @@ function onButtonCreateClick() {
   checkModifications();
 }
 
-function onButtonSaveClick() {
+function prepareModData() {
   
   var rowsModified = getRowsModified();
   var rowsDeleted = getRowsDeleted();
@@ -248,20 +260,7 @@ function onButtonSaveClick() {
     }
   }
   
-  if (modRequestList.length > 0) {
-    xhttp = new XMLHttpRequest();
-    xhttp.open("POST", window.location.href, true);
-    xhttp.onreadystatechange = function() {
-      if (xhttp.readyState == 4) {
-        // reload page; location.reload() not working in FF and Chrome 
-        window.location.href = window.location.href;
-      }
-    }
-    var body = {action: "mod", "data": modRequestList};
-    xhttp.send(JSON.stringify(body));
-  } else {
-    // TODO report nothing to save
-  }
+  return modRequestList;
 }
 
 function getRowsModified() {

@@ -37,5 +37,4 @@ window.onscroll = adjustBottomShadow;
 
 function controlButtons_onload() {
   document.getElementsByClassName("control-button_create")[0].onclick = onButtonCreateClick;
-  document.getElementsByClassName("control-button_save")[0].onclick = onButtonSaveClick;
 }

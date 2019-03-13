@@ -8,7 +8,7 @@ public class ControlButtons extends El {
   public final El buttonSave;
   public final El buttonReset;
   
-  public ControlButtons() {
+  public ControlButtons(String saveActionUrl, String resetActionUrl) {
     super("div");
     classList.add("control-buttons");
     
@@ -19,14 +19,20 @@ public class ControlButtons extends El {
         .setInnerHTML("НОВАЯ ЗАПИСЬ"); // NON-NLS
     
     
+    final El formSave = new El("form").setAttribute("action", saveActionUrl).setAttribute("method", "post")
+        .addClass("control-button-form")
+        .addClass("control-button-form_save");
+    
     buttonSave = new El("button")
+        .setAttribute("type", "submit")
         .addClass("control-button")
         .addClass("control-button_save")
         .addClass("big-black-button")
         .setInnerHTML("СОХРАНИТЬ ВСЁ"); // NON-NLS
+    formSave.appendChild(buttonSave);
     
     
-    final El formReset = new El("form").setAttribute("action", "jdbc/mod-reset").setAttribute("method", "post")
+    final El formReset = new El("form").setAttribute("action", resetActionUrl).setAttribute("method", "post")
         .addClass("control-button-form");
     
     buttonReset = new El("button")
@@ -39,7 +45,7 @@ public class ControlButtons extends El {
     
     
     appendChild(buttonCreate);
-    appendChild(buttonSave);
+    appendChild(formSave);
     appendChild(formReset);
   }
   
