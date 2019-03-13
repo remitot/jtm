@@ -2,7 +2,7 @@
   background-color: #777;
 }
 
-#loginScreen {
+.login-screen {
   position: fixed;
   left: 0;
   top: 90px;
@@ -10,7 +10,7 @@
   bottom: 0;
 }
 
-#loginScreen #loginFrame {
+.login-frame {
   position: fixed;
   left: 50%;
   margin-left: -150px;
@@ -20,21 +20,21 @@
   background-color: white;
 }
 
-#login-form {
+.login-form {
   padding: 40px 40px 20px 40px;
   background-color: white;
 }
 
-#login-form .row {
+.login-form_row {
   text-align: center;
 }
 
-#login-form .row .field-text {
+.login-form_row .field-text {
   width: 200px;
   margin-top: 15px;
 }
 
-#login-form .big-black-button {
+.login-form .big-black-button {
   width: 200px;
   height: 44px;
   margin-top: 40px;

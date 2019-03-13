@@ -71,127 +71,166 @@ public class JdbcSsrServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final PostDto post;
-    try {
-      Type type = new TypeToken<PostDto>(){}.getType();
-      post = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
-    } catch (Throwable e) {
-      // TODO
-      throw new RuntimeException(e);
-    }
-    
-    if ("mod".equals(post.getAction())) {
-    
-      // read list from request body
-      final List<ItemModRequestDto> itemModRequests;
+    if ("/login".equals(req.getPathInfo())) {
+      
+      final String username = req.getParameter("username");
+      final String password = req.getParameter("password");
+      
       try {
-        Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
-        itemModRequests = new Gson().fromJson(post.getData(), type);
+        
+        // TODO Tomcat bug?
+        // when logged into vsmlapprfid1:8081/manager-ext/jdbc, then opening vsmlapprfid1:8080/manager-ext/jdbc results 401 
+        // (on tomcat's container security check level) -- WHY? (with SSO valve turned on!)
+        // OK, but after that, if we do vsmlapprfid1:8080/manager-ext/api/login -- the userPrincipal IS null, but req.login() throws
+        // 'javax.servlet.ServletException: This request has already been authenticated' -- WHY? Must be EITHER request authenticated OR userPrincipal==null!
+        
+        // So, as a workaround -- logout anyway...
+        
+//          // logout if logged in
+//          if (req.getUserPrincipal() != null) {
+//            req.logout();
+//          }
+        
+        req.logout();
+        
+        req.login(username, password);
+
+      } catch (ServletException e) {
+        e.printStackTrace();
+        
+        final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
+        PageStatus.set(req, pageStatus);
+        
+      }
+      
+      resp.sendRedirect("../jdbc"); // TODO
+      
+      return;
+      
+    } else {
+      
+      final PostDto post;
+      try {
+        Type type = new TypeToken<PostDto>(){}.getType();
+        post = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
       } catch (Throwable e) {
         // TODO
         throw new RuntimeException(e);
       }
       
-      if (itemModRequests != null && itemModRequests.size() > 0) {
+      if ("mod".equals(post.getAction())) {
       
-        // Map<modRequestId, modStatus>
-        final Map<String, ItemModStatus> itemModStatuses = new HashMap<>();
+        // read list from request body
+        final List<ItemModRequestDto> itemModRequests;
+        try {
+          Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
+          itemModRequests = new Gson().fromJson(post.getData(), type);
+        } catch (Throwable e) {
+          // TODO
+          throw new RuntimeException(e);
+        }
         
-        final Environment env = EnvironmentFactory.get(req);
+        if (itemModRequests != null && itemModRequests.size() > 0) {
         
-        final boolean createContextResources = "true".equals(
-            env.getProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
-        
-        final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
-            () -> env.getContextXmlInputStream(), 
-            () -> env.getServerXmlInputStream(),
-            createContextResources);
-  
-        final JdbcApi api = new JdbcApi();
-        
-        boolean modSuccess = true; 
-        
-        // 1) perform all updates
-        for (ItemModRequestDto itemModRequest: itemModRequests) {
-          if ("update".equals(itemModRequest.getAction())) {
-            ItemModStatus itemModStatus = api.updateConnection(
-                itemModRequest.getId(), itemModRequest.getData(), tomcatConf);
-            if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
-              modSuccess = false;
+          // Map<modRequestId, modStatus>
+          final Map<String, ItemModStatus> itemModStatuses = new HashMap<>();
+          
+          final Environment env = EnvironmentFactory.get(req);
+          
+          final boolean createContextResources = "true".equals(
+              env.getProperty("org.jepria.tomcat.manager.web.jdbc.createContextResources"));
+          
+          final TomcatConfJdbc tomcatConf = new TomcatConfJdbc(
+              () -> env.getContextXmlInputStream(), 
+              () -> env.getServerXmlInputStream(),
+              createContextResources);
+    
+          final JdbcApi api = new JdbcApi();
+          
+          boolean modSuccess = true; 
+          
+          // 1) perform all updates
+          for (ItemModRequestDto itemModRequest: itemModRequests) {
+            if ("update".equals(itemModRequest.getAction())) {
+              ItemModStatus itemModStatus = api.updateConnection(
+                  itemModRequest.getId(), itemModRequest.getData(), tomcatConf);
+              if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+                modSuccess = false;
+              }
+              itemModStatuses.put(itemModRequest.getId(), itemModStatus);
             }
-            itemModStatuses.put(itemModRequest.getId(), itemModStatus);
           }
-        }
-  
-  
-        // 2) perform all deletions
-        for (ItemModRequestDto itemModRequest: itemModRequests) {
-          if ("delete".equals(itemModRequest.getAction())) {
-            ItemModStatus itemModStatus = api.deleteConnection(
-                itemModRequest.getId(), tomcatConf);
-            if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
-              modSuccess = false;
+    
+    
+          // 2) perform all deletions
+          for (ItemModRequestDto itemModRequest: itemModRequests) {
+            if ("delete".equals(itemModRequest.getAction())) {
+              ItemModStatus itemModStatus = api.deleteConnection(
+                  itemModRequest.getId(), tomcatConf);
+              if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+                modSuccess = false;
+              }
+              itemModStatuses.put(itemModRequest.getId(), itemModStatus);
             }
-            itemModStatuses.put(itemModRequest.getId(), itemModStatus);
           }
-        }
-  
-  
-        // 3) perform all creations
-        for (ItemModRequestDto itemModRequest: itemModRequests) {
-          if ("create".equals(itemModRequest.getAction())) {
-            ItemModStatus itemModStatus = api.createConnection(itemModRequest.getData(), tomcatConf, 
-                env.getResourceInitialParams());
-            if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
-              modSuccess = false;
+    
+    
+          // 3) perform all creations
+          for (ItemModRequestDto itemModRequest: itemModRequests) {
+            if ("create".equals(itemModRequest.getAction())) {
+              ItemModStatus itemModStatus = api.createConnection(itemModRequest.getData(), tomcatConf, 
+                  env.getResourceInitialParams());
+              if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+                modSuccess = false;
+              }
+              itemModStatuses.put(itemModRequest.getId(), itemModStatus);
             }
-            itemModStatuses.put(itemModRequest.getId(), itemModStatus);
           }
+    
+    
+          // 4) ignore illegal actions
+    
+          final ServletModStatus servletModStatus = new ServletModStatus();
+          
+          if (modSuccess) {
+            // save modifications and add a new _list to the response
+            
+            // Note: it is safe to save modifications to context.xml file here (before servlet response), 
+            // because although Tomcat reloads the context after context.xml modification, 
+            // it still fulfills the servlet requests currently under processing. 
+            tomcatConf.save(env.getContextXmlOutputStream(), 
+                env.getServerXmlOutputStream());
+            
+            servletModStatus.success = true;
+            
+            final StatusBar pageStatus = new StatusBar(StatusBar.Type.SUCCESS, "<span class=\"span-bold\">Все изменения сохранены.</span>"); // NON-NLS 
+            PageStatus.set(req, pageStatus);
+            
+          } else {
+            
+            servletModStatus.success = false;
+            servletModStatus.itemModRequests = itemModRequests;
+            servletModStatus.itemModStatuses = itemModStatuses;
+            
+            
+            final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
+                "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
+            final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, statusHTML);
+            PageStatus.set(req, pageStatus);
+          }
+  
+          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus", servletModStatus);
+          
+          // redirect to the base ssr url must be made by the client
+          return;
         }
-  
-  
-        // 4) ignore illegal actions
-  
-        final ServletModStatus servletModStatus = new ServletModStatus();
         
-        if (modSuccess) {
-          // save modifications and add a new _list to the response
-          
-          // Note: it is safe to save modifications to context.xml file here (before servlet response), 
-          // because although Tomcat reloads the context after context.xml modification, 
-          // it still fulfills the servlet requests currently under processing. 
-          tomcatConf.save(env.getContextXmlOutputStream(), 
-              env.getServerXmlOutputStream());
-          
-          servletModStatus.success = true;
-          
-          final StatusBar pageStatus = new StatusBar(StatusBar.Type.SUCCESS, "<span class=\"span-bold\">Все изменения сохранены.</span>"); // NON-NLS 
-          PageStatus.set(req, pageStatus);
-          
-        } else {
-          
-          servletModStatus.success = false;
-          servletModStatus.itemModRequests = itemModRequests;
-          servletModStatus.itemModStatuses = itemModStatuses;
-          
-          
-          final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
-              "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
-          final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, statusHTML);
-          PageStatus.set(req, pageStatus);
-        }
-
-        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus", servletModStatus);
+      } else if ("mod-reset".equals(post.getAction())) {
+        modReset(req);
         
         // redirect to the base ssr url must be made by the client
         return;
       }
-      
-    } else if ("mod-reset".equals(post.getAction())) {
-      modReset(req);
-      
-      // redirect to the base ssr url must be made by the client
-      return;
     }
   }
   
