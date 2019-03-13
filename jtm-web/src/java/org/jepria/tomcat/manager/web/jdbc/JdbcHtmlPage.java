@@ -83,8 +83,9 @@ public class JdbcHtmlPage extends HtmlPage {
         
         if (!itemsDeleted.contains(modRequestId)) { //ignore deleted items
           
-          ItemModStatus modStatus = modRequestIdAndModStatus.getValue(); 
-          if (modStatus.code == ItemModStatus.SC_INVALID_FIELD_DATA) {
+          ItemModStatus modStatus = modRequestIdAndModStatus.getValue();
+          switch (modStatus.code) {
+          case INVALID_FIELD_DATA: {
             
             // lookup items
             JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
@@ -123,8 +124,9 @@ public class JdbcHtmlPage extends HtmlPage {
                 }
               }
             }
-          } else {
-            // TODO process other statuses
+            break;
+          }
+          // TODO process other codes
           }
         }
       }

@@ -179,7 +179,7 @@ public class JdbcSsrServlet extends HttpServlet {
             if ("update".equals(itemModRequest.getAction())) {
               ItemModStatus itemModStatus = api.updateConnection(
                   itemModRequest.getId(), itemModRequest.getData(), tomcatConf);
-              if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+              if (itemModStatus.code != ItemModStatus.Code.SUCCESS) {
                 modSuccess = false;
               }
               itemModStatuses.put(itemModRequest.getId(), itemModStatus);
@@ -192,7 +192,7 @@ public class JdbcSsrServlet extends HttpServlet {
             if ("delete".equals(itemModRequest.getAction())) {
               ItemModStatus itemModStatus = api.deleteConnection(
                   itemModRequest.getId(), tomcatConf);
-              if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+              if (itemModStatus.code != ItemModStatus.Code.SUCCESS) {
                 modSuccess = false;
               }
               itemModStatuses.put(itemModRequest.getId(), itemModStatus);
@@ -205,7 +205,7 @@ public class JdbcSsrServlet extends HttpServlet {
             if ("create".equals(itemModRequest.getAction())) {
               ItemModStatus itemModStatus = api.createConnection(itemModRequest.getData(), tomcatConf, 
                   env.getResourceInitialParams());
-              if (itemModStatus.code != ItemModStatus.SC_SUCCESS) {
+              if (itemModStatus.code != ItemModStatus.Code.SUCCESS) {
                 modSuccess = false;
               }
               itemModStatuses.put(itemModRequest.getId(), itemModStatus);
