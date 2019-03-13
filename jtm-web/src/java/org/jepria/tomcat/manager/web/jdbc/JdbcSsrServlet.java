@@ -36,7 +36,7 @@ public class JdbcSsrServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    if (auth(req, resp)) {
+    if (checkAuth(req, resp)) {
       
       final Environment env = EnvironmentFactory.get(req);
       
@@ -46,9 +46,15 @@ public class JdbcSsrServlet extends HttpServlet {
       final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
 
       final List<ConnectionDto> connections = new JdbcApi().list(env);
-      final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
       
-      htmlPage = new JdbcHtmlPage(pageHeader, connections, servletModStatus);
+      @SuppressWarnings("unchecked")
+      final List<ItemModRequestDto> itemModRequests = (List<ItemModRequestDto>)req.getSession()
+          .getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
+      @SuppressWarnings("unchecked")
+      final Map<String, ItemModStatus> itemModStatuses = (Map<String, ItemModStatus>)req.getSession()
+          .getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
+      
+      htmlPage = new JdbcHtmlPage(pageHeader, connections, itemModRequests, itemModStatuses);
       htmlPage.setStatusBar(PageStatus.consume(req));
   
       // reset the servlet mod status after the first request 
@@ -59,7 +65,7 @@ public class JdbcSsrServlet extends HttpServlet {
     }
   }
   
-  protected boolean auth(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected boolean checkAuth(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     if (req.getUserPrincipal() == null || !req.isUserInRole("manager-gui")) {
       
       final Environment env = EnvironmentFactory.get(req);
@@ -80,6 +86,41 @@ public class JdbcSsrServlet extends HttpServlet {
     }
   }
   
+  protected boolean login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    final String username = req.getParameter("username");
+    final String password = req.getParameter("password");
+    
+    try {
+      
+      // TODO Tomcat bug?
+      // when logged into vsmlapprfid1:8081/manager-ext/jdbc, then opening vsmlapprfid1:8080/manager-ext/jdbc results 401 
+      // (on tomcat's container security check level) -- WHY? (with SSO valve turned on!)
+      // OK, but after that, if we do vsmlapprfid1:8080/manager-ext/api/login -- the userPrincipal IS null, but req.login() throws
+      // 'javax.servlet.ServletException: This request has already been authenticated' -- WHY? Must be EITHER request authenticated OR userPrincipal==null!
+      
+      // So, as a workaround -- logout anyway...
+      
+//        // logout if logged in
+//        if (req.getUserPrincipal() != null) {
+//          req.logout();
+//        }
+      
+      req.logout();
+      
+      req.login(username, password);
+
+      return true;
+      
+    } catch (ServletException e) {
+      e.printStackTrace();
+      
+      final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
+      PageStatus.set(req, pageStatus);
+      
+      return false;
+    }
+  }
+  
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
@@ -87,35 +128,7 @@ public class JdbcSsrServlet extends HttpServlet {
     
     if ("/login".equals(path)) {
       
-      final String username = req.getParameter("username");
-      final String password = req.getParameter("password");
-      
-      try {
-        
-        // TODO Tomcat bug?
-        // when logged into vsmlapprfid1:8081/manager-ext/jdbc, then opening vsmlapprfid1:8080/manager-ext/jdbc results 401 
-        // (on tomcat's container security check level) -- WHY? (with SSO valve turned on!)
-        // OK, but after that, if we do vsmlapprfid1:8080/manager-ext/api/login -- the userPrincipal IS null, but req.login() throws
-        // 'javax.servlet.ServletException: This request has already been authenticated' -- WHY? Must be EITHER request authenticated OR userPrincipal==null!
-        
-        // So, as a workaround -- logout anyway...
-        
-//          // logout if logged in
-//          if (req.getUserPrincipal() != null) {
-//            req.logout();
-//          }
-        
-        req.logout();
-        
-        req.login(username, password);
-
-      } catch (ServletException e) {
-        e.printStackTrace();
-        
-        final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
-        PageStatus.set(req, pageStatus);
-        
-      }
+      login(req, resp);
       
       // jdbc/login -> jdbc
       resp.sendRedirect(".."); // TODO
@@ -140,10 +153,10 @@ public class JdbcSsrServlet extends HttpServlet {
         throw new RuntimeException(e);
       }
 
-      if (auth(req, resp)) {
-      
-        if (itemModRequests != null && itemModRequests.size() > 0) {
+      if (itemModRequests != null && itemModRequests.size() > 0) {
         
+        if (checkAuth(req, resp)) {
+          
           // Map<modRequestId, modStatus>
           final Map<String, ItemModStatus> itemModStatuses = new HashMap<>();
           
@@ -202,8 +215,6 @@ public class JdbcSsrServlet extends HttpServlet {
     
           // 4) ignore illegal actions
     
-          final ServletModStatus servletModStatus = new ServletModStatus();
-          
           if (modSuccess) {
             // save modifications and add a new _list to the response
             
@@ -213,16 +224,18 @@ public class JdbcSsrServlet extends HttpServlet {
             tomcatConf.save(env.getContextXmlOutputStream(), 
                 env.getServerXmlOutputStream());
             
-            servletModStatus.success = true;
-            
             final StatusBar pageStatus = new StatusBar(StatusBar.Type.SUCCESS, "<span class=\"span-bold\">Все изменения сохранены.</span>"); // NON-NLS 
             PageStatus.set(req, pageStatus);
             
-          } else {
+            // cleanup session attributes
+            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
+            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
             
-            servletModStatus.success = false;
-            servletModStatus.itemModRequests = itemModRequests;
-            servletModStatus.itemModStatuses = itemModStatuses;
+          } else {
+           
+            // save session attributes
+            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests", itemModRequests);
+            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses", itemModStatuses);
             
             
             final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
@@ -230,13 +243,11 @@ public class JdbcSsrServlet extends HttpServlet {
             final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, statusHTML);
             PageStatus.set(req, pageStatus);
           }
-  
-          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus", servletModStatus);
+        
+        } else {
+          // at least save session itemModRequests (without authorization)
+          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.itemModRequests", itemModRequests);
         }
-        
-      } else {
-        // at least save itemModRequests without authorization
-        
       }
       
       // jdbc/mod -> jdbc
@@ -245,7 +256,7 @@ public class JdbcSsrServlet extends HttpServlet {
       
     } else if ("/mod-reset".equals(path)) {
       
-      if (auth(req, resp)) {
+      if (checkAuth(req, resp)) {
         modReset(req);
       } else {
         // TODO
