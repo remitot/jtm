@@ -129,6 +129,10 @@ public class JdbcSsrServlet extends HttpServlet {
       // read list from request parameter (as passed by form.submit)
       try {
         String data = req.getParameter("data");
+        
+        // convert encoding TODO fix this using accept-charset form attribute?
+        data = new String(data.getBytes("ISO-8859-1"), "UTF-8");
+        
         Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
         itemModRequests = gson.fromJson(data, type);
       } catch (Throwable e) {
