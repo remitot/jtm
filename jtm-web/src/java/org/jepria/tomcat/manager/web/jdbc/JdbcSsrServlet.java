@@ -227,9 +227,8 @@ public class JdbcSsrServlet extends HttpServlet {
             final StatusBar pageStatus = new StatusBar(StatusBar.Type.SUCCESS, "<span class=\"span-bold\">Все изменения сохранены.</span>"); // NON-NLS 
             PageStatus.set(req, pageStatus);
             
-            // cleanup session attributes
-            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
-            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
+            // reset the servlet mod status after the successful mod
+            modReset(req);
             
           } else {
            
@@ -269,6 +268,7 @@ public class JdbcSsrServlet extends HttpServlet {
   }
   
   private void modReset(HttpServletRequest req) {
-    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
+    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
+    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
   }
 }
