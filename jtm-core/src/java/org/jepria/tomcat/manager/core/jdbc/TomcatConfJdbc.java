@@ -666,29 +666,39 @@ public class TomcatConfJdbc extends TomcatConfBase {
     saveServer_xml(serverXmlOutputStream);
   }
   
-  
+  public enum ValidateNameResult {
+    /**
+     * The target name neither matches any existing {@code Context/Resource} or {@code Context/ResourceLink} name nor 
+     * any {@code Server/Resource} name (if {@link #createContextResources} is set to {@code false})  
+     */
+    OK,
+    /**
+     * The target name matches an existing {@code Context/Resource} or {@code Context/ResourceLink} name
+     */
+    DUPLICATE_NAME,
+    /**
+     * The target name does not match any existing {@code Context/Resource} or {@code Context/ResourceLink} name,
+     * but {@link #createContextResources} is set to {@code false} and the target name matches an existing {@code Server/Resource} name
+     */
+    DUPLICATE_GLOBAL
+  }
   /**
    * Validates 'name' field of the resource that is about to be created (before the creation) or updated.
    * @param name name of the resource that is about to be created or updated
-   * @return {@code 0} if the name is OK to create; 
-   * {@code 1} if there is a resource (either Context/Resource or Context/ResourceLink) 
-   * with the same name;
-   * {@code 2} if there is no resource (neither Context/Resource nor Context/ResourceLink) 
-   * with the same name, but {@link #createContextResources} is set to {@code false} and
-   * there is a Server/Resource with the same name.
+   * @return
    */
-  public int validateNewResourceName(String name) {
+  public ValidateNameResult validateNewResourceName(String name) {
     if (!validateNewContextResourceOrResourceLinkName(name)) {
-      return 1;
+      return ValidateNameResult.DUPLICATE_NAME;
     }
     
     if (!createContextResources) {
       if (!validateNewServerResourceName(name)) {
-        return 2;
+        return ValidateNameResult.DUPLICATE_GLOBAL;
       }
     }
     
-    return 0;
+    return ValidateNameResult.OK;
   }
   
   protected boolean validateNewContextResourceOrResourceLinkName(String name) {

@@ -107,15 +107,17 @@ public class JdbcApi {
       // validate name
       final String name = fields.get("name");
       if (name != null) {
-        int validateNameResult = tomcatConf.validateNewResourceName(fields.get("name"));
-        if (validateNameResult == 1) {
+        switch (tomcatConf.validateNewResourceName(fields.get("name"))) {
+        case DUPLICATE_NAME: {
           final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
           invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
           return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
-        } else if (validateNameResult == 2) {
-          final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
-          return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+        }
+        case DUPLICATE_GLOBAL: {
+          // do nothing: DUPLICATE_GLOBAL check is needed on connection create only
+          break;
+        }
+        default:
         }
       }
       
@@ -215,15 +217,18 @@ public class JdbcApi {
       
           
       // validate name
-      int validateNameResult = tomcatConf.validateNewResourceName(fields.get("name"));
-      if (validateNameResult == 1) {
+      switch(tomcatConf.validateNewResourceName(fields.get("name"))) {
+      case DUPLICATE_NAME: {
         final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
         invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
         return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
-      } else if (validateNameResult == 2) {
+      }
+      case DUPLICATE_GLOBAL: {
         final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
         invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
         return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+      }
+      default:
       }
       
       
