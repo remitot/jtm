@@ -92,42 +92,46 @@ public class JdbcApi {
   protected ItemModStatus updateConnection(String id,
       Map<String, String> fields, TomcatConfJdbc tomcatConf) {
     
-    try {
-      if (id == null) {
-        return ItemModStatus.errEmptyId();
-      }
-
-      final Map<String, Connection> connections = tomcatConf.getConnections();
-      final Connection connection = connections.get(id);
-
-      if (connection == null) {
-        return ItemModStatus.errNoItemFoundById();
-      }
-        
-      // validate name
-      final String name = fields.get("name");
-      if (name != null) {
-        switch (tomcatConf.validateNewResourceName(fields.get("name"))) {
-        case DUPLICATE_NAME: {
-          final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
-          return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
-        }
-        case DUPLICATE_GLOBAL: {
-          // do nothing: DUPLICATE_GLOBAL check is needed on connection create only
-          break;
-        }
-        default:
-        }
-      }
-      
-      return updateFields(fields, connection);
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-      
-      return ItemModStatus.errServerException();
+    if (id == null) {
+      return ItemModStatus.errEmptyId();
     }
+    
+    // validate empty fields
+    List<String> emptyFields = validateEmptyFields(fields);
+    if (!emptyFields.isEmpty()) {
+      Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+      for (String fieldName: emptyFields) {
+        invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.EMPTY);
+      }
+      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+    }
+    
+
+    final Map<String, Connection> connections = tomcatConf.getConnections();
+    final Connection connection = connections.get(id);
+
+    if (connection == null) {
+      return ItemModStatus.errNoItemFoundById();
+    }
+      
+    // validate name
+    final String name = fields.get("name");
+    if (name != null) {
+      switch (tomcatConf.validateNewResourceName(fields.get("name"))) {
+      case DUPLICATE_NAME: {
+        final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+      }
+      case DUPLICATE_GLOBAL: {
+        // do nothing: DUPLICATE_GLOBAL check is needed on connection create only
+        break;
+      }
+      default:
+      }
+    }
+    
+    return updateFields(fields, connection);
   }
   
   /**
@@ -172,105 +176,116 @@ public class JdbcApi {
   
   protected ItemModStatus deleteConnection(String id, TomcatConfJdbc tomcatConf) {
 
-    try {
-      if (id == null) {
-        return ItemModStatus.errEmptyId();
-      }
-
-
-      Map<String, Connection> connections = tomcatConf.getConnections();
-      Connection connection = connections.get(id);
-
-      if (connection == null) {
-        return ItemModStatus.errNoItemFoundById();
-      }
-        
-      if (!connection.isDataModifiable()) {
-        return ItemModStatus.errDataNotModifiable();
-      }
-      
-      tomcatConf.delete(id);
-
-      return ItemModStatus.success();
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-      
-      return ItemModStatus.errServerException();
+    if (id == null) {
+      return ItemModStatus.errEmptyId();
     }
+
+
+    Map<String, Connection> connections = tomcatConf.getConnections();
+    Connection connection = connections.get(id);
+
+    if (connection == null) {
+      return ItemModStatus.errNoItemFoundById();
+    }
+      
+    if (!connection.isDataModifiable()) {
+      return ItemModStatus.errDataNotModifiable();
+    }
+    
+    tomcatConf.delete(id);
+
+    return ItemModStatus.success();
   }
   
   protected ItemModStatus createConnection(
       Map<String, String> fields, TomcatConfJdbc tomcatConf,
       ResourceInitialParams initialParams) {
 
-    try {
-      // validate mandatory fields
-      List<String> emptyMandatoryFields = validateMandatoryFields(fields);
-      if (!emptyMandatoryFields.isEmpty()) {
-        Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-        for (String fieldName: emptyMandatoryFields) {
-          invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
-        }
-        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+    // validate mandatory fields
+    List<String> emptyMandatoryFields = validateMandatoryEmptyFields(fields);
+    if (!emptyMandatoryFields.isEmpty()) {
+      Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+      for (String fieldName: emptyMandatoryFields) {
+        invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
       }
-      
-          
-      // validate name
-      switch(tomcatConf.validateNewResourceName(fields.get("name"))) {
-      case DUPLICATE_NAME: {
-        final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-        invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
-        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
-      }
-      case DUPLICATE_GLOBAL: {
-        final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-        invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
-        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
-      }
-      default:
-      }
-      
-      
-      final Connection newConnection = tomcatConf.create(fields.get("name"), initialParams);
-
-      return updateFields(fields, newConnection);
-      
-    } catch (Throwable e) {
-      e.printStackTrace();
-      
-      return ItemModStatus.errServerException();
+      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
     }
+    
+        
+    // validate name
+    switch(tomcatConf.validateNewResourceName(fields.get("name"))) {
+    case DUPLICATE_NAME: {
+      final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+      invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+    }
+    case DUPLICATE_GLOBAL: {
+      final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+      invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
+      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+    }
+    default:
+    }
+    
+    
+    final Connection newConnection = tomcatConf.create(fields.get("name"), initialParams);
+
+    return updateFields(fields, newConnection);
   }
   
   /**
-   * Validate mandatory fields
+   * Validate mandatory empty fields
    * @param dto
-   * @return list of field names whose values are empty (but must not be empty), or else empty list
+   * @return list of missing or empty mandatory fields, or else empty list
    */
-  protected List<String> validateMandatoryFields(Map<String, String> fields) {
+  protected List<String> validateMandatoryEmptyFields(Map<String, String> fields) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (empty(fields.get("db"))) {
+    if (fields.get("db") == null) {
       emptyFields.add("db");
     }
-    if (empty(fields.get("name"))) {
+    if (fields.get("name") == null) {
       emptyFields.add("name");
     }
-    if (empty(fields.get("password"))) {
+    if (fields.get("password") == null) {
       emptyFields.add("password");
     }
-    if (empty(fields.get("server"))) {
+    if (fields.get("server") == null) {
       emptyFields.add("server");
     }
-    if (empty(fields.get("user"))) {
+    if (fields.get("user") == null) {
       emptyFields.add("user");
     }
+    
+    emptyFields.addAll(validateEmptyFields(fields));
     
     return emptyFields;
   }
   
-  protected boolean empty(String string) {
-    return string == null || "".equals(string);
+  /**
+   * Validate empty (but not mandatory) fields
+   * @param dto
+   * @return list of present but empty fields, or else empty list
+   */
+  protected List<String> validateEmptyFields(Map<String, String> fields) {
+    List<String> emptyFields = new ArrayList<>();
+
+    if ("".equals(fields.get("db"))) {
+      emptyFields.add("db");
+    }
+    if ("".equals(fields.get("name"))) {
+      emptyFields.add("name");
+    }
+    if ("".equals(fields.get("password"))) {
+      emptyFields.add("password");
+    }
+    if ("".equals(fields.get("server"))) {
+      emptyFields.add("server");
+    }
+    if ("".equals(fields.get("user"))) {
+      emptyFields.add("user");
+    }
+    
+    return emptyFields;
   }
 }

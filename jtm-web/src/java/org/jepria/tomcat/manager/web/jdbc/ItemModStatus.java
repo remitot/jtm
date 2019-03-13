@@ -30,10 +30,6 @@ public class ItemModStatus {
    * Data not modifiable
    */
   public static final int SC_DATA_NOT_MODIFIABLE = 4;// the constant value referred from table.js
-  /**
-   * Any server data processing exception
-   */
-  public static final int SC_SERVER_EXCEPTION = 500;
   
   /**
    * SC_* constant value
@@ -54,6 +50,7 @@ public class ItemModStatus {
   }
   
   public static enum InvalidFieldDataCode {
+    EMPTY,
     MANDATORY_EMPTY,
     DUPLICATE_NAME,
     DUPLICATE_GLOBAL,
@@ -65,10 +62,6 @@ public class ItemModStatus {
    */
   public static ItemModStatus errInvalidFieldData(Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
     return new ItemModStatus(SC_INVALID_FIELD_DATA, invalidFieldDataMap);
-  }
-  
-  public static ItemModStatus errServerException() {
-    return new ItemModStatus(SC_SERVER_EXCEPTION, null); 
   }
   
   
