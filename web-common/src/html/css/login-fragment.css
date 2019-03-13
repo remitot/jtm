@@ -25,11 +25,11 @@
   background-color: white;
 }
 
-.login-form_row {
+.login-form__row {
   text-align: center;
 }
 
-.login-form_row .field-text {
+.login-form__row .field-text {
   width: 200px;
   margin-top: 15px;
 }

@@ -18,7 +18,6 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.HtmlPage;
 import org.jepria.tomcat.manager.web.HtmlPageUnauthorized;
 import org.jepria.tomcat.manager.web.PageStatus;
-import org.jepria.tomcat.manager.web.dto.PostDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.PageHeader;
@@ -38,20 +37,15 @@ public class JdbcSsrServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final Environment env = EnvironmentFactory.get(req);
-    
-    final HtmlPage htmlPage;
-    
-    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
-    
-    if (req.getUserPrincipal() == null || !req.isUserInRole("manager-gui")) {
+    if (auth(req, resp)) {
       
-      htmlPage = new HtmlPageUnauthorized(pageHeader);
-      htmlPage.setStatusBar(PageStatus.consume(req));
+      final Environment env = EnvironmentFactory.get(req);
       
-    } else {
-    
+      final HtmlPage htmlPage;
+      
+      final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+      final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
       
@@ -60,18 +54,39 @@ public class JdbcSsrServlet extends HttpServlet {
   
       // reset the servlet mod status after the first request 
       modReset(req);
+      
+      htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
+      htmlPage.respond(resp);
     }
-    
-    htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
-    htmlPage.respond(resp);
-    
-    return;
+  }
+  
+  protected boolean auth(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    if (req.getUserPrincipal() == null || !req.isUserInRole("manager-gui")) {
+      
+      final Environment env = EnvironmentFactory.get(req);
+      
+      final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+      final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+      
+      HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, "jdbc/login"); // TODO this will erase any path- or request params of the current page
+      htmlPage.setStatusBar(PageStatus.consume(req));
+      
+      htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
+      htmlPage.respond(resp);
+      
+      return false;
+      
+    } else {
+      return true;
+    }
   }
   
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    if ("/login".equals(req.getPathInfo())) {
+    final String path = req.getPathInfo();
+    
+    if ("/login".equals(path)) {
       
       final String username = req.getParameter("username");
       final String password = req.getParameter("password");
@@ -103,33 +118,26 @@ public class JdbcSsrServlet extends HttpServlet {
         
       }
       
-      resp.sendRedirect("../jdbc"); // TODO
-      
+      // jdbc/login -> jdbc
+      resp.sendRedirect(".."); // TODO
       return;
       
-    } else {
-      
-      final PostDto post;
+    } else if ("/mod".equals(path)) {
+
+      final Gson gson = new Gson();
+      final List<ItemModRequestDto> itemModRequests;
+        
+      // read list from request body
       try {
-        Type type = new TypeToken<PostDto>(){}.getType();
-        post = new Gson().fromJson(new InputStreamReader(req.getInputStream()), type);
+        Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
+        itemModRequests = gson.fromJson(new InputStreamReader(req.getInputStream()), type);
       } catch (Throwable e) {
         // TODO
         throw new RuntimeException(e);
       }
+
+      if (auth(req, resp)) {
       
-      if ("mod".equals(post.getAction())) {
-      
-        // read list from request body
-        final List<ItemModRequestDto> itemModRequests;
-        try {
-          Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
-          itemModRequests = new Gson().fromJson(post.getData(), type);
-        } catch (Throwable e) {
-          // TODO
-          throw new RuntimeException(e);
-        }
-        
         if (itemModRequests != null && itemModRequests.size() > 0) {
         
           // Map<modRequestId, modStatus>
@@ -225,12 +233,26 @@ public class JdbcSsrServlet extends HttpServlet {
           return;
         }
         
-      } else if ("mod-reset".equals(post.getAction())) {
-        modReset(req);
+      } else {
+        // at least save itemModRequests without authorization
         
-        // redirect to the base ssr url must be made by the client
-        return;
       }
+      
+      // jdbc/mod -> jdbc
+      resp.sendRedirect(".."); // TODO
+      return;
+      
+    } else if ("/mod-reset".equals(path)) {
+      
+      if (auth(req, resp)) {
+        modReset(req);
+      } else {
+        // TODO
+      }
+      
+      // jdbc/mod-reset -> jdbc
+      resp.sendRedirect(".."); // TODO
+      return;
     }
   }
   

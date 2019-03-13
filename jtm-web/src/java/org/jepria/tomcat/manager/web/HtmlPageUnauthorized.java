@@ -7,13 +7,13 @@ public class HtmlPageUnauthorized extends HtmlPage {
   
   // pageHeader needed in a constructor to properly add pageHeader_onload() to body.onload
   //TODO if body.onload will be constructed dynamically, remove this arg and use page.setPageHeader from outside
-  public HtmlPageUnauthorized(PageHeader pageHeader) {
+  public HtmlPageUnauthorized(PageHeader pageHeader, String loginActionUrl) {
     
     if (pageHeader != null) {
       setPageHeader(pageHeader);
     }
     
-    final LoginFragment loginFragment = new LoginFragment();
+    final LoginFragment loginFragment = new LoginFragment(loginActionUrl);
     getBodyChilds().add(loginFragment);
     
     // add onload scripts

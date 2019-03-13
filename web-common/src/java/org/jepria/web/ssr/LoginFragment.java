@@ -3,7 +3,8 @@ package org.jepria.web.ssr;
 import org.jepria.web.ssr.table.Collection;
 
 public class LoginFragment extends El {
-  public LoginFragment() {
+  public LoginFragment(String loginActionUrl) {
+    
     super("div");
     setAttribute("id", "loginScreen");
     addClass("loginForm-hidden");
@@ -15,22 +16,22 @@ public class LoginFragment extends El {
     loginFrame.appendChild(loginStatusBar);
     
     final El loginForm = new El("form").addClass("login-form")
-        .setAttribute("action", "jdbc/login") // TODO this will lose any path- or query params from the current page
+        .setAttribute("action", loginActionUrl)
         .setAttribute("method", "post");
     
-    final El rowUsername = new El("div").addClass("login-form_row");
+    final El rowUsername = new El("div").addClass("login-form__row");
     final El inputUsername = new El("input").setAttribute("type", "text").addClass("field-text").addClass("login-field_username")
         .setAttribute("name", "username").setAttribute("placeholder", "логин"); // NON-NLS
     rowUsername.appendChild(inputUsername);
     loginForm.appendChild(rowUsername);
     
-    final El rowPassword = new El("div").addClass("login-form_row");
+    final El rowPassword = new El("div").addClass("login-form__row");
     final El inputPassword = new El("input").setAttribute("type", "password").addClass("field-text").addClass("login-field_password")
         .setAttribute("name", "password").setAttribute("placeholder", "пароль"); // NON-NLS
     rowPassword.appendChild(inputPassword);
     loginForm.appendChild(rowPassword);
     
-    final El rowButtonLogin = new El("div").addClass("login-form_row");
+    final El rowButtonLogin = new El("div").addClass("login-form__row");
     final El buttonLogin = new El("button").setAttribute("type", "submit").addClass("big-black-button")
         .setInnerHTML("ВОЙТИ"); // NON-NLS
     rowButtonLogin.appendChild(buttonLogin);

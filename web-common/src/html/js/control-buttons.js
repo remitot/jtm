@@ -36,9 +36,6 @@ function adjustBottomShadow() {
 window.onscroll = adjustBottomShadow;
 
 function controlButtons_onload() {
-  var controlButtons = document.getElementsByClassName("control-buttons")[0];
-  
-  controlButtons.getElementsByClassName("control-button_create")[0].onclick = onButtonCreateClick;
-  controlButtons.getElementsByClassName("control-button_save")[0].onclick = onButtonSaveClick;
-  controlButtons.getElementsByClassName("control-button_reset")[0].onclick = onButtonResetClick;
+  document.getElementsByClassName("control-button_create")[0].onclick = onButtonCreateClick;
+  document.getElementsByClassName("control-button_save")[0].onclick = onButtonSaveClick;
 }

@@ -18,26 +18,35 @@ public class ControlButtons extends El {
         .addClass("big-black-button")
         .setInnerHTML("НОВАЯ ЗАПИСЬ"); // NON-NLS
     
+    
     buttonSave = new El("button")
         .addClass("control-button")
         .addClass("control-button_save")
         .addClass("big-black-button")
         .setInnerHTML("СОХРАНИТЬ ВСЁ"); // NON-NLS
     
+    
+    final El formReset = new El("form").setAttribute("action", "jdbc/mod-reset").setAttribute("method", "post")
+        .addClass("control-button-form");
+    
     buttonReset = new El("button")
+        .setAttribute("type", "submit")
         .addClass("control-button")
         .addClass("control-button_reset")
         .addClass("big-black-button")
         .setInnerHTML("СБРОСИТЬ ВСЁ"); // NON-NLS
+    formReset.appendChild(buttonReset);
+    
     
     appendChild(buttonCreate);
     appendChild(buttonSave);
-    appendChild(buttonReset);
+    appendChild(formReset);
   }
   
   @Override
   protected void addStyles(Collection styles) {
     super.addStyles(styles);
+    styles.add("css/control-buttons.css");
     styles.add("css/jtm-common.css"); // for .big-black-button
   }
   
