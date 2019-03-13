@@ -96,17 +96,17 @@ public class JdbcApi {
       return ItemModStatus.errEmptyId();
     }
     
+    
+    final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+    
     // validate empty fields
     List<String> emptyFields = validateEmptyFields(fields);
     if (!emptyFields.isEmpty()) {
-      Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
       for (String fieldName: emptyFields) {
         invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.EMPTY);
       }
-      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
     }
     
-
     final Map<String, Connection> connections = tomcatConf.getConnections();
     final Connection connection = connections.get(id);
 
@@ -119,9 +119,9 @@ public class JdbcApi {
     if (name != null) {
       switch (tomcatConf.validateNewResourceName(fields.get("name"))) {
       case DUPLICATE_NAME: {
-        final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-        invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
-        return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+        // putIfAbsent: do not overwrite previous invalid state
+        invalidFieldDataMap.putIfAbsent("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+        break;
       }
       case DUPLICATE_GLOBAL: {
         // do nothing: DUPLICATE_GLOBAL check is needed on connection create only
@@ -129,6 +129,10 @@ public class JdbcApi {
       }
       default:
       }
+    }
+    
+    if (!invalidFieldDataMap.isEmpty()) {
+      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
     }
     
     return updateFields(fields, connection);
@@ -201,32 +205,35 @@ public class JdbcApi {
       Map<String, String> fields, TomcatConfJdbc tomcatConf,
       ResourceInitialParams initialParams) {
 
-    // validate mandatory fields
+    final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+    
+    // validate mandatory empty fields
     List<String> emptyMandatoryFields = validateMandatoryEmptyFields(fields);
     if (!emptyMandatoryFields.isEmpty()) {
-      Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
       for (String fieldName: emptyMandatoryFields) {
         invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
       }
-      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
     }
     
         
     // validate name
     switch(tomcatConf.validateNewResourceName(fields.get("name"))) {
     case DUPLICATE_NAME: {
-      final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-      invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
-      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+      // putIfAbsent: do not overwrite previous invalid state
+      invalidFieldDataMap.putIfAbsent("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
+      break;
     }
     case DUPLICATE_GLOBAL: {
-      final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-      invalidFieldDataMap.put("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
-      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+      // putIfAbsent: do not overwrite previous invalid state
+      invalidFieldDataMap.putIfAbsent("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_GLOBAL);
+      break;
     }
     default:
     }
-    
+
+    if (!invalidFieldDataMap.isEmpty()) {
+      return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
+    }
     
     final Connection newConnection = tomcatConf.create(fields.get("name"), initialParams);
 
