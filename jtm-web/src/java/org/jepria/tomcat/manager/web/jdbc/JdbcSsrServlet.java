@@ -15,10 +15,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.HtmlPage;
+import org.jepria.tomcat.manager.web.HtmlPageUnauthorized;
+import org.jepria.tomcat.manager.web.PageStatus;
 import org.jepria.tomcat.manager.web.dto.PostDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
-import org.jepria.web.ssr.Status;
+import org.jepria.web.ssr.PageHeader;
+import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.StatusBar;
 
 import com.google.gson.Gson;
@@ -36,20 +40,31 @@ public class JdbcSsrServlet extends HttpServlet {
 
     final Environment env = EnvironmentFactory.get(req);
     
-    final List<ConnectionDto> connections = new JdbcApi().list(env);
-    final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
+    final HtmlPage htmlPage;
     
-    final JdbcHtmlPage jdbcHtmlPage = new JdbcHtmlPage(env, connections, servletModStatus);
-
-    final Status pageStatus = (Status)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus");
-    if (pageStatus != null) {
-      jdbcHtmlPage.setStatusBar(new StatusBar(pageStatus));
+    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+    
+    if (req.getUserPrincipal() == null || !req.isUserInRole("manager-gui")) {
+      
+      htmlPage = new HtmlPageUnauthorized(pageHeader);
+      htmlPage.setStatusBar(PageStatus.consume(req));
+      
+    } else {
+    
+      final List<ConnectionDto> connections = new JdbcApi().list(env);
+      final ServletModStatus servletModStatus = (ServletModStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
+      
+      htmlPage = new JdbcHtmlPage(pageHeader, connections, servletModStatus);
+      htmlPage.setStatusBar(PageStatus.consume(req));
+  
+      // reset the servlet mod status after the first request 
+      modReset(req);
     }
-     
-    // reset the servlet mod status after the first request 
-    resetState(req);
     
-    jdbcHtmlPage.respond(resp);
+    htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
+    htmlPage.respond(resp);
+    
     return;
   }
   
@@ -137,7 +152,6 @@ public class JdbcSsrServlet extends HttpServlet {
   
         // 4) ignore illegal actions
   
-        final Status pageStatus;
         final ServletModStatus servletModStatus = new ServletModStatus();
         
         if (modSuccess) {
@@ -151,9 +165,8 @@ public class JdbcSsrServlet extends HttpServlet {
           
           servletModStatus.success = true;
           
-          
-          final String statusHTML = "<span class=\"span-bold\">Все изменения сохранены.</span>"; // NON-NLS 
-          pageStatus = new Status(Status.Type.SUCCESS, statusHTML);
+          final StatusBar pageStatus = new StatusBar(StatusBar.Type.SUCCESS, "<span class=\"span-bold\">Все изменения сохранены.</span>"); // NON-NLS 
+          PageStatus.set(req, pageStatus);
           
         } else {
           
@@ -164,10 +177,10 @@ public class JdbcSsrServlet extends HttpServlet {
           
           final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
               "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
-          pageStatus = new Status(Status.Type.ERROR, statusHTML);
+          final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, statusHTML);
+          PageStatus.set(req, pageStatus);
         }
 
-        req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", pageStatus);
         req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus", servletModStatus);
         
         // redirect to the base ssr url must be made by the client
@@ -175,15 +188,14 @@ public class JdbcSsrServlet extends HttpServlet {
       }
       
     } else if ("mod-reset".equals(post.getAction())) {
-      resetState(req);
+      modReset(req);
       
       // redirect to the base ssr url must be made by the client
       return;
     }
   }
   
-  private void resetState(HttpServletRequest req) {
-    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus");
+  private void modReset(HttpServletRequest req) {
     req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.servletModStatus");
   }
 }

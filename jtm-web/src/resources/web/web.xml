@@ -112,7 +112,6 @@
     <web-resource-collection>
       <web-resource-name>Protected resources</web-resource-name>
       <url-pattern>/api/*</url-pattern>
-      <url-pattern>/jdbc/*</url-pattern>
       <url-pattern>/log-monitor</url-pattern>
     </web-resource-collection>
     <auth-constraint>
@@ -124,7 +123,7 @@
     <web-resource-collection>
       <web-resource-name>Public resources</web-resource-name>
       <url-pattern>/api</url-pattern><!-- ApiDocs -->
-      <url-pattern>/login/*</url-pattern>
+      <url-pattern>/jdbc/*</url-pattern>
       <url-pattern>/api/login/*</url-pattern>
       <url-pattern>/api/logout/*</url-pattern>
       <url-pattern>/api/port/http</url-pattern> <!-- for querying by Apache HTTPD manager -->

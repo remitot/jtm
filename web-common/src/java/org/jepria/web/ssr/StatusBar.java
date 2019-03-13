@@ -6,8 +6,11 @@ import org.jepria.web.ssr.table.Collection;
 
 public class StatusBar extends El {
   
-  public StatusBar(Status status) {
-    this(status.type, status.statusHTML);
+  public static enum Type {
+    NONE,
+    SUCCESS,
+    INFO,
+    ERROR
   }
   
   /**
@@ -15,7 +18,7 @@ public class StatusBar extends El {
    * @param type not null
    * @param innerHTML may be null
    */
-  public StatusBar(Status.Type type, String innerHTML) {
+  public StatusBar(Type type, String innerHTML) {
     super ("div");
     classList.add("statusBar");
     

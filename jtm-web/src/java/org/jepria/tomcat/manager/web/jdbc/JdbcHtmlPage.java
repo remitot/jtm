@@ -7,19 +7,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jepria.tomcat.manager.web.Environment;
+import org.jepria.tomcat.manager.web.HtmlPage;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
 
-public class JdbcHtmlPage extends JdbcHtmlPageBase {
+public class JdbcHtmlPage extends HtmlPage {
   
-  public JdbcHtmlPage(Environment env, List<ConnectionDto> connections, 
+  //pageHeader needed in a constructor to properly add pageHeader_onload() to body.onload
+  //TODO if body.onload will be constructed dynamically, remove this arg and use page.setPageHeader from outside
+  public JdbcHtmlPage(PageHeader pageHeader, List<ConnectionDto> connections, 
       ServletModStatus servletModStatus) {
-    super(env);
+    
+    setPageHeader(pageHeader);
     
     // table html
     final JdbcTable table = new JdbcTable();

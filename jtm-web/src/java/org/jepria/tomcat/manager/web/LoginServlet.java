@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.web.ssr.Status;
+import org.jepria.web.ssr.StatusBar;
 
 public class LoginServlet extends HttpServlet {
   
@@ -52,9 +52,8 @@ public class LoginServlet extends HttpServlet {
     } catch (ServletException e) {
       e.printStackTrace();
       
-      final String statusHTML = "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"; // NON-NLS
-      final Status pageStatus = new Status(Status.Type.ERROR, statusHTML);
-      req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", pageStatus);
+      final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
+      PageStatus.set(req, pageStatus);
       
       resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       resp.flushBuffer();
