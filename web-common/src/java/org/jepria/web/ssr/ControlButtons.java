@@ -20,11 +20,12 @@ public class ControlButtons extends El {
     
     
     final El formSave = new El("form").setAttribute("action", saveActionUrl).setAttribute("method", "post")
-        .addClass("control-button-form")
+        .addClass("button-form")
         .addClass("control-button-form_save");
     
     buttonSave = new El("button")
         .setAttribute("type", "submit")
+        .setAttribute("disabled") // disabled by default
         .addClass("control-button")
         .addClass("control-button_save")
         .addClass("big-black-button")
@@ -33,10 +34,11 @@ public class ControlButtons extends El {
     
     
     final El formReset = new El("form").setAttribute("action", resetActionUrl).setAttribute("method", "post")
-        .addClass("control-button-form");
+        .addClass("button-form");
     
     buttonReset = new El("button")
         .setAttribute("type", "submit")
+        .setAttribute("disabled") // disabled by default
         .addClass("control-button")
         .addClass("control-button_reset")
         .addClass("big-black-button")
@@ -52,7 +54,6 @@ public class ControlButtons extends El {
   @Override
   protected void addStyles(Collection styles) {
     super.addStyles(styles);
-    styles.add("css/control-buttons.css");
     styles.add("css/jtm-common.css"); // for .big-black-button
   }
   

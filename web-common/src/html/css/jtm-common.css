@@ -3,6 +3,8 @@ body {
 }
 
 .big-black-button {
+  height: 100%;
+  
   background-color: black;
   border: none;
   
@@ -31,7 +33,6 @@ body {
 
 .big-black-button.control-button {
   width: 200px;
-  height: 44px;
   
   margin: 14px;
   margin-right: -4px; /* magic value */
@@ -57,4 +58,8 @@ body {
 
 input.field-text:focus {
   border-color: #0089bd;
+}
+
+.button-form {
+  display: inline;
 }

@@ -15,7 +15,7 @@ public class PageHeader extends El {
    * @param managerApacheHref if {@code null}, the Apache-Manager menu item will be disabled
    * @param currentMenuItem
    */
-  public PageHeader(String managerApacheHref, CurrentMenuItem currentMenuItem) {
+  public PageHeader(String managerApacheHref, String logoutActionUrl, CurrentMenuItem currentMenuItem) {
     super("div");
     classList.add("page-header");
     
@@ -76,12 +76,19 @@ public class PageHeader extends El {
     menuItem.setInnerHTML("Порты"); // NON-NLS
     appendChild(menuItem);
     
-    
-    final El buttonLogout = new El("div");
-    buttonLogout.classList.add("page-header__button-logout");
-    buttonLogout.classList.add("big-black-button");
-    buttonLogout.setInnerHTML("ВЫЙТИ"); // NON-NLS
-    appendChild(buttonLogout);
+    if (logoutActionUrl != null) {
+      final El formReset = new El("form").setAttribute("action", logoutActionUrl).setAttribute("method", "post")
+          .addClass("button-form");
+      
+      final El buttonLogout = new El("button")
+          .setAttribute("type", "submit")
+          .addClass("page-header__button-logout")
+          .addClass("big-black-button")
+          .setInnerHTML("ВЫЙТИ"); // NON-NLS
+      formReset.appendChild(buttonLogout);
+      
+      appendChild(formReset);
+    }
   }
   
   @Override
@@ -94,7 +101,6 @@ public class PageHeader extends El {
   @Override
   protected void addScripts(Collection scripts) {
     super.addScripts(scripts);
-    scripts.add("js/page-header.js"); // for logout button
     scripts.add("js/jtm-common.js"); // for .big-black-button
   }
 }

@@ -166,6 +166,8 @@
 }
 
 .control-buttons {
+  height: 45px;
+  
   background-color: white;
   position: sticky;
   left: 0;

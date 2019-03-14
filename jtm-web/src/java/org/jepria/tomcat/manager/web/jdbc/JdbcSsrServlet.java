@@ -16,7 +16,6 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.HtmlPage;
 import org.jepria.tomcat.manager.web.HtmlPageUnauthorized;
-import org.jepria.tomcat.manager.web.PageStatus;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.PageHeader;
@@ -43,9 +42,17 @@ public class JdbcSsrServlet extends HttpServlet {
       final HtmlPage htmlPage;
       
       final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-      final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+      final PageHeader pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC);
 
       final List<ConnectionDto> connections = new JdbcApi().list(env);
+      
+      
+      // session state
+      if (req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet") != null) {
+        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
+        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
+        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
+      }
       
       @SuppressWarnings("unchecked")
       final List<ItemModRequestDto> itemModRequests = (List<ItemModRequestDto>)req.getSession()
@@ -53,12 +60,15 @@ public class JdbcSsrServlet extends HttpServlet {
       @SuppressWarnings("unchecked")
       final Map<String, ItemModStatus> itemModStatuses = (Map<String, ItemModStatus>)req.getSession()
           .getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
+
+      req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet", new Object());
+      //
+      
       
       htmlPage = new JdbcHtmlPage(pageHeader, connections, itemModRequests, itemModStatuses);
-      htmlPage.setStatusBar(PageStatus.consume(req));
+      htmlPage.setStatusBar(getStatusBar((PageStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus")));
   
-      // reset the servlet mod status after the first request 
-      modReset(req);
+      
       
       htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
       htmlPage.respond(resp);
@@ -67,6 +77,8 @@ public class JdbcSsrServlet extends HttpServlet {
       
       doLogin(req, resp);
     }
+    
+    req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus.removeOnNextGet", new Object());
   }
   
   protected boolean checkAuth(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -77,13 +89,21 @@ public class JdbcSsrServlet extends HttpServlet {
     final Environment env = EnvironmentFactory.get(req);
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
+    
+    if (req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus.removeOnNextGet") != null) {
+      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus.removeOnNextGet");
+      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus");
+    }
+    final LoginStatus loginStatus = (LoginStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus");
     
     HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, "jdbc/login"); // TODO this will erase any path- or request params of the current page
-    htmlPage.setStatusBar(PageStatus.consume(req));
+    htmlPage.setStatusBar(createStatusBar(loginStatus));
     
     htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
     htmlPage.respond(resp);
+    
+    req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus.removeOnNextGet", new Object());
   }
   
   protected boolean login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -109,16 +129,26 @@ public class JdbcSsrServlet extends HttpServlet {
       
       req.login(username, password);
 
+      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus");
+      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus.removeOnNextGet");
+      
       return true;
       
     } catch (ServletException e) {
       e.printStackTrace();
       
-      final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
-      PageStatus.set(req, pageStatus);
+      req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus", LoginStatus.LOGIN_FAILURE);
+      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus.removeOnNextGet");
       
       return false;
     }
+  }
+  
+  protected void logout(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
+    req.logout();
+    req.getSession().invalidate();
+    
+    req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus", LoginStatus.LOGOUT_SUCCESS);
   }
   
   @Override
@@ -134,6 +164,14 @@ public class JdbcSsrServlet extends HttpServlet {
       resp.sendRedirect(".."); // TODO
       return;
       
+    } else if ("/logout".equals(path)) {
+      
+      logout(req, resp);
+      
+      // jdbc/logout -> jdbc
+      resp.sendRedirect(".."); // TODO
+      return;
+        
     } else if ("/mod".equals(path)) {
 
       final Gson gson = new Gson();
@@ -224,27 +262,26 @@ public class JdbcSsrServlet extends HttpServlet {
             tomcatConf.save(env.getContextXmlOutputStream(), 
                 env.getServerXmlOutputStream());
             
-            final StatusBar pageStatus = new StatusBar(StatusBar.Type.SUCCESS, "<span class=\"span-bold\">Все изменения сохранены.</span>"); // NON-NLS 
-            PageStatus.set(req, pageStatus);
-            
             // reset the servlet mod status after the successful mod
-            modReset(req);
+            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
+            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
+            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
+            
+            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", PageStatus.MOD_SUCCESS);
             
           } else {
            
             // save session attributes
+            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
             req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests", itemModRequests);
             req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses", itemModStatuses);
             
-            
-            final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
-                "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
-            final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, statusHTML);
-            PageStatus.set(req, pageStatus);
+            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", PageStatus.MOD_INCORRECT_FIELD_DATA);
           }
         
         } else {
-          // at least save session itemModRequests (without authorization)
+
+          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.loginStatus", LoginStatus.MOD_SESSION_EXPIRED);
           req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests", itemModRequests);
         }
         
@@ -257,7 +294,11 @@ public class JdbcSsrServlet extends HttpServlet {
     } else if ("/mod-reset".equals(path)) {
       
       if (checkAuth(req, resp)) {
-        modReset(req);
+        
+        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
+        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
+        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
+        
       } else {
         // TODO
       }
@@ -267,9 +308,61 @@ public class JdbcSsrServlet extends HttpServlet {
       return;
     }
   }
+ 
+  protected enum PageStatus {
+    MOD_SUCCESS,
+    MOD_INCORRECT_FIELD_DATA,
+  }
   
-  private void modReset(HttpServletRequest req) {
-    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
-    req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
+  protected enum LoginStatus {
+    /**
+     * Login attempt failed: incorrect credentials
+     */
+    LOGIN_FAILURE,
+    /**
+     * Mod attempt failed: {@link #checkAuth} failed
+     */
+    MOD_SESSION_EXPIRED,
+    /**
+     * Logout succeeded
+     */
+    LOGOUT_SUCCESS,
+    
+  }
+
+  
+  protected StatusBar getStatusBar(PageStatus status) {
+    if (status == null) {
+      return null;
+    }
+    switch (status) {
+    case MOD_SUCCESS: {
+      return new StatusBar(StatusBar.Type.SUCCESS, "<span class=\"span-bold\">Все изменения сохранены.</span>"); // NON-NLS 
+    }
+    case MOD_INCORRECT_FIELD_DATA: {
+      final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
+          "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
+      return new StatusBar(StatusBar.Type.ERROR, statusHTML);
+    }
+    }
+    throw new IllegalArgumentException(String.valueOf(status));
+  }
+  
+  protected StatusBar createStatusBar(LoginStatus status) {
+    if (status == null) {
+      return null;
+    }
+    switch (status) {
+    case LOGIN_FAILURE: {
+      return new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
+    }
+    case MOD_SESSION_EXPIRED: {
+      return new StatusBar(StatusBar.Type.INFO, "<span class=\"span-bold\">Необходимо авторизоваться.</span>&emsp;Сделанные изменения будут восстановлены.");
+    }
+    case LOGOUT_SUCCESS: {
+      return new StatusBar(StatusBar.Type.SUCCESS, "Разлогинились.</span>");
+    }
+    }
+    throw new IllegalArgumentException(String.valueOf(status));
   }
 }

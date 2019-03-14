@@ -27,6 +27,8 @@ public class JdbcHtmlPage extends HtmlPage {
    */
   //pageHeader needed in a constructor to properly add pageHeader_onload() to body.onload
   //TODO if body.onload will be constructed dynamically, remove this arg and use page.setPageHeader from outside
+  //
+  // TODO consider removing overlay parameters and invoke a separate table.overlay(params) method (not in constructor)
   public JdbcHtmlPage(PageHeader pageHeader, List<ConnectionDto> connections,
       List<ItemModRequestDto> itemModRequests,
       Map<String, ItemModStatus> itemModStatuses) {
@@ -83,22 +85,23 @@ public class JdbcHtmlPage extends HtmlPage {
         
         if (!itemsDeleted.contains(modRequestId)) { //ignore deleted items
           
-          ItemModStatus modStatus = modRequestIdAndModStatus.getValue();
+          final ItemModStatus modStatus = modRequestIdAndModStatus.getValue();
+          
+          // lookup items
+          JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
+              .findAny().orElse(null);
+          if (item == null) {
+            // lookup items created
+            item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
+            .findAny().orElse(null);
+          }
+          if (item == null) {
+            // TODO
+            throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
+          }
+          
           switch (modStatus.code) {
           case INVALID_FIELD_DATA: {
-            
-            // lookup items
-            JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
-                .findAny().orElse(null);
-            if (item == null) {
-              // lookup items created
-              item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
-              .findAny().orElse(null);
-            }
-            if (item == null) {
-              // TODO
-              throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
-            }
             
             if (modStatus.invalidFieldDataMap != null) {
               for (Map.Entry<String, ItemModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
@@ -126,7 +129,15 @@ public class JdbcHtmlPage extends HtmlPage {
             }
             break;
           }
-          // TODO process other codes
+          case EMPTY_ID: case NO_ITEM_FOUND_BY_ID: case DATA_NOT_MODIFIABLE: {
+            // TODO is it the best solution to mark all fields invalid?
+            item.forEach((name, field) -> {field.invalid = true; field.invalidMessage = "Server error";});
+            break;
+          }
+          case SUCCESS: {
+            // do nothing
+            break;
+          }
           }
         }
       }
