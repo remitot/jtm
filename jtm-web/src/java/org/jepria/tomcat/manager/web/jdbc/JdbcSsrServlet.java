@@ -62,28 +62,28 @@ public class JdbcSsrServlet extends HttpServlet {
       
       htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
       htmlPage.respond(resp);
+      
+    } else {
+      
+      doLogin(req, resp);
     }
   }
   
   protected boolean checkAuth(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    if (req.getUserPrincipal() == null || !req.isUserInRole("manager-gui")) {
-      
-      final Environment env = EnvironmentFactory.get(req);
-      
-      final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-      final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
-      
-      HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, "jdbc/login"); // TODO this will erase any path- or request params of the current page
-      htmlPage.setStatusBar(PageStatus.consume(req));
-      
-      htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
-      htmlPage.respond(resp);
-      
-      return false;
-      
-    } else {
-      return true;
-    }
+    return req.getUserPrincipal() != null && req.isUserInRole("manager-gui");
+  }
+  
+  protected void doLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    final Environment env = EnvironmentFactory.get(req);
+    
+    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, CurrentMenuItem.JDBC);
+    
+    HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, "jdbc/login"); // TODO this will erase any path- or request params of the current page
+    htmlPage.setStatusBar(PageStatus.consume(req));
+    
+    htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
+    htmlPage.respond(resp);
   }
   
   protected boolean login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -245,8 +245,9 @@ public class JdbcSsrServlet extends HttpServlet {
         
         } else {
           // at least save session itemModRequests (without authorization)
-          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.itemModRequests", itemModRequests);
+          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests", itemModRequests);
         }
+        
       }
       
       // jdbc/mod -> jdbc
