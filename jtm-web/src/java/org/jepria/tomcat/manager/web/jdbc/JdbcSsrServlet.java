@@ -34,6 +34,8 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+    final ApplicationalState applicationalState = getApplicationalState(req);
+    
     if (checkAuth(req, resp)) {
       
       final Environment env = EnvironmentFactory.get(req);
@@ -46,40 +48,28 @@ public class JdbcSsrServlet extends SsrServletBase {
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
       
-      // session state
-      @SuppressWarnings("unchecked")
-      final List<ItemModRequestDto> itemModRequests = (List<ItemModRequestDto>)req.getSession()
-          .getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
-      @SuppressWarnings("unchecked")
-      final Map<String, ItemModStatus> itemModStatuses = (Map<String, ItemModStatus>)req.getSession()
-          .getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
-      
-      if (req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet") != null) {
-        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
-        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
-        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
-      }
-      
-      
-
-      req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet", new Object());
-      //
-      
-      
-      htmlPage = new JdbcHtmlPage(pageHeader, connections, itemModRequests, itemModStatuses);
-      htmlPage.setStatusBar(createStatusBar((PageStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus")));
+      htmlPage = new JdbcHtmlPage(pageHeader, connections, applicationalState.itemModRequests, applicationalState.itemModStatuses);
+      htmlPage.setStatusBar(createStatusBar(applicationalState.pageStatus));
   
-      
-      
       htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
       htmlPage.respond(resp);
+
+      
+      applicationalState.itemModRequests = null;
+      applicationalState.itemModStatuses = null;
       
     } else {
       
+      if (applicationalState.clearModStateOnUnauthorizedGet) {
+        applicationalState.itemModRequests = null;
+      }
+      
       doLogin(req, resp);
+      
+      applicationalState.clearModStateOnUnauthorizedGet = true;
     }
     
-    req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus.removeOnNextGet", new Object());
+    applicationalState.pageStatus = null;
   }
   
   @Override
@@ -89,7 +79,9 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     if ("/login".equals(path)) {
       
-      login(req, resp);
+      if (!login(req, resp)) {
+        getApplicationalState(req).clearModStateOnUnauthorizedGet = false;
+      }
       
       // jdbc/login -> jdbc
       resp.sendRedirect(".."); // TODO
@@ -194,26 +186,27 @@ public class JdbcSsrServlet extends SsrServletBase {
                 env.getServerXmlOutputStream());
             
             // reset the servlet mod status after the successful mod
-            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
-            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
-            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
-            
-            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", PageStatus.MOD_SUCCESS);
+            final ApplicationalState applicationalState = getApplicationalState(req);
+            applicationalState.itemModRequests = null;
+            applicationalState.itemModStatuses = null;
+            applicationalState.pageStatus = Status.MOD_SUCCESS;
             
           } else {
            
             // save session attributes
-            req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
-            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests", itemModRequests);
-            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses", itemModStatuses);
-            
-            req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.pageStatus", PageStatus.MOD_INCORRECT_FIELD_DATA);
+            ApplicationalState applicationalState = getApplicationalState(req);
+            applicationalState.itemModRequests = itemModRequests;
+            applicationalState.itemModStatuses = itemModStatuses;
+            applicationalState.pageStatus = Status.MOD_INCORRECT_FIELD_DATA;
           }
         
         } else {
 
           setLoginStatus(req, LoginStatus.MOD_SESSION_EXPIRED);
-          req.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests", itemModRequests);
+          
+          final ApplicationalState applicationalState = getApplicationalState(req);
+          applicationalState.itemModRequests = itemModRequests;
+          applicationalState.itemModStatuses = null;
         }
         
       }
@@ -224,28 +217,44 @@ public class JdbcSsrServlet extends SsrServletBase {
       
     } else if ("/mod-reset".equals(path)) {
       
-      if (checkAuth(req, resp)) {
-        
-        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.removeOnNextGet");
-        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModRequests");
-        req.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.mod.itemModStatuses");
-        
-      } else {
-        // TODO
-      }
+      
+      // TODO no need to checkAuth?
+      final ApplicationalState applicationalState = getApplicationalState(req);
+      applicationalState.itemModRequests = null;
+      applicationalState.itemModStatuses = null;
+      applicationalState.pageStatus = null;
+
       
       // jdbc/mod-reset -> jdbc
       resp.sendRedirect(".."); // TODO
       return;
     }
   }
- 
-  protected enum PageStatus {
+
+  protected class ApplicationalState {
+    public Status pageStatus = null;
+    public List<ItemModRequestDto> itemModRequests = null;
+    public Map<String, ItemModStatus> itemModStatuses = null;
+    public boolean clearModStateOnUnauthorizedGet = false;
+  }
+  
+  protected ApplicationalState getApplicationalState(HttpServletRequest request) {
+    ApplicationalState applicationalState = (ApplicationalState)request.getSession().getAttribute(
+        "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.applicationalState");
+    if (applicationalState == null) {
+      applicationalState = new ApplicationalState();
+      request.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.applicationalState", 
+          applicationalState);
+    }
+    return applicationalState;
+  }
+  
+  protected enum Status {
     MOD_SUCCESS,
     MOD_INCORRECT_FIELD_DATA,
   }
   
-  protected StatusBar createStatusBar(PageStatus status) {
+  protected StatusBar createStatusBar(Status status) {
     if (status == null) {
       return null;
     }
