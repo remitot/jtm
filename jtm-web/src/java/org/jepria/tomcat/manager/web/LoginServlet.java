@@ -7,8 +7,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.web.ssr.StatusBar;
-
 public class LoginServlet extends HttpServlet {
   
   private static final long serialVersionUID = 7988979181448679156L;
@@ -51,9 +49,6 @@ public class LoginServlet extends HttpServlet {
       
     } catch (ServletException e) {
       e.printStackTrace();
-      
-      final StatusBar pageStatus = new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
-      PageStatus.set(req, pageStatus);
       
       resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       resp.flushBuffer();
