@@ -66,7 +66,7 @@ public class SsrServletBase extends HttpServlet {
     final Environment env = EnvironmentFactory.get(req);
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = PageHeader.newBuilder().addManagerApache(managerApacheHref).setCurrentMenuItem(CurrentMenuItem.JDBC).build();
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
 
     final AuthState authState = getAuthState(req);
     

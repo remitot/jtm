@@ -43,10 +43,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       final HtmlPage htmlPage;
       
       final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-      final PageHeader pageHeader = PageHeader.newBuilder()
-          .addManagerApache(managerApacheHref)
-          .addLogoutButton("jdbc/logout") // TODO this will erase any path- or request params of the current page
-          .setCurrentMenuItem(CurrentMenuItem.JDBC).build();
+      final PageHeader pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
 
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
