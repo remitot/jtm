@@ -104,9 +104,13 @@ public class HtmlPage {
     rebuild();
     
     response.setContentType("text/html; charset=UTF-8");
-    response.getWriter().print("<!DOCTYPE html>");
+    response.getWriter().print(getDoctypeTag());
     root.render(response.getWriter());
     response.flushBuffer();
 
+  }
+  
+  protected String getDoctypeTag() {
+    return "<!DOCTYPE html>";
   }
 }
