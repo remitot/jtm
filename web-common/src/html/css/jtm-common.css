@@ -35,7 +35,7 @@ body {
   width: 200px;
   
   margin: 14px;
-  margin-right: -4px; /* magic value */
+  margin-right: 0px;
 }
 
 /******* input text *******/
