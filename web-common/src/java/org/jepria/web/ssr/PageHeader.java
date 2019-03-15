@@ -49,7 +49,7 @@ public class PageHeader extends El {
     menuItem.setInnerHTML("JDBC ресурсы"); // NON-NLS
     appendChild(menuItem);
     
-    appendChild(Node.fromHtml("&emsp;"));
+    appendChild(Node.fromHtml("&emsp;&ensp;"));
     
     
     menuItem = new El("a");
@@ -63,7 +63,7 @@ public class PageHeader extends El {
     menuItem.setInnerHTML("Логи"); // NON-NLS
     appendChild(menuItem);
     
-    appendChild(Node.fromHtml("&emsp;"));
+    appendChild(Node.fromHtml("&emsp;&ensp;"));
     
     
     menuItem = new El("a");
