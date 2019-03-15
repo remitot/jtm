@@ -20,21 +20,6 @@ function setButtonResetEnabled(enabled) {
   }
 }
 
-function adjustBottomShadow() {
-  var controlButtons = document.getElementsByClassName("control-buttons")[0];
-  
-  if (controlButtons != null) {
-   if (document.getElementById("table").getBoundingClientRect().bottom <= 
-     controlButtons.getBoundingClientRect().top) {
-     controlButtons.classList.remove("bottom-shadow");
-   } else {
-     controlButtons.classList.add("bottom-shadow");
-   }
-  }
-}
-
-window.onscroll = adjustBottomShadow;
-
 function controlButtons_onload() {
   document.getElementsByClassName("control-button_create")[0].onclick = onButtonCreateClick;
 }

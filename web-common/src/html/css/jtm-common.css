@@ -31,13 +31,6 @@ body {
   background-color: #888;
 }
 
-.big-black-button.control-button {
-  width: 200px;
-  
-  margin: 14px;
-  margin-right: 0px;
-}
-
 /******* input text *******/
 
 .field-text {

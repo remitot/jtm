@@ -54,6 +54,7 @@ public class ControlButtons extends El {
   @Override
   protected void addStyles(Collection styles) {
     super.addStyles(styles);
+    styles.add("css/control-buttons.css");
     styles.add("css/jtm-common.css"); // for .big-black-button
   }
   

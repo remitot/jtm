@@ -54,6 +54,21 @@ function table_onload() {
       return true;
     }
   }
+  
+  function adjustBottomShadow() {
+    var controlButtons = document.getElementsByClassName("control-buttons")[0];
+    
+    if (controlButtons != null) {
+     if (document.getElementById("table").getBoundingClientRect().bottom <= 
+       controlButtons.getBoundingClientRect().top) {
+       controlButtons.classList.remove("bottom-shadow");
+     } else {
+       controlButtons.classList.add("bottom-shadow");
+     }
+    }
+  }
+
+  adjustBottomShadow();
 }
 
 function onFieldInput(field) {
@@ -338,3 +353,18 @@ function triggerFieldsInput(composite) {
     onCheckboxInput(checkboxes[i]);
   }
 }
+
+function adjustBottomShadow() {
+  var controlButtons = document.getElementsByClassName("control-buttons")[0];
+  
+  if (controlButtons != null) {
+   if (document.getElementById("table").getBoundingClientRect().bottom <= 
+     controlButtons.getBoundingClientRect().top) {
+     controlButtons.classList.remove("bottom-shadow");
+   } else {
+     controlButtons.classList.add("bottom-shadow");
+   }
+  }
+}
+
+window.onscroll = adjustBottomShadow;

@@ -1,0 +1,14 @@
+.control-buttons {
+  height: 45px;
+  padding: 14px;
+  
+  background-color: white;
+  position: sticky;
+  left: 0;
+  bottom: 0;
+}
+
+.control-button.big-black-button {
+  width: 200px;
+  margin-right: 14px;
+}
