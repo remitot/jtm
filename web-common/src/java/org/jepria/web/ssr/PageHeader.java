@@ -4,6 +4,10 @@ import org.jepria.web.ssr.table.Collection;
 
 public class PageHeader extends El {
   
+  public static Builder newBuilder() {
+    return new BuilderImpl();
+  }
+  
   public static enum CurrentMenuItem {
     JDBC,
     LOG,
@@ -12,10 +16,11 @@ public class PageHeader extends El {
   
   /**
    * 
-   * @param managerApacheHref if {@code null}, the Apache-Manager menu item will be disabled
-   * @param currentMenuItem
+   * @param managerApacheHref if {@code null}, the Apache-Manager menu item will be omitted
+   * @param logoutActionUrl if {@code null}, the Logout button will be omitted
+   * @param currentMenuItem if {@code null}, no menu item will be displayed as current
    */
-  public PageHeader(String managerApacheHref, String logoutActionUrl, CurrentMenuItem currentMenuItem) {
+  private PageHeader(String managerApacheHref, String logoutActionUrl, CurrentMenuItem currentMenuItem) {
     super("div");
     classList.add("page-header");
     
@@ -102,5 +107,38 @@ public class PageHeader extends El {
   protected void addScripts(Collection scripts) {
     super.addScripts(scripts);
     scripts.add("js/jtm-common.js"); // for .big-black-button
+  }
+  
+  public interface Builder {
+    Builder addManagerApache(String managerApacheHref);
+    Builder addLogoutButton(String logoutActionUrl);
+    Builder setCurrentMenuItem(CurrentMenuItem currentMenuItem);
+    PageHeader build();
+  }
+  
+  private static class BuilderImpl implements Builder {
+    private String managerApacheHref = null;
+    private String logoutActionUrl = null;
+    private CurrentMenuItem currentMenuItem = null;
+    
+    @Override
+    public Builder addManagerApache(String managerApacheHref) {
+      this.managerApacheHref = managerApacheHref;
+      return this;
+    }
+    @Override
+    public Builder addLogoutButton(String logoutActionUrl) {
+      this.logoutActionUrl = logoutActionUrl;
+      return this;
+    }
+    @Override
+    public Builder setCurrentMenuItem(CurrentMenuItem currentMenuItem) {
+      this.currentMenuItem = currentMenuItem;
+      return this;
+    }
+    @Override
+    public PageHeader build() {
+      return new PageHeader(managerApacheHref, logoutActionUrl, currentMenuItem);
+    }
   }
 }

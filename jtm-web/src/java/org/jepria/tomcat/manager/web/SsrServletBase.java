@@ -66,7 +66,7 @@ public class SsrServletBase extends HttpServlet {
     final Environment env = EnvironmentFactory.get(req);
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
+    final PageHeader pageHeader = PageHeader.newBuilder().addManagerApache(managerApacheHref).setCurrentMenuItem(CurrentMenuItem.JDBC).build();
 
     final AuthState authState = getAuthState(req);
     
@@ -74,7 +74,7 @@ public class SsrServletBase extends HttpServlet {
       authState.auth = Auth.UNAUTHORIZED;
     }
     
-    HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, loginActionUrl); // TODO this will erase any path- or request params of the current page
+    HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, loginActionUrl); 
     htmlPage.setStatusBar(createStatusBar(authState.auth));
     
     htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
@@ -96,16 +96,16 @@ public class SsrServletBase extends HttpServlet {
     }
     switch (auth) {
     case UNAUTHORIZED__LOGIN_FALIED: {
-      return new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
+      return new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные,</span> попробуйте ещё раз"); // NON-NLS
     }
     case UNAUTHORIZED__MOD: {
-      return new StatusBar(StatusBar.Type.INFO, "<span class=\"span-bold\">Необходимо авторизоваться.</span>&emsp;Сделанные изменения будут восстановлены.");
+      return new StatusBar(StatusBar.Type.INFO, "Необходимо авторизоваться.&emsp;<span class=\"span-bold\">Сделанные изменения будут восстановлены</span>");
     }
     case UNAUTHORIZED__LOGOUT: {
-      return new StatusBar(StatusBar.Type.SUCCESS, "Разлогинились.</span>");
+      return new StatusBar(StatusBar.Type.SUCCESS, "Разлогинились");
     }
     case UNAUTHORIZED: {
-      return new StatusBar(StatusBar.Type.INFO, "<span class=\"span-bold\">Необходимо авторизоваться.</span>");
+      return new StatusBar(StatusBar.Type.INFO, "Необходимо авторизоваться");
     }
     case AUTHORIZED: {
       return null;
