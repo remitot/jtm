@@ -63,18 +63,20 @@ public class SsrServletBase extends HttpServlet {
   }
 
   protected void doLogin(HttpServletRequest req, HttpServletResponse resp, String loginActionUrl) throws IOException {
+    
+    final AuthState authState = getAuthState(req);
+    if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
+      authState.auth = Auth.UNAUTHORIZED;
+    }
+
+    
     final Environment env = EnvironmentFactory.get(req);
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
     final PageHeader pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
 
-    final AuthState authState = getAuthState(req);
-    
-    if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
-      authState.auth = Auth.UNAUTHORIZED;
-    }
-    
-    HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, loginActionUrl); 
+    HtmlPage htmlPage = new HtmlPageUnauthorized(loginActionUrl);
+    htmlPage.setPageHeader(pageHeader);
     htmlPage.setStatusBar(createStatusBar(authState.auth));
     
     htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS

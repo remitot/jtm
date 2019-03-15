@@ -12,7 +12,6 @@ import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
 
@@ -25,15 +24,10 @@ public class JdbcHtmlPage extends HtmlPage {
    * @param itemModRequests mod requests to graphically overlay the table items with, may be null
    * @param itemModStatuses mod statuses to graphically overlay the table items with, may be null
    */
-  //pageHeader needed in a constructor to properly add pageHeader_onload() to body.onload
-  //TODO if body.onload will be constructed dynamically, remove this arg and use page.setPageHeader from outside
-  //
   // TODO consider removing overlay parameters and invoke a separate table.overlay(params) method (not in constructor)
-  public JdbcHtmlPage(PageHeader pageHeader, List<ConnectionDto> connections,
+  public JdbcHtmlPage(List<ConnectionDto> connections,
       List<ItemModRequestDto> itemModRequests,
       Map<String, ItemModStatus> itemModStatuses) {
-    
-    setPageHeader(pageHeader);
     
     // table html
     final JdbcTable table = new JdbcTable();
@@ -172,7 +166,7 @@ public class JdbcHtmlPage extends HtmlPage {
     
     
     // add onload scripts
-    body.setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();pageHeader_onload();");
+    body.setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
   }
   
   protected JdbcItem dtoToItem(ConnectionDto dto) {

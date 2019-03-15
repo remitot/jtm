@@ -48,7 +48,8 @@ public class JdbcSsrServlet extends SsrServletBase {
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
       
-      htmlPage = new JdbcHtmlPage(pageHeader, connections, appState.itemModRequests, appState.itemModStatuses);
+      htmlPage = new JdbcHtmlPage(connections, appState.itemModRequests, appState.itemModStatuses);
+      htmlPage.setPageHeader(pageHeader);
       htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
       htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
