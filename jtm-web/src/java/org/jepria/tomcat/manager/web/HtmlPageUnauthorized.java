@@ -4,9 +4,11 @@ import org.jepria.web.ssr.LoginFragment;
 
 public class HtmlPageUnauthorized extends HtmlPage {
 
+  public final LoginFragment loginFragment;
+  
   public HtmlPageUnauthorized(String loginActionUrl) {
 
-    final LoginFragment loginFragment = new LoginFragment(loginActionUrl);
+    loginFragment = new LoginFragment(loginActionUrl);
     getBodyChilds().add(loginFragment);
 
     // add onload scripts

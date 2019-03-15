@@ -23,6 +23,8 @@ public class SsrServletBase extends HttpServlet {
     final String username = req.getParameter("username");
     final String password = req.getParameter("password");
     
+    final AuthState authState = getAuthState(req); 
+    
     try {
       
       // TODO Tomcat bug?
@@ -42,14 +44,15 @@ public class SsrServletBase extends HttpServlet {
       
       req.login(username, password);
 
-      getAuthState(req).auth = Auth.AUTHORIZED;
+      authState.auth = Auth.AUTHORIZED;
       
       return true;
       
     } catch (ServletException e) {
       e.printStackTrace();
       
-      getAuthState(req).auth = Auth.UNAUTHORIZED__LOGIN_FALIED;
+      authState.auth = Auth.UNAUTHORIZED__LOGIN_FALIED;
+      authState.username = username;
       
       return false;
     }
@@ -75,7 +78,16 @@ public class SsrServletBase extends HttpServlet {
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
     final PageHeader pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
 
-    HtmlPage htmlPage = new HtmlPageUnauthorized(loginActionUrl);
+    final HtmlPageUnauthorized htmlPage = new HtmlPageUnauthorized(loginActionUrl);
+    
+    // restore preserved username
+    if (authState.auth == Auth.UNAUTHORIZED__LOGIN_FALIED && authState.username != null) {
+      htmlPage.loginFragment.inputUsername.setAttribute("value", authState.username);
+      htmlPage.loginFragment.inputPassword.addClass("requires-focus");
+    } else {
+      htmlPage.loginFragment.inputUsername.addClass("requires-focus");
+    }
+    
     htmlPage.setPageHeader(pageHeader);
     htmlPage.setStatusBar(createStatusBar(authState.auth));
     
@@ -89,6 +101,7 @@ public class SsrServletBase extends HttpServlet {
         || authState.auth == Auth.UNAUTHORIZED__MOD) {
       authState.auth = Auth.UNAUTHORIZED;
     }
+    authState.username = null;
     
   }
   
@@ -121,6 +134,7 @@ public class SsrServletBase extends HttpServlet {
    */
   protected class AuthState {
     public Auth auth;
+    public String username;
   }
   
   protected enum Auth {

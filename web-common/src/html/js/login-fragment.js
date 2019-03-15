@@ -1,3 +1,3 @@
 function loginFragment_onload() {
-  document.getElementsByClassName("login-field_username")[0].focus();
+  document.querySelectorAll(".login-form .requires-focus")[0].focus();
 }
