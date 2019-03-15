@@ -1,12 +1,7 @@
 package org.jepria.tomcat.manager.web;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.jepria.web.ssr.LoginFragment;
 import org.jepria.web.ssr.PageHeader;
-import org.jepria.web.ssr.StatusBar;
 
 public class HtmlPageUnauthorized extends HtmlPage {
 
@@ -27,18 +22,4 @@ public class HtmlPageUnauthorized extends HtmlPage {
     body.addClass("login-background");
   }
   
-  @Override
-  public void respond(HttpServletResponse response) throws IOException {
-    
-    if (getStatusBar() == null) {
-      setStatusBar(createDefaultStatusBar());
-    }
-    
-    super.respond(response);
-  }
-
-  //TODO move this method to where other StatusBars are created (to SsrServlet)
-  protected StatusBar createDefaultStatusBar() {
-    return new StatusBar(StatusBar.Type.INFO, "<span class=\"span-bold\">Необходимо авторизоваться.</span>");
-  }
 }

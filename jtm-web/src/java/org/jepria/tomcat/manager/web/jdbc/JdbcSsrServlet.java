@@ -34,9 +34,9 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final ApplicationalState applicationalState = getApplicationalState(req);
+    final AppState appState = getAppState(req);
     
-    if (checkAuth(req, resp)) {
+    if (checkAuth(req)) {
       
       final Environment env = EnvironmentFactory.get(req);
       
@@ -48,28 +48,29 @@ public class JdbcSsrServlet extends SsrServletBase {
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
       
-      htmlPage = new JdbcHtmlPage(pageHeader, connections, applicationalState.itemModRequests, applicationalState.itemModStatuses);
-      htmlPage.setStatusBar(createStatusBar(applicationalState.pageStatus));
+      htmlPage = new JdbcHtmlPage(pageHeader, connections, appState.itemModRequests, appState.itemModStatuses);
+      htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
       htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
       htmlPage.respond(resp);
 
       
-      applicationalState.itemModRequests = null;
-      applicationalState.itemModStatuses = null;
+      appState.itemModRequests = null;
+      appState.itemModStatuses = null;
       
     } else {
-      
-      if (applicationalState.clearModStateOnUnauthorizedGet) {
-        applicationalState.itemModRequests = null;
+
+      if (appState.clearOnUnauthorizedGet) {
+        appState.itemModRequests = null;
+        appState.itemModStatuses = null;
       }
       
-      doLogin(req, resp);
+      doLogin(req, resp, "jdbc/login");
       
-      applicationalState.clearModStateOnUnauthorizedGet = true;
+      appState.clearOnUnauthorizedGet = true;
     }
     
-    applicationalState.pageStatus = null;
+    appState.modStatus = null;
   }
   
   @Override
@@ -79,8 +80,8 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     if ("/login".equals(path)) {
       
-      if (!login(req, resp)) {
-        getApplicationalState(req).clearModStateOnUnauthorizedGet = false;
+      if (!login(req)) {
+        getAppState(req).clearOnUnauthorizedGet = false;
       }
       
       // jdbc/login -> jdbc
@@ -89,7 +90,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       
     } else if ("/logout".equals(path)) {
       
-      logout(req, resp);
+      logout(req);
       
       // jdbc/logout -> jdbc
       resp.sendRedirect(".."); // TODO
@@ -116,7 +117,7 @@ public class JdbcSsrServlet extends SsrServletBase {
 
       if (itemModRequests != null && itemModRequests.size() > 0) {
         
-        if (checkAuth(req, resp)) {
+        if (checkAuth(req)) {
           
           // Map<modRequestId, modStatus>
           final Map<String, ItemModStatus> itemModStatuses = new HashMap<>();
@@ -186,27 +187,27 @@ public class JdbcSsrServlet extends SsrServletBase {
                 env.getServerXmlOutputStream());
             
             // reset the servlet mod status after the successful mod
-            final ApplicationalState applicationalState = getApplicationalState(req);
-            applicationalState.itemModRequests = null;
-            applicationalState.itemModStatuses = null;
-            applicationalState.pageStatus = Status.MOD_SUCCESS;
+            final AppState appState = getAppState(req);
+            appState.itemModRequests = null;
+            appState.itemModStatuses = null;
+            appState.modStatus = ModStatus.MOD_SUCCESS;
             
           } else {
            
             // save session attributes
-            ApplicationalState applicationalState = getApplicationalState(req);
+            AppState applicationalState = getAppState(req);
             applicationalState.itemModRequests = itemModRequests;
             applicationalState.itemModStatuses = itemModStatuses;
-            applicationalState.pageStatus = Status.MOD_INCORRECT_FIELD_DATA;
+            applicationalState.modStatus = ModStatus.MOD_INCORRECT_FIELD_DATA;
           }
         
         } else {
 
-          setLoginStatus(req, LoginStatus.MOD_SESSION_EXPIRED);
+          getAuthState(req).auth = Auth.UNAUTHORIZED__MOD;
           
-          final ApplicationalState applicationalState = getApplicationalState(req);
-          applicationalState.itemModRequests = itemModRequests;
-          applicationalState.itemModStatuses = null;
+          final AppState appState = getAppState(req);
+          appState.itemModRequests = itemModRequests;
+          appState.itemModStatuses = null;
         }
         
       }
@@ -219,10 +220,10 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       
       // TODO no need to checkAuth?
-      final ApplicationalState applicationalState = getApplicationalState(req);
+      final AppState applicationalState = getAppState(req);
       applicationalState.itemModRequests = null;
       applicationalState.itemModStatuses = null;
-      applicationalState.pageStatus = null;
+      applicationalState.modStatus = null;
 
       
       // jdbc/mod-reset -> jdbc
@@ -231,30 +232,32 @@ public class JdbcSsrServlet extends SsrServletBase {
     }
   }
 
-  protected class ApplicationalState {
-    public Status pageStatus = null;
+  /**
+   * Class stored into a session
+   */
+  
+  protected class AppState {
+    public ModStatus modStatus = null;
     public List<ItemModRequestDto> itemModRequests = null;
     public Map<String, ItemModStatus> itemModStatuses = null;
-    public boolean clearModStateOnUnauthorizedGet = false;
+    public boolean clearOnUnauthorizedGet = false;
   }
   
-  protected ApplicationalState getApplicationalState(HttpServletRequest request) {
-    ApplicationalState applicationalState = (ApplicationalState)request.getSession().getAttribute(
-        "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.applicationalState");
-    if (applicationalState == null) {
-      applicationalState = new ApplicationalState();
-      request.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.applicationalState", 
-          applicationalState);
+  protected AppState getAppState(HttpServletRequest request) {
+    AppState state = (AppState)request.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState");
+    if (state == null) {
+      state = new AppState();
+      request.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState", state);
     }
-    return applicationalState;
+    return state;
   }
   
-  protected enum Status {
+  protected enum ModStatus {
     MOD_SUCCESS,
     MOD_INCORRECT_FIELD_DATA,
   }
   
-  protected StatusBar createStatusBar(Status status) {
+  protected StatusBar createStatusBar(ModStatus status) {
     if (status == null) {
       return null;
     }

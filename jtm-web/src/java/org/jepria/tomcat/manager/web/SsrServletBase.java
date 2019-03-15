@@ -1,7 +1,6 @@
 package org.jepria.tomcat.manager.web;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -16,11 +15,11 @@ public class SsrServletBase extends HttpServlet {
 
   private static final long serialVersionUID = 1760582345667928411L;
   
-  protected boolean checkAuth(HttpServletRequest req, HttpServletResponse resp) {
+  protected boolean checkAuth(HttpServletRequest req) {
     return req.getUserPrincipal() != null && req.isUserInRole("manager-gui");
   }
   
-  protected boolean login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected boolean login(HttpServletRequest req) throws IOException {
     final String username = req.getParameter("username");
     final String password = req.getParameter("password");
     
@@ -43,85 +42,99 @@ public class SsrServletBase extends HttpServlet {
       
       req.login(username, password);
 
-      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus");
-      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus.removeOnNextGet");
+      getAuthState(req).auth = Auth.AUTHORIZED;
       
       return true;
       
     } catch (ServletException e) {
       e.printStackTrace();
       
-      setLoginStatus(req, LoginStatus.LOGIN_FAILURE);
+      getAuthState(req).auth = Auth.UNAUTHORIZED__LOGIN_FALIED;
       
       return false;
     }
   }
   
-  protected void logout(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
+  protected void logout(HttpServletRequest req) throws ServletException {
     req.logout();
     req.getSession().invalidate();
     
-    setLoginStatus(req, LoginStatus.LOGOUT_SUCCESS);
+    getAuthState(req).auth = Auth.UNAUTHORIZED__LOGOUT;
   }
 
-  protected void doLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected void doLogin(HttpServletRequest req, HttpServletResponse resp, String loginActionUrl) throws IOException {
     final Environment env = EnvironmentFactory.get(req);
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
     final PageHeader pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
+
+    final AuthState authState = getAuthState(req);
     
-    if (req.getSession().getAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus.removeOnNextGet") != null) {
-      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus.removeOnNextGet");
-      req.getSession().removeAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus");
+    if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
+      authState.auth = Auth.UNAUTHORIZED;
     }
-    final LoginStatus loginStatus = (LoginStatus)req.getSession().getAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus");
     
-    HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, "jdbc/login"); // TODO this will erase any path- or request params of the current page
-    htmlPage.setStatusBar(createStatusBar(loginStatus));
+    HtmlPage htmlPage = new HtmlPageUnauthorized(pageHeader, loginActionUrl); // TODO this will erase any path- or request params of the current page
+    htmlPage.setStatusBar(createStatusBar(authState.auth));
     
     htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
     htmlPage.respond(resp);
+
     
-    req.getSession().setAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus.removeOnNextGet", new Object());
-  }
-  
-  protected enum LoginStatus {
-    /**
-     * Login attempt failed: incorrect credentials
-     */
-    LOGIN_FAILURE,
-    /**
-     * Mod attempt failed: {@link #checkAuth} failed
-     */
-    MOD_SESSION_EXPIRED,
-    /**
-     * Logout succeeded
-     */
-    LOGOUT_SUCCESS,
+    // reset a disposable state
+    if (authState.auth == Auth.UNAUTHORIZED__LOGIN_FALIED 
+        || authState.auth == Auth.UNAUTHORIZED__LOGOUT
+        || authState.auth == Auth.UNAUTHORIZED__MOD) {
+      authState.auth = Auth.UNAUTHORIZED;
+    }
     
   }
   
-  protected StatusBar createStatusBar(LoginStatus status) {
-    if (status == null) {
+  protected StatusBar createStatusBar(Auth auth) {
+    if (auth == null) {
       return null;
     }
-    switch (status) {
-    case LOGIN_FAILURE: {
+    switch (auth) {
+    case UNAUTHORIZED__LOGIN_FALIED: {
       return new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные, попробуйте ещё раз.</span>"); // NON-NLS
     }
-    case MOD_SESSION_EXPIRED: {
+    case UNAUTHORIZED__MOD: {
       return new StatusBar(StatusBar.Type.INFO, "<span class=\"span-bold\">Необходимо авторизоваться.</span>&emsp;Сделанные изменения будут восстановлены.");
     }
-    case LOGOUT_SUCCESS: {
+    case UNAUTHORIZED__LOGOUT: {
       return new StatusBar(StatusBar.Type.SUCCESS, "Разлогинились.</span>");
     }
+    case UNAUTHORIZED: {
+      return new StatusBar(StatusBar.Type.INFO, "<span class=\"span-bold\">Необходимо авторизоваться.</span>");
     }
-    throw new IllegalArgumentException(String.valueOf(status));
+    case AUTHORIZED: {
+      return null;
+    }
+    }
+    throw new IllegalArgumentException(String.valueOf(auth));
   }
   
-  protected void setLoginStatus(HttpServletRequest request, LoginStatus status) {
-    Objects.requireNonNull(status, "LoginStatus must not be null");
-    request.getSession().setAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus", status);
-    request.getSession().removeAttribute("org.jepria.tomcat.manager.web.SessionAttributes.loginStatus.removeOnNextGet");
+  /**
+   * Class stored into a session
+   */
+  protected class AuthState {
+    public Auth auth;
+  }
+  
+  protected enum Auth {
+    AUTHORIZED,
+    UNAUTHORIZED,
+    UNAUTHORIZED__MOD,
+    UNAUTHORIZED__LOGIN_FALIED,
+    UNAUTHORIZED__LOGOUT,
+  }
+  
+  protected AuthState getAuthState(HttpServletRequest request) {
+    AuthState state = (AuthState)request.getSession().getAttribute("org.jepria.tomcat.manager.web.SessionAttributes.authState");
+    if (state == null) {
+      state = new AuthState();
+      request.getSession().setAttribute("org.jepria.tomcat.manager.web.SessionAttributes.authState", state);
+    }
+    return state;
   }
 }
