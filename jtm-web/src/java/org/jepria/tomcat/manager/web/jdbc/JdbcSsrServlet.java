@@ -40,15 +40,19 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       final Environment env = EnvironmentFactory.get(req);
       
+      final HtmlPage htmlPage;
+      
       final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
       final PageHeader pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
 
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
-      final HtmlPage htmlPage = new JdbcHtmlPage(connections, appState.itemModRequests, appState.itemModStatuses);
+      
+      htmlPage = new JdbcHtmlPage(connections, appState.itemModRequests, appState.itemModStatuses);
       htmlPage.setPageHeader(pageHeader);
       htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
+      htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
       htmlPage.respond(resp);
 
       
@@ -62,7 +66,7 @@ public class JdbcSsrServlet extends SsrServletBase {
         appState.itemModStatuses = null;
       }
       
-      doLogin(req, resp, "jdbc/login", JdbcHtmlPage.PAGE_TITLE, CurrentMenuItem.JDBC);
+      doLogin(req, resp, "jdbc/login");
       
       appState.clearOnUnauthorizedGet = true;
     }
@@ -77,9 +81,7 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     if ("/login".equals(path)) {
       
-      final boolean login = login(req);
-      
-      if (!login) {
+      if (!login(req)) {
         getAppState(req).clearOnUnauthorizedGet = false;
       }
       

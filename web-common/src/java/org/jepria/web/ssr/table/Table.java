@@ -56,20 +56,10 @@ public abstract class Table<T extends ItemData> extends El {
     appendChild(createHeader());
     
     if (items != null) {
-      
-      boolean evenOddGray = true; // for unmodifiable table
-      
       for (T item: items) {
         final String itemId = item.getId();
         
         final El row = createRow(item, tabIndex);
-        
-        if (!isEditable()) {
-          if (evenOddGray) {
-            row.addClass("even-odd-gray");
-          }
-          evenOddGray = !evenOddGray;
-        }
         
         if (itemsDeleted != null && itemsDeleted.contains(itemId)) {
           row.classList.add("deleted");

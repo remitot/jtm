@@ -14,6 +14,7 @@ public class JdbcTable extends Table<JdbcItem> {
     
     El cell, div, label;
     
+    // active
     cell = createCell(row, "column-active");// empty cell
     cell.classList.add("column-left");
     
