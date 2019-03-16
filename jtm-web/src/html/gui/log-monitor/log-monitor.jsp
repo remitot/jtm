@@ -2,7 +2,7 @@
 
 <%@ page import="java.util.List" %>
 <%@page import="org.jepria.tomcat.manager.web.logmonitor.MonitorGuiParams"%>
-<%@page import="org.jepria.tomcat.manager.web.logmonitor.HtmlEscaper"%>
+<%@page import="org.jepria.web.ssr.HtmlEscaper"%>
 
 <!DOCTYPE html> 
 <html> 
