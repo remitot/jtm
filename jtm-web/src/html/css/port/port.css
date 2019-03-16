@@ -1,0 +1,11 @@
+#table div.cell.column-type {
+  width: 10%;
+}
+#table div.cell.column-port {
+  width: 10%;
+}
+
+/* left margin for the leftmost column */
+#table .column-left {
+  margin-left: 44px;
+}

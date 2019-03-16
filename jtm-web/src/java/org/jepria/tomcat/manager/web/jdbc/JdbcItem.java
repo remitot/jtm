@@ -3,7 +3,7 @@ package org.jepria.tomcat.manager.web.jdbc;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.ItemData;
 
-public class JdbcItem extends ItemData {
+/*package*/class JdbcItem extends ItemData {
   private static final long serialVersionUID = 1L;
   
   public boolean dataModifiable = true;

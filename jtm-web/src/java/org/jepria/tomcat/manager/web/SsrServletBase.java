@@ -65,7 +65,9 @@ public class SsrServletBase extends HttpServlet {
     getAuthState(req).auth = Auth.UNAUTHORIZED__LOGOUT;
   }
 
-  protected void doLogin(HttpServletRequest req, HttpServletResponse resp, String loginActionUrl) throws IOException {
+  // TODO extract pageTitle and currentMenuItem into some LoginConfiguration class?
+  protected void doLogin(HttpServletRequest req, HttpServletResponse resp,
+      String loginActionUrl, String pageTitle, CurrentMenuItem currentMenuItem) throws IOException {
     
     final AuthState authState = getAuthState(req);
     if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
@@ -76,7 +78,7 @@ public class SsrServletBase extends HttpServlet {
     final Environment env = EnvironmentFactory.get(req);
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, null, currentMenuItem);
 
     final HtmlPageUnauthorized htmlPage = new HtmlPageUnauthorized(loginActionUrl);
     
@@ -91,7 +93,7 @@ public class SsrServletBase extends HttpServlet {
     htmlPage.setPageHeader(pageHeader);
     htmlPage.setStatusBar(createStatusBar(authState.auth));
     
-    htmlPage.setTitle("Tomcat manager: датасорсы (JDBC)"); // NON-NLS
+    htmlPage.setTitle(pageTitle);
     htmlPage.respond(resp);
 
     
