@@ -1,5 +1,7 @@
 package org.jepria.web.ssr;
 
+import java.util.Objects;
+
 import org.jepria.web.ssr.table.Collection;
 
 public class LoginFragment extends El {
@@ -8,9 +10,15 @@ public class LoginFragment extends El {
   public final El inputPassword;
   public final El buttonLogin;
   
+  /**
+   * 
+   * @param loginActionUrl html {@code action} value of the {@code form} to submit on login button click, non null
+   */
   public LoginFragment(String loginActionUrl) {
-    
     super("div");
+    
+    Objects.requireNonNull(loginActionUrl);
+    
     addClass("login-frame");
 
     final El loginStatusBar = new StatusBar(StatusBar.Type.INFO, "Доступ только админам"); // NON-NLS
