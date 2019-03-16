@@ -47,9 +47,9 @@ public class PortTable extends Table<PortItem> {
     cell.classList.add("cell-field");
     addField(cell, item.type(), null);
     
-    cell = createCell(div, "column-port");
+    cell = createCell(div, "column-number");
     cell.classList.add("cell-field");
-    addField(cell, item.port(), null);
+    addField(cell, item.number(), null);
     
     row.appendChild(div);
     

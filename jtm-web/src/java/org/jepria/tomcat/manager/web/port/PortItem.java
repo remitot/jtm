@@ -8,13 +8,13 @@ import org.jepria.web.ssr.table.ItemData;
   
   public PortItem() {
     put("type", new Field("type"));
-    put("port", new Field("port"));
+    put("number", new Field("number"));
   }
   
   public Field type() {
     return get("type");
   }
-  public Field port() {
-    return get("port");
+  public Field number() {
+    return get("number");
   }
 }
