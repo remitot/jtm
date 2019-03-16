@@ -7,8 +7,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.web.ssr.PageHeader;
-import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.StatusBar;
 
 public class SsrServletBase extends HttpServlet {
@@ -65,20 +63,16 @@ public class SsrServletBase extends HttpServlet {
     getAuthState(req).auth = Auth.UNAUTHORIZED__LOGOUT;
   }
 
-  // TODO extract pageTitle and currentMenuItem into some LoginConfiguration class?
-  protected void doLogin(HttpServletRequest req, HttpServletResponse resp,
-      String loginActionUrl, String pageTitle, CurrentMenuItem currentMenuItem) throws IOException {
+  /**
+   * Processes session auth logic and returns a pre-rendered {@link HtmlPage} with login GUI 
+   */
+  protected HtmlPage requireAuth(HttpServletRequest req, HttpServletResponse resp,
+      String loginActionUrl) throws IOException {
     
     final AuthState authState = getAuthState(req);
     if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
       authState.auth = Auth.UNAUTHORIZED;
     }
-
-    
-    final Environment env = EnvironmentFactory.get(req);
-    
-    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = new PageHeader(managerApacheHref, null, currentMenuItem);
 
     final HtmlPageUnauthorized htmlPage = new HtmlPageUnauthorized(loginActionUrl);
     
@@ -90,12 +84,7 @@ public class SsrServletBase extends HttpServlet {
       htmlPage.loginFragment.inputUsername.addClass("requires-focus");
     }
     
-    htmlPage.setPageHeader(pageHeader);
     htmlPage.setStatusBar(createStatusBar(authState.auth));
-    
-    htmlPage.setTitle(pageTitle);
-    htmlPage.respond(resp);
-
     
     // reset a disposable state
     if (authState.auth == Auth.UNAUTHORIZED__LOGIN_FALIED 
@@ -104,7 +93,8 @@ public class SsrServletBase extends HttpServlet {
       authState.auth = Auth.UNAUTHORIZED;
     }
     authState.username = null;
-    
+
+    return htmlPage;
   }
   
   protected StatusBar createStatusBar(Auth auth) {

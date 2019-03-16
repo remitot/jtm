@@ -22,25 +22,28 @@ public class PortSsrServlet extends SsrServletBase {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
 
+    final Environment env = EnvironmentFactory.get(req);
+    
+    final HtmlPage htmlPage;
+    
     if (checkAuth(req)) {
-      
-      final Environment env = EnvironmentFactory.get(req);
-      
-      final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-      final PageHeader pageHeader = new PageHeader(managerApacheHref, "port/logout", CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
 
       final List<PortDto> ports = new PortApi().list(env);
       
-      final HtmlPage htmlPage = new PortHtmlPage(ports);
-      htmlPage.setPageHeader(pageHeader);
+      htmlPage = new PortHtmlPage(ports);
   
-      htmlPage.respond(resp);
-      
     } else {
       
-      doLogin(req, resp, "port/login", PortHtmlPage.PAGE_TITLE, CurrentMenuItem.PORT);
-      
+      htmlPage = requireAuth(req, resp, "port/login");
+      htmlPage.setTitle(PortHtmlPage.PAGE_TITLE);
     }
+    
+    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, "port/logout", CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
+    
+    htmlPage.setPageHeader(pageHeader);
+
+    htmlPage.respond(resp);
   }
   
   @Override

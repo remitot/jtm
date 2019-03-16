@@ -35,23 +35,18 @@ public class JdbcSsrServlet extends SsrServletBase {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
     final AppState appState = getAppState(req);
+
+    final Environment env = EnvironmentFactory.get(req);
+    
+    final HtmlPage htmlPage;
     
     if (checkAuth(req)) {
       
-      final Environment env = EnvironmentFactory.get(req);
-      
-      final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-      final PageHeader pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
-
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
-      final HtmlPage htmlPage = new JdbcHtmlPage(connections, appState.itemModRequests, appState.itemModStatuses);
-      htmlPage.setPageHeader(pageHeader);
+      htmlPage = new JdbcHtmlPage(connections, appState.itemModRequests, appState.itemModStatuses);
       htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
-      htmlPage.respond(resp);
-
-      
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
       
@@ -62,10 +57,19 @@ public class JdbcSsrServlet extends SsrServletBase {
         appState.itemModStatuses = null;
       }
       
-      doLogin(req, resp, "jdbc/login", JdbcHtmlPage.PAGE_TITLE, CurrentMenuItem.JDBC);
-      
       appState.clearOnUnauthorizedGet = true;
+      
+      
+      htmlPage = requireAuth(req, resp, "jdbc/login");
+      htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
     }
+    
+    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    final PageHeader pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
+
+    htmlPage.setPageHeader(pageHeader);
+
+    htmlPage.respond(resp);
     
     appState.modStatus = null;
   }
