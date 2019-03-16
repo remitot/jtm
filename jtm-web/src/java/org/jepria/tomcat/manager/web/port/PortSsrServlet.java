@@ -54,9 +54,9 @@ public class PortSsrServlet extends SsrServletBase {
       login(req);
       
       // port/login -> port
-      // "abc" will lead to 'manager-ext/port/abc' 
-      // "." will lead to 'manager-ext/port/'
-      // "" will remain here 'manager-ext/port/login'
+      // Note: sendRedirect("abc") will redirect to 'manager-ext/port/abc' 
+      // sendRedirect(".") will redirect to 'manager-ext/port/'
+      // sendRedirect("") will stay here 'manager-ext/port/login'
       resp.sendRedirect("../port"); // TODO
       return;
       
@@ -65,7 +65,7 @@ public class PortSsrServlet extends SsrServletBase {
       logout(req);
       
       // port/logout -> port
-      resp.sendRedirect(".."); // TODO
+      resp.sendRedirect("../port"); // TODO
       return;
         
     }

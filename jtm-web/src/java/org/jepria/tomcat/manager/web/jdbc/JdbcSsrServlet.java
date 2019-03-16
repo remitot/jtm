@@ -83,16 +83,14 @@ public class JdbcSsrServlet extends SsrServletBase {
         getAppState(req).clearOnUnauthorizedGet = false;
       }
       
-      // jdbc/login -> jdbc
-      resp.sendRedirect(".."); // TODO
+      resp.sendRedirect("../jdbc"); // TODO
       return;
       
     } else if ("/logout".equals(path)) {
       
       logout(req);
       
-      // jdbc/logout -> jdbc
-      resp.sendRedirect(".."); // TODO
+      resp.sendRedirect("../jdbc"); // TODO
       return;
         
     } else if ("/mod".equals(path)) {
