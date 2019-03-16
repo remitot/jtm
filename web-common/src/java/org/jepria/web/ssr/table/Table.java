@@ -132,9 +132,6 @@ public abstract class Table<T extends ItemData> extends El {
       fieldEl.setAttribute("value-original", field.valueOriginal);
     }
     
-    String id = System.currentTimeMillis() + "";
-    fieldEl.setAttribute("id8", id);
-    
     if (field.invalid) {
       fieldEl.classList.add("invalid");
       if (field.invalidMessage != null) {
