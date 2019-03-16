@@ -166,7 +166,7 @@ public abstract class Table<T extends ItemData> extends El {
 
   protected El createFieldLabel(String value) {
     El field = new El("label");
-    field.setInnerHTML(value);
+    field.setInnerHTML(value, true);
     return field;
   }
 
