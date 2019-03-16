@@ -26,20 +26,24 @@ public class PortSsrServlet extends SsrServletBase {
     
     final HtmlPage htmlPage;
     
+    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    final PageHeader pageHeader;
+    
     if (checkAuth(req)) {
 
       final List<PortDto> ports = new PortApi().list(env);
       
       htmlPage = new PortHtmlPage(ports);
+      
+      pageHeader = new PageHeader(managerApacheHref, "port/logout", CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
   
     } else {
       
       htmlPage = requireAuth(req, resp, "port/login");
       htmlPage.setTitle(PortHtmlPage.PAGE_TITLE);
+      
+      pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.PORT);
     }
-    
-    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = new PageHeader(managerApacheHref, "port/logout", CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
     
     htmlPage.setPageHeader(pageHeader);
 

@@ -40,6 +40,9 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     final HtmlPage htmlPage;
     
+    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    final PageHeader pageHeader;
+    
     if (checkAuth(req)) {
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
@@ -47,6 +50,8 @@ public class JdbcSsrServlet extends SsrServletBase {
       htmlPage = new JdbcHtmlPage(connections, appState.itemModRequests, appState.itemModStatuses);
       htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
+      pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
+      
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
       
@@ -62,11 +67,10 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       htmlPage = requireAuth(req, resp, "jdbc/login");
       htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
+      
+      pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
     }
     
-    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
-
     htmlPage.setPageHeader(pageHeader);
 
     htmlPage.respond(resp);
