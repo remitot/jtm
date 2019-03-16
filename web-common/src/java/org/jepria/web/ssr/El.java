@@ -135,7 +135,26 @@ public class El implements Node {
    * @return {@code this}
    */
   public El setInnerHTML(String innerHTML) {
-    this.innerHTML = innerHTML;
+    return setInnerHTML(innerHTML, true);
+  }
+  
+  /**
+   * Set inner HTML of the element
+   * @param innerHTML
+   * @param escape whether to escape the innerHTML before setting 
+   * (pass {@code false} only if the innerHTML value is a trusted safe HTML string)
+   * @return {@code this}
+   */
+  public El setInnerHTML(String innerHTML, boolean escape) {
+
+    final String innerHTMLEscaped;
+    if (innerHTML == null) {
+      innerHTMLEscaped = "&nbsp;"; // TODO  
+    } else {
+      innerHTMLEscaped = escape ? HtmlEscaper.escape(innerHTML) : innerHTML;
+    }
+    
+    this.innerHTML = innerHTMLEscaped;
     // setting innerHTML destroys the children
     childs.clear();
     return this;
