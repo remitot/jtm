@@ -17,6 +17,10 @@ import org.jepria.web.ssr.table.Table.TabIndex;
 
 public class JdbcHtmlPage extends HtmlPage {
   
+  public final JdbcTable table;
+  
+  public static final String PAGE_TITLE = "Tomcat manager: JDBC ресурсы (датасорсы)"; // NON-NLS
+  
   /**
    * 
    * @param pageHeader
@@ -29,8 +33,10 @@ public class JdbcHtmlPage extends HtmlPage {
       List<ItemModRequestDto> itemModRequests,
       Map<String, ItemModStatus> itemModStatuses) {
     
+    setTitle(PAGE_TITLE);
+    
     // table html
-    final JdbcTable table = new JdbcTable();
+    table = new JdbcTable();
     
     final List<JdbcItem> items = connections.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());

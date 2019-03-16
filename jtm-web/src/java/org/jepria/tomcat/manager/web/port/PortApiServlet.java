@@ -47,7 +47,7 @@ public class PortApiServlet extends HttpServlet {
         
       } else {
         
-        resp.getWriter().print(port.getNumber());
+        resp.getWriter().print(port.get("number"));
         
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
@@ -87,7 +87,7 @@ public class PortApiServlet extends HttpServlet {
         
       } else {
         
-        resp.getWriter().print(port.getNumber());
+        resp.getWriter().print(port.get("number"));
         
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.flushBuffer();
@@ -117,11 +117,12 @@ public class PortApiServlet extends HttpServlet {
       return null;
     }
     
-    Integer number = Integer.parseInt(numberStr);
+    // TODO try parse or validate by regex?
+    Integer.parseInt(numberStr);
     
     PortDto port = new PortDto();
-    port.setType(type);
-    port.setNumber(number);
+    port.put("type", type);
+    port.put("number", numberStr);
     
     return port;
   }
