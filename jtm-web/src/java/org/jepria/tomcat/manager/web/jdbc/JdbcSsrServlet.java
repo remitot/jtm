@@ -211,6 +211,7 @@ public class JdbcSsrServlet extends SsrServletBase {
           getAuthState(req).auth = Auth.UNAUTHORIZED__MOD;
           
           final AppState appState = getAppState(req);
+          appState.clearOnUnauthorizedGet = false;
           appState.itemModRequests = itemModRequests;
           appState.itemModStatuses = null;
         }
