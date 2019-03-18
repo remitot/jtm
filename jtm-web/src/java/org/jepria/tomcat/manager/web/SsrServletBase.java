@@ -1,6 +1,7 @@
 package org.jepria.tomcat.manager.web;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -23,6 +24,8 @@ public class SsrServletBase extends HttpServlet {
     
     final AuthState authState = getAuthState(req); 
     
+    boolean loginSuccess;
+    
     try {
       
       // TODO Tomcat bug?
@@ -44,7 +47,7 @@ public class SsrServletBase extends HttpServlet {
 
       authState.auth = Auth.AUTHORIZED;
       
-      return true;
+      loginSuccess = true;
       
     } catch (ServletException e) {
       e.printStackTrace();
@@ -52,8 +55,13 @@ public class SsrServletBase extends HttpServlet {
       authState.auth = Auth.UNAUTHORIZED__LOGIN_FALIED;
       authState.username = username;
       
-      return false;
+      loginSuccess = false;
     }
+    
+    // maintain the before-login auth state
+    getAuthState(req, () -> authState);
+    
+    return loginSuccess;
   }
   
   protected void logout(HttpServletRequest req) throws ServletException {
@@ -72,7 +80,7 @@ public class SsrServletBase extends HttpServlet {
     final AuthState authState = getAuthState(req);
     
     if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.UNAUTHORIZED__LOGOUT) {
-      authState.modDataSaved = false;
+      authState.authPersistentData = null;
     }
     
     if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
@@ -110,7 +118,7 @@ public class SsrServletBase extends HttpServlet {
     switch (authState.auth) {
     case UNAUTHORIZED__LOGIN_FALIED: {
       String innerHtml = "<span class=\"span-bold\">Неверные данные,</span> попробуйте ещё раз"; // NON-NLS
-      if (authState.modDataSaved) {
+      if (authState.authPersistentData != null) {
         innerHtml += STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX;
       }
       return new StatusBar(StatusBar.Type.ERROR, innerHtml);
@@ -120,7 +128,7 @@ public class SsrServletBase extends HttpServlet {
     }
     case UNAUTHORIZED: {
       String innerHtml = "Необходимо авторизоваться"; // NON-NLS
-      if (authState.modDataSaved) {
+      if (authState.authPersistentData != null) {
         innerHtml += STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX;
       }
       return new StatusBar(StatusBar.Type.INFO, innerHtml);
@@ -139,9 +147,13 @@ public class SsrServletBase extends HttpServlet {
     public Auth auth;
     public String username;
     
-    private boolean modDataSaved = false;
-    public void saveModData() {
-      modDataSaved = true;
+    private Object authPersistentData;
+    @SuppressWarnings("unchecked")
+    public <T> T getAuthPersistentData() {
+      return (T)authPersistentData;
+    }
+    public void setAuthPersistentData(Object data) {
+      authPersistentData = data;
     }
   }
   
@@ -153,9 +165,18 @@ public class SsrServletBase extends HttpServlet {
   }
   
   protected AuthState getAuthState(HttpServletRequest request) {
+    return getAuthState(request, () -> new AuthState());
+  }
+  
+  /**
+   * @param request
+   * @param orElse an auth state instance to set and return if the current auth state is null 
+   * @return
+   */
+  private AuthState getAuthState(HttpServletRequest request, Supplier<AuthState> orElse) {
     AuthState state = (AuthState)request.getSession().getAttribute("org.jepria.tomcat.manager.web.SessionAttributes.authState");
     if (state == null) {
-      state = new AuthState();
+      state = orElse == null ? null : orElse.get();
       request.getSession().setAttribute("org.jepria.tomcat.manager.web.SessionAttributes.authState", state);
     }
     return state;

@@ -46,8 +46,14 @@ public class JdbcSsrServlet extends SsrServletBase {
     if (checkAuth(req)) {
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
+      List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
+      Map<String, ItemModStatus> itemModStatuses = appState.itemModStatuses;
       
-      htmlPage = new JdbcHtmlPage(connections, appState.itemModRequests, appState.itemModStatuses);
+      if (itemModRequests == null) {
+        itemModRequests = getAuthState(req).getAuthPersistentData();
+      }
+      
+      htmlPage = new JdbcHtmlPage(connections, itemModRequests, itemModStatuses);
       htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
       pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
@@ -57,13 +63,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       
     } else {
 
-      if (appState.clearOnUnauthorizedGet) {
-        appState.itemModRequests = null;
-        appState.itemModStatuses = null;
-      }
-      
-      appState.clearOnUnauthorizedGet = true;
-      
+      clearAppState(req);
       
       htmlPage = requireAuth(req, resp, "jdbc/login");
       htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
@@ -85,11 +85,7 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     if ("/login".equals(path)) {
       
-      final boolean login = login(req);
-      
-      if (!login) {
-        getAppState(req).clearOnUnauthorizedGet = false;
-      }
+      login(req);
       
       resp.sendRedirect("../jdbc"); // TODO
       return;
@@ -200,18 +196,17 @@ public class JdbcSsrServlet extends SsrServletBase {
           } else {
            
             // save session attributes
-            AppState applicationalState = getAppState(req);
-            applicationalState.itemModRequests = itemModRequests;
-            applicationalState.itemModStatuses = itemModStatuses;
-            applicationalState.modStatus = ModStatus.MOD_INCORRECT_FIELD_DATA;
+            AppState appState = getAppState(req);
+            appState.itemModRequests = itemModRequests;
+            appState.itemModStatuses = itemModStatuses;
+            appState.modStatus = ModStatus.MOD_INCORRECT_FIELD_DATA;
           }
         
         } else {
 
-          getAuthState(req).saveModData();
+          getAuthState(req).setAuthPersistentData(itemModRequests);
           
           final AppState appState = getAppState(req);
-          appState.clearOnUnauthorizedGet = false;
           appState.itemModRequests = itemModRequests;
           appState.itemModStatuses = null;
         }
@@ -226,10 +221,10 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       
       // TODO no need to checkAuth?
-      final AppState applicationalState = getAppState(req);
-      applicationalState.itemModRequests = null;
-      applicationalState.itemModStatuses = null;
-      applicationalState.modStatus = null;
+      final AppState appState = getAppState(req);
+      appState.itemModRequests = null;
+      appState.itemModStatuses = null;
+      appState.modStatus = null;
 
       
       // jdbc/mod-reset -> jdbc
@@ -246,7 +241,6 @@ public class JdbcSsrServlet extends SsrServletBase {
     public ModStatus modStatus = null;
     public List<ItemModRequestDto> itemModRequests = null;
     public Map<String, ItemModStatus> itemModStatuses = null;
-    public boolean clearOnUnauthorizedGet = false;
   }
   
   protected AppState getAppState(HttpServletRequest request) {
@@ -256,6 +250,10 @@ public class JdbcSsrServlet extends SsrServletBase {
       request.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState", state);
     }
     return state;
+  }
+  
+  protected void clearAppState(HttpServletRequest request) {
+    request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState");
   }
   
   protected enum ModStatus {

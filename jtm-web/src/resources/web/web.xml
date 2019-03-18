@@ -124,12 +124,8 @@
       <web-resource-name>Public resources</web-resource-name>
       <url-pattern>/jdbc/*</url-pattern>
       <url-pattern>/port/*</url-pattern>
-      
       <url-pattern>/api</url-pattern><!-- ApiDocs -->
       <url-pattern>/api/port/*</url-pattern> <!-- the port number is not hard to discover -->
-      <url-pattern>/api/login/*</url-pattern>
-      <url-pattern>/api/logout/*</url-pattern>
-      
       <url-pattern>/gui/*</url-pattern>
     </web-resource-collection>
   </security-constraint>
