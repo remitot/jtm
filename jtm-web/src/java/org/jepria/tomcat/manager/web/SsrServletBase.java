@@ -146,15 +146,7 @@ public class SsrServletBase extends HttpServlet {
   protected class AuthState {
     public Auth auth;
     public String username;
-    
-    private Object authPersistentData;
-    @SuppressWarnings("unchecked")
-    public <T> T getAuthPersistentData() {
-      return (T)authPersistentData;
-    }
-    public void setAuthPersistentData(Object data) {
-      authPersistentData = data;
-    }
+    public Object authPersistentData;
   }
   
   protected enum Auth {

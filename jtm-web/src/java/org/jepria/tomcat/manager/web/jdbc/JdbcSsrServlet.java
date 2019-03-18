@@ -50,7 +50,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       Map<String, ItemModStatus> itemModStatuses = appState.itemModStatuses;
       
       if (itemModRequests == null) {
-        itemModRequests = getAuthState(req).getAuthPersistentData();
+        itemModRequests = (List<ItemModRequestDto>)getAuthState(req).authPersistentData;
       }
       
       htmlPage = new JdbcHtmlPage(connections, itemModRequests, itemModStatuses);
@@ -204,7 +204,7 @@ public class JdbcSsrServlet extends SsrServletBase {
         
         } else {
 
-          getAuthState(req).setAuthPersistentData(itemModRequests);
+          getAuthState(req).authPersistentData = itemModRequests;
           
           final AppState appState = getAppState(req);
           appState.itemModRequests = itemModRequests;
