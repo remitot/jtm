@@ -70,6 +70,11 @@ public class SsrServletBase extends HttpServlet {
       String loginActionUrl) throws IOException {
     
     final AuthState authState = getAuthState(req);
+    
+    if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.UNAUTHORIZED__LOGOUT) {
+      authState.modDataSaved = false;
+    }
+    
     if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
       authState.auth = Auth.UNAUTHORIZED;
     }
@@ -83,13 +88,12 @@ public class SsrServletBase extends HttpServlet {
     } else {
       htmlPage.loginFragment.inputUsername.addClass("requires-focus");
     }
-    
-    htmlPage.setStatusBar(createStatusBar(authState.auth));
+
+    htmlPage.setStatusBar(createStatusBar(authState));
     
     // reset a disposable state
     if (authState.auth == Auth.UNAUTHORIZED__LOGIN_FALIED 
-        || authState.auth == Auth.UNAUTHORIZED__LOGOUT
-        || authState.auth == Auth.UNAUTHORIZED__MOD) {
+        || authState.auth == Auth.UNAUTHORIZED__LOGOUT) {
       authState.auth = Auth.UNAUTHORIZED;
     }
     authState.username = null;
@@ -97,28 +101,35 @@ public class SsrServletBase extends HttpServlet {
     return htmlPage;
   }
   
-  protected StatusBar createStatusBar(Auth auth) {
-    if (auth == null) {
+  private static final String STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX = ".&emsp;&emsp;&emsp;<span class=\"span-bold\">Сделанные изменения сохранены,</span> они будут восстановлены после авторизации.&ensp;<a href=\"\">Удалить их</a>"; // NON-NLS
+  
+  protected StatusBar createStatusBar(AuthState authState) {
+    if (authState == null || authState.auth == null) {
       return null;
     }
-    switch (auth) {
+    switch (authState.auth) {
     case UNAUTHORIZED__LOGIN_FALIED: {
-      return new StatusBar(StatusBar.Type.ERROR, "<span class=\"span-bold\">Неверные данные,</span> попробуйте ещё раз"); // NON-NLS
-    }
-    case UNAUTHORIZED__MOD: {
-      return new StatusBar(StatusBar.Type.INFO, "Необходимо авторизоваться.&emsp;<span class=\"span-bold\">Сделанные изменения будут восстановлены</span>");
+      String innerHtml = "<span class=\"span-bold\">Неверные данные,</span> попробуйте ещё раз"; // NON-NLS
+      if (authState.modDataSaved) {
+        innerHtml += STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX;
+      }
+      return new StatusBar(StatusBar.Type.ERROR, innerHtml);
     }
     case UNAUTHORIZED__LOGOUT: {
-      return new StatusBar(StatusBar.Type.SUCCESS, "Разлогинились");
+      return new StatusBar(StatusBar.Type.SUCCESS, "Разлогинились"); // NON-NLS
     }
     case UNAUTHORIZED: {
-      return new StatusBar(StatusBar.Type.INFO, "Необходимо авторизоваться");
+      String innerHtml = "Необходимо авторизоваться"; // NON-NLS
+      if (authState.modDataSaved) {
+        innerHtml += STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX;
+      }
+      return new StatusBar(StatusBar.Type.INFO, innerHtml);
     }
     case AUTHORIZED: {
       return null;
     }
     }
-    throw new IllegalArgumentException(String.valueOf(auth));
+    throw new IllegalArgumentException(String.valueOf(authState.auth));
   }
   
   /**
@@ -127,12 +138,16 @@ public class SsrServletBase extends HttpServlet {
   protected class AuthState {
     public Auth auth;
     public String username;
+    
+    private boolean modDataSaved = false;
+    public void saveModData() {
+      modDataSaved = true;
+    }
   }
   
   protected enum Auth {
     AUTHORIZED,
     UNAUTHORIZED,
-    UNAUTHORIZED__MOD,
     UNAUTHORIZED__LOGIN_FALIED,
     UNAUTHORIZED__LOGOUT,
   }
