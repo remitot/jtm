@@ -10,13 +10,22 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.HtmlPage;
+import org.jepria.tomcat.manager.web.HtmlPageForbidden;
+import org.jepria.tomcat.manager.web.HtmlPageUnauthorized;
 import org.jepria.tomcat.manager.web.SsrServletBase;
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
+import org.jepria.web.ssr.ForbiddenFragment;
+import org.jepria.web.ssr.LoginFragment;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 
 public class PortSsrServlet extends SsrServletBase {
   private static final long serialVersionUID = -5897408312837631833L;
+  
+  @Override
+  protected boolean checkAuth(HttpServletRequest req) {
+    return req.getUserPrincipal() != null && req.isUserInRole("manager-gui");
+  }
   
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -27,7 +36,6 @@ public class PortSsrServlet extends SsrServletBase {
     final HtmlPage htmlPage;
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader;
     
     if (checkAuth(req)) {
 
@@ -35,17 +43,35 @@ public class PortSsrServlet extends SsrServletBase {
       
       htmlPage = new PortHtmlPage(ports);
       
-      pageHeader = new PageHeader(managerApacheHref, "port/logout", CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
+      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
+      pageHeader.setManagerApache(managerApacheHref);
+      pageHeader.setButtonLogout("port/logout"); // TODO this will erase any path- or request params of the current page
   
+      htmlPage.setPageHeader(pageHeader);
+      
     } else {
       
-      htmlPage = requireAuth(req, resp, "port/login");
-      htmlPage.setTitle(PortHtmlPage.PAGE_TITLE);
+      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.PORT);
+      pageHeader.setManagerApache(managerApacheHref);
       
-      pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.PORT);
+      AuthInfo authInfo = requireAuth(req, "port/login", "port/logout"); // TODO this will erase any path- or request params of the current page
+      
+      if (authInfo.authFragment instanceof LoginFragment) {
+        htmlPage = new HtmlPageUnauthorized((LoginFragment)authInfo.authFragment);
+        htmlPage.setStatusBar(authInfo.statusBar);
+      } else if (authInfo.authFragment instanceof ForbiddenFragment) {
+        htmlPage = new HtmlPageForbidden((ForbiddenFragment)authInfo.authFragment);
+        pageHeader.setButtonLogout("port/logout"); // TODO this will erase any path- or request params of the current page
+        htmlPage.setStatusBar(authInfo.statusBar);
+      } else {
+        // TODO
+        throw new IllegalStateException();
+      }
+      
+      htmlPage.setTitle(PortHtmlPage.PAGE_TITLE);
+      htmlPage.setPageHeader(pageHeader);
+      
     }
-    
-    htmlPage.setPageHeader(pageHeader);
 
     htmlPage.respond(resp);
   }

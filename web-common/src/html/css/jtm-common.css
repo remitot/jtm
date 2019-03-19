@@ -2,6 +2,17 @@ body {
   margin: 0px;
 }
 
+body.background_gray {
+  background-color: #777;
+}
+
+
+.span-bold {
+  font-weight: bold;
+}
+
+
+
 .big-black-button {
   height: 100%;
   

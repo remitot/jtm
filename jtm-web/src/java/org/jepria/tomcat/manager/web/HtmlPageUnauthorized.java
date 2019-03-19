@@ -1,20 +1,21 @@
 package org.jepria.tomcat.manager.web;
 
+import java.util.Objects;
+
 import org.jepria.web.ssr.LoginFragment;
 
 public class HtmlPageUnauthorized extends HtmlPage {
 
-  public final LoginFragment loginFragment;
-  
-  public HtmlPageUnauthorized(String loginActionUrl) {
+  public HtmlPageUnauthorized(LoginFragment loginFragment) {
 
-    loginFragment = new LoginFragment(loginActionUrl);
+    Objects.requireNonNull(loginFragment);
+    
     getBodyChilds().add(loginFragment);
 
     // add onload scripts
-    body.setAttribute("onload", "jtm_onload();loginFragment_onload();");
+    body.setAttribute("onload", "jtm_onload();authFragmentLogin_onload();");
 
-    body.addClass("login-background");
+    body.addClass("background_gray");
   }
   
 }

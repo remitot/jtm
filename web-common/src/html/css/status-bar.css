@@ -1,11 +1,9 @@
 .statusBar {
   padding-left: 18px;
+  padding-right: 18px;
   font-size: 14px;
+  
   line-height: 45px;
-}
-
-.statusBar .span-bold {
-  font-weight: bold;
 }
 
 .statusBar_none {

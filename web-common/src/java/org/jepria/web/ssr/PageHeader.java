@@ -8,7 +8,7 @@ public class PageHeader extends El {
   private El itemJdbc;
   private El itemLog;
   private El itemPort;
-  private El buttonLogout;
+  private El formLogout;
   
   /**
    * Menu items possibly displayed as currently selected 
@@ -20,33 +20,12 @@ public class PageHeader extends El {
   }
   
   /**
-   * @param managerApacheHref html {@code href} value for the 'Apache HTTPD' menu item. 
-   * If {@code null}, the menu item will not be added to the {@link PageHeader} 
-   * @param logoutActionUrl html {@code action} value of the {@code form} to submit on logout button click. 
-   * If {@code null}, the button will not be added to the {@link PageHeader}
    * @param currentMenuItem the menu item to be displayed as currently active.
    * If {@code null}, no menu item will be displayed as currently active.
    */
-  public PageHeader(String managerApacheHref, String logoutActionUrl, CurrentMenuItem currentMenuItem) {
+  public PageHeader(CurrentMenuItem currentMenuItem) {
     super("div");
     classList.add("page-header");
-    
-    
-    if (managerApacheHref != null) {
-      itemManagerApache = new El("a");
-      itemManagerApache.classList.add("page-header__menu-item");
-      itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
-      itemManagerApache.setAttribute("href", managerApacheHref);
-      itemManagerApache.classList.add("page-header__menu-item_hoverable");
-      
-      itemManagerApache.setAttribute("target", "_blank");
-      itemManagerApache.setInnerHTML("Apache HTTPD"); // NON-NLS
-      appendChild(itemManagerApache);
-      
-    } else {
-      // TODO remain empty space?
-      itemManagerApache = null;
-    }
     
     
     itemJdbc = new El("a");
@@ -74,6 +53,7 @@ public class PageHeader extends El {
     itemLog.setInnerHTML("Логи"); // NON-NLS
     appendChild(itemLog);
     
+    
     itemPort = new El("a");
     itemPort.classList.add("page-header__menu-item");
     itemPort.classList.add("page-header__menu-item_regular");
@@ -86,12 +66,51 @@ public class PageHeader extends El {
     itemPort.setInnerHTML("Порты"); // NON-NLS
     appendChild(itemPort);
     
+  }
+  
+  /**
+   * @param managerApacheHref html {@code href} value for the 'Apache HTTPD' menu item. 
+   * If {@code null} the item is removed from the container
+   */
+  public void setManagerApache(String managerApacheHref) {
+    // remove
+    if (itemManagerApache != null) {
+      childs.remove(itemManagerApache);
+      itemManagerApache = null;
+    }
     
+    // add
+    if (managerApacheHref != null) {
+      itemManagerApache = new El("a");
+      itemManagerApache.classList.add("page-header__menu-item");
+      itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
+      itemManagerApache.setAttribute("href", managerApacheHref);
+      itemManagerApache.classList.add("page-header__menu-item_hoverable");
+      
+      itemManagerApache.setAttribute("target", "_blank");
+      itemManagerApache.setInnerHTML("Apache HTTPD"); // NON-NLS
+      
+      childs.add(0, itemManagerApache);
+    }
+  }
+  
+  /**
+   * @param logoutActionUrl html {@code action} value of the {@code form} to submit on logout button click. 
+   * If {@code null}, the button is removed from the container
+   */
+  public void setButtonLogout(String logoutActionUrl) {
+    // remove
+    if (formLogout != null) {
+      childs.remove(formLogout);
+      formLogout = null;
+    }
+    
+    // add
     if (logoutActionUrl != null) {
-      final El formLogout = new El("form").setAttribute("action", logoutActionUrl).setAttribute("method", "post")
+      formLogout = new El("form").setAttribute("action", logoutActionUrl).setAttribute("method", "post")
           .addClass("button-form");
       
-      buttonLogout = new El("button")
+      El buttonLogout = new El("button")
           .setAttribute("type", "submit")
           .addClass("page-header__button-logout")
           .addClass("big-black-button")
@@ -99,8 +118,6 @@ public class PageHeader extends El {
       formLogout.appendChild(buttonLogout);
       
       appendChild(formLogout);
-    } else {
-      buttonLogout = null;
     }
   }
   

@@ -1,16 +1,4 @@
-.login-background {
-  background-color: #777;
-}
-
-.login-screen {
-  position: fixed;
-  left: 0;
-  top: 90px;
-  right: 0;
-  bottom: 0;
-}
-
-.login-frame {
+.auth-frame {
   position: fixed;
   left: 50%;
   margin-left: -150px;
@@ -20,21 +8,21 @@
   background-color: white;
 }
 
-.login-form {
+.auth-form {
   padding: 40px 40px 20px 40px;
   background-color: white;
 }
 
-.login-form__row {
+.auth-form__row {
   text-align: center;
 }
 
-.login-form__row .field-text {
+.auth-form__row .field-text {
   width: 200px;
   margin-top: 15px;
 }
 
-.login-form .big-black-button {
+.auth-form .big-black-button {
   width: 200px;
   height: 44px;
   margin-top: 40px;

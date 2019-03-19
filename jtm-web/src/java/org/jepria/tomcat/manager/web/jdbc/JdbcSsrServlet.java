@@ -14,9 +14,13 @@ import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.HtmlPage;
+import org.jepria.tomcat.manager.web.HtmlPageForbidden;
+import org.jepria.tomcat.manager.web.HtmlPageUnauthorized;
 import org.jepria.tomcat.manager.web.SsrServletBase;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.ssr.LoginFragment;
+import org.jepria.web.ssr.ForbiddenFragment;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.StatusBar;
@@ -32,6 +36,11 @@ public class JdbcSsrServlet extends SsrServletBase {
   private static final long serialVersionUID = -2556094883694667549L;
 
   @Override
+  protected boolean checkAuth(HttpServletRequest req) {
+    return req.getUserPrincipal() != null && req.isUserInRole("manager-gui");
+  }
+  
+  @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
     final AppState appState = getAppState(req);
@@ -41,7 +50,6 @@ public class JdbcSsrServlet extends SsrServletBase {
     final HtmlPage htmlPage;
     
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    final PageHeader pageHeader;
     
     if (checkAuth(req)) {
       
@@ -56,7 +64,11 @@ public class JdbcSsrServlet extends SsrServletBase {
       htmlPage = new JdbcHtmlPage(connections, itemModRequests, itemModStatuses);
       htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
-      pageHeader = new PageHeader(managerApacheHref, "jdbc/logout", CurrentMenuItem.JDBC); // TODO this will erase any path- or request params of the current page
+      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
+      pageHeader.setManagerApache(managerApacheHref);
+      pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
+      
+      htmlPage.setPageHeader(pageHeader);
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
@@ -65,14 +77,27 @@ public class JdbcSsrServlet extends SsrServletBase {
 
       clearAppState(req);
       
-      htmlPage = requireAuth(req, resp, "jdbc/login");
-      htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
+      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
+      pageHeader.setManagerApache(managerApacheHref);
       
-      pageHeader = new PageHeader(managerApacheHref, null, CurrentMenuItem.JDBC);
+      AuthInfo authInfo = requireAuth(req, "jdbc/login", "jdbc/logout"); // TODO this will erase any path- or request params of the current page
+      
+      if (authInfo.authFragment instanceof LoginFragment) {
+        htmlPage = new HtmlPageUnauthorized((LoginFragment)authInfo.authFragment);
+        htmlPage.setStatusBar(authInfo.statusBar);
+      } else if (authInfo.authFragment instanceof ForbiddenFragment) {
+        htmlPage = new HtmlPageForbidden((ForbiddenFragment)authInfo.authFragment);
+        pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
+        htmlPage.setStatusBar(authInfo.statusBar);
+      } else {
+        // TODO
+        throw new IllegalStateException();
+      }
+      
+      htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
+      htmlPage.setPageHeader(pageHeader);
     }
     
-    htmlPage.setPageHeader(pageHeader);
-
     htmlPage.respond(resp);
     
     appState.modStatus = null;
@@ -214,7 +239,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       }
       
       // jdbc/mod -> jdbc
-      resp.sendRedirect(".."); // TODO
+      resp.sendRedirect("../jdbc"); // TODO
       return;
       
     } else if ("/mod-reset".equals(path)) {
@@ -228,7 +253,7 @@ public class JdbcSsrServlet extends SsrServletBase {
 
       
       // jdbc/mod-reset -> jdbc
-      resp.sendRedirect(".."); // TODO
+      resp.sendRedirect("../jdbc"); // TODO
       return;
     }
   }

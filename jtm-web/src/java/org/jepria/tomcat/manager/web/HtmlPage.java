@@ -10,6 +10,7 @@ import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Node;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.StatusBar;
+import org.jepria.web.ssr.table.Collection;
 
 public class HtmlPage {
   
@@ -20,10 +21,22 @@ public class HtmlPage {
   public HtmlPage() {
     root = new El("html");
     head = new El("head");
-    body = new El("body");
+    body = new Body();
     root.appendChild(head);
     root.appendChild(body);
     
+  }
+  
+  private class Body extends El {
+    public Body() {
+      super("body");
+    }
+    
+    @Override
+    protected void addScripts(Collection scripts) {
+      super.addScripts(scripts);
+      scripts.add("css/jtm-common.css");
+    }
   }
   
   private String title;
