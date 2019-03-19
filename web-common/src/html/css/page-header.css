@@ -14,6 +14,14 @@
   color: #777;
 }
 
+.page-header__menu-item_apache-httpd {
+  padding-right: 28px;
+}
+
+.page-header__menu-item_regular {
+  padding-left: 28px;
+}
+
 a.page-header__menu-item {
   text-decoration: none;
 }

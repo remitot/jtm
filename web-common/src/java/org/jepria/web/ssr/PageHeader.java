@@ -4,11 +4,11 @@ import org.jepria.web.ssr.table.Collection;
 
 public class PageHeader extends El {
   
-  public final El itemManagerApache;
-  public final El itemJdbc;
-  public final El itemLog;
-  public final El itemPort;
-  public final El buttonLogout;
+  private El itemManagerApache;
+  private El itemJdbc;
+  private El itemLog;
+  private El itemPort;
+  private El buttonLogout;
   
   /**
    * Menu items possibly displayed as currently selected 
@@ -35,14 +35,13 @@ public class PageHeader extends El {
     if (managerApacheHref != null) {
       itemManagerApache = new El("a");
       itemManagerApache.classList.add("page-header__menu-item");
+      itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
       itemManagerApache.setAttribute("href", managerApacheHref);
       itemManagerApache.classList.add("page-header__menu-item_hoverable");
       
       itemManagerApache.setAttribute("target", "_blank");
       itemManagerApache.setInnerHTML("Apache HTTPD"); // NON-NLS
       appendChild(itemManagerApache);
-      
-      appendChild(Node.fromHtml("&emsp;&emsp;&emsp;"));
       
     } else {
       // TODO remain empty space?
@@ -52,6 +51,7 @@ public class PageHeader extends El {
     
     itemJdbc = new El("a");
     itemJdbc.classList.add("page-header__menu-item");
+    itemJdbc.classList.add("page-header__menu-item_regular");
     if (currentMenuItem == CurrentMenuItem.JDBC) {
       itemJdbc.classList.add("page-header__menu-item_current");
     } else {
@@ -61,11 +61,10 @@ public class PageHeader extends El {
     itemJdbc.setInnerHTML("JDBC ресурсы"); // NON-NLS
     appendChild(itemJdbc);
     
-    appendChild(Node.fromHtml("&emsp;&ensp;"));
-    
     
     itemLog = new El("a");
     itemLog.classList.add("page-header__menu-item");
+    itemLog.classList.add("page-header__menu-item_regular");
     if (currentMenuItem == CurrentMenuItem.LOG) {
       itemLog.classList.add("page-header__menu-item_current");
     } else {
@@ -75,11 +74,9 @@ public class PageHeader extends El {
     itemLog.setInnerHTML("Логи"); // NON-NLS
     appendChild(itemLog);
     
-    appendChild(Node.fromHtml("&emsp;&ensp;"));
-    
-    
     itemPort = new El("a");
     itemPort.classList.add("page-header__menu-item");
+    itemPort.classList.add("page-header__menu-item_regular");
     if (currentMenuItem == CurrentMenuItem.PORT) {
       itemPort.classList.add("page-header__menu-item_current");
     } else {
@@ -91,7 +88,7 @@ public class PageHeader extends El {
     
     
     if (logoutActionUrl != null) {
-      final El formReset = new El("form").setAttribute("action", logoutActionUrl).setAttribute("method", "post")
+      final El formLogout = new El("form").setAttribute("action", logoutActionUrl).setAttribute("method", "post")
           .addClass("button-form");
       
       buttonLogout = new El("button")
@@ -99,9 +96,9 @@ public class PageHeader extends El {
           .addClass("page-header__button-logout")
           .addClass("big-black-button")
           .setInnerHTML("ВЫЙТИ"); // NON-NLS
-      formReset.appendChild(buttonLogout);
+      formLogout.appendChild(buttonLogout);
       
-      appendChild(formReset);
+      appendChild(formLogout);
     } else {
       buttonLogout = null;
     }
