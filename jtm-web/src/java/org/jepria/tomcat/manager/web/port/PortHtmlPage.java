@@ -3,8 +3,8 @@ package org.jepria.tomcat.manager.web.port;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jepria.tomcat.manager.web.HtmlPage;
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
+import org.jepria.web.ssr.HtmlPage;
 import org.jepria.web.ssr.table.Field;
 
 public class PortHtmlPage extends HtmlPage {

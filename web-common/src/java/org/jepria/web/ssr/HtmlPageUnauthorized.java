@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.web;
+package org.jepria.web.ssr;
 
 import java.util.Objects;
 
