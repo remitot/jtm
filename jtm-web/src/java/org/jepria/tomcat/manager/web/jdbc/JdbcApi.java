@@ -92,10 +92,7 @@ public class JdbcApi {
   protected ItemModStatus updateConnection(String id,
       Map<String, String> fields, TomcatConfJdbc tomcatConf) {
     
-    if (id == null) {
-      return ItemModStatus.errEmptyId();
-    }
-    
+    Objects.requireNonNull(id, "id must not be null");
     
     final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
     
@@ -111,7 +108,7 @@ public class JdbcApi {
     final Connection connection = connections.get(id);
 
     if (connection == null) {
-      return ItemModStatus.errNoItemFoundById();
+      throw new IllegalStateException("No resource found by such id=[" + id + "]");
     }
       
     // validate name
@@ -135,8 +132,25 @@ public class JdbcApi {
       return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
     }
     
+    
+    if (!validateDataModifiable(fields, connection)) {
+      throw new IllegalStateException("Cannot modify the unmodifiable fields of the resource by id=[" + id + "]");
+    }
+    
     return updateFields(fields, connection);
   }
+  
+  protected boolean validateDataModifiable(Map<String, String> fields, Connection target) {
+    // validate illegal action due to dataModifiable field
+    if (!target.isDataModifiable() && (
+        fields.get("active") != null || fields.get("server") != null 
+        || fields.get("db") != null || fields.get("user") != null
+        || fields.get("password") != null)) {
+      return false;
+    }
+    return true;
+  }
+  
   
   /**
    * Updates target's fields with source's values
@@ -145,16 +159,6 @@ public class JdbcApi {
    * @return
    */
   protected ItemModStatus updateFields(Map<String, String> fields, Connection target) {
-    
-    // validate illegal action due to dataModifiable field
-    if (!target.isDataModifiable() && (
-        fields.get("active") != null || fields.get("server") != null 
-        || fields.get("db") != null || fields.get("user") != null
-        || fields.get("password") != null)) {
-      
-      return ItemModStatus.errDataNotModifiable();
-    }
-    
     
     if (fields.get("active") != null) {
       target.setActive(!"false".equals(fields.get("active")));
@@ -178,22 +182,25 @@ public class JdbcApi {
     return ItemModStatus.success();
   }
   
+  /**
+   * 
+   * @param id non-null
+   * @param tomcatConf
+   * @return
+   */
   protected ItemModStatus deleteConnection(String id, TomcatConfJdbc tomcatConf) {
 
-    if (id == null) {
-      return ItemModStatus.errEmptyId();
-    }
-
+    Objects.requireNonNull(id, "id must not be null");
 
     Map<String, Connection> connections = tomcatConf.getConnections();
     Connection connection = connections.get(id);
 
     if (connection == null) {
-      return ItemModStatus.errNoItemFoundById();
+      throw new IllegalStateException("No resource found by such id=[" + id + "]");
     }
       
     if (!connection.isDataModifiable()) {
-      return ItemModStatus.errDataNotModifiable();
+      throw new IllegalStateException("Cannot delete the unmodifiable resource by id=[" + id + "]");
     }
     
     tomcatConf.delete(id);
@@ -237,6 +244,11 @@ public class JdbcApi {
     
     final Connection newConnection = tomcatConf.create(fields.get("name"), initialParams);
 
+    
+    if (!validateDataModifiable(fields, newConnection)) {
+      throw new IllegalStateException("Cannot set values for unmodifiable fields of the new resource");
+    }
+    
     return updateFields(fields, newConnection);
   }
   

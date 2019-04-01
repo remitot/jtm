@@ -129,11 +129,6 @@ public class JdbcHtmlPage extends HtmlPage {
             }
             break;
           }
-          case EMPTY_ID: case NO_ITEM_FOUND_BY_ID: case DATA_NOT_MODIFIABLE: {
-            // TODO is it the best solution to mark all fields invalid?
-            item.forEach((name, field) -> {field.invalid = true; field.invalidMessage = "Server error";});
-            break;
-          }
           case SUCCESS: {
             // do nothing
             break;
