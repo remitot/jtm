@@ -35,6 +35,8 @@ public class JdbcSsrServlet extends SsrServletBase {
 
   private static final long serialVersionUID = -2556094883694667549L;
 
+  private static final String APP_STATE_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState";
+  
   @Override
   protected boolean checkAuth(HttpServletRequest req) {
     return req.getUserPrincipal() != null && req.isUserInRole("manager-gui");
@@ -269,16 +271,16 @@ public class JdbcSsrServlet extends SsrServletBase {
   }
   
   protected AppState getAppState(HttpServletRequest request) {
-    AppState state = (AppState)request.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState");
+    AppState state = (AppState)request.getSession().getAttribute(APP_STATE_SESSION_ATTR_KEY);
     if (state == null) {
       state = new AppState();
-      request.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState", state);
+      request.getSession().setAttribute(APP_STATE_SESSION_ATTR_KEY, state);
     }
     return state;
   }
   
   protected void clearAppState(HttpServletRequest request) {
-    request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState");
+    request.getSession().removeAttribute(APP_STATE_SESSION_ATTR_KEY);
   }
   
   protected enum ModStatus {
