@@ -145,12 +145,7 @@ public class El implements Node {
    */
   public El setInnerHTML(String innerHTML, boolean escape) {
 
-    final String innerHTMLEscaped;
-    if (innerHTML == null) {
-      innerHTMLEscaped = "&nbsp;"; // TODO  
-    } else {
-      innerHTMLEscaped = escape ? HtmlEscaper.escape(innerHTML) : innerHTML;
-    }
+    final String innerHTMLEscaped = escape ? HtmlEscaper.escape(innerHTML) : innerHTML;
     
     this.innerHTML = innerHTMLEscaped;
     // setting innerHTML destroys the children
