@@ -1,7 +1,5 @@
 package org.jepria.web.ssr;
 
-import org.jepria.web.ssr.table.Collection;
-
 public class PageHeader extends El {
   
   private El itemManagerApache;
@@ -66,6 +64,10 @@ public class PageHeader extends El {
     itemPort.setInnerHTML("Порты"); // NON-NLS
     appendChild(itemPort);
     
+    
+    addStyle("css/page-header.css");
+    addStyle("css/jtm-common.css"); // for .big-black-button
+    addScript("js/jtm-common.js"); // for .big-black-button
   }
   
   /**
@@ -119,18 +121,5 @@ public class PageHeader extends El {
       
       appendChild(formLogout);
     }
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/page-header.css");
-    styles.add("css/jtm-common.css"); // for .big-black-button
-  }
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/jtm-common.js"); // for .big-black-button
   }
 }

@@ -24,6 +24,10 @@ public class CheckBox extends El {
     checkmark = new El("span");
     checkmark.classList.add("checkmark");
     appendChild(checkmark);
+    
+    
+    addStyle("css/checkbox.css");
+    addScript("js/checkbox.js");
   }
   
   @Override
@@ -44,17 +48,5 @@ public class CheckBox extends El {
     super.setReadonly(readonly);
     
     setEnabled(false);
-  }
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/checkbox.js");
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/checkbox.css");
   }
 }

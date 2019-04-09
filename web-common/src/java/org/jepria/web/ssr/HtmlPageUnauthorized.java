@@ -12,7 +12,7 @@ public class HtmlPageUnauthorized extends HtmlPage {
     
     getBodyChilds().add(loginFragment);
 
-    // add onload scripts
+    body.addScript("css/jtm-common.css");
     body.setAttribute("onload", "jtm_onload();authFragmentLogin_onload();");
 
     body.addClass("background_gray");

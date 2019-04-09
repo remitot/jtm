@@ -1,7 +1,5 @@
 package org.jepria.web.ssr;
 
-import org.jepria.web.ssr.table.Collection;
-
 public class ControlButtons extends El {
   
   public final El buttonCreate;
@@ -49,19 +47,11 @@ public class ControlButtons extends El {
     appendChild(buttonCreate);
     appendChild(formSave);
     appendChild(formReset);
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/control-buttons.css");
-    styles.add("css/jtm-common.css"); // for .big-black-button
-  }
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/control-buttons.js");
-    scripts.add("js/jtm-common.js"); // for .big-black-button
+    
+    
+    addStyle("css/control-buttons.css");
+    addStyle("css/jtm-common.css"); // for .big-black-button
+    addScript("js/control-buttons.js");
+    addScript("js/jtm-common.js"); // for .big-black-button
   }
 }

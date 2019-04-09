@@ -2,10 +2,13 @@ package org.jepria.tomcat.manager.web.jdbc;
 
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;
-import org.jepria.web.ssr.table.Collection;
 import org.jepria.web.ssr.table.Table;
 
 public class JdbcTable extends Table<JdbcItem> {
+  
+  public JdbcTable() {
+    addStyle("css/jdbc/jdbc.css");
+  }
   
   @Override
   protected El createHeader() {
@@ -183,11 +186,5 @@ public class JdbcTable extends Table<JdbcItem> {
     row.appendChild(flexColumns);
     
     return row;
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/jdbc/jdbc.css");
   }
 }

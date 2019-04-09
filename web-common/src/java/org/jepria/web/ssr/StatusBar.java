@@ -2,8 +2,6 @@ package org.jepria.web.ssr;
 
 import java.util.Objects;
 
-import org.jepria.web.ssr.table.Collection;
-
 public class StatusBar extends El {
   
   public static enum Type {
@@ -43,11 +41,8 @@ public class StatusBar extends El {
     }
     
     setInnerHTML(innerHTML);
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/status-bar.css");
+    
+    
+    addStyle("css/status-bar.css");
   }
 }

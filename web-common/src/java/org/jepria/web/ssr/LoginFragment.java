@@ -2,8 +2,6 @@ package org.jepria.web.ssr;
 
 import java.util.Objects;
 
-import org.jepria.web.ssr.table.Collection;
-
 public class LoginFragment extends AuthFragment {
   
   public final El inputUsername;
@@ -43,12 +41,9 @@ public class LoginFragment extends AuthFragment {
     loginForm.appendChild(rowButtonLogin);
     
     appendChild(loginForm);
-  }
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/auth-fragment_login.js");
-    scripts.add("js/jtm-common.js");
+    
+    
+    addScript("js/auth-fragment_login.js");
+    addScript("js/jtm-common.js");
   }
 }

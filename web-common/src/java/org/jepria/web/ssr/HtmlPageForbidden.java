@@ -12,7 +12,7 @@ public class HtmlPageForbidden extends HtmlPage {
     
     getBodyChilds().add(logoutFragment);
 
-    // add onload scripts
+    body.addScript("css/jtm-common.css");
     body.setAttribute("onload", "jtm_onload();");
 
     body.addClass("background_gray");

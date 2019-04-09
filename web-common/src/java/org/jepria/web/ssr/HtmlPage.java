@@ -6,12 +6,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.Node;
-import org.jepria.web.ssr.PageHeader;
-import org.jepria.web.ssr.StatusBar;
-import org.jepria.web.ssr.table.Collection;
-
 public class HtmlPage {
   
   protected final El root;
@@ -21,22 +15,10 @@ public class HtmlPage {
   public HtmlPage() {
     root = new El("html");
     head = new El("head");
-    body = new Body();
+    body = new El("body");
     root.appendChild(head);
     root.appendChild(body);
     
-  }
-  
-  private class Body extends El {
-    public Body() {
-      super("body");
-    }
-    
-    @Override
-    protected void addScripts(Collection scripts) {
-      super.addScripts(scripts);
-      scripts.add("css/jtm-common.css");
-    }
   }
   
   private String title;

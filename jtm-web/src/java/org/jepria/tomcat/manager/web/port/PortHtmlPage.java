@@ -26,8 +26,9 @@ public class PortHtmlPage extends HtmlPage {
     table.load(items, null, null);
     
     getBodyChilds().add(table);
+
     
-    // add onload scripts
+    body.addScript("css/jtm-common.css");
     body.setAttribute("onload", "jtm_onload();table_onload();");
   }
   

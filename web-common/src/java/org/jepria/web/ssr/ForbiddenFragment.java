@@ -2,8 +2,6 @@ package org.jepria.web.ssr;
 
 import java.util.Objects;
 
-import org.jepria.web.ssr.table.Collection;
-
 public class ForbiddenFragment extends AuthFragment {
   
   /**
@@ -32,11 +30,7 @@ public class ForbiddenFragment extends AuthFragment {
     form.appendChild(rowButtonLogout);
     
     appendChild(form);
-  }
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/jtm-common.js");
+    
+    addScript("js/jtm-common.js");
   }
 }

@@ -84,6 +84,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       AuthInfo authInfo = requireAuth(req, "jdbc/login", "jdbc/logout"); // TODO this will erase any path- or request params of the current page
       
+      // TODO refactor the following shit!
       if (authInfo.authFragment instanceof LoginFragment) {
         htmlPage = new HtmlPageUnauthorized((LoginFragment)authInfo.authFragment);
         htmlPage.setStatusBar(authInfo.statusBar);

@@ -25,6 +25,11 @@ public abstract class Table<T extends ItemData> extends El {
     // TODO remove id, use class and css
     setAttribute("id", "table");
     setAttribute("style", "width: 100%;");
+    
+    
+    addScript("js/table.js");
+    addStyle("css/table.css");
+    addStyle("css/jtm-common.css"); // for .field-text
   }
   
   protected boolean isEditable() {
@@ -262,17 +267,4 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected abstract El createHeader();
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/table.js");
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/table.css");
-    styles.add("css/jtm-common.css"); // for .field-text
-  }
 }

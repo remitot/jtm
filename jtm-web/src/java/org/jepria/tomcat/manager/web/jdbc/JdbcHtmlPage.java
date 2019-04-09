@@ -166,7 +166,7 @@ public class JdbcHtmlPage extends HtmlPage {
     getBodyChilds().add(controlButtons);
     
     
-    // add onload scripts
+    body.addScript("css/jtm-common.css");
     body.setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
   }
   

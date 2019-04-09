@@ -1,10 +1,13 @@
 package org.jepria.tomcat.manager.web.port;
 
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.table.Collection;
 import org.jepria.web.ssr.table.Table;
 
 public class PortTable extends Table<PortItem> {
+  
+  public PortTable() {
+    addStyle("css/port/port.css");
+  }
   
   @Override
   protected El createHeader() {
@@ -65,11 +68,5 @@ public class PortTable extends Table<PortItem> {
   @Override
   protected boolean isEditable() {
     return false;
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/port/port.css");
   }
 }
