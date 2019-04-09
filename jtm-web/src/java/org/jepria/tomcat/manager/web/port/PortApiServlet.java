@@ -102,7 +102,6 @@ public class PortApiServlet extends HttpServlet {
       
     } else {
       
-      // TODO set content type for the error case?
       resp.sendError(HttpServletResponse.SC_NOT_FOUND);
       resp.flushBuffer();
       return;

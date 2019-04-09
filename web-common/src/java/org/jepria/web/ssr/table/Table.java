@@ -127,6 +127,11 @@ public abstract class Table<T extends ItemData> extends El {
       fieldEl = createFieldLabel(field.value);
     }
     
+    return addField(cell, field, fieldEl, placeholder);
+  }
+  
+  protected El addField(El cell, Field field, El fieldEl, String placeholder) {
+    
     fieldEl.classList.add("field-text");
     fieldEl.classList.add("field-text_inactivatible");
     fieldEl.classList.add("deletable");
