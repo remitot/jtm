@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.ForbiddenFragment;
 import org.jepria.web.ssr.HtmlPage;
@@ -38,6 +39,8 @@ public class LogSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+    final Context context = Context.fromRequest(req);
+    
     // null means the client timezone is undefined
     final TimeZone clientTimezone;
     
@@ -47,9 +50,9 @@ public class LogSsrServlet extends SsrServletBase {
       // first request
       req.getSession().setAttribute(LTZO_COOKIE_SESSION_ATTR_KEY, new Object());
       
-      final HtmlPage page = new HtmlPage();
+      final HtmlPage page = new HtmlPage(context);
       // TODO populate the page with header or title (for the case of disabled JS, for example)
-      El script = new El("script");
+      El script = new El("script", context);
       script.setAttribute("type", "text/javascript");
       script.setInnerHTML("document.cookie=\"local-timezone-offset=\" + (-new Date().getTimezoneOffset()); window.location.reload();");
       page.getBodyChilds().add(script);
@@ -82,7 +85,7 @@ public class LogSsrServlet extends SsrServletBase {
     
     final HtmlPage htmlPage;
 
-    final PageHeader pageHeader = new PageHeader(CurrentMenuItem.LOG);
+    final PageHeader pageHeader = new PageHeader(context, CurrentMenuItem.LOG);
     
     final Environment env = EnvironmentFactory.get(req);
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
@@ -91,7 +94,7 @@ public class LogSsrServlet extends SsrServletBase {
     if (checkAuth(req)) {
       List<LogDto> logs = new LogApi().list(env, null);
 
-      htmlPage = new LogHtmlPage(logs, clientTimezone);
+      htmlPage = new LogHtmlPage(context, logs, clientTimezone);
   
       pageHeader.setButtonLogout("log/logout"); // TODO this will erase any path- or request params of the current page
       
@@ -101,10 +104,10 @@ public class LogSsrServlet extends SsrServletBase {
       
       // TODO refactor the following shit!
       if (authInfo.authFragment instanceof LoginFragment) {
-        htmlPage = new HtmlPageUnauthorized((LoginFragment)authInfo.authFragment);
+        htmlPage = new HtmlPageUnauthorized(context, (LoginFragment)authInfo.authFragment);
         htmlPage.setStatusBar(authInfo.statusBar);
       } else if (authInfo.authFragment instanceof ForbiddenFragment) {
-        htmlPage = new HtmlPageForbidden((ForbiddenFragment)authInfo.authFragment);
+        htmlPage = new HtmlPageForbidden(context, (ForbiddenFragment)authInfo.authFragment);
         pageHeader.setButtonLogout("log/logout"); // TODO this will erase any path- or request params of the current page
         htmlPage.setStatusBar(authInfo.statusBar);
       } else {

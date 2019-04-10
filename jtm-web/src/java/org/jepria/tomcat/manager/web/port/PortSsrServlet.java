@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ForbiddenFragment;
 import org.jepria.web.ssr.HtmlPage;
 import org.jepria.web.ssr.HtmlPageForbidden;
@@ -31,9 +32,11 @@ public class PortSsrServlet extends SsrServletBase {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
 
+    final Context context = Context.fromRequest(req);
+    
     final HtmlPage htmlPage;
 
-    final PageHeader pageHeader = new PageHeader(CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
+    final PageHeader pageHeader = new PageHeader(context, CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
     
     final Environment env = EnvironmentFactory.get(req);
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
@@ -43,7 +46,7 @@ public class PortSsrServlet extends SsrServletBase {
 
       final List<PortDto> ports = new PortApi().list(env);
       
-      htmlPage = new PortHtmlPage(ports);
+      htmlPage = new PortHtmlPage(context, ports);
       
       pageHeader.setButtonLogout("port/logout"); // TODO this will erase any path- or request params of the current page
       
@@ -52,10 +55,10 @@ public class PortSsrServlet extends SsrServletBase {
       AuthInfo authInfo = requireAuth(req, "port/login", "port/logout"); // TODO this will erase any path- or request params of the current page
       
       if (authInfo.authFragment instanceof LoginFragment) {
-        htmlPage = new HtmlPageUnauthorized((LoginFragment)authInfo.authFragment);
+        htmlPage = new HtmlPageUnauthorized(context, (LoginFragment)authInfo.authFragment);
         htmlPage.setStatusBar(authInfo.statusBar);
       } else if (authInfo.authFragment instanceof ForbiddenFragment) {
-        htmlPage = new HtmlPageForbidden((ForbiddenFragment)authInfo.authFragment);
+        htmlPage = new HtmlPageForbidden(context, (ForbiddenFragment)authInfo.authFragment);
         pageHeader.setButtonLogout("port/logout"); // TODO this will erase any path- or request params of the current page
         htmlPage.setStatusBar(authInfo.statusBar);
       } else {

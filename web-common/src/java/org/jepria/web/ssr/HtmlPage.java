@@ -8,14 +8,18 @@ import javax.servlet.http.HttpServletResponse;
 
 public class HtmlPage {
   
+  protected final Context context;
+  
   protected final El root;
   protected final El head;
   protected final El body;
   
-  public HtmlPage() {
-    root = new El("html");
-    head = new El("head");
-    body = new El("body");
+  public HtmlPage(Context context) {
+    this.context = context;
+    
+    root = new El("html", context);
+    head = new El("head", context);
+    body = new El("body", context);
     root.appendChild(head);
     root.appendChild(body);
     
@@ -63,11 +67,11 @@ public class HtmlPage {
     
     // add title
     if (title != null) {
-      head.appendChild(new El("title").setInnerHTML(title)); // NON-NLS
+      head.appendChild(new El("title", context).setInnerHTML(title));
     }
 
-    head.appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
-        .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
+    head.appendChild(new El("meta", context).setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
+        .appendChild(new El("meta", context).setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
     
     
     // build body
@@ -88,10 +92,10 @@ public class HtmlPage {
     
     // add all scripts and styles to the head
     for (String style: body.getStyles()) {
-      head.appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", style));
+      head.appendChild(new El("link", context).setAttribute("rel", "stylesheet").setAttribute("href", style));
     }
     for (String script: body.getScripts()) {
-      head.appendChild(new El("script").setAttribute("type", "text/javascript").setAttribute("src", script));
+      head.appendChild(new El("script", context).setAttribute("type", "text/javascript").setAttribute("src", script));
     }
   }
 

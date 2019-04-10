@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlPage;
@@ -29,14 +30,15 @@ public class JdbcHtmlPage extends HtmlPage {
    * @param itemModStatuses mod statuses to graphically overlay the table items with, may be null
    */
   // TODO consider removing overlay parameters and invoke a separate table.overlay(params) method (not in constructor)
-  public JdbcHtmlPage(List<ConnectionDto> connections,
+  public JdbcHtmlPage(Context context, List<ConnectionDto> connections,
       List<ItemModRequestDto> itemModRequests,
       Map<String, ItemModStatus> itemModStatuses) {
+    super(context);
     
     setTitle(PAGE_TITLE);
     
     // table html
-    table = new JdbcTable();
+    table = new JdbcTable(context);
     
     final List<JdbcItem> items = connections.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
@@ -156,13 +158,13 @@ public class JdbcHtmlPage extends HtmlPage {
     emptyItem.active().value = "true";
     final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
     
-    final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
+    final El tableNewRowTemplateContainer = new El("div", context).setAttribute("id", "table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
     getBodyChilds().add(tableNewRowTemplateContainer);
     
     
     // control buttons
-    final ControlButtons controlButtons = new ControlButtons("jdbc/mod", "jdbc/mod-reset"); // TODO this will erase any path- or request params of the current page
+    final ControlButtons controlButtons = new ControlButtons(context, "jdbc/mod", "jdbc/mod-reset"); // TODO this will erase any path- or request params of the current page
     getBodyChilds().add(controlButtons);
     
     

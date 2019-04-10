@@ -7,11 +7,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
-import org.jepria.web.ssr.AuthFragment;
-import org.jepria.web.ssr.LoginFragment;
-import org.jepria.web.ssr.ForbiddenFragment;
-import org.jepria.web.ssr.StatusBar;
-
 public class SsrServletBase extends HttpServlet {
 
   private static final long serialVersionUID = 1760582345667928411L;
@@ -80,6 +75,8 @@ public class SsrServletBase extends HttpServlet {
   
   protected AuthInfo requireAuth(HttpServletRequest req, String loginActionUrl, String logoutActionUrl) {
     
+    final Context context = Context.fromRequest(req);
+    
     final AuthState authState = getAuthState(req);
     
     if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
@@ -93,7 +90,7 @@ public class SsrServletBase extends HttpServlet {
     final AuthInfo authInfo;
     
     if (req.getUserPrincipal() == null) {
-      final LoginFragment loginFragment = new LoginFragment(loginActionUrl);
+      final LoginFragment loginFragment = new LoginFragment(context, loginActionUrl);
       
       // restore preserved username
       if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
@@ -109,14 +106,14 @@ public class SsrServletBase extends HttpServlet {
     } else {
       authState.auth = Auth.FORBIDDEN;
       
-      final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(logoutActionUrl, req.getUserPrincipal().getName());
+      final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, logoutActionUrl, req.getUserPrincipal().getName());
       
       authInfo = new AuthInfo();
       authInfo.authFragment = forbiddenFragment;
       
     }
     
-    authInfo.statusBar = createStatusBar(authState);
+    authInfo.statusBar = createStatusBar(context, authState);
     
     // reset a disposable state
     if (authState.auth == Auth.LOGIN_FALIED 
@@ -128,32 +125,43 @@ public class SsrServletBase extends HttpServlet {
     return authInfo;
   }
   
-  private static final String STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX = ".&emsp;&emsp;&emsp;<span class=\"span-bold\">Сделанные изменения сохранены,</span> они будут восстановлены после авторизации.&ensp;<a href=\"\">Удалить их</a>"; // NON-NLS
+  private final String getStatusBarModDataSavedHtmlPostfix(Context context) {
+    return ".&emsp;&emsp;&emsp;<span class=\"span-bold\">"
+        + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.saved") 
+        + ",</span> " 
+        + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.restored") 
+        + ".&ensp;<a href=\"\">" 
+        + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.delete")
+        + "</a>";
+  }
   
-  protected StatusBar createStatusBar(AuthState authState) {
+  protected StatusBar createStatusBar(Context context, AuthState authState) {
     if (authState == null || authState.auth == null) {
       return null;
     }
     switch (authState.auth) {
     case LOGIN_FALIED: {
-      String innerHtml = "<span class=\"span-bold\">Неверные данные,</span> попробуйте ещё раз"; // NON-NLS
+      String innerHtml = "<span class=\"span-bold\">"
+          + context.getText("org.jepria.web.ssr.SsrServletBase.status.login_failed.incorrect_data")
+          + ",</span> "
+          + context.getText("org.jepria.web.ssr.SsrServletBase.status.login_failed.try_again");
       if (authState.authPersistentData != null) {
-        innerHtml += STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX;
+        innerHtml += getStatusBarModDataSavedHtmlPostfix(context);
       }
-      return new StatusBar(StatusBar.Type.ERROR, innerHtml);
+      return new StatusBar(context, StatusBar.Type.ERROR, innerHtml);
     }
     case LOGOUT: {
-      return new StatusBar(StatusBar.Type.SUCCESS, "Разлогинились"); // NON-NLS
+      return new StatusBar(context, StatusBar.Type.SUCCESS, context.getText("org.jepria.web.ssr.SsrServletBase.status.logouted"));
     }
     case UNAUTHORIZED: {
-      String innerHtml = "Необходимо авторизоваться"; // NON-NLS
+      String innerHtml = context.getText("org.jepria.web.ssr.SsrServletBase.status.auth_required");
       if (authState.authPersistentData != null) {
-        innerHtml += STATUS_BAR__MOD_DATA_SAVED__HTML_POSTFIX;
+        innerHtml += getStatusBarModDataSavedHtmlPostfix(context);
       }
-      return new StatusBar(StatusBar.Type.INFO, innerHtml);
+      return new StatusBar(context, StatusBar.Type.INFO, innerHtml);
     }
     case FORBIDDEN: {
-      return new StatusBar(StatusBar.Type.ERROR, "Доступ запрещён"); // NON-NLS
+      return new StatusBar(context, StatusBar.Type.ERROR, context.getText("org.jepria.web.ssr.SsrServletBase.status.forbidden"));
     }
     case AUTHORIZED: {
       return null;

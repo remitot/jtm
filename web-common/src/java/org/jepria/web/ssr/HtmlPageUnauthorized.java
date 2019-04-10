@@ -2,11 +2,10 @@ package org.jepria.web.ssr;
 
 import java.util.Objects;
 
-import org.jepria.web.ssr.LoginFragment;
-
 public class HtmlPageUnauthorized extends HtmlPage {
 
-  public HtmlPageUnauthorized(LoginFragment loginFragment) {
+  public HtmlPageUnauthorized(Context context, LoginFragment loginFragment) {
+    super(context);
 
     Objects.requireNonNull(loginFragment);
     

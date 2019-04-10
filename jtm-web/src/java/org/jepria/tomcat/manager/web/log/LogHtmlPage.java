@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPage;
 
 public class LogHtmlPage extends HtmlPage {
@@ -23,7 +24,9 @@ public static final String PAGE_TITLE = "Tomcat manager: логи"; // NON-NLS
    * @param logs
    * @param clientTimeZone if non-null, the file last modified timestamp will be displayed in this timezone, otherwise in UTC timezone 
    */
-  public LogHtmlPage(List<LogDto> logs, TimeZone clientTimeZone) {
+  public LogHtmlPage(Context context, List<LogDto> logs, TimeZone clientTimeZone) {
+    super (context);
+    
     clientDateTimeFormat = clientTimeZone == null ? null : new DateTimeFormat(clientTimeZone);
     gmtDateTimeFormat = new DateTimeFormat(TimeZone.getTimeZone("GMT"));
     
@@ -31,7 +34,7 @@ public static final String PAGE_TITLE = "Tomcat manager: логи"; // NON-NLS
     setTitle(PAGE_TITLE);
     
     // table html
-    table = new LogTable();
+    table = new LogTable(context);
     
     final List<LogItem> items = logs.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());

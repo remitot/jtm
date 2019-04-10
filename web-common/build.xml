@@ -28,10 +28,14 @@
     </javac>
   </target>
   
+	<fileset dir="src/resources" id="resources-jar">
+    <include name="**/*" />
+  </fileset>
   
   <target name="jar" depends="java-compile">
     <jar destfile="${DISTR_DIR}/${DISTR_NAME}.jar">
       <fileset refid="class-jar" />
+    	<fileset refid="resources-jar" />
     </jar>
   </target>
 

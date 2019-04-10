@@ -15,6 +15,7 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ForbiddenFragment;
 import org.jepria.web.ssr.HtmlPage;
 import org.jepria.web.ssr.HtmlPageForbidden;
@@ -45,11 +46,13 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+    final Context context = Context.fromRequest(req);
+    
     final AppState appState = getAppState(req);
 
     final HtmlPage htmlPage;
     
-    final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
+    final PageHeader pageHeader = new PageHeader(context, CurrentMenuItem.JDBC);
     
     final Environment env = EnvironmentFactory.get(req);
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
@@ -65,8 +68,8 @@ public class JdbcSsrServlet extends SsrServletBase {
         itemModRequests = (List<ItemModRequestDto>)getAuthState(req).authPersistentData;
       }
       
-      htmlPage = new JdbcHtmlPage(connections, itemModRequests, itemModStatuses);
-      htmlPage.setStatusBar(createStatusBar(appState.modStatus));
+      htmlPage = new JdbcHtmlPage(context, connections, itemModRequests, itemModStatuses);
+      htmlPage.setStatusBar(createStatusBar(context, appState.modStatus));
   
       pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
       
@@ -81,10 +84,10 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       // TODO refactor the following shit!
       if (authInfo.authFragment instanceof LoginFragment) {
-        htmlPage = new HtmlPageUnauthorized((LoginFragment)authInfo.authFragment);
+        htmlPage = new HtmlPageUnauthorized(context, (LoginFragment)authInfo.authFragment);
         htmlPage.setStatusBar(authInfo.statusBar);
       } else if (authInfo.authFragment instanceof ForbiddenFragment) {
-        htmlPage = new HtmlPageForbidden((ForbiddenFragment)authInfo.authFragment);
+        htmlPage = new HtmlPageForbidden(context, (ForbiddenFragment)authInfo.authFragment);
         pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
         htmlPage.setStatusBar(authInfo.statusBar);
       } else {
@@ -284,18 +287,18 @@ public class JdbcSsrServlet extends SsrServletBase {
     MOD_INCORRECT_FIELD_DATA,
   }
   
-  protected StatusBar createStatusBar(ModStatus status) {
+  protected StatusBar createStatusBar(Context context, ModStatus status) {
     if (status == null) {
       return null;
     }
     switch (status) {
     case MOD_SUCCESS: {
-      return new StatusBar(StatusBar.Type.SUCCESS, "Все изменения сохранены"); // NON-NLS 
+      return new StatusBar(context, StatusBar.Type.SUCCESS, "Все изменения сохранены"); // NON-NLS 
     }
     case MOD_INCORRECT_FIELD_DATA: {
       final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
           "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
-      return new StatusBar(StatusBar.Type.ERROR, statusHTML);
+      return new StatusBar(context, StatusBar.Type.ERROR, statusHTML);
     }
     }
     throw new IllegalArgumentException(String.valueOf(status));

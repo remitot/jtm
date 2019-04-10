@@ -1,18 +1,20 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.table.CheckBox;
 import org.jepria.web.ssr.table.Table;
 
 public class JdbcTable extends Table<JdbcItem> {
   
-  public JdbcTable() {
+  public JdbcTable(Context context) {
+    super(context);
     addStyle("css/jdbc/jdbc.css");
   }
   
   @Override
   protected El createHeader() {
-    El row = new El("div");
+    El row = new El("div", context);
     row.classList.add("header");
     
     El cell, div, label;
@@ -22,31 +24,31 @@ public class JdbcTable extends Table<JdbcItem> {
     
     cell = createCell(row, "column-delete");// empty cell
     
-    div = new El("div");
+    div = new El("div", context);
     div.classList.add("flexColumns");
     
     cell = createCell(div, "column-name");
-    label = new El("label");
+    label = new El("label", context);
     label.setInnerHTML("Название"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-server");
-    label = new El("label");
+    label = new El("label", context);
     label.setInnerHTML("Сервер базы данных"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-db");
-    label = new El("label");
+    label = new El("label", context);
     label.setInnerHTML("Имя базы"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-user");
-    label = new El("label");
+    label = new El("label", context);
     label.setInnerHTML("Пользователь базы"); // NON-NLS
     cell.appendChild(label);
     
     cell = createCell(div, "column-password");
-    label = new El("label");
+    label = new El("label", context);
     label.setInnerHTML("Пароль к базе"); // NON-NLS
     cell.appendChild(label);
     
@@ -57,7 +59,7 @@ public class JdbcTable extends Table<JdbcItem> {
   
   @Override
   public El createRow(JdbcItem item, TabIndex tabIndex) {
-    El row = new El("div");
+    El row = new El("div", context);
     row.classList.add("row");
     
     El cell, field;
@@ -78,7 +80,7 @@ public class JdbcTable extends Table<JdbcItem> {
     
     El cellDelete = createCell(row, "column-delete");
     
-    El div = new El("div");
+    El div = new El("div", context);
     div.classList.add("flexColumns");
     
     cell = createCell(div, "column-name");
@@ -138,7 +140,7 @@ public class JdbcTable extends Table<JdbcItem> {
   @Override
   public El createRowCreated(JdbcItem item, TabIndex tabIndex) {
 
-    El row = new El("div");
+    El row = new El("div", context);
     row.classList.add("row");
     row.classList.add("created");
     
@@ -151,7 +153,7 @@ public class JdbcTable extends Table<JdbcItem> {
     
     El cellDelete = createCell(row, "column-delete");
     
-    El flexColumns = new El("div");
+    El flexColumns = new El("div", context);
     flexColumns.classList.add("flexColumns");
     
     cell = createCell(flexColumns, "column-name");

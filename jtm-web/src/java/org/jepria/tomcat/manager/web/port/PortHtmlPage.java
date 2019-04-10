@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPage;
 import org.jepria.web.ssr.table.Field;
 
@@ -13,12 +14,13 @@ public class PortHtmlPage extends HtmlPage {
   
   public final PortTable table;
   
-  public PortHtmlPage(List<PortDto> ports) {
+  public PortHtmlPage(Context context, List<PortDto> ports) {
+    super(context);
     
     setTitle(PAGE_TITLE);
     
     // table html
-    table = new PortTable();
+    table = new PortTable(context);
     
     final List<PortItem> items = ports.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());

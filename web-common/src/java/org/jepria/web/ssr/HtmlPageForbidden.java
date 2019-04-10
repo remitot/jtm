@@ -2,12 +2,11 @@ package org.jepria.web.ssr;
 
 import java.util.Objects;
 
-import org.jepria.web.ssr.ForbiddenFragment;
-
 public class HtmlPageForbidden extends HtmlPage {
 
-  public HtmlPageForbidden(ForbiddenFragment logoutFragment) {
-
+  public HtmlPageForbidden(Context context, ForbiddenFragment logoutFragment) {
+    super(context);
+    
     Objects.requireNonNull(logoutFragment);
     
     getBodyChilds().add(logoutFragment);
