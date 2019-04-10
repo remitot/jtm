@@ -68,67 +68,74 @@ public static final String PAGE_TITLE = "Tomcat manager: логи"; // NON-NLS
   
   protected String getItemLastModifiedValue(long lastModifiedTimestamp) {
     
-    final String lastModifiedDate;
-    final String lastModifiedTime;
-    String lastModifiedAgoVerb = null;
+    final String lastModifiedDateTime;
     
-
     final long lastModifiedAgoMs = System.currentTimeMillis() - lastModifiedTimestamp;
-    if (lastModifiedAgoMs <= 10000) {
-      lastModifiedAgoVerb = "только что"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 90000) {
-      lastModifiedAgoVerb = "минуту назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 150000) {
-      lastModifiedAgoVerb = "две минуты назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 210000) {
-      lastModifiedAgoVerb = "три минуты назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 450000) {
-      lastModifiedAgoVerb = "пять минут назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 900000) {
-      lastModifiedAgoVerb = "10 минут назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 2700000) {
-      lastModifiedAgoVerb = "полчаса назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 5400000) {
-      lastModifiedAgoVerb = "час назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 9000000) {
-      lastModifiedAgoVerb = "два часа назад"; // NON-NLS;
-    } else if (lastModifiedAgoMs <= 12600000) {
-      lastModifiedAgoVerb = "три часа назад"; // NON-NLS;
+    String lastModifiedAgoVerb;
+    
+    
+    {
+      if (lastModifiedAgoMs <= 10000) {
+        lastModifiedAgoVerb = "только что"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 90000) {
+        lastModifiedAgoVerb = "минуту назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 150000) {
+        lastModifiedAgoVerb = "две минуты назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 210000) {
+        lastModifiedAgoVerb = "три минуты назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 450000) {
+        lastModifiedAgoVerb = "пять минут назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 900000) {
+        lastModifiedAgoVerb = "10 минут назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 2700000) {
+        lastModifiedAgoVerb = "полчаса назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 5400000) {
+        lastModifiedAgoVerb = "час назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 9000000) {
+        lastModifiedAgoVerb = "два часа назад"; // NON-NLS;
+      } else if (lastModifiedAgoMs <= 12600000) {
+        lastModifiedAgoVerb = "три часа назад"; // NON-NLS;
+      } else {
+        lastModifiedAgoVerb = null;
+      }
     }
     
     
     final Date lastModified = new Date(lastModifiedTimestamp);
     
     if (clientDateTimeFormat == null) {
+      // the client timezone has not been set
       
-      lastModifiedDate = gmtDateTimeFormat.formatDate(lastModified);
-      lastModifiedTime = gmtDateTimeFormat.formatTime(lastModified);
+      lastModifiedDateTime = gmtDateTimeFormat.formatDate(lastModified) + " " + gmtDateTimeFormat.formatTime(lastModified) + " GMT";
 
       // neither 'today' nor 'yesterday' without client timezone
       
-      return lastModifiedDate + " " + lastModifiedTime + " GMT" + (lastModifiedAgoVerb == null ? "" : (", <b>" + lastModifiedAgoVerb + "</b>"));
-      
     } else {
+      // the client timezone has been set
       
-      lastModifiedDate = clientDateTimeFormat.formatDate(lastModified);
-      lastModifiedTime = clientDateTimeFormat.formatTime(lastModified);
+      final String lastModifiedDateStr = clientDateTimeFormat.formatDate(lastModified);
+      
+      lastModifiedDateTime = lastModifiedDateStr + " " + clientDateTimeFormat.formatTime(lastModified);
       
       if (lastModifiedAgoVerb == null) {
-        // try local 'today' or 'yesterday'
-        final String todayDateLocal = clientDateTimeFormat.formatDate(new Date());
-        final String yesterdayDateLocal = clientDateTimeFormat.formatDate(new Date(System.currentTimeMillis() - 86400000));
         
-        if (todayDateLocal.equals(lastModifiedDate)) {
-          // modified on the local 'today'
-          lastModifiedAgoVerb = "сегодня"; // NON-NLS;
-        } else if (yesterdayDateLocal.equals(lastModifiedDate)) {
-          // modified on the local 'yesterday'
-          lastModifiedAgoVerb = "вчера"; // NON-NLS;
+        {// try local 'today' or 'yesterday'
+          final String todayDateLocal = clientDateTimeFormat.formatDate(new Date());
+          final String yesterdayDateLocal = clientDateTimeFormat.formatDate(new Date(System.currentTimeMillis() - 86400000));
+          
+          if (todayDateLocal.equals(lastModifiedDateStr)) {
+            // modified on the local 'today'
+            lastModifiedAgoVerb = "сегодня"; // NON-NLS;
+          } else if (yesterdayDateLocal.equals(lastModifiedDateStr)) {
+            // modified on the local 'yesterday'
+            lastModifiedAgoVerb = "вчера"; // NON-NLS;
+          }
         }
+        
       }
-      
-      return lastModifiedDate + " " + lastModifiedTime + (lastModifiedAgoVerb == null ? "" : (", <b>" + lastModifiedAgoVerb + "</b>"));
     }
+    
+    return lastModifiedDateTime + (lastModifiedAgoVerb == null ? "" : (", <b>" + lastModifiedAgoVerb + "</b>"));
   }
   
   private static class DateTimeFormat {

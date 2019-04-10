@@ -47,11 +47,13 @@ public class JdbcSsrServlet extends SsrServletBase {
 
     final AppState appState = getAppState(req);
 
-    final Environment env = EnvironmentFactory.get(req);
-    
     final HtmlPage htmlPage;
     
+    final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
+    
+    final Environment env = EnvironmentFactory.get(req);
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    pageHeader.setManagerApache(managerApacheHref);
     
     if (checkAuth(req)) {
       
@@ -66,11 +68,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       htmlPage = new JdbcHtmlPage(connections, itemModRequests, itemModStatuses);
       htmlPage.setStatusBar(createStatusBar(appState.modStatus));
   
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
-      pageHeader.setManagerApache(managerApacheHref);
       pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
-      
-      htmlPage.setPageHeader(pageHeader);
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
@@ -78,9 +76,6 @@ public class JdbcSsrServlet extends SsrServletBase {
     } else {
 
       clearAppState(req);
-      
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
-      pageHeader.setManagerApache(managerApacheHref);
       
       AuthInfo authInfo = requireAuth(req, "jdbc/login", "jdbc/logout"); // TODO this will erase any path- or request params of the current page
       
@@ -98,9 +93,9 @@ public class JdbcSsrServlet extends SsrServletBase {
       }
       
       htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
-      htmlPage.setPageHeader(pageHeader);
     }
     
+    htmlPage.setPageHeader(pageHeader);
     htmlPage.respond(resp);
     
     appState.modStatus = null;

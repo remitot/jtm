@@ -31,11 +31,13 @@ public class PortSsrServlet extends SsrServletBase {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
 
-    final Environment env = EnvironmentFactory.get(req);
-    
     final HtmlPage htmlPage;
+
+    final PageHeader pageHeader = new PageHeader(CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
     
+    final Environment env = EnvironmentFactory.get(req);
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    pageHeader.setManagerApache(managerApacheHref);
     
     if (checkAuth(req)) {
 
@@ -43,16 +45,9 @@ public class PortSsrServlet extends SsrServletBase {
       
       htmlPage = new PortHtmlPage(ports);
       
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.PORT); // TODO this will erase any path- or request params of the current page
-      pageHeader.setManagerApache(managerApacheHref);
       pageHeader.setButtonLogout("port/logout"); // TODO this will erase any path- or request params of the current page
-  
-      htmlPage.setPageHeader(pageHeader);
       
     } else {
-      
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.PORT);
-      pageHeader.setManagerApache(managerApacheHref);
       
       AuthInfo authInfo = requireAuth(req, "port/login", "port/logout"); // TODO this will erase any path- or request params of the current page
       
@@ -69,10 +64,10 @@ public class PortSsrServlet extends SsrServletBase {
       }
       
       htmlPage.setTitle(PortHtmlPage.PAGE_TITLE);
-      htmlPage.setPageHeader(pageHeader);
       
     }
-
+    
+    htmlPage.setPageHeader(pageHeader);
     htmlPage.respond(resp);
   }
   

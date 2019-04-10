@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
-import org.jepria.tomcat.manager.web.jdbc.JdbcHtmlPage;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.ForbiddenFragment;
@@ -81,29 +80,22 @@ public class LogSsrServlet extends SsrServletBase {
     
 
     
-    final Environment env = EnvironmentFactory.get(req);
-    
     final HtmlPage htmlPage;
+
+    final PageHeader pageHeader = new PageHeader(CurrentMenuItem.LOG);
     
+    final Environment env = EnvironmentFactory.get(req);
     final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    pageHeader.setManagerApache(managerApacheHref);
     
     if (checkAuth(req)) {
       List<LogDto> logs = new LogApi().list(env, null);
 
-      
-      
       htmlPage = new LogHtmlPage(logs, clientTimezone);
   
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.LOG);
-      pageHeader.setManagerApache(managerApacheHref);
       pageHeader.setButtonLogout("log/logout"); // TODO this will erase any path- or request params of the current page
       
-      htmlPage.setPageHeader(pageHeader);
-      
     } else {
-      
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.LOG);
-      pageHeader.setManagerApache(managerApacheHref);
       
       AuthInfo authInfo = requireAuth(req, "log/login", "log/logout"); // TODO this will erase any path- or request params of the current page
       
@@ -120,10 +112,10 @@ public class LogSsrServlet extends SsrServletBase {
         throw new IllegalStateException();
       }
       
-      htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
-      htmlPage.setPageHeader(pageHeader);
+      htmlPage.setTitle(LogHtmlPage.PAGE_TITLE);
     }
     
+    htmlPage.setPageHeader(pageHeader);
     htmlPage.respond(resp);
   }
   
