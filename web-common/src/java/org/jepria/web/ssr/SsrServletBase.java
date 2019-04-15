@@ -68,63 +68,6 @@ public class SsrServletBase extends HttpServlet {
     getAuthState(req).auth = Auth.LOGOUT;
   }
 
-  public class AuthInfo {
-    public AuthFragment authFragment;
-    public StatusBar statusBar;
-  }
-  
-  protected AuthInfo requireAuth(HttpServletRequest req, String loginActionUrl, String logoutActionUrl) {
-    
-    final Context context = Context.fromRequest(req);
-    
-    final AuthState authState = getAuthState(req);
-    
-    if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
-      authState.authPersistentData = null;
-    }
-    
-    if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
-      authState.auth = Auth.UNAUTHORIZED;
-    }
-
-    final AuthInfo authInfo;
-    
-    if (req.getUserPrincipal() == null) {
-      final LoginFragment loginFragment = new LoginFragment(context, loginActionUrl);
-      
-      // restore preserved username
-      if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
-        loginFragment.inputUsername.setAttribute("value", authState.username);
-        loginFragment.inputPassword.addClass("requires-focus");
-      } else {
-        loginFragment.inputUsername.addClass("requires-focus");
-      }
-      
-      authInfo = new AuthInfo();
-      authInfo.authFragment = loginFragment;
-      
-    } else {
-      authState.auth = Auth.FORBIDDEN;
-      
-      final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, logoutActionUrl, req.getUserPrincipal().getName());
-      
-      authInfo = new AuthInfo();
-      authInfo.authFragment = forbiddenFragment;
-      
-    }
-    
-    authInfo.statusBar = createStatusBar(context, authState);
-    
-    // reset a disposable state
-    if (authState.auth == Auth.LOGIN_FALIED 
-        || authState.auth == Auth.LOGOUT) {
-      authState.auth = Auth.UNAUTHORIZED;
-    }
-    authState.username = null;
-
-    return authInfo;
-  }
-  
   private final String getStatusBarModDataSavedHtmlPostfix(Context context) {
     return ".&emsp;&emsp;&emsp;<span class=\"span-bold\">"
         + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.saved") 
@@ -206,5 +149,75 @@ public class SsrServletBase extends HttpServlet {
       request.getSession().setAttribute("org.jepria.tomcat.manager.web.SessionAttributes.authState", state);
     }
     return state;
+  }
+  
+  protected class AuthPageBuilder {
+    
+    private final HttpServletRequest req;
+    private final String loginActionUrl;
+    private final String logoutActionUrl;
+    
+    public AuthPageBuilder(HttpServletRequest req, String loginActionUrl, String logoutActionUrl) {
+      this.req = req;
+      this.loginActionUrl = loginActionUrl;
+      this.logoutActionUrl = logoutActionUrl;
+    }
+
+    public void requireAuth(PageBuilder page) {
+      final Context context = Context.fromRequest(req);
+      
+      final AuthState authState = getAuthState(req);
+      
+      if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
+        authState.authPersistentData = null;
+      }
+      
+      if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
+        authState.auth = Auth.UNAUTHORIZED;
+      }
+
+      if (req.getUserPrincipal() == null) {
+        final LoginFragment loginFragment = new LoginFragment(context, loginActionUrl);
+        
+        // restore preserved username
+        if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
+          loginFragment.inputUsername.setAttribute("value", authState.username);
+          loginFragment.inputPassword.addClass("requires-focus");
+        } else {
+          loginFragment.inputUsername.addClass("requires-focus");
+        }
+        
+        page.getBody().appendChild(loginFragment);
+        
+        page.getBody().addScript("css/jtm-common.css");
+        page.getBody().setAttribute("onload", "jtm_onload();authFragmentLogin_onload();");
+
+        page.getBody().addClass("background_gray");
+        
+      } else {
+        authState.auth = Auth.FORBIDDEN;
+        
+        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, logoutActionUrl, req.getUserPrincipal().getName());
+        
+        page.getBody().appendChild(forbiddenFragment);
+        
+        page.getBody().addScript("css/jtm-common.css");
+        page.getBody().setAttribute("onload", "jtm_onload();");
+
+        page.getBody().addClass("background_gray");
+        
+        page.setButtonLogout(logoutActionUrl);
+      }
+      
+      page.setStatusBar(createStatusBar(context, authState));
+      
+      // reset a disposable state
+      if (authState.auth == Auth.LOGIN_FALIED 
+          || authState.auth == Auth.LOGOUT) {
+        authState.auth = Auth.UNAUTHORIZED;
+      }
+      authState.username = null;
+    }
+    
   }
 }

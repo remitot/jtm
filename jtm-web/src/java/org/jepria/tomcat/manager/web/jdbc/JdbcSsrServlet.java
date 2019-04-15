@@ -16,12 +16,7 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.ForbiddenFragment;
-import org.jepria.web.ssr.HtmlPage;
-import org.jepria.web.ssr.HtmlPageForbidden;
-import org.jepria.web.ssr.HtmlPageUnauthorized;
-import org.jepria.web.ssr.LoginFragment;
-import org.jepria.web.ssr.PageHeader;
+import org.jepria.web.ssr.PageBuilder;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
@@ -50,13 +45,15 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     final AppState appState = getAppState(req);
 
-    final HtmlPage htmlPage;
-    
-    final PageHeader pageHeader = new PageHeader(context, CurrentMenuItem.JDBC);
-    
     final Environment env = EnvironmentFactory.get(req);
-    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    pageHeader.setManagerApache(managerApacheHref);
+    
+    final PageBuilder pageBuilder = PageBuilder.newInstance(context);
+    pageBuilder.setTitle("Tomcat manager: JDBC ресурсы (датасорсы)"); // NON-NLS
+    pageBuilder.setCurrentMenuItem(CurrentMenuItem.JDBC);
+    
+    String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    pageBuilder.setManagerApache(managerApacheHref);
+    
     
     if (checkAuth(req)) {
       
@@ -68,10 +65,10 @@ public class JdbcSsrServlet extends SsrServletBase {
         itemModRequests = (List<ItemModRequestDto>)getAuthState(req).authPersistentData;
       }
       
-      htmlPage = new JdbcHtmlPage(context, connections, itemModRequests, itemModStatuses);
-      htmlPage.setStatusBar(createStatusBar(context, appState.modStatus));
-  
-      pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
+      new JdbcPageContent(context, connections, itemModRequests, itemModStatuses).addToPage(pageBuilder);
+      
+      pageBuilder.setStatusBar(createStatusBar(context, appState.modStatus));
+      pageBuilder.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
@@ -80,26 +77,11 @@ public class JdbcSsrServlet extends SsrServletBase {
 
       clearAppState(req);
       
-      AuthInfo authInfo = requireAuth(req, "jdbc/login", "jdbc/logout"); // TODO this will erase any path- or request params of the current page
-      
-      // TODO refactor the following shit!
-      if (authInfo.authFragment instanceof LoginFragment) {
-        htmlPage = new HtmlPageUnauthorized(context, (LoginFragment)authInfo.authFragment);
-        htmlPage.setStatusBar(authInfo.statusBar);
-      } else if (authInfo.authFragment instanceof ForbiddenFragment) {
-        htmlPage = new HtmlPageForbidden(context, (ForbiddenFragment)authInfo.authFragment);
-        pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
-        htmlPage.setStatusBar(authInfo.statusBar);
-      } else {
-        // TODO
-        throw new IllegalStateException();
-      }
-      
-      htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
+      new AuthPageBuilder(req, "jdbc/login", "jdbc/logout").requireAuth(pageBuilder);
     }
     
-    htmlPage.setPageHeader(pageHeader);
-    htmlPage.respond(resp);
+    final PageBuilder.Page page = pageBuilder.build();
+    page.respond(resp);
     
     appState.modStatus = null;
   }

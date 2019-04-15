@@ -171,6 +171,26 @@ public class El implements Node {
     return false;
   }
   
+  public void classListToAttribute() {
+    if (!classList.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+
+      boolean first = true;
+      for (String className: classList) {
+        if (!first) {
+          sb.append(' ');
+        } else {
+          first = false;
+        }
+        sb.append(className);
+      }
+      
+      classList.clear();
+      
+      attributes.put("class", Optional.of(sb.toString()));
+    }
+  }
+  
   /**
    * Render the entire HTML DOM tree of this element and its children recursively
    * @param sb
@@ -184,19 +204,7 @@ public class El implements Node {
     
     sb.append('<').append(tagName);
     
-    if (!classList.isEmpty()) {
-      sb.append(' ').append("class=\"");
-      boolean first = true;
-      for (String className: classList) {
-        if (!first) {
-          sb.append(' ');
-        } else {
-          first = false;
-        }
-        sb.append(className);
-      }
-      sb.append('"');
-    }
+    classListToAttribute();
     
     if (!attributes.isEmpty()) {
       for (Map.Entry<String, Optional<String>> attribute: attributes.entrySet()) {
