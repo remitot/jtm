@@ -7,36 +7,42 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jepria.tomcat.manager.web.HtmlPage;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.PageBuilder;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
 
-public class JdbcHtmlPage extends HtmlPage {
+public class JdbcPageContent {
   
-  public final JdbcTable table;
-  
-  public static final String PAGE_TITLE = "Tomcat manager: JDBC ресурсы (датасорсы)"; // NON-NLS
+  private final Context context;
+  private final List<ConnectionDto> connections;
+  private final List<ItemModRequestDto> itemModRequests;
+  private final Map<String, ItemModStatus> itemModStatuses;
   
   /**
-   * 
-   * @param pageHeader
+   * @param context
    * @param connections
    * @param itemModRequests mod requests to graphically overlay the table items with, may be null
    * @param itemModStatuses mod statuses to graphically overlay the table items with, may be null
    */
   // TODO consider removing overlay parameters and invoke a separate table.overlay(params) method (not in constructor)
-  public JdbcHtmlPage(List<ConnectionDto> connections,
+  public JdbcPageContent(Context context, List<ConnectionDto> connections,
       List<ItemModRequestDto> itemModRequests,
       Map<String, ItemModStatus> itemModStatuses) {
-    
-    setTitle(PAGE_TITLE);
+    this.context = context;
+    this.connections = connections;
+    this.itemModRequests = itemModRequests;
+    this.itemModStatuses = itemModStatuses;
+  }
+  
+  public void addToPage(PageBuilder page) {
     
     // table html
-    table = new JdbcTable();
+    final JdbcTable table = new JdbcTable(context);
     
     final List<JdbcItem> items = connections.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
@@ -129,11 +135,6 @@ public class JdbcHtmlPage extends HtmlPage {
             }
             break;
           }
-          case EMPTY_ID: case NO_ITEM_FOUND_BY_ID: case DATA_NOT_MODIFIABLE: {
-            // TODO is it the best solution to mark all fields invalid?
-            item.forEach((name, field) -> {field.invalid = true; field.invalidMessage = "Server error";});
-            break;
-          }
           case SUCCESS: {
             // do nothing
             break;
@@ -145,7 +146,7 @@ public class JdbcHtmlPage extends HtmlPage {
     
     table.load(items, itemsCreated, itemsDeleted);
     
-    getBodyChilds().add(table);
+    page.getBody().appendChild(table);
 
     // table row-create template
     final TabIndex newRowTemplateTabIndex = new TabIndex() {
@@ -161,18 +162,18 @@ public class JdbcHtmlPage extends HtmlPage {
     emptyItem.active().value = "true";
     final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
     
-    final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
+    final El tableNewRowTemplateContainer = new El("div", context).setAttribute("id", "table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
-    getBodyChilds().add(tableNewRowTemplateContainer);
+    page.getBody().appendChild(tableNewRowTemplateContainer);
     
     
     // control buttons
-    final ControlButtons controlButtons = new ControlButtons("jdbc/mod", "jdbc/mod-reset"); // TODO this will erase any path- or request params of the current page
-    getBodyChilds().add(controlButtons);
+    final ControlButtons controlButtons = new ControlButtons(context, "jdbc/mod", "jdbc/mod-reset"); // TODO this will erase any path- or request params of the current page
+    page.getBody().appendChild(controlButtons);
     
     
-    // add onload scripts
-    body.setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
+    page.getBody().addScript("css/jtm-common.css");
+    page.getBody().setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
   }
   
   protected JdbcItem dtoToItem(ConnectionDto dto) {

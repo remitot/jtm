@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 
 public abstract class Table<T extends ItemData> extends El {
@@ -19,12 +20,17 @@ public abstract class Table<T extends ItemData> extends El {
     void setNext(El el);
   }
   
-  public Table() {
-    super("div");
+  public Table(Context context) {
+    super("div", context);
     
     // TODO remove id, use class and css
     setAttribute("id", "table");
     setAttribute("style", "width: 100%;");
+    
+    
+    addScript("js/table.js");
+    addStyle("css/table.css");
+    addStyle("css/jtm-common.css"); // for .field-text
   }
   
   protected boolean isEditable() {
@@ -122,6 +128,11 @@ public abstract class Table<T extends ItemData> extends El {
       fieldEl = createFieldLabel(field.value);
     }
     
+    return addField(cell, field, fieldEl, placeholder);
+  }
+  
+  protected El addField(El cell, Field field, El fieldEl, String placeholder) {
+    
     fieldEl.classList.add("field-text");
     fieldEl.classList.add("field-text_inactivatible");
     fieldEl.classList.add("deletable");
@@ -150,7 +161,7 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected El createFieldInput(String name, String value, String placeholder) {
-    El field = new El("input");
+    El field = new El("input", context);
     field.setAttribute("type", "text");
     field.setAttribute("name", name);
     field.setAttribute("value", value);
@@ -159,29 +170,29 @@ public abstract class Table<T extends ItemData> extends El {
   }
 
   protected void addStrike(El cell) {
-    El strike = new El("div");
+    El strike = new El("div", context);
     strike.classList.add("strike");
     cell.appendChild(strike);
   }
 
   protected El createFieldLabel(String value) {
-    El field = new El("label");
+    El field = new El("label", context);
     field.setInnerHTML(value, true);
     return field;
   }
 
   protected El wrapCellPad(El element) {
-    El wrapper = new El("div");
+    El wrapper = new El("div", context);
     
-    El leftDiv = new El("div");
+    El leftDiv = new El("div", context);
     leftDiv.classList.add("cell-pad-left");
     wrapper.appendChild(leftDiv);
     
-    El rightDiv = new El("div");
+    El rightDiv = new El("div", context);
     rightDiv.classList.add("cell-pad-right");
     wrapper.appendChild(rightDiv);
     
-    El midDiv = new El("div");
+    El midDiv = new El("div", context);
     midDiv.classList.add("cell-pad-mid");
     wrapper.appendChild(midDiv);
     
@@ -192,22 +203,22 @@ public abstract class Table<T extends ItemData> extends El {
   
   protected void addFieldDelete(El cell, TabIndex tabIndex) {
 
-    El field = new El("div");
+    El field = new El("div", context);
     
-    El buttonDelete = new El("input");
+    El buttonDelete = new El("input", context);
     buttonDelete.classList.add("button-delete");
     buttonDelete.classList.add("button-delete_delete");
     buttonDelete.setAttribute("type", "image");
     buttonDelete.setAttribute("src", "img/delete.png");
-    buttonDelete.setAttribute("title", "Удалить"); // NON-NLS
+    buttonDelete.setAttribute("title", context.getText("org.jepria.web.ssr.table.buttonDelete.title.delete"));
     tabIndex.setNext(buttonDelete);
     
-    El buttonUndelete = new El("input");
+    El buttonUndelete = new El("input", context);
     buttonUndelete.classList.add("button-delete");
     buttonUndelete.classList.add("button-delete_undelete");
     buttonUndelete.setAttribute("type", "image");
     buttonUndelete.setAttribute("src", "img/undelete.png");
-    buttonUndelete.setAttribute("title", "Не удалять"); // NON-NLS
+    buttonUndelete.setAttribute("title", context.getText("org.jepria.web.ssr.table.buttonDelete.title.undelete"));
     tabIndex.setNext(buttonUndelete);
     
     field.appendChild(buttonDelete);
@@ -220,7 +231,7 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected El createCell(El row, String columnClass) {
-    El cell = new El("div");
+    El cell = new El("div", context);
     cell.classList.add("cell");
     cell.classList.add(columnClass);
     row.appendChild(cell);
@@ -230,7 +241,7 @@ public abstract class Table<T extends ItemData> extends El {
   protected CheckBox addCheckbox(El cell, Field field) {
     
     boolean active = !"false".equals(field.value);
-    CheckBox checkbox = new CheckBox(active);
+    CheckBox checkbox = new CheckBox(context, active);
     
     checkbox.setEnabled(!field.readonly);
 
@@ -262,17 +273,4 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected abstract El createHeader();
-  
-  @Override
-  protected void addScripts(Collection scripts) {
-    super.addScripts(scripts);
-    scripts.add("js/table.js");
-  }
-  
-  @Override
-  protected void addStyles(Collection styles) {
-    super.addStyles(styles);
-    styles.add("css/table.css");
-    styles.add("css/jtm-common.css"); // for .field-text
-  }
 }

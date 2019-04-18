@@ -35,11 +35,11 @@
   </servlet-mapping>
   
   <servlet>
-    <servlet-name>JdbcGui(Ssr)</servlet-name>
+    <servlet-name>JdbcGui</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcSsrServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>JdbcGui(Ssr)</servlet-name>
+    <servlet-name>JdbcGui</servlet-name>
     <url-pattern>/jdbc/*</url-pattern>
   </servlet-mapping>
 
@@ -55,12 +55,12 @@
   </servlet-mapping>
   
   <servlet>
-    <servlet-name>PortGui(Ssr)</servlet-name>
+    <servlet-name>PortGui</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.port.PortSsrServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>PortGui(Ssr)</servlet-name>
+    <servlet-name>PortGui</servlet-name>
     <url-pattern>/port/*</url-pattern>
   </servlet-mapping>
   
@@ -76,11 +76,11 @@
   
   <servlet>
     <servlet-name>LogGui</servlet-name>
-    <jsp-file>/gui/log/log.jsp</jsp-file>
+    <servlet-class>org.jepria.tomcat.manager.web.log.LogSsrServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>LogGui</servlet-name>
-    <url-pattern>/log</url-pattern>
+    <url-pattern>/log/*</url-pattern>
   </servlet-mapping>
   
   

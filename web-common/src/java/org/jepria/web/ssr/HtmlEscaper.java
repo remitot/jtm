@@ -31,7 +31,7 @@ public class HtmlEscaper {
   
   public static String escape(String unescaped) {
     if (unescaped == null) {
-      return null;
+      return "&nbsp;";
     }
     
     final StringBuilder sb = new StringBuilder();

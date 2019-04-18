@@ -11,9 +11,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.jepria.web.ssr.table.Collection;
-
 public class El implements Node {
+  
+  protected final Context context;
   
   public String tagName;
   
@@ -25,12 +25,13 @@ public class El implements Node {
   
   private String innerHTML;
   
-  public El(String tag) {
+  public El(String tag, Context context) {
+    this(context);
     this.tagName = tag;
   }
   
-  public El() {
-    
+  public El(Context context) {
+    this.context = context;
   }
   
   public void setEnabled(boolean enabled) {
@@ -147,12 +148,7 @@ public class El implements Node {
    */
   public El setInnerHTML(String innerHTML, boolean escape) {
 
-    final String innerHTMLEscaped;
-    if (innerHTML == null) {
-      innerHTMLEscaped = "&nbsp;"; // TODO  
-    } else {
-      innerHTMLEscaped = escape ? HtmlEscaper.escape(innerHTML) : innerHTML;
-    }
+    final String innerHTMLEscaped = escape ? HtmlEscaper.escape(innerHTML) : innerHTML;
     
     this.innerHTML = innerHTMLEscaped;
     // setting innerHTML destroys the children
@@ -175,6 +171,26 @@ public class El implements Node {
     return false;
   }
   
+  public void classListToAttribute() {
+    if (!classList.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+
+      boolean first = true;
+      for (String className: classList) {
+        if (!first) {
+          sb.append(' ');
+        } else {
+          first = false;
+        }
+        sb.append(className);
+      }
+      
+      classList.clear();
+      
+      attributes.put("class", Optional.of(sb.toString()));
+    }
+  }
+  
   /**
    * Render the entire HTML DOM tree of this element and its children recursively
    * @param sb
@@ -188,19 +204,7 @@ public class El implements Node {
     
     sb.append('<').append(tagName);
     
-    if (!classList.isEmpty()) {
-      sb.append(' ').append("class=\"");
-      boolean first = true;
-      for (String className: classList) {
-        if (!first) {
-          sb.append(' ');
-        } else {
-          first = false;
-        }
-        sb.append(className);
-      }
-      sb.append('"');
-    }
+    classListToAttribute();
     
     if (!attributes.isEmpty()) {
       for (Map.Entry<String, Optional<String>> attribute: attributes.entrySet()) {
@@ -252,21 +256,21 @@ public class El implements Node {
     }
   }
   
+  
+  
+  
+  /**
+   * Element's own scripts (not its descendant's)
+   */
+  private final Set<String> ownScripts = new LinkedHashSet<>();
+  
   /**
    * Get all scripts related to this elements and its children recursively
    * @param sb
    */
   public Set<String> getScripts() {
-    // maintain adding order
     final Set<String> scripts = new LinkedHashSet<>();
-    
-    collectScripts(new Collection() {
-      @Override
-      public void add(String script) {
-        scripts.add(script);
-      }
-    });
-    
+    collectScripts(scripts);
     return scripts;
   }
   
@@ -276,8 +280,8 @@ public class El implements Node {
    * @param scripts a collection to add a script to, not null
    */
   // private final: not for overriding or direct invocation
-  private final void collectScripts(Collection scripts) {
-    addScripts(scripts);
+  private final void collectScripts(Set<String> scripts) {
+    scripts.addAll(ownScripts);
     for (Node child: childs) {
       if (child instanceof El) {
         ((El)child).collectScripts(scripts);
@@ -286,29 +290,31 @@ public class El implements Node {
   }
   
   /**
-   * Adds .js scripts (none, single or multiple) specific to this element or element class.
+   * Adds a .js script specific to this element or element class.
    * A script is added by its relative path (same as {@code src} attribute value of a {@code <script>} tag) 
-   * 
-   * @param scripts a collection to add script's relative path to, not null
    */
-  protected void addScripts(Collection scripts) {
+  public void addScript(String script) {
+    if (script != null) {
+      this.ownScripts.add(script);
+    }
   }
+  
+  
+  
+  
+  
+  /**
+   * Element's own styles (not its descendant's)
+   */
+  private final Set<String> ownStyles = new LinkedHashSet<>();
   
   /**
    * Get all styles related to this elements and its children recursively
    * @return
    */
   public Set<String> getStyles() {
-    // maintain adding order
-    Set<String> styles = new LinkedHashSet<>();
-    
-    collectStyles(new Collection() {
-      @Override
-      public void add(String item) {
-        styles.add(item);
-      }
-    });
-    
+    final Set<String> styles = new LinkedHashSet<>();
+    collectStyles(styles);
     return styles;
   }
   
@@ -318,8 +324,8 @@ public class El implements Node {
    * @param styles a collection to add a style to, not null
    */
   // private final: not for overriding or direct invocation
-  private final void collectStyles(Collection styles) {
-    addStyles(styles);
+  private final void collectStyles(Set<String> styles) {
+    styles.addAll(ownStyles);
     for (Node child: childs) {
       if (child instanceof El) {
         ((El)child).collectStyles(styles);
@@ -328,11 +334,12 @@ public class El implements Node {
   }
   
   /**
-   * Adds .css styles (none, single or multiple) specific to this element or element class.
+   * Adds a .css style specific to this element or element class.
    * A style is added by its relative path (same as {@code href} attribute value of a {@code <link rel="stylesheet">} tag) 
-   * 
-   * @param styles a collection to add style's relative path to, not null
    */
-  protected void addStyles(Collection styles) {
+  public void addStyle(String style) {
+    if (style != null) {
+      this.ownStyles.add(style);
+    }
   }
 }

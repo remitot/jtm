@@ -3,7 +3,6 @@ package org.jepria.tomcat.manager.web.log.dto;
 public class LogDto {
   private String name;
   private Long lastModified;
-  private LocalDto local;
   private Long size;
   
   public LogDto() {}
@@ -22,14 +21,6 @@ public class LogDto {
 
   public void setLastModified(Long lastModified) {
     this.lastModified = lastModified;
-  }
-
-  public LocalDto getLocal() {
-    return local;
-  }
-
-  public void setLocal(LocalDto local) {
-    this.local = local;
   }
 
   public Long getSize() {

@@ -13,16 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
-import org.jepria.tomcat.manager.web.HtmlPage;
-import org.jepria.tomcat.manager.web.HtmlPageForbidden;
-import org.jepria.tomcat.manager.web.HtmlPageUnauthorized;
-import org.jepria.tomcat.manager.web.SsrServletBase;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
-import org.jepria.web.ssr.LoginFragment;
-import org.jepria.web.ssr.ForbiddenFragment;
-import org.jepria.web.ssr.PageHeader;
+import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.PageBuilder;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
+import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
 
 import com.google.gson.Gson;
@@ -35,6 +31,8 @@ public class JdbcSsrServlet extends SsrServletBase {
 
   private static final long serialVersionUID = -2556094883694667549L;
 
+  private static final String APP_STATE_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState";
+  
   @Override
   protected boolean checkAuth(HttpServletRequest req) {
     return req.getUserPrincipal() != null && req.isUserInRole("manager-gui");
@@ -43,13 +41,19 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+    final Context context = Context.fromRequest(req);
+    
     final AppState appState = getAppState(req);
 
     final Environment env = EnvironmentFactory.get(req);
     
-    final HtmlPage htmlPage;
+    final PageBuilder pageBuilder = PageBuilder.newInstance(context);
+    pageBuilder.setTitle("Tomcat manager: JDBC ресурсы (датасорсы)"); // NON-NLS
+    pageBuilder.setCurrentMenuItem(CurrentMenuItem.JDBC);
     
-    final String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
+    pageBuilder.setManagerApache(managerApacheHref);
+    
     
     if (checkAuth(req)) {
       
@@ -61,14 +65,10 @@ public class JdbcSsrServlet extends SsrServletBase {
         itemModRequests = (List<ItemModRequestDto>)getAuthState(req).authPersistentData;
       }
       
-      htmlPage = new JdbcHtmlPage(connections, itemModRequests, itemModStatuses);
-      htmlPage.setStatusBar(createStatusBar(appState.modStatus));
-  
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
-      pageHeader.setManagerApache(managerApacheHref);
-      pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
+      new JdbcPageContent(context, connections, itemModRequests, itemModStatuses).addToPage(pageBuilder);
       
-      htmlPage.setPageHeader(pageHeader);
+      pageBuilder.setStatusBar(createStatusBar(context, appState.modStatus));
+      pageBuilder.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
@@ -77,28 +77,11 @@ public class JdbcSsrServlet extends SsrServletBase {
 
       clearAppState(req);
       
-      final PageHeader pageHeader = new PageHeader(CurrentMenuItem.JDBC);
-      pageHeader.setManagerApache(managerApacheHref);
-      
-      AuthInfo authInfo = requireAuth(req, "jdbc/login", "jdbc/logout"); // TODO this will erase any path- or request params of the current page
-      
-      if (authInfo.authFragment instanceof LoginFragment) {
-        htmlPage = new HtmlPageUnauthorized((LoginFragment)authInfo.authFragment);
-        htmlPage.setStatusBar(authInfo.statusBar);
-      } else if (authInfo.authFragment instanceof ForbiddenFragment) {
-        htmlPage = new HtmlPageForbidden((ForbiddenFragment)authInfo.authFragment);
-        pageHeader.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
-        htmlPage.setStatusBar(authInfo.statusBar);
-      } else {
-        // TODO
-        throw new IllegalStateException();
-      }
-      
-      htmlPage.setTitle(JdbcHtmlPage.PAGE_TITLE);
-      htmlPage.setPageHeader(pageHeader);
+      new AuthPageBuilder(req, "jdbc/login", "jdbc/logout").requireAuth(pageBuilder);
     }
     
-    htmlPage.respond(resp);
+    final PageBuilder.Page page = pageBuilder.build();
+    page.respond(resp);
     
     appState.modStatus = null;
   }
@@ -269,16 +252,16 @@ public class JdbcSsrServlet extends SsrServletBase {
   }
   
   protected AppState getAppState(HttpServletRequest request) {
-    AppState state = (AppState)request.getSession().getAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState");
+    AppState state = (AppState)request.getSession().getAttribute(APP_STATE_SESSION_ATTR_KEY);
     if (state == null) {
       state = new AppState();
-      request.getSession().setAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState", state);
+      request.getSession().setAttribute(APP_STATE_SESSION_ATTR_KEY, state);
     }
     return state;
   }
   
   protected void clearAppState(HttpServletRequest request) {
-    request.getSession().removeAttribute("org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState");
+    request.getSession().removeAttribute(APP_STATE_SESSION_ATTR_KEY);
   }
   
   protected enum ModStatus {
@@ -286,18 +269,18 @@ public class JdbcSsrServlet extends SsrServletBase {
     MOD_INCORRECT_FIELD_DATA,
   }
   
-  protected StatusBar createStatusBar(ModStatus status) {
+  protected StatusBar createStatusBar(Context context, ModStatus status) {
     if (status == null) {
       return null;
     }
     switch (status) {
     case MOD_SUCCESS: {
-      return new StatusBar(StatusBar.Type.SUCCESS, "Все изменения сохранены"); // NON-NLS 
+      return new StatusBar(context, StatusBar.Type.SUCCESS, "Все изменения сохранены"); // NON-NLS 
     }
     case MOD_INCORRECT_FIELD_DATA: {
       final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
           "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
-      return new StatusBar(StatusBar.Type.ERROR, statusHTML);
+      return new StatusBar(context, StatusBar.Type.ERROR, statusHTML);
     }
     }
     throw new IllegalArgumentException(String.valueOf(status));
