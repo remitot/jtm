@@ -81,13 +81,13 @@ public class SsrServletBase extends HttpServlet {
   protected AuthInfo requireAuth(HttpServletRequest req, String loginActionUrl, String logoutActionUrl) {
     
     final AuthState authState = getAuthState(req);
+
+    if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
+      authState.auth = Auth.UNAUTHORIZED;
+    }
     
     if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
       authState.authPersistentData = null;
-    }
-    
-    if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
-      authState.auth = Auth.UNAUTHORIZED;
     }
 
     final AuthInfo authInfo;
@@ -95,7 +95,7 @@ public class SsrServletBase extends HttpServlet {
     if (req.getUserPrincipal() == null) {
       final LoginFragment loginFragment = new LoginFragment(loginActionUrl);
       
-      // restore preserved username
+      // maintain username
       if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
         loginFragment.inputUsername.setAttribute("value", authState.username);
         loginFragment.inputPassword.addClass("requires-focus");
