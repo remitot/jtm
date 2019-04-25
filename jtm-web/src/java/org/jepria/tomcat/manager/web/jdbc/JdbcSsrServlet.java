@@ -16,7 +16,7 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.PageBuilder;
+import org.jepria.web.ssr.JtmPageBuilder;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
@@ -47,7 +47,7 @@ public class JdbcSsrServlet extends SsrServletBase {
 
     final Environment env = EnvironmentFactory.get(req);
     
-    final PageBuilder pageBuilder = PageBuilder.newInstance(context);
+    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(context);
     pageBuilder.setTitle("Tomcat manager: JDBC ресурсы (датасорсы)"); // NON-NLS
     pageBuilder.setCurrentMenuItem(CurrentMenuItem.JDBC);
     
@@ -62,10 +62,15 @@ public class JdbcSsrServlet extends SsrServletBase {
       Map<String, ItemModStatus> itemModStatuses = appState.itemModStatuses;
       
       if (itemModRequests == null) {
-        itemModRequests = (List<ItemModRequestDto>)getAuthState(req).authPersistentData;
+        @SuppressWarnings("unchecked")
+        List<ItemModRequestDto> itemModRequestsUnchecked = (List<ItemModRequestDto>)getAuthState(req).authPersistentData; 
+        itemModRequests = itemModRequestsUnchecked;
       }
       
-      new JdbcPageContent(context, connections, itemModRequests, itemModStatuses).addToPage(pageBuilder);
+      
+      JdbcPageContent content = new JdbcPageContent(context, connections, itemModRequests, itemModStatuses);
+      pageBuilder.setContent(content, "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
+      
       
       pageBuilder.setStatusBar(createStatusBar(context, appState.modStatus));
       pageBuilder.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
@@ -80,7 +85,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       new AuthPageBuilder(req, "jdbc/login", "jdbc/logout").requireAuth(pageBuilder);
     }
     
-    final PageBuilder.Page page = pageBuilder.build();
+    final JtmPageBuilder.Page page = pageBuilder.build();
     page.respond(resp);
     
     appState.modStatus = null;

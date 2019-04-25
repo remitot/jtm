@@ -163,7 +163,7 @@ public class SsrServletBase extends HttpServlet {
       this.logoutActionUrl = logoutActionUrl;
     }
 
-    public void requireAuth(PageBuilder page) {
+    public void requireAuth(JtmPageBuilder page) {
       final Context context = Context.fromRequest(req);
       
       final AuthState authState = getAuthState(req);
@@ -187,24 +187,26 @@ public class SsrServletBase extends HttpServlet {
           loginFragment.inputUsername.addClass("requires-focus");
         }
         
-        page.getBody().appendChild(loginFragment);
+        final El content = new El("div", context);
+        content.appendChild(loginFragment);
         
-        page.getBody().addScript("css/jtm-common.css");
-        page.getBody().setAttribute("onload", "jtm_onload();authFragmentLogin_onload();");
-
-        page.getBody().addClass("background_gray");
+        content.addScript("css/jtm-common.css");
+        content.addClass("background_gray");
+        
+        page.setContent(content, "jtm_onload();authFragmentLogin_onload();");
         
       } else {
         authState.auth = Auth.FORBIDDEN;
         
         final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, logoutActionUrl, req.getUserPrincipal().getName());
         
-        page.getBody().appendChild(forbiddenFragment);
+        final El content = new El("div", context);
+        content.appendChild(forbiddenFragment);
         
-        page.getBody().addScript("css/jtm-common.css");
-        page.getBody().setAttribute("onload", "jtm_onload();");
-
-        page.getBody().addClass("background_gray");
+        content.addScript("css/jtm-common.css");
+        content.addClass("background_gray");
+        
+        page.setContent(content, "jtm_onload();");
         
         page.setButtonLogout(logoutActionUrl);
       }

@@ -2,12 +2,14 @@ package org.jepria.web.ssr;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 
-/*package*/class PageBuilderImpl implements PageBuilder {
+/*package*/class PageBuilderImpl implements JtmPageBuilder {
   
   private final Context context;
   
@@ -17,11 +19,11 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
   private StatusBar statusBar;
   private String logoutActionUrl;
   
-  private final El bodyProxy;
+  private Iterable<El> content;
+  private String bodyOnload;
   
   public PageBuilderImpl(Context context) {
     this.context = context;
-    this.bodyProxy = new El("body", context);
   }
   
   @Override
@@ -40,10 +42,18 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
   }
 
   @Override
-  public El getBody() {
-    return bodyProxy;
+  public void setContent(Iterable<El> content, String bodyOnload) {
+    this.content = content;
+    this.bodyOnload = bodyOnload;
   }
-
+  
+  @Override
+  public void setContent(El content, String bodyOnload) {
+    List<El> contentList = new ArrayList<>();
+    contentList.add(content);
+    setContent(contentList, bodyOnload);
+  }
+  
   @Override
   public void setButtonLogout(String logoutActionUrl) {
     this.logoutActionUrl = logoutActionUrl;
@@ -89,14 +99,19 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
       page.body.appendChild(statusBar);
     }
     
-    // add body childs and attributes to a real page body
-    for (Node bodyChild: bodyProxy.childs) {
-      page.body.appendChild(bodyChild);
+    if (content != null) {
+      El bodyContent = new El("div", context);
+      page.body.appendChild(bodyContent);
+      
+      for (El el: content) {
+        bodyContent.appendChild(el);
+      }
     }
-    bodyProxy.classListToAttribute();
-    page.body.attributes.putAll(bodyProxy.attributes);
     
-    
+    if (bodyOnload != null) {
+      page.body.setAttribute("onload", bodyOnload);
+    }
+     
     // add all scripts and styles to the head
     for (String style: page.body.getStyles()) {
       page.head.appendChild(new El("link", context).setAttribute("rel", "stylesheet").setAttribute("href", style));

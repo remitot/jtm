@@ -1,7 +1,9 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,16 +14,17 @@ import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.PageBuilder;
 import org.jepria.web.ssr.table.Field;
 import org.jepria.web.ssr.table.Table.TabIndex;
 
-public class JdbcPageContent {
+public class JdbcPageContent implements Iterable<El> {
+
+  private final Iterable<El> elements;
   
-  private final Context context;
-  private final List<ConnectionDto> connections;
-  private final List<ItemModRequestDto> itemModRequests;
-  private final Map<String, ItemModStatus> itemModStatuses;
+  @Override
+  public Iterator<El> iterator() {
+    return elements.iterator();
+  }
   
   /**
    * @param context
@@ -33,13 +36,8 @@ public class JdbcPageContent {
   public JdbcPageContent(Context context, List<ConnectionDto> connections,
       List<ItemModRequestDto> itemModRequests,
       Map<String, ItemModStatus> itemModStatuses) {
-    this.context = context;
-    this.connections = connections;
-    this.itemModRequests = itemModRequests;
-    this.itemModStatuses = itemModStatuses;
-  }
-  
-  public void addToPage(PageBuilder page) {
+    
+    final List<El> elements = new ArrayList<>();
     
     // table html
     final JdbcTable table = new JdbcTable(context);
@@ -146,7 +144,7 @@ public class JdbcPageContent {
     
     table.load(items, itemsCreated, itemsDeleted);
     
-    page.getBody().appendChild(table);
+    elements.add(table);
 
     // table row-create template
     final TabIndex newRowTemplateTabIndex = new TabIndex() {
@@ -164,16 +162,14 @@ public class JdbcPageContent {
     
     final El tableNewRowTemplateContainer = new El("div", context).setAttribute("id", "table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
-    page.getBody().appendChild(tableNewRowTemplateContainer);
+    elements.add(tableNewRowTemplateContainer);
     
     
     // control buttons
     final ControlButtons controlButtons = new ControlButtons(context, "jdbc/mod", "jdbc/mod-reset"); // TODO this will erase any path- or request params of the current page
-    page.getBody().appendChild(controlButtons);
+    elements.add(controlButtons);
     
-    
-    page.getBody().addScript("css/jtm-common.css");
-    page.getBody().setAttribute("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
+    this.elements = Collections.unmodifiableList(elements);
   }
   
   protected JdbcItem dtoToItem(ConnectionDto dto) {
