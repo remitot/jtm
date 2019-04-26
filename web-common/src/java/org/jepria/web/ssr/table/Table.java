@@ -135,7 +135,7 @@ public abstract class Table<T extends ItemData> extends El {
     
     fieldEl.classList.add("field-text");
     fieldEl.classList.add("field-text_inactivatible");
-    fieldEl.classList.add("deletable");
+    fieldEl.classList.add("disableable");
     
     if (field.readonly) {
       fieldEl.setReadonly(true);
@@ -253,7 +253,7 @@ public abstract class Table<T extends ItemData> extends El {
     
     checkbox.classList.add("table__checkbox");
     
-    checkbox.classList.add("deletable");
+    checkbox.classList.add("disableable");
 
     if (field.invalid) {
       checkbox.classList.add("invalid");

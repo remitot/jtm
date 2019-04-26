@@ -24,7 +24,7 @@
   width: 100%;
 }
 
-#table div.cell > .deletable, #table div.cell > .strike {
+#table div.cell > .disableable, #table div.cell > .strike {
   position: absolute;
   top: 0;
   left: 0;
@@ -136,7 +136,7 @@
   display: block;
 }
 
-#table .row.deleted .deletable {
+#table .row.deleted .disableable {
   pointer-events: none;
   opacity: 0.3;
 }

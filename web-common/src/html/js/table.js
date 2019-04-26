@@ -140,12 +140,12 @@ function checkModifications() {
 }
 
 /**
- * Disable everything '.deletable' in a composite
+ * Disable everything '.disableable' in a composite
  * @param disabled
  * @returns
  */
 function setDisabled(composite, disabled) {
-  var disableableElements = composite.querySelectorAll("input.deletable, button.deletable");
+  var disableableElements = composite.querySelectorAll("input.disableable, button.disableable");
 
   for (var i = 0; i < disableableElements.length; i++) {
     var disableableElement = disableableElements[i]; 
@@ -153,7 +153,7 @@ function setDisabled(composite, disabled) {
     // disableableElement.setAttribute("readonly", true); // alternative
   }
   
-  var checkboxes = composite.querySelectorAll(".checkbox.deletable");
+  var checkboxes = composite.querySelectorAll(".checkbox.disableable");
   for (var i = 0; i < checkboxes.length; i++) {
     var checkbox = checkboxes[i];
     if (!checkbox.classList.contains("readonly")) {

@@ -14,8 +14,6 @@
 переименовать сущность Connection в Resource. Осторожно: это может породить имена ContextResourceResource, ContextResourceLinkResource
 По-нормальному разобраться с авторизацией на нескольких инстансах (см. описание временного решения в LoginServlet)
 
-!!!!!!!!Реорганизовать структуру html: предположительно так: web-common: gui/common(common-ssr)/common.js; jtm-web: gui/jtm/jdbc(jdbc-ssr)/jdbc.js!!!!!!!!
-
 
 jtm-core------------------------
 
@@ -52,8 +50,6 @@ jam-web------------------
 7. Кнопка рестарт Апач
 
 web-common-------------------------
-
-2. css-класс deletable заменить на disableable там, где он реально обозначает "дизейблимость", а не "делетабельность"
 
 
 
