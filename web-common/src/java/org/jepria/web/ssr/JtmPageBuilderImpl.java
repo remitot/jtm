@@ -43,22 +43,22 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
     this.statusBar = statusBar;
   }
 
-  protected Iterable<El> jtmContent;
+  protected Iterable<? extends Node> jtmContent;
   
   @Override
-  public void setContent(Iterable<El> content) {
+  public void setContent(Iterable<? extends Node> content) {
     jtmContent = content;
   }
   
   @Override
-  public void setContent(El content) {
+  public void setContent(Node content) {
     jtmContent = new ArrayList<>(Arrays.asList(content));
   }
   
   @Override
   public Page build() {
     
-    List<El> content = new ArrayList<>();
+    List<Node> contentList = new ArrayList<>();
     
     if (currentMenuItem != null || logoutActionUrl != null || managerApacheHref != null) {
       final PageHeader pageHeader = new PageHeader(context, currentMenuItem);
@@ -71,21 +71,21 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
         pageHeader.setButtonLogout(logoutActionUrl);
       }
       
-      content.add(pageHeader);
+      contentList.add(pageHeader);
     }
     
     if (statusBar != null) {
-      content.add(statusBar);
+      contentList.add(statusBar);
     }
     
     if (jtmContent != null) {
-      Iterator<El> jtmContentIt = jtmContent.iterator();
+      Iterator<? extends Node> jtmContentIt = jtmContent.iterator();
       while (jtmContentIt.hasNext()) {
-        content.add(jtmContentIt.next());
+        contentList.add(jtmContentIt.next());
       }
     }
     
-    super.setContent(content);
+    super.setContent(contentList);
     
     return super.build();
   }

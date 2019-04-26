@@ -9,15 +9,15 @@ import javax.servlet.http.HttpServletResponse;
 public interface HtmlPageBuilder {
   void setTitle(String title);
   /**
-   * Has the same effect as if {@code content} elements were subsequently appended to the HTML &lt;body&gt; tag
-   * @param content list of {@code body} child elements 
+   * Has the same effect as if {@code content} nodes were subsequently appended to the HTML &lt;body&gt; tag
+   * @param content list of {@code body} child nodes 
    */
-  void setContent(Iterable<El> content);
+  void setContent(Iterable<? extends Node> content);
   /**
-   * Has the same effect as if {@code content} element was appended to the HTML &lt;body&gt; tag
-   * @param content a {@code body} child element 
+   * Has the same effect as if {@code content} node was appended to the HTML &lt;body&gt; tag
+   * @param content a {@code body} child node 
    */
-  void setContent(El content);
+  void setContent(Node content);
   
   void setBodyAttributes(Map<String, String> attributes);
   /**

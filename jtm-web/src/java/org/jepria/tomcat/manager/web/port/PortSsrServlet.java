@@ -55,7 +55,7 @@ public class PortSsrServlet extends SsrServletBase {
       
     }
     
-    final JtmPageBuilder.Page page = pageBuilder.build();
+    JtmPageBuilder.Page page = pageBuilder.build();
     page.respond(resp);
   }
   

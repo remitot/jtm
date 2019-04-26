@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
   
   protected String title;
   
-  protected Iterable<El> content;
+  protected Iterable<? extends Node> content;
   
   protected Map<String, String> bodyAttributes;
   
@@ -29,13 +29,13 @@ import javax.servlet.http.HttpServletResponse;
   }
 
   @Override
-  public void setContent(Iterable<El> content) {
+  public void setContent(Iterable<? extends Node> content) {
     this.content = content;
   }
   
   @Override
-  public void setContent(El content) {
-    List<El> contentList = new ArrayList<>();
+  public void setContent(Node content) {
+    List<Node> contentList = new ArrayList<>();
     contentList.add(content);
     setContent(contentList);
   }
@@ -83,8 +83,8 @@ import javax.servlet.http.HttpServletResponse;
       El bodyContent = new El("div", context);
       page.body.appendChild(bodyContent);
       
-      for (El el: content) {
-        bodyContent.appendChild(el);
+      for (Node node: content) {
+        bodyContent.appendChild(node);
       }
     }
     
