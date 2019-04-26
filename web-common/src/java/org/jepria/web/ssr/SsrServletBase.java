@@ -3,8 +3,8 @@ package org.jepria.web.ssr;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
-import org.jepria.web.ssr.AuthUtils.Auth;
-import org.jepria.web.ssr.AuthUtils.AuthState;
+import org.jepria.web.auth.AuthState;
+import org.jepria.web.auth.AuthServletBase.Auth;
 
 public class SsrServletBase extends HttpServlet {
 
@@ -78,7 +78,7 @@ public class SsrServletBase extends HttpServlet {
     public void requireAuth(JtmPageBuilder page) {
       final Context context = Context.fromRequest(req);
       
-      final AuthState authState = AuthUtils.getAuthState(req);
+      final AuthState authState = AuthState.get(req);
       
       if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
         authState.authPersistentData = null;
@@ -132,10 +132,10 @@ public class SsrServletBase extends HttpServlet {
   }
   
   protected Object getAuthPersistentData(HttpServletRequest req) {
-    return AuthUtils.getAuthState(req).authPersistentData;
+    return AuthState.get(req).authPersistentData;
   }
   
   protected void setAuthPersistentData(HttpServletRequest req, Object data) {
-    AuthUtils.getAuthState(req).authPersistentData = data;
+    AuthState.get(req).authPersistentData = data;
   }
 }

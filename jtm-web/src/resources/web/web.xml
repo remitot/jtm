@@ -5,22 +5,13 @@
   </session-config>
 
   <servlet>
-    <servlet-name>LoginServlet</servlet-name>
-    <servlet-class>org.jepria.tomcat.manager.web.LoginServlet
+    <servlet-name>AuthServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.AuthServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>LoginServlet</servlet-name>
+    <servlet-name>AuthServlet</servlet-name>
     <url-pattern>/login/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <servlet-name>LogoutServlet</servlet-name>
-    <servlet-class>org.jepria.tomcat.manager.web.LogoutServlet
-    </servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>LogoutServlet</servlet-name>
     <url-pattern>/logout/*</url-pattern>
   </servlet-mapping>
 
@@ -123,6 +114,8 @@
       <url-pattern>/jdbc/*</url-pattern>
       <url-pattern>/port/*</url-pattern>
       <url-pattern>/log/*</url-pattern>
+      <url-pattern>/login/*</url-pattern>
+      <url-pattern>/logout/*</url-pattern>
       <url-pattern>/api</url-pattern><!-- ApiDocs -->
       <url-pattern>/api/port/http</url-pattern> <!-- the port number is not hard to discover -->
       <url-pattern>/api/port/ajp</url-pattern> <!-- the port number is not hard to discover -->
