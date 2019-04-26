@@ -108,7 +108,7 @@ public class SsrServletBase extends HttpServlet {
       } else {
         authState.auth = Auth.FORBIDDEN;
         
-        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, "logout", req.getUserPrincipal().getName());
+        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, authRedirectPath, req.getUserPrincipal().getName());
         
         final El content = new El("div", context);
         content.appendChild(forbiddenFragment);

@@ -1,19 +1,18 @@
 package org.jepria.web.ssr;
 
-import java.util.Objects;
-
 public class ForbiddenFragment extends AuthFragment {
   
   /**
-   * @param logoutActionUrl html {@code action} value of the {@code form} to submit on logout button click, non null
+   * @param logoutRedirectPath path to redirect after a successful logout (on logout form submit button click). 
+   * If {@code null}, no redirect will be performed
    */
-  public ForbiddenFragment(Context context, String logoutActionUrl, String userPrincipalName) {
+  public ForbiddenFragment(Context context, String logoutRedirectPath, String userPrincipalName) {
     super(context);
-    
-    Objects.requireNonNull(logoutActionUrl);
+
+    final String action = "logout" + (logoutRedirectPath != null ? ("?redirect=" + logoutRedirectPath) : "");
     
     final El form = new El("form", context).addClass("auth-form")
-        .setAttribute("action", logoutActionUrl)
+        .setAttribute("action", action)
         .setAttribute("method", "post");
 
     
