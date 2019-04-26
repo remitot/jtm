@@ -65,6 +65,16 @@
   </servlet-mapping>
   
   <servlet>
+    <servlet-name>LogApiServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.log.LogApiServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LogApiServlet</servlet-name>
+    <url-pattern>/api/log/*</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
     <servlet-name>LogGui</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.log.LogSsrServlet</servlet-class>
   </servlet>
