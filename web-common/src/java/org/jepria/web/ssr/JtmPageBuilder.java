@@ -5,7 +5,11 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 public interface JtmPageBuilder extends HtmlPageBuilder {
   void setCurrentMenuItem(CurrentMenuItem currentMenuItem);
   void setManagerApache(String managerApacheHref);
-  void setButtonLogout(String logoutActionUrl);
+  /**
+   * @param logoutRedirectPath path to redirect after a successful logout.
+   * If {@code null}, no redirect will be performed
+   */
+  void setButtonLogout(String logoutRedirectPath);
   void setStatusBar(StatusBar statusBar);
   
   public static JtmPageBuilder newInstance(Context context) {

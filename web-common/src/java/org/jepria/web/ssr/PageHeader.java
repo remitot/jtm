@@ -97,29 +97,30 @@ public class PageHeader extends El {
   }
   
   /**
-   * @param logoutActionUrl html {@code action} value of the {@code form} to submit on logout button click. 
-   * If {@code null}, the button is removed from the container
+   * @param logoutRedirectPath path to redirect after a successful logout (on logout form submit button click). 
+   * If {@code null}, no redirect will be performed
    */
-  public void setButtonLogout(String logoutActionUrl) {
+  public void setButtonLogout(String logoutRedirectPath) {
     // remove
     if (formLogout != null) {
       childs.remove(formLogout);
       formLogout = null;
     }
     
+    
     // add
-    if (logoutActionUrl != null) {
-      formLogout = new El("form", context).setAttribute("action", logoutActionUrl).setAttribute("method", "post")
-          .addClass("button-form");
-      
-      El buttonLogout = new El("button", context)
-          .setAttribute("type", "submit")
-          .addClass("page-header__button-logout")
-          .addClass("big-black-button")
-          .setInnerHTML(context.getText("org.jepria.web.ssr.common.buttonLogout.text"));
-      formLogout.appendChild(buttonLogout);
-      
-      appendChild(formLogout);
-    }
+    final String action = "logout" + (logoutRedirectPath != null ? ("?redirect=" + logoutRedirectPath) : "");
+    
+    formLogout = new El("form", context).setAttribute("action", action).setAttribute("method", "post")
+        .addClass("button-form");
+    
+    El buttonLogout = new El("button", context)
+        .setAttribute("type", "submit")
+        .addClass("page-header__button-logout")
+        .addClass("big-black-button")
+        .setInnerHTML(context.getText("org.jepria.web.ssr.common.buttonLogout.text"));
+    formLogout.appendChild(buttonLogout);
+    
+    appendChild(formLogout);
   }
 }

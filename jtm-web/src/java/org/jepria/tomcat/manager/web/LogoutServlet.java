@@ -7,24 +7,32 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jepria.web.ssr.AuthUtils;
+
 public class LogoutServlet extends HttpServlet {
 
   private static final long serialVersionUID = 5808020075908523066L;
-  
+
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     doPost(req, resp);
   }
-  
+
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    req.logout();
-    req.getSession().invalidate();
-    
-    resp.setStatus(HttpServletResponse.SC_OK);
-    resp.flushBuffer();
-    return;
+
+    AuthUtils.logout(req);
+
+    final String redirect = req.getParameter("redirect");
+
+    if (redirect != null) {
+      resp.sendRedirect(redirect);
+
+    } else {
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.flushBuffer();
+    }
   }
 
 }

@@ -46,46 +46,15 @@ public class PortSsrServlet extends SsrServletBase {
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
       
-      
-      pageBuilder.setButtonLogout("port/logout"); // TODO this will erase any path- or request params of the current page
+      pageBuilder.setButtonLogout("port"); // TODO this will erase any path- or request params of the current page
       
     } else {
       
-      new AuthPageBuilder(req, "port/login", "port/logout").requireAuth(pageBuilder);
+      new AuthPageBuilder(req, "port").requireAuth(pageBuilder);
       
     }
     
     JtmPageBuilder.Page page = pageBuilder.build();
     page.respond(resp);
   }
-  
-  @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-      throws ServletException, IOException {
-    
-    final String path = req.getPathInfo();
-    
-    if ("/login".equals(path)) {
-      
-      login(req);
-      
-      // port/login -> port
-      // Note: sendRedirect("abc") will redirect to 'manager-ext/port/abc' 
-      // sendRedirect(".") will redirect to 'manager-ext/port/'
-      // sendRedirect("") will stay here 'manager-ext/port/login'
-      resp.sendRedirect("../port"); // TODO
-      return;
-      
-    } else if ("/logout".equals(path)) {
-      
-      logout(req);
-      
-      // port/logout -> port
-      resp.sendRedirect("../port"); // TODO
-      return;
-        
-    }
-    
-  }
-
 }

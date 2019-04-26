@@ -1,11 +1,10 @@
 package org.jepria.web.ssr;
 
-import java.io.IOException;
-import java.util.function.Supplier;
-
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+
+import org.jepria.web.ssr.AuthUtils.Auth;
+import org.jepria.web.ssr.AuthUtils.AuthState;
 
 public class SsrServletBase extends HttpServlet {
 
@@ -15,59 +14,6 @@ public class SsrServletBase extends HttpServlet {
     return req.getUserPrincipal() != null;
   }
   
-  protected boolean login(HttpServletRequest req) throws IOException {
-    final String username = req.getParameter("username");
-    final String password = req.getParameter("password");
-    
-    final AuthState authState = getAuthState(req); 
-    
-    boolean loginSuccess;
-    
-    try {
-      
-      // TODO Tomcat bug?
-      // when logged into vsmlapprfid1:8081/manager-ext/jdbc, then opening vsmlapprfid1:8080/manager-ext/jdbc results 401 
-      // (on tomcat's container security check level) -- WHY? (with SSO valve turned on!)
-      // OK, but after that, if we do vsmlapprfid1:8080/manager-ext/api/login -- the userPrincipal IS null, but req.login() throws
-      // 'javax.servlet.ServletException: This request has already been authenticated' -- WHY? Must be EITHER request authenticated OR userPrincipal==null!
-      
-      // So, as a workaround -- logout anyway...
-      
-//        // logout if logged in
-//        if (req.getUserPrincipal() != null) {
-//          req.logout();
-//        }
-      
-      req.logout();
-      
-      req.login(username, password);
-
-      authState.auth = Auth.AUTHORIZED;
-      
-      loginSuccess = true;
-      
-    } catch (ServletException e) {
-      e.printStackTrace();
-      
-      authState.auth = Auth.LOGIN_FALIED;
-      authState.username = username;
-      
-      loginSuccess = false;
-    }
-    
-    // maintain the before-login auth state
-    getAuthState(req, () -> authState);
-    
-    return loginSuccess;
-  }
-  
-  protected void logout(HttpServletRequest req) throws ServletException {
-    req.logout();
-    req.getSession().invalidate();
-    
-    getAuthState(req).auth = Auth.LOGOUT;
-  }
-
   private final String getStatusBarModDataSavedHtmlPostfix(Context context) {
     return ".&emsp;&emsp;&emsp;<span class=\"span-bold\">"
         + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.saved") 
@@ -113,60 +59,26 @@ public class SsrServletBase extends HttpServlet {
     throw new IllegalArgumentException(String.valueOf(authState.auth));
   }
   
-  /**
-   * Class stored into a session
-   */
-  protected class AuthState {
-    public Auth auth;
-    public String username;
-    public Object authPersistentData;
-  }
-  
-  protected enum Auth {
-    AUTHORIZED,
-    /**
-     * For the current module! Not application-wide
-     */
-    FORBIDDEN,
-    UNAUTHORIZED,
-    LOGIN_FALIED,
-    LOGOUT,
-  }
-  
-  protected AuthState getAuthState(HttpServletRequest request) {
-    return getAuthState(request, () -> new AuthState());
-  }
-  
-  /**
-   * @param request
-   * @param orElse an auth state instance to set and return if the current auth state is null 
-   * @return
-   */
-  private AuthState getAuthState(HttpServletRequest request, Supplier<AuthState> orElse) {
-    AuthState state = (AuthState)request.getSession().getAttribute("org.jepria.tomcat.manager.web.SessionAttributes.authState");
-    if (state == null) {
-      state = orElse == null ? null : orElse.get();
-      request.getSession().setAttribute("org.jepria.tomcat.manager.web.SessionAttributes.authState", state);
-    }
-    return state;
-  }
-  
   protected class AuthPageBuilder {
     
     private final HttpServletRequest req;
-    private final String loginActionUrl;
-    private final String logoutActionUrl;
+    private final String authRedirectPath;
     
-    public AuthPageBuilder(HttpServletRequest req, String loginActionUrl, String logoutActionUrl) {
+    /**
+     * 
+     * @param req
+     * @param authRedirectPath path to redirect after a successful login of logout.
+     * If {@code null}, no redirect will be performed
+     */
+    public AuthPageBuilder(HttpServletRequest req, String authRedirectPath) {
       this.req = req;
-      this.loginActionUrl = loginActionUrl;
-      this.logoutActionUrl = logoutActionUrl;
+      this.authRedirectPath = authRedirectPath;
     }
 
     public void requireAuth(JtmPageBuilder page) {
       final Context context = Context.fromRequest(req);
       
-      final AuthState authState = getAuthState(req);
+      final AuthState authState = AuthUtils.getAuthState(req);
       
       if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
         authState.authPersistentData = null;
@@ -177,7 +89,7 @@ public class SsrServletBase extends HttpServlet {
       }
 
       if (req.getUserPrincipal() == null) {
-        final LoginFragment loginFragment = new LoginFragment(context, loginActionUrl);
+        final LoginFragment loginFragment = new LoginFragment(context, authRedirectPath);
         
         // restore preserved username
         if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
@@ -190,25 +102,21 @@ public class SsrServletBase extends HttpServlet {
         final El content = new El("div", context);
         content.appendChild(loginFragment);
         
-        content.addScript("css/jtm-common.css");
-        
         page.setContent(content);
         page.setBodyAttributes("onload", "jtm_onload();authFragmentLogin_onload();", "class", "background_gray");
         
       } else {
         authState.auth = Auth.FORBIDDEN;
         
-        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, logoutActionUrl, req.getUserPrincipal().getName());
+        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, "logout", req.getUserPrincipal().getName());
         
         final El content = new El("div", context);
         content.appendChild(forbiddenFragment);
         
-        content.addScript("css/jtm-common.css");
-        
         page.setContent(content);
         page.setBodyAttributes("onload", "jtm_onload();", "class", "background_gray");
         
-        page.setButtonLogout(logoutActionUrl);
+        page.setButtonLogout(authRedirectPath);
       }
       
       page.setStatusBar(createStatusBar(context, authState));
@@ -221,5 +129,13 @@ public class SsrServletBase extends HttpServlet {
       authState.username = null;
     }
     
+  }
+  
+  protected Object getAuthPersistentData(HttpServletRequest req) {
+    return AuthUtils.getAuthState(req).authPersistentData;
+  }
+  
+  protected void setAuthPersistentData(HttpServletRequest req, Object data) {
+    AuthUtils.getAuthState(req).authPersistentData = data;
   }
 }

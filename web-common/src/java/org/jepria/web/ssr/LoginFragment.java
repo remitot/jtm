@@ -1,7 +1,5 @@
 package org.jepria.web.ssr;
 
-import java.util.Objects;
-
 public class LoginFragment extends AuthFragment {
   
   public final El inputUsername;
@@ -10,17 +8,18 @@ public class LoginFragment extends AuthFragment {
   
   /**
    * 
-   * @param loginActionUrl html {@code action} value of the {@code form} to submit on login button click, non null
+   * @param loginRedirectPath path to redirect after a successful login (on login form submit button click).
+   * If {@code null}, no redirect will be performed
    */
-  public LoginFragment(Context context, String loginActionUrl) {
+  public LoginFragment(Context context, String loginRedirectPath) {
     super(context);
     
-    Objects.requireNonNull(loginActionUrl);
+    final String action = "login" + (loginRedirectPath != null ? ("?redirect=" + loginRedirectPath) : "");
     
     addClass("login-frame");
 
     final El loginForm = new El("form", context).addClass("auth-form").addClass("auth-form_login")
-        .setAttribute("action", loginActionUrl)
+        .setAttribute("action", action)
         .setAttribute("method", "post");
     
     final El rowUsername = new El("div", context).addClass("auth-form__row");

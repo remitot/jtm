@@ -102,38 +102,16 @@ public class LogSsrServlet extends SsrServletBase {
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
   
-      pageBuilder.setButtonLogout("log/logout"); // TODO this will erase any path- or request params of the current page
+      pageBuilder.setButtonLogout("log"); // TODO this will erase any path- or request params of the current page
       
     } else {
       
-      new AuthPageBuilder(req, "log/login", "log/logout").requireAuth(pageBuilder);
+      new AuthPageBuilder(req, "log").requireAuth(pageBuilder);
       
     }
     
     
     JtmPageBuilder.Page page = pageBuilder.build();
     page.respond(resp);
-  }
-  
-  @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-    final String path = req.getPathInfo();
-    
-    if ("/login".equals(path)) {
-      
-      login(req);
-      
-      resp.sendRedirect("../log"); // TODO
-      return;
-      
-    } else if ("/logout".equals(path)) {
-      
-      logout(req);
-      
-      resp.sendRedirect("../log"); // TODO
-      return;
-        
-    }
   }
 }

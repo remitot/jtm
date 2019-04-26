@@ -63,7 +63,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       if (itemModRequests == null) {
         @SuppressWarnings("unchecked")
-        List<ItemModRequestDto> itemModRequestsUnchecked = (List<ItemModRequestDto>)getAuthState(req).authPersistentData; 
+        List<ItemModRequestDto> itemModRequestsUnchecked = (List<ItemModRequestDto>)getAuthPersistentData(req); 
         itemModRequests = itemModRequestsUnchecked;
       }
       
@@ -74,7 +74,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       
       pageBuilder.setStatusBar(createStatusBar(context, appState.modStatus));
-      pageBuilder.setButtonLogout("jdbc/logout"); // TODO this will erase any path- or request params of the current page
+      pageBuilder.setButtonLogout("jdbc"); // TODO this will erase any path- or request params of the current page
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
@@ -83,7 +83,7 @@ public class JdbcSsrServlet extends SsrServletBase {
 
       clearAppState(req);
       
-      new AuthPageBuilder(req, "jdbc/login", "jdbc/logout").requireAuth(pageBuilder);
+      new AuthPageBuilder(req, "jdbc").requireAuth(pageBuilder);
     }
     
     final JtmPageBuilder.Page page = pageBuilder.build();
@@ -97,21 +97,7 @@ public class JdbcSsrServlet extends SsrServletBase {
 
     final String path = req.getPathInfo();
     
-    if ("/login".equals(path)) {
-      
-      login(req);
-      
-      resp.sendRedirect("../jdbc"); // TODO
-      return;
-      
-    } else if ("/logout".equals(path)) {
-      
-      logout(req);
-      
-      resp.sendRedirect("../jdbc"); // TODO
-      return;
-        
-    } else if ("/mod".equals(path)) {
+    if ("/mod".equals(path)) {
 
       final Gson gson = new Gson();
       final List<ItemModRequestDto> itemModRequests;
@@ -218,7 +204,7 @@ public class JdbcSsrServlet extends SsrServletBase {
         
         } else {
 
-          getAuthState(req).authPersistentData = itemModRequests;
+          setAuthPersistentData(req, itemModRequests);
           
           final AppState appState = getAppState(req);
           appState.itemModRequests = itemModRequests;
