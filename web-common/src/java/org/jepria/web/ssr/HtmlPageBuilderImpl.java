@@ -3,26 +3,23 @@ package org.jepria.web.ssr;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
-
-/*package*/class PageBuilderImpl implements JtmPageBuilder {
+/*package*/class HtmlPageBuilderImpl implements HtmlPageBuilder {
   
-  private final Context context;
+  protected final Context context;
   
-  private String title;
-  private CurrentMenuItem currentMenuItem;
-  private String managerApacheHref;
-  private StatusBar statusBar;
-  private String logoutActionUrl;
+  protected String title;
   
-  private Iterable<El> content;
-  private String bodyOnload;
+  protected Iterable<El> content;
   
-  public PageBuilderImpl(Context context) {
+  protected Map<String, String> bodyAttributes;
+  
+  public HtmlPageBuilderImpl(Context context) {
     this.context = context;
   }
   
@@ -32,38 +29,39 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
   }
 
   @Override
-  public void setCurrentMenuItem(CurrentMenuItem currentMenuItem) {
-    this.currentMenuItem = currentMenuItem;
-  }
-
-  @Override
-  public void setManagerApache(String managerApacheHref) {
-    this.managerApacheHref = managerApacheHref;
-  }
-
-  @Override
-  public void setContent(Iterable<El> content, String bodyOnload) {
+  public void setContent(Iterable<El> content) {
     this.content = content;
-    this.bodyOnload = bodyOnload;
   }
   
   @Override
-  public void setContent(El content, String bodyOnload) {
+  public void setContent(El content) {
     List<El> contentList = new ArrayList<>();
     contentList.add(content);
-    setContent(contentList, bodyOnload);
+    setContent(contentList);
+  }
+  
+
+  @Override
+  public void setBodyAttributes(Map<String, String> attributes) {
+    this.bodyAttributes = attributes;
   }
   
   @Override
-  public void setButtonLogout(String logoutActionUrl) {
-    this.logoutActionUrl = logoutActionUrl;
+  public void setBodyAttributes(String... attributes) {
+    if (attributes != null) {
+      if (attributes.length % 2 != 0) {
+        throw new IllegalArgumentException("Expected attributes array of an even length");
+      }
+      
+      Map<String, String> map = new HashMap<>();
+      for (int i = 0; i < attributes.length; i += 2) {
+        map.put(attributes[i], attributes[i + 1]);
+      }
+      
+      setBodyAttributes(map);
+    }
   }
-
-  @Override
-  public void setStatusBar(StatusBar statusBar) {
-    this.statusBar = statusBar;
-  }
-
+  
   private boolean isBuilt = false;
   
   @Override
@@ -81,24 +79,6 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
     page.head.appendChild(new El("meta", context).setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
         .appendChild(new El("meta", context).setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
     
-    if (currentMenuItem != null || logoutActionUrl != null || managerApacheHref != null) {
-      final PageHeader pageHeader = new PageHeader(context, currentMenuItem);
-      
-      if (managerApacheHref != null) {
-        pageHeader.setManagerApache(managerApacheHref);
-      }
-      
-      if (logoutActionUrl != null) {
-        pageHeader.setButtonLogout(logoutActionUrl);
-      }
-      
-      page.body.appendChild(pageHeader);
-    }
-    
-    if (statusBar != null) {
-      page.body.appendChild(statusBar);
-    }
-    
     if (content != null) {
       El bodyContent = new El("div", context);
       page.body.appendChild(bodyContent);
@@ -108,8 +88,10 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
       }
     }
     
-    if (bodyOnload != null) {
-      page.body.setAttribute("onload", bodyOnload);
+    if (bodyAttributes != null) {
+      for (Map.Entry<String, String> attribute: bodyAttributes.entrySet()) {
+        page.body.setAttribute(attribute.getKey(), attribute.getValue());
+      }
     }
      
     // add all scripts and styles to the head

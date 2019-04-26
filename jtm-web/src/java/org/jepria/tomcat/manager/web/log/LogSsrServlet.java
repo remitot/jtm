@@ -17,9 +17,8 @@
 //import org.jepria.web.ssr.Context;
 //import org.jepria.web.ssr.El;
 //import org.jepria.web.ssr.ForbiddenFragment;
-//import org.jepria.web.ssr.HtmlPage;
-//import org.jepria.web.ssr.HtmlPageForbidden;
-//import org.jepria.web.ssr.HtmlPageUnauthorized;
+//import org.jepria.web.ssr.HtmlPageBuilder;
+//import org.jepria.web.ssr.HtmlPageBuilder.Page;
 //import org.jepria.web.ssr.LoginFragment;
 //import org.jepria.web.ssr.PageHeader;
 //import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
@@ -50,13 +49,19 @@
 //      // first request
 //      req.getSession().setAttribute(LTZO_COOKIE_SESSION_ATTR_KEY, new Object());
 //      
-//      final HtmlPage page = new HtmlPage(context);
-//      // TODO populate the page with header or title (for the case of disabled JS, for example)
+//
+//      // TODO populate the page with human-reader header or title (for the case of disabled JS, for example)
+//      HtmlPageBuilder pageBuilder = HtmlPageBuilder.newInstance(context);
+//      
 //      El script = new El("script", context);
 //      script.setAttribute("type", "text/javascript");
 //      script.setInnerHTML("document.cookie=\"local-timezone-offset=\" + (-new Date().getTimezoneOffset()); window.location.reload();");
-//      page.getBodyChilds().add(script);
+//      
+//      pageBuilder.setContent(script);
+//      
+//      Page page = pageBuilder.build();
 //      page.respond(resp);
+//      
 //      return;
 //      
 //    } else {

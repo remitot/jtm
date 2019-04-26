@@ -43,7 +43,9 @@ public class PortSsrServlet extends SsrServletBase {
       final List<PortDto> ports = new PortApi().list(env);
       
       PortPageContent content = new PortPageContent(context, ports);
-      pageBuilder.setContent(content, "jtm_onload();table_onload();");
+      pageBuilder.setContent(content);
+      pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
+      
       
       pageBuilder.setButtonLogout("port/logout"); // TODO this will erase any path- or request params of the current page
       

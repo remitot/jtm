@@ -191,9 +191,9 @@ public class SsrServletBase extends HttpServlet {
         content.appendChild(loginFragment);
         
         content.addScript("css/jtm-common.css");
-        content.addClass("background_gray");
         
-        page.setContent(content, "jtm_onload();authFragmentLogin_onload();");
+        page.setContent(content);
+        page.setBodyAttributes("onload", "jtm_onload();authFragmentLogin_onload();", "class", "background_gray");
         
       } else {
         authState.auth = Auth.FORBIDDEN;
@@ -204,9 +204,9 @@ public class SsrServletBase extends HttpServlet {
         content.appendChild(forbiddenFragment);
         
         content.addScript("css/jtm-common.css");
-        content.addClass("background_gray");
         
-        page.setContent(content, "jtm_onload();");
+        page.setContent(content);
+        page.setBodyAttributes("onload", "jtm_onload();", "class", "background_gray");
         
         page.setButtonLogout(logoutActionUrl);
       }
