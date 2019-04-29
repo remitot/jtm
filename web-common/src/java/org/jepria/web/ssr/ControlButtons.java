@@ -28,6 +28,10 @@ public class ControlButtons extends El {
         .addClass("control-button_save")
         .addClass("big-black-button")
         .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonSave.text"), true);
+        
+    buttonSave.setAttribute("org.jepria.web.ssr.ControlButtons.buttonSave.title.save", text.getString("org.jepria.web.ssr.ControlButtons.buttonSave.title.save"));
+    buttonSave.setAttribute("org.jepria.web.ssr.ControlButtons.button.title.no_mod", text.getString("org.jepria.web.ssr.ControlButtons.button.title.no_mod"));
+    
     formSave.appendChild(buttonSave);
     
     
@@ -41,6 +45,10 @@ public class ControlButtons extends El {
         .addClass("control-button_reset")
         .addClass("big-black-button")
         .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonReset.text"), true);
+        
+    buttonReset.setAttribute("org.jepria.web.ssr.ControlButtons.buttonReset.title.reset", text.getString("org.jepria.web.ssr.ControlButtons.buttonReset.title.reset"));
+    buttonReset.setAttribute("org.jepria.web.ssr.ControlButtons.button.title.no_mod", text.getString("org.jepria.web.ssr.ControlButtons.button.title.no_mod"));
+    
     formReset.appendChild(buttonReset);
     
     

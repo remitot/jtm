@@ -272,6 +272,11 @@ public abstract class Table<T extends ItemData> extends El {
       addStrike(cell);
     }
     
+    // add text attributes
+    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.inactive", text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive"));
+    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.active", text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active"));
+    
+    
     return checkbox;
   }
   
