@@ -5,13 +5,13 @@ import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
 
-public interface Context {
-  String getText(String key);
+public interface Text {
+  String getString(String key);
   
   public static final String DEFAULT_LANG = "ru";
   
-  public static Context fromRequest(HttpServletRequest request) {
-    return new Context() {
+  public static Text fromRequest(HttpServletRequest request) {
+    return new Text() {
       
       private final String requestLang = request.getParameter("lang");
       
@@ -20,7 +20,7 @@ public interface Context {
       private final ResourceBundle bundle = ResourceBundle.getBundle("text/bundle", new Locale(localeCode));
       
       @Override
-      public String getText(String key) {
+      public String getString(String key) {
         return bundle.getString(key);
       }
     };

@@ -1,6 +1,5 @@
 package org.jepria.web.ssr.table;
 
-import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 
 public class CheckBox extends El {
@@ -10,11 +9,11 @@ public class CheckBox extends El {
   public final El checkmark;
   
   // enabled by default
-  public CheckBox(Context context, boolean active) {
-    super("label", context);
+  public CheckBox(boolean active) {
+    super("label");
     classList.add("checkbox");
     
-    input = new El("input", context);
+    input = new El("input");
     input.setAttribute("type", "checkbox");
     input.setAttribute("name", "active");
     if (active) {
@@ -22,7 +21,7 @@ public class CheckBox extends El {
     }
     appendChild(input);
     
-    checkmark = new El("span", context);
+    checkmark = new El("span");
     checkmark.classList.add("checkmark");
     appendChild(checkmark);
     

@@ -11,32 +11,32 @@ public class LoginFragment extends AuthFragment {
    * @param loginRedirectPath path to redirect after a successful login (on login form submit button click).
    * If {@code null}, no redirect will be performed
    */
-  public LoginFragment(Context context, String loginRedirectPath) {
-    super(context);
+  public LoginFragment(Text text, String loginRedirectPath) {
+    super(text);
     
     final String action = "login" + (loginRedirectPath != null ? ("?redirect=" + loginRedirectPath) : "");
     
     addClass("login-frame");
 
-    final El loginForm = new El("form", context).addClass("auth-form").addClass("auth-form_login")
+    final El loginForm = new El("form").addClass("auth-form").addClass("auth-form_login")
         .setAttribute("action", action)
         .setAttribute("method", "post");
     
-    final El rowUsername = new El("div", context).addClass("auth-form__row");
-    inputUsername = new El("input", context).setAttribute("type", "text").addClass("field-text").addClass("login-field_username")
-        .setAttribute("name", "username").setAttribute("placeholder", context.getText("org.jepria.web.ssr.LoginFragment.fieldUsername.placeholder"));
+    final El rowUsername = new El("div").addClass("auth-form__row");
+    inputUsername = new El("input").setAttribute("type", "text").addClass("field-text").addClass("login-field_username")
+        .setAttribute("name", "username").setAttribute("placeholder", text.getString("org.jepria.web.ssr.LoginFragment.fieldUsername.placeholder"));
     rowUsername.appendChild(inputUsername);
     loginForm.appendChild(rowUsername);
     
-    final El rowPassword = new El("div", context).addClass("auth-form__row");
-    inputPassword = new El("input", context).setAttribute("type", "password").addClass("field-text").addClass("login-field_password")
-        .setAttribute("name", "password").setAttribute("placeholder", context.getText("org.jepria.web.ssr.LoginFragment.fieldPassword.placeholder"));
+    final El rowPassword = new El("div").addClass("auth-form__row");
+    inputPassword = new El("input").setAttribute("type", "password").addClass("field-text").addClass("login-field_password")
+        .setAttribute("name", "password").setAttribute("placeholder", text.getString("org.jepria.web.ssr.LoginFragment.fieldPassword.placeholder"));
     rowPassword.appendChild(inputPassword);
     loginForm.appendChild(rowPassword);
     
-    final El rowButtonLogin = new El("div", context).addClass("auth-form__row");
-    buttonLogin = new El("button", context).setAttribute("type", "submit").addClass("big-black-button")
-        .setInnerHTML(context.getText("org.jepria.web.ssr.common.buttonLogin.text"));
+    final El rowButtonLogin = new El("div").addClass("auth-form__row");
+    buttonLogin = new El("button").setAttribute("type", "submit").addClass("big-black-button")
+        .setInnerHTML(text.getString("org.jepria.web.ssr.common.buttonLogin.text"));
     rowButtonLogin.appendChild(buttonLogin);
     loginForm.appendChild(rowButtonLogin);
     

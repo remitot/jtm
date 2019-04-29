@@ -13,8 +13,6 @@ import java.util.Set;
 
 public class El implements Node {
   
-  protected final Context context;
-  
   public String tagName;
   
   public final Map<String, Optional<String>> attributes = new HashMap<>();
@@ -25,13 +23,8 @@ public class El implements Node {
   
   private String innerHTML;
   
-  public El(String tag, Context context) {
-    this(context);
+  public El(String tag) {
     this.tagName = tag;
-  }
-  
-  public El(Context context) {
-    this.context = context;
   }
   
   public void setEnabled(boolean enabled) {

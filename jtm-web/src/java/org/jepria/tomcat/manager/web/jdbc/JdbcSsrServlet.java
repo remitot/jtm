@@ -15,7 +15,7 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
-import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.JtmPageBuilder;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
@@ -41,13 +41,13 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final Context context = Context.fromRequest(req);
+    final Text text = Text.fromRequest(req);
     
     final AppState appState = getAppState(req);
 
     final Environment env = EnvironmentFactory.get(req);
     
-    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(context);
+    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
     pageBuilder.setTitle("Tomcat manager: JDBC ресурсы (датасорсы)"); // NON-NLS
     pageBuilder.setCurrentMenuItem(CurrentMenuItem.JDBC);
     
@@ -68,12 +68,12 @@ public class JdbcSsrServlet extends SsrServletBase {
       }
       
       
-      JdbcPageContent content = new JdbcPageContent(context, connections, itemModRequests, itemModStatuses);
+      JdbcPageContent content = new JdbcPageContent(text, connections, itemModRequests, itemModStatuses);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
       
       
-      pageBuilder.setStatusBar(createStatusBar(context, appState.modStatus));
+      pageBuilder.setStatusBar(createStatusBar(appState.modStatus));
       pageBuilder.setButtonLogout("jdbc"); // TODO this will erase any path- or request params of the current page
       
       appState.itemModRequests = null;
@@ -261,18 +261,18 @@ public class JdbcSsrServlet extends SsrServletBase {
     MOD_INCORRECT_FIELD_DATA,
   }
   
-  protected StatusBar createStatusBar(Context context, ModStatus status) {
+  protected StatusBar createStatusBar(ModStatus status) {
     if (status == null) {
       return null;
     }
     switch (status) {
     case MOD_SUCCESS: {
-      return new StatusBar(context, StatusBar.Type.SUCCESS, "Все изменения сохранены"); // NON-NLS 
+      return new StatusBar(StatusBar.Type.SUCCESS, "Все изменения сохранены"); // NON-NLS 
     }
     case MOD_INCORRECT_FIELD_DATA: {
       final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
           "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
-      return new StatusBar(context, StatusBar.Type.ERROR, statusHTML);
+      return new StatusBar(StatusBar.Type.ERROR, statusHTML);
     }
     }
     throw new IllegalArgumentException(String.valueOf(status));

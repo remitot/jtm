@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.Text;
 
 public abstract class Table<T extends ItemData> extends El {
   
@@ -20,8 +20,11 @@ public abstract class Table<T extends ItemData> extends El {
     void setNext(El el);
   }
   
-  public Table(Context context) {
-    super("div", context);
+  protected final Text text;
+  
+  public Table(Text text) {
+    super("div");
+    this.text = text;
     
     // TODO remove id, use class and css
     setAttribute("id", "table");
@@ -161,7 +164,7 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected El createFieldInput(String name, String value, String placeholder) {
-    El field = new El("input", context);
+    El field = new El("input");
     field.setAttribute("type", "text");
     field.setAttribute("name", name);
     field.setAttribute("value", value);
@@ -170,29 +173,29 @@ public abstract class Table<T extends ItemData> extends El {
   }
 
   protected void addStrike(El cell) {
-    El strike = new El("div", context);
+    El strike = new El("div");
     strike.classList.add("strike");
     cell.appendChild(strike);
   }
 
   protected El createFieldLabel(String value) {
-    El field = new El("label", context);
+    El field = new El("label");
     field.setInnerHTML(value, true);
     return field;
   }
 
   protected El wrapCellPad(El element) {
-    El wrapper = new El("div", context);
+    El wrapper = new El("div");
     
-    El leftDiv = new El("div", context);
+    El leftDiv = new El("div");
     leftDiv.classList.add("cell-pad-left");
     wrapper.appendChild(leftDiv);
     
-    El rightDiv = new El("div", context);
+    El rightDiv = new El("div");
     rightDiv.classList.add("cell-pad-right");
     wrapper.appendChild(rightDiv);
     
-    El midDiv = new El("div", context);
+    El midDiv = new El("div");
     midDiv.classList.add("cell-pad-mid");
     wrapper.appendChild(midDiv);
     
@@ -203,22 +206,22 @@ public abstract class Table<T extends ItemData> extends El {
   
   protected void addFieldDelete(El cell, TabIndex tabIndex) {
 
-    El field = new El("div", context);
+    El field = new El("div");
     
-    El buttonDelete = new El("input", context);
+    El buttonDelete = new El("input");
     buttonDelete.classList.add("button-delete");
     buttonDelete.classList.add("button-delete_delete");
     buttonDelete.setAttribute("type", "image");
     buttonDelete.setAttribute("src", "img/delete.png");
-    buttonDelete.setAttribute("title", context.getText("org.jepria.web.ssr.table.buttonDelete.title.delete"));
+    buttonDelete.setAttribute("title", text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete"));
     tabIndex.setNext(buttonDelete);
     
-    El buttonUndelete = new El("input", context);
+    El buttonUndelete = new El("input");
     buttonUndelete.classList.add("button-delete");
     buttonUndelete.classList.add("button-delete_undelete");
     buttonUndelete.setAttribute("type", "image");
     buttonUndelete.setAttribute("src", "img/undelete.png");
-    buttonUndelete.setAttribute("title", context.getText("org.jepria.web.ssr.table.buttonDelete.title.undelete"));
+    buttonUndelete.setAttribute("title", text.getString("org.jepria.web.ssr.table.buttonDelete.title.undelete"));
     tabIndex.setNext(buttonUndelete);
     
     field.appendChild(buttonDelete);
@@ -231,7 +234,7 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected El createCell(El row, String columnClass) {
-    El cell = new El("div", context);
+    El cell = new El("div");
     cell.classList.add("cell");
     cell.classList.add(columnClass);
     row.appendChild(cell);
@@ -241,7 +244,7 @@ public abstract class Table<T extends ItemData> extends El {
   protected CheckBox addCheckbox(El cell, Field field) {
     
     boolean active = !"false".equals(field.value);
-    CheckBox checkbox = new CheckBox(context, active);
+    CheckBox checkbox = new CheckBox(active);
     
     checkbox.setEnabled(!field.readonly);
 

@@ -12,7 +12,7 @@ public interface JtmPageBuilder extends HtmlPageBuilder {
   void setButtonLogout(String logoutRedirectPath);
   void setStatusBar(StatusBar statusBar);
   
-  public static JtmPageBuilder newInstance(Context context) {
-    return new JtmPageBuilderImpl(context);
+  public static JtmPageBuilder newInstance(Text text) {
+    return new JtmPageBuilderImpl(text);
   }
 }

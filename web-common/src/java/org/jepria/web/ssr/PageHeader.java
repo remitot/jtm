@@ -2,6 +2,8 @@ package org.jepria.web.ssr;
 
 public class PageHeader extends El {
   
+  protected final Text text;
+  
   private El itemManagerApache;
   private El itemJdbc;
   private El itemLog;
@@ -21,12 +23,13 @@ public class PageHeader extends El {
    * @param currentMenuItem the menu item to be displayed as currently active.
    * If {@code null}, no menu item will be displayed as currently active.
    */
-  public PageHeader(Context context, CurrentMenuItem currentMenuItem) {
-    super("div", context);
+  public PageHeader(Text text, CurrentMenuItem currentMenuItem) {
+    super("div");
+    this.text = text;
     classList.add("page-header");
     
     
-    itemJdbc = new El("a", context);
+    itemJdbc = new El("a");
     itemJdbc.classList.add("page-header__menu-item");
     itemJdbc.classList.add("page-header__menu-item_regular");
     if (currentMenuItem == CurrentMenuItem.JDBC) {
@@ -35,11 +38,11 @@ public class PageHeader extends El {
       itemJdbc.classList.add("page-header__menu-item_hoverable");
       itemJdbc.setAttribute("href", "jdbc");
     }
-    itemJdbc.setInnerHTML(context.getText("org.jepria.web.ssr.PageHeader.itemJdbc"), true);
+    itemJdbc.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemJdbc"), true);
     appendChild(itemJdbc);
     
     
-    itemLog = new El("a", context);
+    itemLog = new El("a");
     itemLog.classList.add("page-header__menu-item");
     itemLog.classList.add("page-header__menu-item_regular");
     if (currentMenuItem == CurrentMenuItem.LOG) {
@@ -48,11 +51,11 @@ public class PageHeader extends El {
       itemLog.classList.add("page-header__menu-item_hoverable");
       itemLog.setAttribute("href", "log");
     }
-    itemLog.setInnerHTML(context.getText("org.jepria.web.ssr.PageHeader.itemLog"), true);
+    itemLog.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemLog"), true);
     appendChild(itemLog);
     
     
-    itemPort = new El("a", context);
+    itemPort = new El("a");
     itemPort.classList.add("page-header__menu-item");
     itemPort.classList.add("page-header__menu-item_regular");
     if (currentMenuItem == CurrentMenuItem.PORT) {
@@ -61,7 +64,7 @@ public class PageHeader extends El {
       itemPort.classList.add("page-header__menu-item_hoverable");
       itemPort.setAttribute("href", "port");
     }
-    itemPort.setInnerHTML(context.getText("org.jepria.web.ssr.PageHeader.itemPort"), true);
+    itemPort.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemPort"), true);
     appendChild(itemPort);
     
     
@@ -83,14 +86,14 @@ public class PageHeader extends El {
     
     // add
     if (managerApacheHref != null) {
-      itemManagerApache = new El("a", context);
+      itemManagerApache = new El("a");
       itemManagerApache.classList.add("page-header__menu-item");
       itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
       itemManagerApache.setAttribute("href", managerApacheHref);
       itemManagerApache.classList.add("page-header__menu-item_hoverable");
       
       itemManagerApache.setAttribute("target", "_blank");
-      itemManagerApache.setInnerHTML(context.getText("org.jepria.web.ssr.PageHeader.itemApacheHTTPD"), true);
+      itemManagerApache.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemApacheHTTPD"), true);
       
       childs.add(0, itemManagerApache);
     }
@@ -111,14 +114,14 @@ public class PageHeader extends El {
     // add
     final String action = "logout" + (logoutRedirectPath != null ? ("?redirect=" + logoutRedirectPath) : "");
     
-    formLogout = new El("form", context).setAttribute("action", action).setAttribute("method", "post")
+    formLogout = new El("form").setAttribute("action", action).setAttribute("method", "post")
         .addClass("button-form");
     
-    El buttonLogout = new El("button", context)
+    El buttonLogout = new El("button")
         .setAttribute("type", "submit")
         .addClass("page-header__button-logout")
         .addClass("big-black-button")
-        .setInnerHTML(context.getText("org.jepria.web.ssr.common.buttonLogout.text"));
+        .setInnerHTML(text.getString("org.jepria.web.ssr.common.buttonLogout.text"));
     formLogout.appendChild(buttonLogout);
     
     appendChild(formLogout);

@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
-import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.HtmlPageBuilder;
 import org.jepria.web.ssr.HtmlPageBuilder.Page;
 import org.jepria.web.ssr.JtmPageBuilder;
@@ -82,11 +82,11 @@ public class LogSsrServlet extends SsrServletBase {
     
 
     
-    final Context context = Context.fromRequest(req);
+    final Text text = Text.fromRequest(req);
     
     final Environment env = EnvironmentFactory.get(req);
     
-    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(context);
+    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
     pageBuilder.setTitle("Tomcat manager: логи"); // NON-NLS
     pageBuilder.setCurrentMenuItem(CurrentMenuItem.LOG);
     
@@ -98,7 +98,7 @@ public class LogSsrServlet extends SsrServletBase {
       
       List<LogDto> logs = new LogApi().list(env, null);
 
-      LogPageContent content = new LogPageContent(context, logs, clientTimezone);
+      LogPageContent content = new LogPageContent(text, logs, clientTimezone);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
   
