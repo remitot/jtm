@@ -16,8 +16,8 @@ public class StatusBar extends El {
    * @param type not null
    * @param innerHTML may be null
    */
-  public StatusBar(Context context, Type type, String innerHTML) {
-    super ("div", context);
+  public StatusBar(Type type, String innerHTML) {
+    super ("div");
     classList.add("statusBar");
     
     Objects.requireNonNull(type);

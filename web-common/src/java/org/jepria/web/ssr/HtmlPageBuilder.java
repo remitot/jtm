@@ -28,8 +28,8 @@ public interface HtmlPageBuilder {
   
   Page build();
   
-  public static HtmlPageBuilder newInstance(Context context) {
-    return new HtmlPageBuilderImpl(context);
+  public static HtmlPageBuilder newInstance(Text text) {
+    return new HtmlPageBuilderImpl(text);
   }
   
   public interface Page {

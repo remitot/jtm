@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
-import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.JtmPageBuilder;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
@@ -26,11 +26,11 @@ public class PortSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final Context context = Context.fromRequest(req);
+    final Text text = Text.fromRequest(req);
     
     final Environment env = EnvironmentFactory.get(req);
     
-    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(context);
+    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
     pageBuilder.setTitle("Tomcat manager: порты"); // NON-NLS
     pageBuilder.setCurrentMenuItem(CurrentMenuItem.PORT);
     
@@ -42,7 +42,7 @@ public class PortSsrServlet extends SsrServletBase {
 
       final List<PortDto> ports = new PortApi().list(env);
       
-      PortPageContent content = new PortPageContent(context, ports);
+      PortPageContent content = new PortPageContent(text, ports);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
       

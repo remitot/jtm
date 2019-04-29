@@ -14,43 +14,43 @@ public class SsrServletBase extends HttpServlet {
     return req.getUserPrincipal() != null;
   }
   
-  private final String getStatusBarModDataSavedHtmlPostfix(Context context) {
+  private final String getStatusBarModDataSavedHtmlPostfix(Text text) {
     return ".&emsp;&emsp;&emsp;<span class=\"span-bold\">"
-        + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.saved") 
+        + text.getString("org.jepria.web.ssr.SsrServletBase.status.mod_saved.saved") 
         + ",</span> " 
-        + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.restored") 
+        + text.getString("org.jepria.web.ssr.SsrServletBase.status.mod_saved.restored") 
         + ".&ensp;<a href=\"\">" 
-        + context.getText("org.jepria.web.ssr.SsrServletBase.status.mod_saved.delete")
+        + text.getString("org.jepria.web.ssr.SsrServletBase.status.mod_saved.delete")
         + "</a>";
   }
   
-  protected StatusBar createStatusBar(Context context, AuthState authState) {
+  protected StatusBar createStatusBar(Text text, AuthState authState) {
     if (authState == null || authState.auth == null) {
       return null;
     }
     switch (authState.auth) {
     case LOGIN_FALIED: {
       String innerHtml = "<span class=\"span-bold\">"
-          + context.getText("org.jepria.web.ssr.SsrServletBase.status.login_failed.incorrect_data")
+          + text.getString("org.jepria.web.ssr.SsrServletBase.status.login_failed.incorrect_data")
           + ",</span> "
-          + context.getText("org.jepria.web.ssr.SsrServletBase.status.login_failed.try_again");
+          + text.getString("org.jepria.web.ssr.SsrServletBase.status.login_failed.try_again");
       if (authState.authPersistentData != null) {
-        innerHtml += getStatusBarModDataSavedHtmlPostfix(context);
+        innerHtml += getStatusBarModDataSavedHtmlPostfix(text);
       }
-      return new StatusBar(context, StatusBar.Type.ERROR, innerHtml);
+      return new StatusBar(StatusBar.Type.ERROR, innerHtml);
     }
     case LOGOUT: {
-      return new StatusBar(context, StatusBar.Type.SUCCESS, context.getText("org.jepria.web.ssr.SsrServletBase.status.logouted"));
+      return new StatusBar(StatusBar.Type.SUCCESS, text.getString("org.jepria.web.ssr.SsrServletBase.status.logouted"));
     }
     case UNAUTHORIZED: {
-      String innerHtml = context.getText("org.jepria.web.ssr.SsrServletBase.status.auth_required");
+      String innerHtml = text.getString("org.jepria.web.ssr.SsrServletBase.status.auth_required");
       if (authState.authPersistentData != null) {
-        innerHtml += getStatusBarModDataSavedHtmlPostfix(context);
+        innerHtml += getStatusBarModDataSavedHtmlPostfix(text);
       }
-      return new StatusBar(context, StatusBar.Type.INFO, innerHtml);
+      return new StatusBar(StatusBar.Type.INFO, innerHtml);
     }
     case FORBIDDEN: {
-      return new StatusBar(context, StatusBar.Type.ERROR, context.getText("org.jepria.web.ssr.SsrServletBase.status.forbidden"));
+      return new StatusBar(StatusBar.Type.ERROR, text.getString("org.jepria.web.ssr.SsrServletBase.status.forbidden"));
     }
     case AUTHORIZED: {
       return null;
@@ -76,7 +76,7 @@ public class SsrServletBase extends HttpServlet {
     }
 
     public void requireAuth(JtmPageBuilder page) {
-      final Context context = Context.fromRequest(req);
+      final Text text = Text.fromRequest(req);
       
       final AuthState authState = AuthState.get(req);
       
@@ -89,7 +89,7 @@ public class SsrServletBase extends HttpServlet {
       }
 
       if (req.getUserPrincipal() == null) {
-        final LoginFragment loginFragment = new LoginFragment(context, authRedirectPath);
+        final LoginFragment loginFragment = new LoginFragment(text, authRedirectPath);
         
         // restore preserved username
         if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
@@ -99,7 +99,7 @@ public class SsrServletBase extends HttpServlet {
           loginFragment.inputUsername.addClass("requires-focus");
         }
         
-        final El content = new El("div", context);
+        final El content = new El("div");
         content.appendChild(loginFragment);
         
         page.setContent(content);
@@ -108,9 +108,9 @@ public class SsrServletBase extends HttpServlet {
       } else {
         authState.auth = Auth.FORBIDDEN;
         
-        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, authRedirectPath, req.getUserPrincipal().getName());
+        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(text, authRedirectPath, req.getUserPrincipal().getName());
         
-        final El content = new El("div", context);
+        final El content = new El("div");
         content.appendChild(forbiddenFragment);
         
         page.setContent(content);
@@ -119,7 +119,7 @@ public class SsrServletBase extends HttpServlet {
         page.setButtonLogout(authRedirectPath);
       }
       
-      page.setStatusBar(createStatusBar(context, authState));
+      page.setStatusBar(createStatusBar(text, authState));
       
       // reset a disposable state
       if (authState.auth == Auth.LOGIN_FALIED 

@@ -16,8 +16,8 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
   protected boolean setLogout = false;
   protected String logoutRedirectPath;
   
-  public JtmPageBuilderImpl(Context context) {
-    super(context);
+  public JtmPageBuilderImpl(Text text) {
+    super(text);
   }
   
   @Override
@@ -64,7 +64,7 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
     List<Node> contentList = new ArrayList<>();
     
     if (currentMenuItem != null || setLogout || managerApacheHref != null) {
-      final PageHeader pageHeader = new PageHeader(context, currentMenuItem);
+      final PageHeader pageHeader = new PageHeader(text, currentMenuItem);
       
       if (managerApacheHref != null) {
         pageHeader.setManagerApache(managerApacheHref);

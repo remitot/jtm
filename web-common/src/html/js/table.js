@@ -112,11 +112,11 @@ function onCheckboxInput(checkbox) {
     if (!getInput(checkbox).checked) {
       //TODO resolve the relative path to ".row" :
       checkbox.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
-      checkbox.title = "Запись неактивна"; // NON-NLS
+      checkbox.title = checkbox.getAttribute("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
     } else {
       //TODO resolve the relative path to ".row":
       checkbox.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
-      checkbox.title = "Запись активна"; // NON-NLS
+      checkbox.title = checkbox.getAttribute("org.jepria.web.ssr.Table.checkbox_active.title.active");
     }
     
     checkModifications();

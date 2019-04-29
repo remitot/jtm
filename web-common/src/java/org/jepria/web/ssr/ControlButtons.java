@@ -6,41 +6,49 @@ public class ControlButtons extends El {
   public final El buttonSave;
   public final El buttonReset;
   
-  public ControlButtons(Context context, String saveActionUrl, String resetActionUrl) {
-    super("div", context);
+  public ControlButtons(Text text, String saveActionUrl, String resetActionUrl) {
+    super("div");
     classList.add("control-buttons");
     
-    buttonCreate = new El("button", context)
+    buttonCreate = new El("button")
         .addClass("control-button")
         .addClass("control-button_create")
         .addClass("big-black-button")
-        .setInnerHTML(context.getText("org.jepria.web.ssr.ControlButtons.buttonCreate.text"), true);
+        .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonCreate.text"), true);
     
     
-    final El formSave = new El("form", context).setAttribute("action", saveActionUrl).setAttribute("method", "post")
+    final El formSave = new El("form").setAttribute("action", saveActionUrl).setAttribute("method", "post")
         .addClass("button-form")
         .addClass("control-button-form_save");
     
-    buttonSave = new El("button", context)
+    buttonSave = new El("button")
         .setAttribute("type", "submit")
         .setAttribute("disabled") // disabled by default
         .addClass("control-button")
         .addClass("control-button_save")
         .addClass("big-black-button")
-        .setInnerHTML(context.getText("org.jepria.web.ssr.ControlButtons.buttonSave.text"), true);
+        .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonSave.text"), true);
+        
+    buttonSave.setAttribute("org.jepria.web.ssr.ControlButtons.buttonSave.title.save", text.getString("org.jepria.web.ssr.ControlButtons.buttonSave.title.save"));
+    buttonSave.setAttribute("org.jepria.web.ssr.ControlButtons.button.title.no_mod", text.getString("org.jepria.web.ssr.ControlButtons.button.title.no_mod"));
+    
     formSave.appendChild(buttonSave);
     
     
-    final El formReset = new El("form", context).setAttribute("action", resetActionUrl).setAttribute("method", "post")
+    final El formReset = new El("form").setAttribute("action", resetActionUrl).setAttribute("method", "post")
         .addClass("button-form");
     
-    buttonReset = new El("button", context)
+    buttonReset = new El("button")
         .setAttribute("type", "submit")
         .setAttribute("disabled") // disabled by default
         .addClass("control-button")
         .addClass("control-button_reset")
         .addClass("big-black-button")
-        .setInnerHTML(context.getText("org.jepria.web.ssr.ControlButtons.buttonReset.text"), true);
+        .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonReset.text"), true);
+        
+    buttonReset.setAttribute("org.jepria.web.ssr.ControlButtons.buttonReset.title.reset", text.getString("org.jepria.web.ssr.ControlButtons.buttonReset.title.reset"));
+    buttonReset.setAttribute("org.jepria.web.ssr.ControlButtons.button.title.no_mod", text.getString("org.jepria.web.ssr.ControlButtons.button.title.no_mod"));
+    
     formReset.appendChild(buttonReset);
     
     

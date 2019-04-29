@@ -10,7 +10,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
-import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.El;
 
 public class LogPageContent implements Iterable<El> {
@@ -30,14 +30,14 @@ public class LogPageContent implements Iterable<El> {
    * @param logs
    * @param clientTimeZone if non-null, the file last modified timestamp will be displayed in this timezone, otherwise in UTC timezone 
    */
-  public LogPageContent(Context context, List<LogDto> logs, TimeZone clientTimeZone) {
+  public LogPageContent(Text text, List<LogDto> logs, TimeZone clientTimeZone) {
     clientDateTimeFormat = clientTimeZone == null ? null : new DateTimeFormat(clientTimeZone);
     gmtDateTimeFormat = new DateTimeFormat(TimeZone.getTimeZone("GMT"));
     
     final List<El> elements = new ArrayList<>();
     
     // table html
-    final LogTable table = new LogTable(context);
+    final LogTable table = new LogTable(text);
     
     final List<LogItem> items = logs.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
