@@ -15,11 +15,12 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
-import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.JtmPageBuilder;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
+import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.text;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -41,14 +42,14 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final Text text = Text.fromRequest(req);
+    final Text text = Text.get(req, "text/org_jepria_tomcat_manager_web_Text");
     
     final AppState appState = getAppState(req);
 
     final Environment env = EnvironmentFactory.get(req);
     
     final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
-    pageBuilder.setTitle("Tomcat manager: JDBC ресурсы (датасорсы)"); // NON-NLS
+    pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.jdbc.title"));
     pageBuilder.setCurrentMenuItem(CurrentMenuItem.JDBC);
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
@@ -73,7 +74,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
       
       
-      pageBuilder.setStatusBar(createStatusBar(appState.modStatus));
+      pageBuilder.setStatusBar(createStatusBar(appState.modStatus, text));
       pageBuilder.setButtonLogout("jdbc"); // TODO this will erase any path- or request params of the current page
       
       appState.itemModRequests = null;
@@ -261,17 +262,18 @@ public class JdbcSsrServlet extends SsrServletBase {
     MOD_INCORRECT_FIELD_DATA,
   }
   
-  protected StatusBar createStatusBar(ModStatus status) {
+  protected StatusBar createStatusBar(ModStatus status, Text text) {
     if (status == null) {
       return null;
     }
     switch (status) {
     case MOD_SUCCESS: {
-      return new StatusBar(StatusBar.Type.SUCCESS, "Все изменения сохранены"); // NON-NLS 
+      return new StatusBar(StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success")); 
     }
     case MOD_INCORRECT_FIELD_DATA: {
-      final String statusHTML = "При попытке сохранить изменения обнаружились некорректные значения полей (выделены красным). " +
-          "<span class=\"span-bold\">На сервере всё осталось без изменений.</span>"; // NON-NLS
+      final String statusHTML = text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_incorrect_field_data") 
+          + " <span class=\"span-bold\">" + text.getString("org.jepria.tomcat.manager.web.jdbc.status.no_mod_performed") 
+          + "</span>";
       return new StatusBar(StatusBar.Type.ERROR, statusHTML);
     }
     }

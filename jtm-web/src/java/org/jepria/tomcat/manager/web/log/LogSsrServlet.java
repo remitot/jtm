@@ -15,6 +15,7 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.text;
 import org.jepria.web.ssr.HtmlPageBuilder;
 import org.jepria.web.ssr.HtmlPageBuilder.Page;
 import org.jepria.web.ssr.JtmPageBuilder;
@@ -82,7 +83,7 @@ public class LogSsrServlet extends SsrServletBase {
     
 
     
-    final Text text = Text.fromRequest(req);
+    final Text text = Text.get(req, "text/org_jepria_tomcat_manager_web_Text");
     
     final Environment env = EnvironmentFactory.get(req);
     

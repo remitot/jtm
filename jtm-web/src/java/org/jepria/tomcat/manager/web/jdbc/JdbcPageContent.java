@@ -115,16 +115,15 @@ public class JdbcPageContent implements Iterable<El> {
                   field.invalid = true;
                   switch (idAndInvalidFieldDataCode.getValue()) {
                   case EMPTY: case MANDATORY_EMPTY: {
-                    field.invalidMessage = "Поле не должно быть пустым"; // NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.empty");
                     break;
                   }
                   case DUPLICATE_NAME: {
-                    field.invalidMessage = "Такое название уже есть"; // NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.duplicate_name");
                     break;
                   }
                   case DUPLICATE_GLOBAL: {
-                    field.invalidMessage = "Такое название уже есть среди Context/ResourceLink.global " 
-                        + "или Server/GlobalNamingResources/Resource.name"; // NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.duplicate_global");
                     break;
                   }
                   }

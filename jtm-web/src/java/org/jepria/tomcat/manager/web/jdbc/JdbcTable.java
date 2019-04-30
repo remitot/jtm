@@ -1,7 +1,7 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.table.CheckBox;
 import org.jepria.web.ssr.table.Table;
 
@@ -29,27 +29,27 @@ public class JdbcTable extends Table<JdbcItem> {
     
     cell = createCell(div, "column-name");
     label = new El("label");
-    label.setInnerHTML("Название"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_name"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-server");
     label = new El("label");
-    label.setInnerHTML("Сервер базы данных"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_server"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-db");
     label = new El("label");
-    label.setInnerHTML("Имя базы"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_db"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-user");
     label = new El("label");
-    label.setInnerHTML("Пользователь базы"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_user"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-password");
     label = new El("label");
-    label.setInnerHTML("Пароль к базе"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_password"));
     cell.appendChild(label);
     
     row.appendChild(div);
@@ -134,7 +134,7 @@ public class JdbcTable extends Table<JdbcItem> {
   }
   
   protected void addFieldUnmodifiableTitle(El field) {
-    field.setAttribute("title", "Поле нередактируемо, поскольку несколько Context/ResourceLink ссылаются на один и тот же Server/Resource в конфигурации Tomcat"); // NON-NLS
+    field.setAttribute("title", text.getString("org.jepria.tomcat.manager.web.jdbc.field.unmodifiable"));
   }
   
   @Override
