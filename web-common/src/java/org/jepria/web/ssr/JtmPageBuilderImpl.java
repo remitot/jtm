@@ -9,6 +9,8 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 
 /*package*/class JtmPageBuilderImpl extends HtmlPageBuilderImpl implements JtmPageBuilder {
   
+  protected final Text text;
+  
   protected CurrentMenuItem currentMenuItem;
   protected String managerApacheHref;
   protected StatusBar statusBar;
@@ -17,7 +19,7 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
   protected String logoutRedirectPath;
   
   public JtmPageBuilderImpl(Text text) {
-    super(text);
+    this.text = text;
   }
   
   @Override

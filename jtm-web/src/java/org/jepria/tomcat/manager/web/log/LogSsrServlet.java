@@ -14,14 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
-import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.text;
 import org.jepria.web.ssr.HtmlPageBuilder;
 import org.jepria.web.ssr.HtmlPageBuilder.Page;
 import org.jepria.web.ssr.JtmPageBuilder;
 import org.jepria.web.ssr.Node;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
+import org.jepria.web.ssr.Text;
 
 public class LogSsrServlet extends SsrServletBase {
   
@@ -48,7 +47,7 @@ public class LogSsrServlet extends SsrServletBase {
       
 
       // TODO populate the page with human-readable header or title (for the case of disabled JS, for example)
-      HtmlPageBuilder pageBuilder = HtmlPageBuilder.newInstance(null);// TODO if the context may be null, why to restrict this argument in a constructor at all?
+      HtmlPageBuilder pageBuilder = HtmlPageBuilder.newInstance();
       
       Node script = Node.fromHtml("<script type=\"text/javascript\">document.cookie=\"local-timezone-offset=\" + (-new Date().getTimezoneOffset()); window.location.reload();</script>");
       

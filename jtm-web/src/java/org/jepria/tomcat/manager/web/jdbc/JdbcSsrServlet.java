@@ -20,7 +20,6 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.text;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

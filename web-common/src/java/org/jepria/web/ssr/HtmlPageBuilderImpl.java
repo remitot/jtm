@@ -11,17 +11,13 @@ import javax.servlet.http.HttpServletResponse;
 
 /*package*/class HtmlPageBuilderImpl implements HtmlPageBuilder {
   
-  protected final Text text;
-  
   protected String title;
   
   protected Iterable<? extends Node> content;
   
   protected Map<String, String> bodyAttributes;
   
-  public HtmlPageBuilderImpl(Text text) {
-    this.text = text;
-  }
+  public HtmlPageBuilderImpl() {}
   
   @Override
   public void setTitle(String title) {
