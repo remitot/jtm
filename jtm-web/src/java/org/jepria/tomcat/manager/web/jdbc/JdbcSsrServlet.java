@@ -20,6 +20,7 @@ import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.Texts;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -41,7 +42,7 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final Text text = Text.get(req, "text/org_jepria_tomcat_manager_web_Text");
+    final Text text = Texts.get(req, "text/org_jepria_tomcat_manager_web_Text");
     
     final AppState appState = getAppState(req);
 

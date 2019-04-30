@@ -21,6 +21,7 @@ import org.jepria.web.ssr.Node;
 import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.Texts;
 
 public class LogSsrServlet extends SsrServletBase {
   
@@ -82,7 +83,7 @@ public class LogSsrServlet extends SsrServletBase {
     
 
     
-    final Text text = Text.get(req, "text/org_jepria_tomcat_manager_web_Text");
+    final Text text = Texts.get(req, "text/org_jepria_tomcat_manager_web_Text");
     
     final Environment env = EnvironmentFactory.get(req);
     

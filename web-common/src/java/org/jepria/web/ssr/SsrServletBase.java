@@ -76,7 +76,7 @@ public class SsrServletBase extends HttpServlet {
     }
 
     public void requireAuth(JtmPageBuilder page) {
-      final Text text = Text.fromRequest(req);
+      final Text text = Texts.getCommon(req);
       
       final AuthState authState = AuthState.get(req);
       
