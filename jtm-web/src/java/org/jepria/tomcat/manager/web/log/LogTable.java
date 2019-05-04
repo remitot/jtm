@@ -70,12 +70,12 @@ public class LogTable extends Table<LogItem> {
     
     cell = createCell(div, "column-name");
     label = new El("label");
-    label.setInnerHTML("Файл"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_name"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-lastmod");
     label = new El("label");
-    label.setInnerHTML("Последняя запись"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_lastmod"));
     cell.appendChild(label);
     
     createCell(div, "column-download");

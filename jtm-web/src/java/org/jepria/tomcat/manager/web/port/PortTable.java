@@ -24,12 +24,12 @@ public class PortTable extends Table<PortItem> {
       
     cell = createCell(div, "column-type");
     label = new El("label");
-    label.setInnerHTML("Тип"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.port.Table.header.column_type"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-port");
     label = new El("label");
-    label.setInnerHTML("Порт"); // NON-NLS
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.port.Table.header.column_port"));
     cell.appendChild(label);
     
     row.appendChild(div);

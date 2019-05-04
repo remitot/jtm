@@ -17,6 +17,8 @@ public class LogPageContent implements Iterable<El> {
 
   private final Iterable<El> elements;
   
+  protected final Text text;
+  
   @Override
   public Iterator<El> iterator() {
     return elements.iterator();
@@ -33,6 +35,8 @@ public class LogPageContent implements Iterable<El> {
   public LogPageContent(Text text, List<LogDto> logs, TimeZone clientTimeZone) {
     clientDateTimeFormat = clientTimeZone == null ? null : new DateTimeFormat(clientTimeZone);
     gmtDateTimeFormat = new DateTimeFormat(TimeZone.getTimeZone("GMT"));
+    
+    this.text = text;
     
     final List<El> elements = new ArrayList<>();
     
@@ -58,14 +62,19 @@ public class LogPageContent implements Iterable<El> {
       item.lastmod().value = getItemLastModifiedValue(dto.getLastModified());
     }
     
-    item.download().value = "<a href=\"api/log?filename=" + dto.getName() + "\""
-        + " title=\"Скачать на компьютер\">Сохранить</a>"; // NON-NLS // NON-NLS
+    item.download().value = "<a href=\"api/log?filename=" + dto.getName() + "\"" + " title=\"" 
+        + text.getString("org.jepria.tomcat.manager.web.log.item_download.title") + "\">" 
+        + text.getString("org.jepria.tomcat.manager.web.log.item_download.text") + "</a>";
     
     item.open().value = "<a href=\"api/log?filename=" + dto.getName() + "&inline\""
-        + " target=\"_blank\" title=\"Открыть в новой вкладке браузера\">Посмотреть</a>"; // NON-NLS // NON-NLS
+        + " target=\"_blank\" title=\"" 
+        + text.getString("org.jepria.tomcat.manager.web.log.item_open.title") + "\">" 
+        + text.getString("org.jepria.tomcat.manager.web.log.item_open.text") + "</a>";
     
     item.monitor().value = "<a href=\"log-monitor?filename=" + dto.getName() + "\""
-        + " target=\"_blank\" title=\"Открыть в читалке\">Отслеживать</a>"; // NON-NLS // NON-NLS
+        + " target=\"_blank\" title=\"" 
+        + text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title") + "\">" 
+        + text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text") + "</a>";
     
     return item;
   }
@@ -80,25 +89,25 @@ public class LogPageContent implements Iterable<El> {
     
     {
       if (lastModifiedAgoMs <= 10000) {
-        lastModifiedAgoVerb = "только что"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb1");
       } else if (lastModifiedAgoMs <= 90000) {
-        lastModifiedAgoVerb = "минуту назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb2");
       } else if (lastModifiedAgoMs <= 150000) {
-        lastModifiedAgoVerb = "две минуты назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb3");
       } else if (lastModifiedAgoMs <= 210000) {
-        lastModifiedAgoVerb = "три минуты назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb4");
       } else if (lastModifiedAgoMs <= 450000) {
-        lastModifiedAgoVerb = "пять минут назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb5");
       } else if (lastModifiedAgoMs <= 900000) {
-        lastModifiedAgoVerb = "10 минут назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb6");
       } else if (lastModifiedAgoMs <= 2700000) {
-        lastModifiedAgoVerb = "полчаса назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb7");
       } else if (lastModifiedAgoMs <= 5400000) {
-        lastModifiedAgoVerb = "час назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb8");
       } else if (lastModifiedAgoMs <= 9000000) {
-        lastModifiedAgoVerb = "два часа назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb9");
       } else if (lastModifiedAgoMs <= 12600000) {
-        lastModifiedAgoVerb = "три часа назад"; // NON-NLS;
+        lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb10");
       } else {
         lastModifiedAgoVerb = null;
       }
@@ -129,10 +138,10 @@ public class LogPageContent implements Iterable<El> {
           
           if (todayDateLocal.equals(lastModifiedDateStr)) {
             // modified on the local 'today'
-            lastModifiedAgoVerb = "сегодня"; // NON-NLS;
+            lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb11");
           } else if (yesterdayDateLocal.equals(lastModifiedDateStr)) {
             // modified on the local 'yesterday'
-            lastModifiedAgoVerb = "вчера"; // NON-NLS;
+            lastModifiedAgoVerb = text.getString("org.jepria.tomcat.manager.web.log.item_lastMod_verb12");
           }
         }
         
