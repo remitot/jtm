@@ -107,7 +107,7 @@ public class LogSsrServlet extends SsrServletBase {
       
     } else {
       
-      new AuthPageBuilder(req, "log").requireAuth(pageBuilder);
+      requireAuth(req, pageBuilder);
       
     }
     

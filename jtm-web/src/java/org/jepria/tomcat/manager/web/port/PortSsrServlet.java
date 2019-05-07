@@ -51,7 +51,7 @@ public class PortSsrServlet extends SsrServletBase {
       
     } else {
       
-      new AuthPageBuilder(req, "port").requireAuth(pageBuilder);
+      requireAuth(req, pageBuilder);
       
     }
     

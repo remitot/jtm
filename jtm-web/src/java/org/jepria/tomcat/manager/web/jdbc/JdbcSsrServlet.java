@@ -84,7 +84,7 @@ public class JdbcSsrServlet extends SsrServletBase {
 
       clearAppState(req);
       
-      new AuthPageBuilder(req, "jdbc").requireAuth(pageBuilder);
+      requireAuth(req, pageBuilder);
     }
     
     final JtmPageBuilder.Page page = pageBuilder.build();

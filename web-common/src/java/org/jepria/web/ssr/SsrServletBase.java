@@ -3,8 +3,8 @@ package org.jepria.web.ssr;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
-import org.jepria.web.auth.AuthState;
 import org.jepria.web.auth.AuthServletBase.Auth;
+import org.jepria.web.auth.AuthState;
 
 public class SsrServletBase extends HttpServlet {
 
@@ -59,78 +59,107 @@ public class SsrServletBase extends HttpServlet {
     throw new IllegalArgumentException(String.valueOf(authState.auth));
   }
   
-  protected class AuthPageBuilder {
+  protected String getAuthRedirectPathDefault(HttpServletRequest request) {
+    String uri = request.getRequestURI();
+    String context = request.getContextPath();
     
-    private final HttpServletRequest req;
-    private final String authRedirectPath;
-    
-    /**
-     * 
-     * @param req
-     * @param authRedirectPath path to redirect after a successful login of logout.
-     * If {@code null}, no redirect will be performed
-     */
-    public AuthPageBuilder(HttpServletRequest req, String authRedirectPath) {
-      this.req = req;
-      this.authRedirectPath = authRedirectPath;
+    if (uri.startsWith(context)) {
+      
+      StringBuilder ret = new StringBuilder();
+      ret.append(uri.substring(context.length()));
+      if (ret.charAt(0) == '/') {
+        ret.deleteCharAt(0);
+      }
+      
+      String qs = request.getQueryString();
+      if (qs != null) {
+        ret.append('?').append(qs);
+      }
+      
+      return ret.toString();
+      
+    } else {
+      throw new IllegalStateException("HttpServletRequest.getRequestURI() must strint with HttpServletRequest.getContextPath()");
     }
-
-    public void requireAuth(JtmPageBuilder page) {
-      final Text text = Texts.getCommon(req);
-      
-      final AuthState authState = AuthState.get(req);
-      
-      if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
-        authState.authPersistentData = null;
-      }
-      
-      if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
-        authState.auth = Auth.UNAUTHORIZED;
-      }
-
-      if (req.getUserPrincipal() == null) {
-        final LoginFragment loginFragment = new LoginFragment(text, authRedirectPath);
-        
-        // restore preserved username
-        if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
-          loginFragment.inputUsername.setAttribute("value", authState.username);
-          loginFragment.inputPassword.addClass("requires-focus");
-        } else {
-          loginFragment.inputUsername.addClass("requires-focus");
-        }
-        
-        final El content = new El("div");
-        content.appendChild(loginFragment);
-        
-        page.setContent(content);
-        page.setBodyAttributes("onload", "jtm_onload();authFragmentLogin_onload();", "class", "background_gray");
-        
-      } else {
-        authState.auth = Auth.FORBIDDEN;
-        
-        final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(text, authRedirectPath, req.getUserPrincipal().getName());
-        
-        final El content = new El("div");
-        content.appendChild(forbiddenFragment);
-        
-        page.setContent(content);
-        page.setBodyAttributes("onload", "jtm_onload();", "class", "background_gray");
-        
-        page.setButtonLogout(authRedirectPath);
-      }
-      
-      page.setStatusBar(createStatusBar(text, authState));
-      
-      // reset a disposable state
-      if (authState.auth == Auth.LOGIN_FALIED 
-          || authState.auth == Auth.LOGOUT) {
-        authState.auth = Auth.UNAUTHORIZED;
-      }
-      authState.username = null;
-    }
-    
   }
   
+  /**
+   * Show an auth fragment ({@link LoginFragment} in case of non-authenticated user 
+   * or {@link ForbiddenFragment} in case of the user having not enough rights) on the page,
+   * then redirect to the current request path after a successful login or logout
+   * @param req current request that needs authentication
+   * @param page original page that was about to be responded if the request had been authenticated
+   */
+  protected void requireAuth(HttpServletRequest req, JtmPageBuilder page) {
+    requireAuth(req, page, null);
+  }
+  
+  /**
+   * Show an auth fragment ({@link LoginFragment} in case of non-authenticated user 
+   * or {@link ForbiddenFragment} in case of the user having not enough rights) on the page.
+   * @param req current request that needs authentication
+   * @param page original page that was about to be responded if the request had been authenticated
+   * @param authRedirectPath path to redirect after a successful login or logout
+   * If {@code null}, the redirect path is the current request path
+   */
+  protected void requireAuth(HttpServletRequest req, JtmPageBuilder page, String authRedirectPath) {
+    
+    // redirect to a current request path in case of null
+    authRedirectPath = authRedirectPath != null ? authRedirectPath : getAuthRedirectPathDefault(req);
+    
+    final Text text = Texts.getCommon(req);
+    
+    final AuthState authState = AuthState.get(req);
+    
+    if (authState.auth == Auth.UNAUTHORIZED || authState.auth == Auth.LOGOUT) {
+      authState.authPersistentData = null;
+    }
+    
+    if (authState.auth == Auth.AUTHORIZED || authState.auth == null) {
+      authState.auth = Auth.UNAUTHORIZED;
+    }
+
+    if (req.getUserPrincipal() == null) {
+      final LoginFragment loginFragment = new LoginFragment(text, authRedirectPath);
+      
+      // restore preserved username
+      if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
+        loginFragment.inputUsername.setAttribute("value", authState.username);
+        loginFragment.inputPassword.addClass("requires-focus");
+      } else {
+        loginFragment.inputUsername.addClass("requires-focus");
+      }
+      
+      final El content = new El("div");
+      content.appendChild(loginFragment);
+      
+      page.setContent(content);
+      page.setBodyAttributes("onload", "jtm_onload();authFragmentLogin_onload();", "class", "background_gray");
+      
+    } else {
+      authState.auth = Auth.FORBIDDEN;
+      
+      final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(text, authRedirectPath, req.getUserPrincipal().getName());
+      
+      final El content = new El("div");
+      content.appendChild(forbiddenFragment);
+      
+      page.setContent(content);
+      page.setBodyAttributes("onload", "jtm_onload();", "class", "background_gray");
+      
+      page.setButtonLogout(authRedirectPath);
+    }
+    
+    page.setStatusBar(createStatusBar(text, authState));
+    
+    // reset a disposable state
+    if (authState.auth == Auth.LOGIN_FALIED 
+        || authState.auth == Auth.LOGOUT) {
+      authState.auth = Auth.UNAUTHORIZED;
+    }
+    authState.username = null;
+  }
+    
   protected Object getAuthPersistentData(HttpServletRequest req) {
     return AuthState.get(req).authPersistentData;
   }
