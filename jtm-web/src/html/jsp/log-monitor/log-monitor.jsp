@@ -29,10 +29,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" /> 
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
 
-    <link rel="stylesheet" href="gui/jtm.css">
-    <script type="text/javascript" src="gui/jtm.js"></script>
+    <link rel="stylesheet" href="css/jtm-common.css">
+    <link rel="stylesheet" href="css/control-buttons.css">
+    <script type="text/javascript" src="js/jtm-common.js"></script>
     
-    <link rel="stylesheet" href="gui/log-monitor/log-monitor.css">
+    <link rel="stylesheet" href="css/log-monitor/log-monitor.css">
   </head> 
 
   <body onload="logmonitor_onload();">
@@ -196,7 +197,7 @@
       
       function adjustResetAnchorButtonVisiblity() {
         <% if (canResetAnchor) { %>
-        if (getScrolled() + window.innerHeight >= linesBottom.offsetTop + initialScroll) {
+        if (getScrolled() + window.innerHeight >= linesBottom.offsetTop) {
           document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
         } else {
           document.getElementsByClassName("control-button_reset-anchor")[0].classList.add("hidden");

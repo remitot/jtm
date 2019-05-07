@@ -223,7 +223,7 @@ public class LogMonitorServlet extends SsrServletBase  {
         request.setAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams", 
             monitorGuiParams);
         
-        request.getRequestDispatcher("/gui/log-monitor/log-monitor.jsp").include(request, response);
+        request.getRequestDispatcher("jsp/log-monitor/log-monitor.jsp").include(request, response);
         
         return;
       }

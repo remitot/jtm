@@ -32,3 +32,13 @@ function jtm_onload() {
   }
   
 }
+
+
+function windowReload(newUrl) {
+  if (newUrl) {
+    /* because location.reload() not working in FF and Chrome */ 
+    window.location.href = newUrl;
+  } else {
+    window.location.reload(true);
+  }
+}
