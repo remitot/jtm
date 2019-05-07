@@ -36,39 +36,53 @@
   </head> 
 
   <body onload="logmonitor_onload();">
-    
-    <div class="anchor-area">
-      <div class="anchor-area__panel top">&nbsp;</div>
-      <div class="anchor-area__panel bottom">&nbsp;</div>
-    </div>
-    
-    <div class="content-area">
-      <div class="content-area__lines top">
-        <% if (hasLinesTop) {
-            for (String line: guiParams.getContentLinesTop()) {
-              HtmlEscaper.escapeAndWrite(line, out);
-              out.println("<br/>");      
-            }
-          }            
-        %>
-      </div>
-      <div class="content-area__lines bottom">
-        <% if (hasLinesBottom) {
-            for (String line: guiParams.getContentLinesBottom()) {
-              HtmlEscaper.escapeAndWrite(line, out);
-              out.println("<br/>");
-            }
-          }
-        %>
-      </div>
-    </div>
 
+    <% if (canLoadTop) { %>
+      <div class="control-top control-top__active" onclick="onLoadUpClick();">
+        <label>Load more lines</label>
+      </div>  
+    <% } else { %>
+      <div class="control-top control-top__inactive">
+        <label>File begin reached</label>
+      </div>
+    <% } %>
     
-    <button 
-        onclick="onResetAnchorButtonClick();" 
-        class="control-button_reset-anchor control-button big-black-button hidden"
-        title="Снять подсветку с новых записей"
-        >ПРОЧИТАНО</button> <!-- NON-NLS --> <!-- NON-NLS -->
+    
+    <div>      
+      <div class="anchor-area">
+        <div class="anchor-area__panel top">&nbsp;</div>
+        <div class="anchor-area__panel bottom">&nbsp;</div>
+      </div>
+      
+      <div class="content-area">
+        <div class="content-area__lines top">
+          <% if (hasLinesTop) {
+              for (String line: guiParams.getContentLinesTop()) {
+                HtmlEscaper.escapeAndWrite(line, out);
+                out.println("<br/>");      
+              }
+            }            
+          %>
+        </div>
+        <div class="content-area__lines bottom">
+          <% if (hasLinesBottom) {
+              for (String line: guiParams.getContentLinesBottom()) {
+                HtmlEscaper.escapeAndWrite(line, out);
+                out.println("<br/>");
+              }
+            }
+          %>
+        </div>
+      </div>
+  
+      
+      <button 
+          onclick="onResetAnchorButtonClick();" 
+          class="control-button_reset-anchor control-button big-black-button hidden"
+          title="Снять подсветку с новых записей"
+          >ПРОЧИТАНО</button> <!-- NON-NLS --> <!-- NON-NLS -->
+    
+    </div>
         
     
     <script type="text/javascript">
@@ -165,13 +179,6 @@
         var offset = getSplitY() - getScrolled(); 
         window.location.hash = "#" + offset; 
         
-        if (getScrolled() <= linesTop.offsetTop) { 
-          /* top reached */
-          onHitTop();
-        } 
-        
-        
-        
         adjustResetAnchorButtonVisiblity();
       }
       
@@ -191,7 +198,7 @@
       // blocks script execution after the first request to prevent repeated client requests if the server hangs up
       blockHitTop = <% if (canLoadTop) { %>false<% } else {%>true<% } %>;
       
-      function onHitTop() {
+      function onLoadUpClick() {
         if (!blockHitTop) {
           blockHitTop = true;
           var offset = getSplitY() - getScrolled();

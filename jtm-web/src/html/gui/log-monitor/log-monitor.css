@@ -44,3 +44,26 @@ body {
 .hidden {
   display: none;
 }
+
+.control-top {
+  width: 100%;
+  
+  line-height: 2em;
+  text-align: center;
+}
+
+button.control-top {
+  border: medium none;
+}
+
+.control-top__active {
+  background-color: #CFFFC1;
+}
+
+.control-top__active, .control-top__active * {
+  cursor: pointer;
+}
+
+.control-top__inactive {
+  background-color: #ffb59b;
+}
