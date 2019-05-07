@@ -81,7 +81,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>LogMonitorServlet</servlet-name>
-    <url-pattern>/log-monitor</url-pattern>
+    <url-pattern>/log-monitor/*</url-pattern>
   </servlet-mapping>
   
   <servlet>
@@ -99,40 +99,8 @@
 
   <security-constraint>
     <web-resource-collection>
-      <web-resource-name>Protected resources</web-resource-name>
-      <url-pattern>/api/*</url-pattern>
-      <url-pattern>/log-monitor</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>manager-gui</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-  <security-constraint>
-    <web-resource-collection>
       <web-resource-name>Public resources</web-resource-name>
-      <url-pattern>/jdbc/*</url-pattern>
-      <url-pattern>/port/*</url-pattern>
-      <url-pattern>/log/*</url-pattern>
-      <url-pattern>/login/*</url-pattern>
-      <url-pattern>/logout/*</url-pattern>
-      <url-pattern>/api</url-pattern><!-- ApiDocs -->
-      <url-pattern>/api/port/http</url-pattern> <!-- the port number is not hard to discover -->
-      <url-pattern>/api/port/ajp</url-pattern> <!-- the port number is not hard to discover -->
-      <url-pattern>/gui/*</url-pattern>
+      <url-pattern>/*</url-pattern>
     </web-resource-collection>
   </security-constraint>
-
-  <login-config>
-    <auth-method>FORM</auth-method>
-    <form-login-config>
-      <form-login-page>/WEB-INF/security/login.jsp</form-login-page>
-      <form-error-page>/WEB-INF/security/login.jsp</form-error-page>
-    </form-login-config>
-  </login-config>
-  
-  <error-page>
-    <error-code>401</error-code>
-    <location>/WEB-INF/error-401.jsp</location>
-  </error-page>
 </web-app>
