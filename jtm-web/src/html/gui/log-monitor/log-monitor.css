@@ -23,14 +23,6 @@ body {
   padding-right: 8px;
 }
 
-.top {
-  padding-top: 8px;  
-}
-/* disable for anchor-area__panel */
-.top.anchor-area__panel {
-  padding-top: 0px;
-}
-
 .bottom {
   background-color: #E3FFC6;
 }
@@ -65,5 +57,9 @@ button.control-top {
 }
 
 .control-top__inactive {
-  background-color: #ffb59b;
+  background-color: #BFBFBF;
+}
+
+.control-top__file-begin-reached {
+  margin-bottom: 8px;
 }

@@ -19,7 +19,7 @@
   
   final boolean hasLinesTop = !guiParams.getContentLinesTop().isEmpty();
   final boolean hasLinesBottom = !guiParams.getContentLinesBottom().isEmpty();
-  final boolean canLoadTop = !guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null;
+  final boolean canLoadAbove = !guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null;
   final boolean canResetAnchor = hasLinesBottom && guiParams.getResetAnchorUrl() != null;
 %>
   
@@ -37,42 +37,50 @@
 
   <body onload="logmonitor_onload();">
 
-    <% if (canLoadTop) { %>
-      <div class="control-top control-top__active" onclick="onLoadUpClick();">
-        <label>Load more lines</label>
+    <% if (canLoadAbove) { %>
+      <div class="control-top control-top__active" onclick="onLoadAboveButtonClick();">
+        <label>загрузить ещё</label> <!-- NON-NLS -->
       </div>  
     <% } else { %>
-      <div class="control-top control-top__inactive">
-        <label>File begin reached</label>
+      <% if (hasLinesTop || hasLinesBottom) { %>
+      <div class="control-top control-top__inactive control-top__file-begin-reached">
+        <label>Это начало файла.</label> <!-- NON-NLS -->
       </div>
+      <% } else { %>
+      <div class="control-top control-top__inactive">
+        <label>Файл пуст.</label> <!-- NON-NLS -->
+      </div>
+      <% } %>
     <% } %>
     
     
     <div>      
       <div class="anchor-area">
+        <% if (hasLinesTop) { %>
         <div class="anchor-area__panel top">&nbsp;</div>
+        <% } %>
+        <% if (hasLinesBottom) { %>
         <div class="anchor-area__panel bottom">&nbsp;</div>
+        <% } %>
       </div>
       
       <div class="content-area">
-        <div class="content-area__lines top">
-          <% if (hasLinesTop) {
-              for (String line: guiParams.getContentLinesTop()) {
-                HtmlEscaper.escapeAndWrite(line, out);
-                out.println("<br/>");      
-              }
-            }            
-          %>
-        </div>
-        <div class="content-area__lines bottom">
-          <% if (hasLinesBottom) {
-              for (String line: guiParams.getContentLinesBottom()) {
-                HtmlEscaper.escapeAndWrite(line, out);
-                out.println("<br/>");
-              }
-            }
-          %>
-        </div>
+        <% if (hasLinesTop) { %>
+          <div class="content-area__lines top">
+          <% for (String line: guiParams.getContentLinesTop()) {
+               HtmlEscaper.escapeAndWrite(line, out);
+               out.println("<br/>");      
+             } %>            
+          </div>
+        <% } %>
+        <% if (hasLinesBottom) { %>
+          <div class="content-area__lines bottom">
+          <% for (String line: guiParams.getContentLinesBottom()) {
+               HtmlEscaper.escapeAndWrite(line, out);
+               out.println("<br/>");
+             } %>
+          </div>
+        <% } %>
       </div>
   
       
@@ -107,6 +115,11 @@
         } 
       } 
       
+      function onLoadAboveButtonClick() {
+        var offset = getSplitY() - getScrolled();
+        windowReload("<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset);
+      }
+      
       function onResetAnchorButtonClick() {
         var resetAnchorButton = document.getElementsByClassName("control-button_reset-anchor")[0];
         resetAnchorButton.disabled = true;
@@ -115,24 +128,23 @@
         resetAnchor();
       }
       
-      // a little user-visible scroll, px 
-      var initialScroll = 3;
-      
       function logmonitor_onload() { 
         /* scroll to the offset */ 
         
         var offset = getOffset(); 
         if (offset) {
-          requestScroll(getSplitY() - offset); 
+          // scroll to the particular offset
+          scrollVertically(getSplitY() - offset); 
         } else {
           contentArea = document.getElementsByClassName("content-area")[0];
           if (contentArea.clientHeight <= window.innerHeight) {
             if (contentArea.clientHeight > 0) {
-              requestScroll(initialScroll);
+              // scroll to the top of the content
+              scrollVertically(contentArea.getBoundingClientRect().top);
             }
           } else {
             // scroll to the very bottom
-            requestScroll(contentArea.clientHeight - window.innerHeight); 
+            scrollVertically(contentArea.getBoundingClientRect().top + contentArea.clientHeight - window.innerHeight); 
           } 
         }
         
@@ -153,11 +165,10 @@
       } 
       
       
-      function requestScroll(y) {
-        if (document.body.scrollHeight <= window.innerHeight + y) {
-          // adjust body height to the requested scroll, but at least the initial scroll
-          adjustScroll = Math.max(y, initialScroll);
-          document.body.style.height = (window.innerHeight + adjustScroll) + "px";
+      function scrollVertically(y) {
+	    if (document.body.scrollHeight <= window.innerHeight + y) {
+          // adjust body height to the requested scroll
+          document.body.style.height = (window.innerHeight + y) + "px";
         }
         window.scrollTo(0, y); 
       } 
@@ -194,17 +205,6 @@
       }
       
       
-      
-      // blocks script execution after the first request to prevent repeated client requests if the server hangs up
-      blockHitTop = <% if (canLoadTop) { %>false<% } else {%>true<% } %>;
-      
-      function onLoadUpClick() {
-        if (!blockHitTop) {
-          blockHitTop = true;
-          var offset = getSplitY() - getScrolled();
-          windowReload("<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset);
-        }
-      }
       
       
       // blocks script execution after the first request to prevent repeated client requests if the server hangs up
