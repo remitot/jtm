@@ -115,20 +115,6 @@ public class LogMonitorServlet extends SsrServletBase  {
       // the content type is defined for the entire method
       response.setContentType("text/html; charset=UTF-8");
   
-      // check auth
-      if (request.getUserPrincipal() == null) {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        response.flushBuffer();
-        return;
-      }
-      
-      if (!request.isUserInRole("manager-gui")) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-        response.flushBuffer();
-        return;
-      }
-      
-      //////////////////////////////  
       
       // 'lines' request parameter
       final int lines;
