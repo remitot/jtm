@@ -18,30 +18,54 @@ public class LogMonitorPageContent implements Iterable<El> {
     return elements.iterator();
   }
 
-  public LogMonitorPageContent(Text text, Params params) {
+  /**
+   * @param text
+   * @param contentLinesTop log file content lines to be displayed above the split anchor
+   * @param contentLinesBottom log content lines to be displayed below the split anchor
+   * @param loadMoreLinesUrl the url to load more lines, relative to the current url
+   * (and thus monitor state). {@code null} if no more line can be loaded 
+   * (the beginning of the file has been reached)
+   * @param loadMoreLinesPortion number or lines which about to be loaded
+   * by {@code loadMoreLinesUrl} (to display the number on the control).
+   * If {@code loadMoreLinesUrl} is {@code null}, then the value does not matter 
+   * @param resetAnchorUrl the url to reset the current anchor, relative to the current url 
+   * (and thus monitor state). {@code null} if the current anchor cannot be reset
+   */
+  public LogMonitorPageContent(Text text,
+      List<String> contentLinesTop,
+      List<String> contentLinesBottom,
+      String loadMoreLinesUrl,
+      int loadMoreLinesPortion,
+      String resetAnchorUrl) {
 
     final List<El> elements = new ArrayList<>();
 
-    final boolean hasLinesTop = !params.contentLinesTop.isEmpty();
-    final boolean hasLinesBottom = !params.contentLinesBottom.isEmpty();
-    final boolean canResetAnchor = hasLinesBottom && params.resetAnchorUrl != null;
+    final boolean hasLinesTop = contentLinesTop != null && !contentLinesTop.isEmpty();
+    final boolean hasLinesBottom = contentLinesBottom != null && !contentLinesBottom.isEmpty();
+    final boolean canLoadMoreLines = loadMoreLinesUrl != null;
+    final boolean canResetAnchor = hasLinesBottom && resetAnchorUrl != null;
 
     {
       final El controlTop = new El("button");
       controlTop.classList.add("control-top");
   
-      if (params.canLoadMoreLines) {
+      if (canLoadMoreLines) {
         controlTop.classList.add("control-top__load-more-lines");
         controlTop.setAttribute("onclick", "onControlTopClick();");
-        controlTop.setInnerHTML("ЗАГРУЗИТЬ ЕЩЁ 500 СТРОК"); //NON-NLS
+        String innerHtml = String.format(
+            text.getString("org.jepria.tomcat.manager.web.logmonitor.load_more_lines"), 
+            loadMoreLinesPortion);
+        controlTop.setInnerHTML(innerHtml);
       } else {
         if (hasLinesTop || hasLinesBottom) {
           controlTop.classList.add("control-top__file-begin-reached");
           controlTop.setAttribute("disabled");
-          controlTop.setInnerHTML("НАЧАЛО ФАЙЛА"); //NON-NLS
+          controlTop.setInnerHTML(text.getString(
+              "org.jepria.tomcat.manager.web.logmonitor.file_begin_reached"));
         } else {
           controlTop.setAttribute("disabled");
-          controlTop.setInnerHTML("ФАЙЛ ПУСТ"); //NON-NLS
+          controlTop.setInnerHTML(text.getString(
+              "org.jepria.tomcat.manager.web.logmonitor.file_empty"));
         }
       }
       
@@ -80,7 +104,7 @@ public class LogMonitorPageContent implements Iterable<El> {
               .addClass("content-area__lines").addClass("top");
           
           StringBuilder innerHtml = new StringBuilder();
-          for (String line: params.contentLinesTop) {
+          for (String line: contentLinesTop) {
             try {
               HtmlEscaper.escapeAndWrite(line, innerHtml);
             } catch (IOException e) {
@@ -98,7 +122,7 @@ public class LogMonitorPageContent implements Iterable<El> {
               .addClass("content-area__lines").addClass("bottom");
           
           StringBuilder innerHtml = new StringBuilder();
-          for (String line: params.contentLinesBottom) {
+          for (String line: contentLinesBottom) {
             try {
               HtmlEscaper.escapeAndWrite(line, innerHtml);
             } catch (IOException e) {
@@ -120,8 +144,10 @@ public class LogMonitorPageContent implements Iterable<El> {
             .addClass("control-button_reset-anchor").addClass("control-button")
             .addClass("big-black-button").addClass("hidden")
             .setAttribute("onclick", "onResetAnchorButtonClick();")
-            .setAttribute("title", "Снять подсветку с новых записей") // NON-NLS
-            .setInnerHTML("ПРОЧИТАНО");// // NON-NLS
+            .setAttribute("title", text.getString(
+                "org.jepria.tomcat.manager.web.logmonitor.buttonResetAnchor.title"))
+            .setInnerHTML(text.getString(
+                "org.jepria.tomcat.manager.web.logmonitor.buttonResetAnchor.text"));
         
         resetAnchorButton.addStyle("css/jtm-common.css");
         resetAnchorButton.addStyle("css/control-buttons.css");
@@ -148,11 +174,11 @@ public class LogMonitorPageContent implements Iterable<El> {
       innerHtml.append("\n");
       innerHtml.append("var logmonitor_linesBottom = document.querySelectorAll(\".content-area__lines.bottom\")[0];");
       innerHtml.append("\n");
-      innerHtml.append("var logmonitor_loadMoreLinesUrl = \"" + params.loadMoreLinesUrl + "\";");
+      innerHtml.append("var logmonitor_loadMoreLinesUrl = \"" + loadMoreLinesUrl + "\";");
       innerHtml.append("\n");
       innerHtml.append("var logmonitor_canResetAnchor = " + canResetAnchor + ";");
       innerHtml.append("\n");
-      innerHtml.append("var logmonitor_resetAnchorUrl = \"" + params.resetAnchorUrl + "\";");
+      innerHtml.append("var logmonitor_resetAnchorUrl = \"" + resetAnchorUrl + "\";");
       innerHtml.append("\n");
       
       script.setInnerHTML(innerHtml.toString());
@@ -162,37 +188,5 @@ public class LogMonitorPageContent implements Iterable<El> {
     
     
     this.elements = elements;
-  }
-  
-  public static class Params {
-    /**
-     * Non-null, maybe empty. Log content lines to be displayed above the split anchor.
-     */
-    public final List<String> contentLinesTop;
-    /**
-     * Non-null, maybe empty. Log content lines to be displayed below the split anchor.
-     */
-    public final List<String> contentLinesBottom;
-    /**
-     * Non-null. Whether it is possible to load more lines (whether the beginning of the file has not been reached).
-     */
-    public final boolean canLoadMoreLines;
-    /**
-     * Nullable. If the log monitor client window can be scrolled up (to load the next portion of top lines), then the value is the url to load.
-     */
-    public final String loadMoreLinesUrl;
-    /**
-     * Nullable. If the displayed anchor can be reset (to the last loaded line, then the value is the url to reset.
-     */
-    public final String resetAnchorUrl;
-    
-    public Params(List<String> contentLinesTop, List<String> contentLinesBottom,
-        boolean canLoadMoreLines, String loadTopUrl, String resetAnchorUrl) {
-      this.contentLinesTop = contentLinesTop;
-      this.contentLinesBottom = contentLinesBottom;
-      this.canLoadMoreLines = canLoadMoreLines;
-      this.loadMoreLinesUrl = loadTopUrl;
-      this.resetAnchorUrl = resetAnchorUrl;
-    }
   }
 }

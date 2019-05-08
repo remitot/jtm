@@ -208,16 +208,14 @@ public class LogMonitorServlet extends SsrServletBase  {
         }
         
   
-        // set gui params for including jsp
-        LogMonitorPageContent.Params monitorGuiParams = new LogMonitorPageContent.Params(
-            monitor.contentLinesTop, 
+        LogMonitorPageContent content = new LogMonitorPageContent(
+            text,
+            monitor.contentLinesTop,
             monitor.contentLinesBottom,
-            !monitor.fileBeginReached && loadMoreLinesUrl != null, 
-            loadMoreLinesUrl, 
+            (monitor.fileBeginReached ? null : loadMoreLinesUrl),
+            FRAME_SIZE,
             resetAnchorUrl);
         
-        
-        LogMonitorPageContent content = new LogMonitorPageContent(text, monitorGuiParams);
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "logmonitor_onload();");
         
