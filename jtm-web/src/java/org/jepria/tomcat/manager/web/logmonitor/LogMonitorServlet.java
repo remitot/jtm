@@ -21,6 +21,8 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.web.ssr.JtmPageBuilder;
 import org.jepria.web.ssr.SsrServletBase;
+import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.Texts;
 
 public class LogMonitorServlet extends SsrServletBase  {
 
@@ -75,6 +77,39 @@ public class LogMonitorServlet extends SsrServletBase  {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     
+    
+    // 'filename' request parameter
+    final String filename = request.getParameter("filename");
+    if (filename == null) {
+      // no log file specified for monitoring
+      
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      response.flushBuffer();
+      return;
+      
+    } else if (!filename.matches("[^/\\\\]+")) {
+      // invalid 'filename' value
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'filename' parameter value");
+      response.flushBuffer();
+      return;
+    }
+    
+    
+    // host
+    final URL url = new URL(request.getRequestURL().toString());
+    final String host = url.getHost() + (url.getPort() == 80 ? "" : (":" + url.getPort()));
+    
+    
+    
+    
+    final Text text = Texts.get(request, "text/org_jepria_tomcat_manager_web_Text");
+    
+    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
+    pageBuilder.setTitle(filename + " — " + host);
+    
+    
+    
+    
     if (checkAuth(request)) {
       
       // the content type is defined for the entire method
@@ -91,24 +126,6 @@ public class LogMonitorServlet extends SsrServletBase  {
         response.sendError(HttpServletResponse.SC_FORBIDDEN);
         response.flushBuffer();
         return;
-      }
-      
-      
-      // 'filename' request parameter
-      final String filename = request.getParameter("filename");
-      if (filename == null) {
-        // no log file specified for monitoring
-        
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-        response.flushBuffer();
-        return;
-        
-      } else if (!filename.matches("[^/\\\\]+")) {
-        // invalid 'filename' value
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'filename' parameter value");
-        response.flushBuffer();
-        return;
-        
       }
       
       //////////////////////////////  
@@ -172,11 +189,6 @@ public class LogMonitorServlet extends SsrServletBase  {
         }
         
         
-        
-        final URL url = new URL(request.getRequestURL().toString());
-        final String host = url.getHost() + (url.getPort() == 80 ? "" : (":" + url.getPort()));
-           
-        
         final MonitorResultDto monitor;
         
         try (Reader fileReader = readFile(request, filename)) {
@@ -211,31 +223,25 @@ public class LogMonitorServlet extends SsrServletBase  {
         
   
         // set gui params for including jsp
-        MonitorGuiParams monitorGuiParams = new MonitorGuiParams(
-            filename, 
-            host, 
+        LogMonitorPageContent.Params monitorGuiParams = new LogMonitorPageContent.Params(
             monitor.contentLinesTop, 
             monitor.contentLinesBottom,
-            monitor.fileBeginReached, 
+            !monitor.fileBeginReached && loadMoreLinesUrl != null, 
             loadMoreLinesUrl, 
             resetAnchorUrl);
         
-        request.setAttribute("org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet.monitorGuiParams", 
-            monitorGuiParams);
         
-        request.getRequestDispatcher("jsp/log-monitor/log-monitor.jsp").include(request, response);
+        LogMonitorPageContent content = new LogMonitorPageContent(text, monitorGuiParams);
+        pageBuilder.setContent(content);
+        pageBuilder.setBodyAttributes("onload", "logmonitor_onload();");
         
-        return;
       }
       
     } else {
-      
-      JtmPageBuilder page = JtmPageBuilder.newInstance(null);
-      
-      requireAuth(request, page);
-      
-      page.build().respond(response);
+      requireAuth(request, pageBuilder);
     }
+    
+    pageBuilder.build().respond(response);
   }
   
   private static int getAnchorLine(Reader fileReader) throws IOException {
