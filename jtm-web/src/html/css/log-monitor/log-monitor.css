@@ -42,26 +42,27 @@ body {
   
   line-height: 2em;
   text-align: center;
+  
+  font-size: 1em;
+  font-family: serif;
 }
 
 button.control-top {
   border: medium none;
 }
 
-.control-top__active {
+.control-top__load-more-lines {
   background-color: #CFFFC1;
-}
-
-.control-top__active, .control-top__active * {
   cursor: pointer;
-}
-
-.control-top__inactive {
-  background-color: #BFBFBF;
 }
 
 .control-top__file-begin-reached {
   margin-bottom: 8px;
+}
+
+.control-top:disabled {
+  background-color: #BFBFBF;
+  cursor: default;
 }
 
 .big-black-button.control-button_reset-anchor {

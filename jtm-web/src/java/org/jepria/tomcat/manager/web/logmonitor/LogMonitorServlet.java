@@ -49,7 +49,7 @@ public class LogMonitorServlet extends SsrServletBase  {
   //TODO extract?
   private static final boolean RESET_LINES_ON_ANCHOR_RESET = true;
   //TODO extract?
-  private static final int FRAME_SIZE = 200; //TODO extract?
+  private static final int FRAME_SIZE = 500; //TODO extract?
   //TODO this value is assumed. But how to determine it? 
   private static final String LOG_FILE_READ_ENCODING = "UTF-8";
   

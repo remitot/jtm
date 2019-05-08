@@ -19,7 +19,7 @@
   
   final boolean hasLinesTop = !guiParams.getContentLinesTop().isEmpty();
   final boolean hasLinesBottom = !guiParams.getContentLinesBottom().isEmpty();
-  final boolean canLoadAbove = !guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null;
+  final boolean canLoadMore = !guiParams.isFileBeginReached() && guiParams.getLoadTopUrl() != null;
   final boolean canResetAnchor = hasLinesBottom && guiParams.getResetAnchorUrl() != null;
 %>
   
@@ -34,23 +34,20 @@
     <script type="text/javascript" src="js/jtm-common.js"></script>
     
     <link rel="stylesheet" href="css/log-monitor/log-monitor.css">
+    <script type="text/javascript" src="js/log-monitor/log-monitor.js"></script>
   </head> 
 
   <body onload="logmonitor_onload();">
 
-    <% if (canLoadAbove) { %>
-      <div class="control-top control-top__active" onclick="onLoadAboveButtonClick();">
-        <label>загрузить ещё</label> <!-- NON-NLS -->
-      </div>  
+    <% if (canLoadMore) { %>
+      <button class="control-top control-top__load-more-lines" 
+          onclick="onControlTopClick();" 
+          >загрузить ещё 500 строк</button>   <!-- NON-NLS -->
     <% } else { %>
       <% if (hasLinesTop || hasLinesBottom) { %>
-      <div class="control-top control-top__inactive control-top__file-begin-reached">
-        <label>Это начало файла.</label> <!-- NON-NLS -->
-      </div>
+      <button class="control-top control-top__file-begin-reached" disabled>Начало файла.</button><!-- NON-NLS -->
       <% } else { %>
-      <div class="control-top control-top__inactive">
-        <label>Файл пуст.</label> <!-- NON-NLS -->
-      </div>
+      <button class="control-top" disabled>Файл пуст.</button> <!-- NON-NLS -->
       <% } %>
     <% } %>
     
@@ -96,130 +93,14 @@
     
     <script type="text/javascript">
 
-      // always present
-      var linesTop = document.querySelectorAll(".content-area__lines.top")[0];
-      var linesBottom = document.querySelectorAll(".content-area__lines.bottom")[0];
+      // constants for using in log-monitor.js
+      var logmonitor_linesTop = document.querySelectorAll(".content-area__lines.top")[0];
+      var logmonitor_linesBottom = document.querySelectorAll(".content-area__lines.bottom")[0];
       
-      function getSplitY() {
-        return linesTop.offsetTop + linesTop.clientHeight;
-      }
+      var logmonitor_loadMoreLinesUrl = "<%= guiParams.getLoadTopUrl() %>";
+      var logmonitor_canResetAnchor = <%= canResetAnchor %>;
+      var logmonitor_resetAnchorUrl = "<%= guiParams.getResetAnchorUrl() %>";
       
-      /** 
-       * Returns scroll offset (the viewport position) from the split position, in pixels 
-       */ 
-      function getOffset() { 
-        var offset = window.location.hash.substring(1); 
-        if (offset) { 
-          return Number(offset); 
-        } else { 
-          return null; 
-        } 
-      } 
-      
-      function onLoadAboveButtonClick() {
-        var offset = getSplitY() - getScrolled();
-        windowReload("<% out.print(guiParams.getLoadTopUrl()); %>" + "#" + offset);
-      }
-      
-      function onResetAnchorButtonClick() {
-        var resetAnchorButton = document.getElementsByClassName("control-button_reset-anchor")[0];
-        resetAnchorButton.disabled = true;
-        resetAnchorButton.title = null;
-        
-        resetAnchor();
-      }
-      
-      function logmonitor_onload() { 
-        /* scroll to the offset */ 
-        
-        var offset = getOffset(); 
-        if (offset) {
-          // scroll to the particular offset
-          scrollVertically(getSplitY() - offset); 
-        } else {
-          contentArea = document.getElementsByClassName("content-area")[0];
-          if (contentArea.clientHeight <= window.innerHeight) {
-            if (contentArea.clientHeight > 0) {
-              // scroll to the top of the content
-              scrollVertically(contentArea.getBoundingClientRect().top);
-            }
-          } else {
-            // scroll to the very bottom
-            scrollVertically(contentArea.getBoundingClientRect().top + contentArea.clientHeight - window.innerHeight); 
-          } 
-        }
-        
-        
-        /* set anchor-area size */
-        var anchorAreaTop = document.querySelectorAll(".anchor-area__panel.top")[0];
-        anchorAreaTop.style.height = linesTop.clientHeight + "px";
-        
-        var anchorAreaBottom = document.querySelectorAll(".anchor-area__panel.bottom")[0];
-        if (anchorAreaBottom) {
-          anchorAreaBottom.style.height = linesBottom.clientHeight + "px";
-        }
-        
-  
-        addHoverForBigBlackButton(document.getElementsByClassName("big-black-button")[0]);
-                
-        adjustResetAnchorButtonVisiblity();
-      } 
-      
-      
-      function scrollVertically(y) {
-	    if (document.body.scrollHeight <= window.innerHeight + y) {
-          // adjust body height to the requested scroll
-          document.body.style.height = (window.innerHeight + y) + "px";
-        }
-        window.scrollTo(0, y); 
-      } 
-      
-      function getScrolled() {
-        return window.pageYOffset || document.documentElement.scrollTop;
-      }
-      
-      function getDocHeight() {
-        return Math.max(
-            document.body.scrollHeight, document.documentElement.scrollHeight,
-            document.body.offsetHeight, document.documentElement.offsetHeight,
-            document.body.clientHeight, document.documentElement.clientHeight
-        );
-      }
-      
-      window.onscroll = function() { 
-        
-        var offset = getSplitY() - getScrolled(); 
-        window.location.hash = "#" + offset; 
-        
-        adjustResetAnchorButtonVisiblity();
-      }
-      
-      
-      function adjustResetAnchorButtonVisiblity() {
-        <% if (canResetAnchor) { %>
-        if (getScrolled() + window.innerHeight >= linesBottom.offsetTop) {
-          document.getElementsByClassName("control-button_reset-anchor")[0].classList.remove("hidden");
-        } else {
-          document.getElementsByClassName("control-button_reset-anchor")[0].classList.add("hidden");
-        }
-        <% } %>
-      }
-      
-      
-      
-      
-      // blocks script execution after the first request to prevent repeated client requests if the server hangs up
-      blockResetAnchor = <% if (canResetAnchor) { %>false<% } else { %>true<% } %>;
-   
-      function resetAnchor() {
-        if (!blockResetAnchor) {
-          blockResetAnchor = true;
-          var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
-          window.location.hash = "#" + offset;// TODO remove this action? (The window will be reloaded immediately anyway)
-          windowReload("<% out.print(guiParams.getResetAnchorUrl()); %>" + "#" + offset);
-        }
-      }
-       
     </script>
     
   </body>
