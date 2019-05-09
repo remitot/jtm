@@ -16,16 +16,6 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>JdbcApiServlet</servlet-name>
-    <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcApiServlet
-    </servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>JdbcApiServlet</servlet-name>
-    <url-pattern>/api/jdbc/*</url-pattern>
-  </servlet-mapping>
-  
-  <servlet>
     <servlet-name>JdbcGui</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.jdbc.JdbcSsrServlet</servlet-class>
   </servlet>
@@ -33,7 +23,6 @@
     <servlet-name>JdbcGui</servlet-name>
     <url-pattern>/jdbc/*</url-pattern>
   </servlet-mapping>
-
 
   <servlet>
     <servlet-name>PortApiServlet</servlet-name>
