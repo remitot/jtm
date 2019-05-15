@@ -7,14 +7,12 @@ import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +21,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,7 +32,7 @@ import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
 import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
-import org.jepria.httpd.apache.manager.web.jk.dto.BindingListDto;
+import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingModDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestBodyDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.ModRequestDto;
@@ -79,11 +76,7 @@ public class JkApiServlet extends HttpServlet {
       
       final Environment environment = EnvironmentFactory.get(request);
       
-      final ApacheConfJk apacheConf = new ApacheConfJk(
-          () -> environment.getMod_jk_confInputStream(), 
-          () -> environment.getWorkers_propertiesInputStream());
-      
-      List<BindingListDto> bindings = listBindings(apacheConf, renameLocalhost(environment));
+      List<BindingDto> bindings = new JkApi().list(environment);
       
       Map<String, Object> responseJsonMap = new HashMap<>();
       responseJsonMap.put("_list", bindings);
@@ -385,7 +378,8 @@ public class JkApiServlet extends HttpServlet {
             () -> environment.getWorkers_propertiesInputStream());
         
         
-        final List<BindingListDto> bindingsAfterSave = listBindings(apacheConfAfterSave, renameLocalhost(environment));
+        JkApi api = new JkApi();
+        final List<BindingDto> bindingsAfterSave = api.getBindings(apacheConfAfterSave, api.renameLocalhost(environment));
         responseJsonMap.put("_list", bindingsAfterSave);
       }
       
@@ -407,10 +401,6 @@ public class JkApiServlet extends HttpServlet {
       resp.flushBuffer();
       return;
     }
-  }
-  
-  private static boolean renameLocalhost(Environment environment) {
-    return "true".equals(environment.getProperty("org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
   }
   
   private static ModStatus updateBinding(
@@ -743,68 +733,5 @@ public class JkApiServlet extends HttpServlet {
   
   private static boolean empty(String string) {
     return string == null || "".equals(string);
-  }
-  
-  private List<BindingListDto> listBindings(ApacheConfJk apacheConf, boolean renameLocalhost) {
-    Map<String, Binding> bindings = apacheConf.getBindings();
-
-    // list all bindings
-    return bindings.entrySet().stream().map(
-        entry -> bindingToDto(entry.getKey(), entry.getValue(), renameLocalhost))
-        .sorted(bindingSorter()).collect(Collectors.toList());
-  }
-  
-  private static String getLocalhostName() {
-    try {
-      return InetAddress.getLocalHost().getHostName().toLowerCase();
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
-      // TODO fail-fast or fail-safe?
-      return "localhost"; // fallback
-    }
-  }
-  
-  private BindingListDto bindingToDto(String id, Binding binding, boolean renameLocalhost) {
-    BindingListDto dto = new BindingListDto();
-    dto.setActive(binding.isActive());
-    dto.setId(id);
-    dto.setApplication(binding.getApplication());
-    
-    String host = binding.getWorkerHost();
-    if (renameLocalhost && "localhost".equals(host)) {
-      host = getLocalhostName();
-    }
-    
-    dto.setHost(host);
-    
-    Integer ajpPort = binding.getWorkerAjpPort();
-    if (ajpPort != null) {
-      dto.setAjpPort(binding.getWorkerAjpPort());
-    }
-    if (host != null && ajpPort != null) {
-      dto.setGetHttpPortLink("api/jk/get-http-port?host=" + host + "&ajp-port=" + ajpPort);
-    }
-    return dto;
-  }
-  
-  private static Comparator<BindingListDto> bindingSorter() {
-    return new Comparator<BindingListDto>() {
-      @Override
-      public int compare(BindingListDto o1, BindingListDto o2) {
-        int applicationCmp = o1.getApplication().toLowerCase().compareTo(o2.getApplication().toLowerCase());
-        if (applicationCmp == 0) {
-          // the active is the first
-          if (o1.getActive() && !o2.getActive()) {
-            return -1;
-          } else if (o2.getActive() && !o1.getActive()) {
-            return 1;
-          } else {
-            return 0;
-          }
-        } else {
-          return applicationCmp;
-        }
-      }
-    };
   }
 }

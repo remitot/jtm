@@ -1,6 +1,7 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -10,7 +11,7 @@ import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
-import org.jepria.web.ssr.El;
+import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
@@ -41,14 +42,11 @@ public class JkSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
 
-      El div = new El("div");
-      div.setAttribute("style", "width:100px;height:100px;background-color:green;");
+      final List<BindingDto> bindings = new JkApi().list(env);
       
-//      final List<PortDto> ports = new PortApi().list(env);
-//      
-//      PortPageContent content = new PortPageContent(text, ports);
-      pageBuilder.setContent(div);
-//      pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
+      JkPageContent content = new JkPageContent(text, bindings);
+      pageBuilder.setContent(content);
+      pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       
       pageHeader.setButtonLogout("jk"); // TODO this will erase any path- or request params of the current page
       
