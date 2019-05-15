@@ -5,25 +5,24 @@
   </session-config>
 
   <servlet>
-    <servlet-name>LoginServlet</servlet-name>
-    <servlet-class>org.jepria.httpd.apache.manager.web.LoginServlet
+    <servlet-name>AuthServlet</servlet-name>
+    <servlet-class>org.jepria.httpd.apache.manager.web.AuthServlet
     </servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>LoginServlet</servlet-name>
-    <url-pattern>/api/login/*</url-pattern>
+    <servlet-name>AuthServlet</servlet-name>
+    <url-pattern>/login/*</url-pattern>
+    <url-pattern>/logout/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>LogoutServlet</servlet-name>
-    <servlet-class>org.jepria.httpd.apache.manager.web.LogoutServlet
-    </servlet-class>
+    <servlet-name>JkGui</servlet-name>
+    <servlet-class>org.jepria.httpd.apache.manager.web.jk.JkSsrServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>LogoutServlet</servlet-name>
-    <url-pattern>/api/logout/*</url-pattern>
+    <servlet-name>JkGui</servlet-name>
+    <url-pattern>/jk/*</url-pattern>
   </servlet-mapping>
-
 
   <servlet>
     <servlet-name>JkApiServlet</servlet-name>
@@ -80,30 +79,9 @@
 
   <security-constraint>
     <web-resource-collection>
-      <web-resource-name>Protected resources</web-resource-name>
-      <url-pattern>/api/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>manager-gui</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-  <security-constraint>
-    <web-resource-collection>
       <web-resource-name>Public resources</web-resource-name>
-      <url-pattern>/api</url-pattern><!-- ApiDocs -->
-      <url-pattern>/api/login/*</url-pattern>
-      <url-pattern>/api/logout/*</url-pattern>
-      <url-pattern>/gui/*</url-pattern>
+      <url-pattern>/*</url-pattern>
     </web-resource-collection>
   </security-constraint>
-
-  <login-config>
-    <auth-method>FORM</auth-method>
-    <form-login-config>
-      <form-login-page>/WEB-INF/security/login.jsp</form-login-page>
-      <form-error-page>/WEB-INF/security/login.jsp</form-error-page>
-    </form-login-config>
-  </login-config>
   
 </web-app>

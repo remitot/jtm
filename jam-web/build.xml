@@ -26,6 +26,7 @@
   <!-- Общие наборы файлов -->
   <path id="libs">
   	<pathelement location="${JAM-CORE_LIB}" />
+  	<pathelement location="${WEB-COMMON_JAR}" />
     <pathelement location="${SERVLET-API_LIB}" />
     <pathelement location="${GSON_LIB}" />
   </path>
@@ -46,6 +47,10 @@
     </javac>
   </target>
 
+  <fileset dir="src/resources" id="text-web-jar">
+    <include name="text/**/*" />
+  </fileset>
+	
   <target name="web-jar" depends="java-compile">
     <outofdate>
       <sourcefiles>
@@ -55,6 +60,7 @@
       <sequential>
         <jar destfile="${JAR_TEMP}/${DISTR_NAME}-web.jar">
           <fileset refid="class-web-jar" />
+          <fileset refid="text-web-jar" />
         </jar>
       </sequential>
     </outofdate>
@@ -65,7 +71,8 @@
     <outofdate>
       <sourcefiles>
         <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
-      	<fileset file="${WEB-COMMON_LIB}" />
+      	<fileset file="${WEB-COMMON_WAR}" />
+      	<fileset file="${WEB-COMMON_JAR}" />
       	<fileset file="src/html/**/" />
         <fileset file="src/resources/**/" />
       </sourcefiles>
@@ -74,12 +81,9 @@
       <sequential>
         <mkdir dir="temp-war" />
         
-        <copy todir="temp-war/WEB-INF/security">
-          <fileset dir="src/resources/security"/>
-        </copy>
-        
         <copy todir="temp-war/WEB-INF/lib">
-        	<fileset file="${JAM-CORE_LIB}" />
+          <fileset file="${JAM-CORE_LIB}" />
+          <fileset file="${WEB-COMMON_JAR}" />
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
           <fileset file="${GSON_LIB}" />
         </copy>
@@ -87,8 +91,8 @@
       	<copy todir="temp-war/WEB-INF">
           <fileset file="app-conf-default.properties" />
         </copy>
-      	
-      	<unzip src="${WEB-COMMON_LIB}" dest="temp-war"/>	
+        
+      	<unzip src="${WEB-COMMON_WAR}" dest="temp-war"/>	
       	
         <copy todir="temp-war">
           <fileset file="src/html/**/" />
