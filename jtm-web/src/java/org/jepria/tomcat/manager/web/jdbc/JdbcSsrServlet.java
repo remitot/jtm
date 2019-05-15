@@ -74,7 +74,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       JdbcPageContent content = new JdbcPageContent(text, connections, itemModRequests, itemModStatuses);
       pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();checkbox_onload();controlButtons_onload();");
+      pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
       
       
       pageBuilder.setStatusBar(createStatusBar(appState.modStatus, text));

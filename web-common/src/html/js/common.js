@@ -23,7 +23,7 @@ function addHoverForBigBlackButton(bigBlackButton) {
 /**
   * Public API.
   */
-function jtm_onload() {
+function common_onload() {
   
   // add .big-black-button hover style
   bigBlackButtons = document.getElementsByClassName("big-black-button");

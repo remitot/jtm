@@ -81,8 +81,8 @@ public class PageHeader extends El {
         .addClass("big-black-button")
         .setInnerHTML(text.getString("org.jepria.web.ssr.common.buttonLogout.text"));
     
-    buttonLogout.addStyle("css/jtm-common.css"); // for .big-black-button
-    buttonLogout.addScript("js/jtm-common.js"); // for .big-black-button
+    buttonLogout.addStyle("css/common.css"); // for .big-black-button
+    buttonLogout.addScript("js/common.js"); // for .big-black-button
     
     formLogout.appendChild(buttonLogout);
     

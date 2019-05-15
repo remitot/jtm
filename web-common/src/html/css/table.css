@@ -115,7 +115,7 @@
 #table .modified {
   border-color: #fb8f40;
 }
-/* prevents 'input.field-text:focus' from jtm.css from overriding by '.modified' above */
+/* prevents 'input.field-text:focus' from main css from overriding by '.modified' above */
 #table input.field-text.modified:focus {
   border-color: #0089bd;
 }

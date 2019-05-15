@@ -10,7 +10,7 @@ public class Texts {
   public static final String DEFAULT_LANG = "ru";
 
   /**
-   * Gets common and applicational text resources (both from jtm-common and application) 
+   * Gets both common and applicational text resources (merged, prior applicational)
    * @param request
    * @param bundleBaseName applicational resource bundle base name
    * @return
@@ -42,7 +42,7 @@ public class Texts {
   }
   
   /**
-   * Gets common text resources (from jtm-common only) 
+   * Gets common text resources only (not applicational) 
    * @param request
    * @return
    */

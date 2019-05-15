@@ -33,7 +33,7 @@ public abstract class Table<T extends ItemData> extends El {
     
     addScript("js/table.js");
     addStyle("css/table.css");
-    addStyle("css/jtm-common.css"); // for .field-text
+    addStyle("css/common.css"); // for .field-text
   }
   
   protected boolean isEditable() {

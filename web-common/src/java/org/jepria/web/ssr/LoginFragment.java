@@ -44,8 +44,7 @@ public class LoginFragment extends AuthFragment {
     
     
     addScript("js/auth-fragment_login.js");
-    addScript("js/jtm-common.js");
-    
-    addStyle("css/jtm-common.css");
+    addScript("js/common.js");
+    addStyle("css/common.css");
   }
 }

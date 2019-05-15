@@ -149,9 +149,9 @@ public class LogMonitorPageContent implements Iterable<El> {
             .setInnerHTML(text.getString(
                 "org.jepria.tomcat.manager.web.logmonitor.buttonResetAnchor.text"));
         
-        resetAnchorButton.addStyle("css/jtm-common.css");
+        resetAnchorButton.addStyle("css/common.css");
         resetAnchorButton.addStyle("css/control-buttons.css");
-        resetAnchorButton.addScript("js/jtm-common.js");
+        resetAnchorButton.addScript("js/common.js");
         
         mainDiv.appendChild(resetAnchorButton);
       }

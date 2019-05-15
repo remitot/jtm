@@ -58,8 +58,8 @@ public class ControlButtons extends El {
     
     
     addStyle("css/control-buttons.css");
-    addStyle("css/jtm-common.css"); // for .big-black-button
+    addStyle("css/common.css"); // for .big-black-button
     addScript("js/control-buttons.js");
-    addScript("js/jtm-common.js"); // for .big-black-button
+    addScript("js/common.js"); // for .big-black-button
   }
 }

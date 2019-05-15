@@ -34,8 +34,7 @@ public class ForbiddenFragment extends AuthFragment {
     
     appendChild(form);
     
-    addScript("js/jtm-common.js");
-    
-    addStyle("css/jtm-common.css");
+    addScript("js/common.js");
+    addStyle("css/common.css");
   }
 }

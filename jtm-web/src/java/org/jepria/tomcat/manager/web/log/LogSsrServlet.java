@@ -104,7 +104,7 @@ public class LogSsrServlet extends SsrServletBase {
 
       LogPageContent content = new LogPageContent(text, logs, clientTimezone);
       pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
+      pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
   
       pageHeader.setButtonLogout("log"); // TODO this will erase any path- or request params of the current page
       
