@@ -47,7 +47,7 @@
     </javac>
   </target>
 
-	<fileset dir="src/resources" id="text-web-jar">
+  <fileset dir="src/resources" id="text-web-jar">
     <include name="text/**/*" />
   </fileset>
 	
@@ -60,7 +60,7 @@
       <sequential>
         <jar destfile="${JAR_TEMP}/${DISTR_NAME}-web.jar">
           <fileset refid="class-web-jar" />
-        	<fileset refid="text-web-jar" />
+          <fileset refid="text-web-jar" />
         </jar>
       </sequential>
     </outofdate>
@@ -82,8 +82,8 @@
         <mkdir dir="temp-war" />
         
         <copy todir="temp-war/WEB-INF/lib">
-        	<fileset file="${JTM-CORE_LIB}" />
-        	<fileset file="${WEB-COMMON_JAR}" />
+          <fileset file="${JTM-CORE_LIB}" />
+          <fileset file="${WEB-COMMON_JAR}" />
           <fileset file="${JAR_TEMP}/${DISTR_NAME}-web.jar" />
           <fileset file="${GSON_LIB}" />
         </copy>
