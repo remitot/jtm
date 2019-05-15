@@ -25,7 +25,9 @@ public class AuthServletBase extends HttpServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     
-    if (req.getRequestURI().endsWith("/login")) {
+    final String path = req.getPathInfo(); 
+    
+    if (path != null && (path.equals("/login") || path.startsWith("/login/"))) {
       
       boolean loginSuccess = login(req);
       
@@ -42,7 +44,7 @@ public class AuthServletBase extends HttpServlet {
         }
       }
       
-    } else if (req.getRequestURI().endsWith("/logout")) {
+    } else if (path != null && (path.equals("/logout") || path.startsWith("/logout/"))) {
       
       logout(req);
 
