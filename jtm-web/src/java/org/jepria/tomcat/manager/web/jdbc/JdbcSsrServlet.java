@@ -13,10 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.JtmPageHeader;
+import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
-import org.jepria.web.ssr.JtmPageBuilder;
-import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
+import org.jepria.web.ssr.HtmlPageExtBuilder;
+import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.Text;
@@ -48,12 +50,13 @@ public class JdbcSsrServlet extends SsrServletBase {
 
     final Environment env = EnvironmentFactory.get(req);
     
-    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
+    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
     pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.jdbc.title"));
-    pageBuilder.setCurrentMenuItem(CurrentMenuItem.JDBC);
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    pageBuilder.setManagerApache(managerApacheHref);
+    
+    final PageHeader pageHeader = new JtmPageHeader(text, managerApacheHref, CurrentMenuItem.JDBC);
+    pageBuilder.setHeader(pageHeader);
     
     
     if (checkAuth(req)) {
@@ -75,7 +78,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       
       pageBuilder.setStatusBar(createStatusBar(appState.modStatus, text));
-      pageBuilder.setButtonLogout("jdbc"); // TODO this will erase any path- or request params of the current page
+      pageHeader.setButtonLogout("jdbc"); // TODO this will erase any path- or request params of the current page
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
@@ -87,7 +90,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       requireAuth(req, pageBuilder);
     }
     
-    final JtmPageBuilder.Page page = pageBuilder.build();
+    final HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
     
     appState.modStatus = null;

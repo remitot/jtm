@@ -90,7 +90,7 @@ public class SsrServletBase extends HttpServlet {
    * @param req current request that needs authentication
    * @param page original page that was about to be responded if the request had been authenticated
    */
-  protected void requireAuth(HttpServletRequest req, JtmPageBuilder page) {
+  protected void requireAuth(HttpServletRequest req, HtmlPageExtBuilder page) {
     requireAuth(req, page, null);
   }
   
@@ -102,7 +102,7 @@ public class SsrServletBase extends HttpServlet {
    * @param authRedirectPath path to redirect after a successful login or logout
    * If {@code null}, the redirect path is the current request path
    */
-  protected void requireAuth(HttpServletRequest req, JtmPageBuilder page, String authRedirectPath) {
+  protected void requireAuth(HttpServletRequest req, HtmlPageExtBuilder page, String authRedirectPath) {
     
     // redirect to a current request path in case of null
     authRedirectPath = authRedirectPath != null ? authRedirectPath : getAuthRedirectPathDefault(req);
@@ -146,8 +146,6 @@ public class SsrServletBase extends HttpServlet {
       
       page.setContent(content);
       page.setBodyAttributes("onload", "jtm_onload();", "class", "background_gray");
-      
-      page.setButtonLogout(authRedirectPath);
     }
     
     page.setStatusBar(createStatusBar(text, authState));

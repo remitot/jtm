@@ -14,8 +14,8 @@
   color: #777;
 }
 
-.page-header__menu-item_apache-httpd {
-  padding-right: 28px;
+div.page-header__container {
+  display: inline;
 }
 
 .page-header__menu-item_regular {

@@ -4,98 +4,60 @@ public class PageHeader extends El {
   
   protected final Text text;
   
-  private El itemManagerApache;
-  private El itemJdbc;
-  private El itemLog;
-  private El itemPort;
+  /**
+   * Container for regular menu items (even if there are no items)
+   */
+  // private
+  private final El itemsContainer;
+  
+  /**
+   * Container for logout form (even if there is no logout button) 
+   */
+  // private
+  private final El formLogoutContainer;
+  
+  // private
+  private Iterable<? extends Node> items;
+  
+  // private field with protected getter
   private El formLogout;
   
   /**
-   * Menu items possibly displayed as currently selected 
+   * @param text
    */
-  public static enum CurrentMenuItem {
-    JDBC,
-    LOG,
-    PORT,
-  }
-  
-  /**
-   * @param currentMenuItem the menu item to be displayed as currently active.
-   * If {@code null}, no menu item will be displayed as currently active.
-   */
-  public PageHeader(Text text, CurrentMenuItem currentMenuItem) {
+  public PageHeader(Text text) {
     super("div");
     this.text = text;
     classList.add("page-header");
+
+    itemsContainer = new El("div").addClass("page-header__container");
+    formLogoutContainer = new El("div").addClass("page-header__container");
     
-    
-    itemJdbc = new El("a");
-    itemJdbc.classList.add("page-header__menu-item");
-    itemJdbc.classList.add("page-header__menu-item_regular");
-    if (currentMenuItem == CurrentMenuItem.JDBC) {
-      itemJdbc.classList.add("page-header__menu-item_current");
-    } else {
-      itemJdbc.classList.add("page-header__menu-item_hoverable");
-      itemJdbc.setAttribute("href", "jdbc");
-    }
-    itemJdbc.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemJdbc"), true);
-    appendChild(itemJdbc);
-    
-    
-    itemLog = new El("a");
-    itemLog.classList.add("page-header__menu-item");
-    itemLog.classList.add("page-header__menu-item_regular");
-    if (currentMenuItem == CurrentMenuItem.LOG) {
-      itemLog.classList.add("page-header__menu-item_current");
-    } else {
-      itemLog.classList.add("page-header__menu-item_hoverable");
-      itemLog.setAttribute("href", "log");
-    }
-    itemLog.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemLog"), true);
-    appendChild(itemLog);
-    
-    
-    itemPort = new El("a");
-    itemPort.classList.add("page-header__menu-item");
-    itemPort.classList.add("page-header__menu-item_regular");
-    if (currentMenuItem == CurrentMenuItem.PORT) {
-      itemPort.classList.add("page-header__menu-item_current");
-    } else {
-      itemPort.classList.add("page-header__menu-item_hoverable");
-      itemPort.setAttribute("href", "port");
-    }
-    itemPort.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemPort"), true);
-    appendChild(itemPort);
-    
+    appendChild(itemsContainer);
+    appendChild(formLogoutContainer);
     
     addStyle("css/page-header.css");
-    addStyle("css/jtm-common.css"); // for .big-black-button
-    addScript("js/jtm-common.js"); // for .big-black-button
   }
   
-  /**
-   * @param managerApacheHref html {@code href} value for the 'Apache HTTPD' menu item. 
-   * If {@code null} the item is removed from the container
-   */
-  public void setManagerApache(String managerApacheHref) {
-    // remove
-    if (itemManagerApache != null) {
-      childs.remove(itemManagerApache);
-      itemManagerApache = null;
-    }
+  // protected
+  protected El getFormLogout() {
+    return formLogout;
+  }
+  
+  public Iterable<? extends Node> getItems() {
+    return items;
+  }
+  
+  public void setItems(Iterable<? extends Node> items) {
+    // remove existing
+    itemsContainer.childs.clear();
     
     // add
-    if (managerApacheHref != null) {
-      itemManagerApache = new El("a");
-      itemManagerApache.classList.add("page-header__menu-item");
-      itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
-      itemManagerApache.setAttribute("href", managerApacheHref);
-      itemManagerApache.classList.add("page-header__menu-item_hoverable");
-      
-      itemManagerApache.setAttribute("target", "_blank");
-      itemManagerApache.setInnerHTML(text.getString("org.jepria.web.ssr.PageHeader.itemApacheHTTPD"), true);
-      
-      childs.add(0, itemManagerApache);
+    
+    if (items != null) {
+      for (Node item: items) {
+        itemsContainer.appendChild(item);
+      }
     }
   }
   
@@ -104,14 +66,10 @@ public class PageHeader extends El {
    * If {@code null}, no redirect will be performed
    */
   public void setButtonLogout(String logoutRedirectPath) {
-    // remove
-    if (formLogout != null) {
-      childs.remove(formLogout);
-      formLogout = null;
-    }
+    // remove existing
+    formLogoutContainer.childs.clear();
     
-    
-    // add
+    // create
     final String action = "logout" + (logoutRedirectPath != null ? ("?redirect=" + logoutRedirectPath) : "");
     
     formLogout = new El("form").setAttribute("action", action).setAttribute("method", "post")
@@ -122,8 +80,13 @@ public class PageHeader extends El {
         .addClass("page-header__button-logout")
         .addClass("big-black-button")
         .setInnerHTML(text.getString("org.jepria.web.ssr.common.buttonLogout.text"));
+    
+    buttonLogout.addStyle("css/jtm-common.css"); // for .big-black-button
+    buttonLogout.addScript("js/jtm-common.js"); // for .big-black-button
+    
     formLogout.appendChild(buttonLogout);
     
-    appendChild(formLogout);
+    // add
+    formLogoutContainer.appendChild(formLogout);
   }
 }

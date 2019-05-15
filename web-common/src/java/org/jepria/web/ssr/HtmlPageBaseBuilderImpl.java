@@ -9,7 +9,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-/*package*/class HtmlPageBuilderImpl implements HtmlPageBuilder {
+/*package*/class HtmlPageBaseBuilderImpl implements HtmlPageBaseBuilder {
   
   protected String title;
   
@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletResponse;
   
   protected Map<String, String> bodyAttributes;
   
-  public HtmlPageBuilderImpl() {}
+  public HtmlPageBaseBuilderImpl() {}
   
   @Override
   public void setTitle(String title) {

@@ -13,12 +13,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.JtmPageHeader;
+import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
-import org.jepria.web.ssr.HtmlPageBuilder;
-import org.jepria.web.ssr.HtmlPageBuilder.Page;
-import org.jepria.web.ssr.JtmPageBuilder;
+import org.jepria.web.ssr.HtmlPageBaseBuilder;
+import org.jepria.web.ssr.HtmlPageBaseBuilder.Page;
+import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.Node;
-import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
+import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.Texts;
@@ -48,7 +50,7 @@ public class LogSsrServlet extends SsrServletBase {
       
 
       // TODO populate the page with human-readable header or title (for the case of disabled JS, for example)
-      HtmlPageBuilder pageBuilder = HtmlPageBuilder.newInstance();
+      HtmlPageBaseBuilder pageBuilder = HtmlPageBaseBuilder.newInstance();
       
       Node script = Node.fromHtml("<script type=\"text/javascript\">document.cookie=\"local-timezone-offset=\" + (-new Date().getTimezoneOffset()); window.location.reload();</script>");
       
@@ -87,12 +89,13 @@ public class LogSsrServlet extends SsrServletBase {
     
     final Environment env = EnvironmentFactory.get(req);
     
-    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
-    pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.log.title"));
-    pageBuilder.setCurrentMenuItem(CurrentMenuItem.LOG);
+    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
+    pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.jdbc.title"));
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    pageBuilder.setManagerApache(managerApacheHref);
+    
+    final PageHeader pageHeader = new JtmPageHeader(text, managerApacheHref, CurrentMenuItem.LOG);
+    pageBuilder.setHeader(pageHeader);
     
     
     if (checkAuth(req)) {
@@ -103,7 +106,7 @@ public class LogSsrServlet extends SsrServletBase {
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
   
-      pageBuilder.setButtonLogout("log"); // TODO this will erase any path- or request params of the current page
+      pageHeader.setButtonLogout("log"); // TODO this will erase any path- or request params of the current page
       
     } else {
       
@@ -112,7 +115,7 @@ public class LogSsrServlet extends SsrServletBase {
     }
     
     
-    JtmPageBuilder.Page page = pageBuilder.build();
+    HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
   }
 }

@@ -6,7 +6,10 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-public interface HtmlPageBuilder {
+/**
+ * Builder for base html pages
+ */
+public interface HtmlPageBaseBuilder {
   void setTitle(String title);
   /**
    * Has the same effect as if {@code content} nodes were subsequently appended to the HTML &lt;body&gt; tag
@@ -28,8 +31,8 @@ public interface HtmlPageBuilder {
   
   Page build();
   
-  public static HtmlPageBuilder newInstance() {
-    return new HtmlPageBuilderImpl();
+  public static HtmlPageBaseBuilder newInstance() {
+    return new HtmlPageBaseBuilderImpl();
   }
   
   public interface Page {

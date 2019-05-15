@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
-import org.jepria.web.ssr.JtmPageBuilder;
+import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.Texts;
@@ -104,7 +104,7 @@ public class LogMonitorServlet extends SsrServletBase  {
     
     final Text text = Texts.get(request, "text/org_jepria_tomcat_manager_web_Text");
     
-    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
+    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
     pageBuilder.setTitle(filename + " — " + host);
     
     

@@ -9,9 +9,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.JtmPageHeader;
+import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
-import org.jepria.web.ssr.JtmPageBuilder;
-import org.jepria.web.ssr.PageHeader.CurrentMenuItem;
+import org.jepria.web.ssr.HtmlPageExtBuilder;
+import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.Texts;
@@ -31,12 +33,13 @@ public class PortSsrServlet extends SsrServletBase {
     
     final Environment env = EnvironmentFactory.get(req);
     
-    final JtmPageBuilder pageBuilder = JtmPageBuilder.newInstance(text);
+    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
     pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.port.title"));
-    pageBuilder.setCurrentMenuItem(CurrentMenuItem.PORT);
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
-    pageBuilder.setManagerApache(managerApacheHref);
+    
+    final PageHeader pageHeader = new JtmPageHeader(text, managerApacheHref, CurrentMenuItem.PORT);
+    pageBuilder.setHeader(pageHeader);
     
     
     if (checkAuth(req)) {
@@ -47,7 +50,7 @@ public class PortSsrServlet extends SsrServletBase {
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "jtm_onload();table_onload();");
       
-      pageBuilder.setButtonLogout("port"); // TODO this will erase any path- or request params of the current page
+      pageHeader.setButtonLogout("port"); // TODO this will erase any path- or request params of the current page
       
     } else {
       
@@ -55,7 +58,7 @@ public class PortSsrServlet extends SsrServletBase {
       
     }
     
-    JtmPageBuilder.Page page = pageBuilder.build();
+    HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
   }
 }
