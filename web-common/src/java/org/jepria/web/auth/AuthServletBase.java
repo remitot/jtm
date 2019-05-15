@@ -25,7 +25,13 @@ public class AuthServletBase extends HttpServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     
-    final String path = req.getPathInfo(); 
+    // servlet context path
+    final String path;
+    {
+      String uri = req.getRequestURI();
+      String ctx = req.getContextPath();
+      path = uri.substring(uri.indexOf(ctx) + ctx.length());
+    }
     
     if (path != null && (path.equals("/login") || path.startsWith("/login/"))) {
       
