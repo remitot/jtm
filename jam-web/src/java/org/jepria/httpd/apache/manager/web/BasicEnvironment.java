@@ -44,32 +44,44 @@ public class BasicEnvironment implements Environment {
     // init workers.properties
     workers_properties = null;
     try (Scanner sc = new Scanner(mod_jk_conf)) {
-      final Pattern p = Pattern.compile("\\s*JkWorkersFile\\s+\"(.+)\"\\s*");
-      while (sc.hasNext()) {
+      // JkWorkersFile syntax: seems like if the value is quoted then it is relative,
+      // if not quoted then absolute. TODO clarify this syntax in Apache docs!
+      // But for now, to be sure, accept both variants but distinguish using Path.isAbsolute()
+      final Pattern p = Pattern.compile("\\s*JkWorkersFile\\s+\"?(.+)\"?\\s*");
+      
+      boolean jkWorkersFileFound = false;
+      while (sc.hasNextLine()) {
+        
         String line = sc.nextLine();
         Matcher m = p.matcher(line);
         if (m.matches()) {
-          final String workersFileDef = m.group(1);
-          Path workersFile = Paths.get(workersFileDef);// normally begins with 'conf/'
-          Path workersFileRel = workersFile.getName(0).relativize(workersFile);
-          workers_properties = Paths.get(confDirEnv).resolve(workersFileRel);
+          jkWorkersFileFound = true;
+          
+          Path workersFile = Paths.get(m.group(1));// may be absolute or relative (beginning with 'conf/')
+          
+          if (workersFile.isAbsolute()) {
+            workers_properties = workersFile;
+          } else {
+            Path workersFileRel = workersFile.getName(0).relativize(workersFile);
+            workers_properties = Paths.get(confDirEnv).resolve(workersFileRel);
+          }
+          
           if (!Files.isRegularFile(workers_properties)) {
             throw new RuntimeException("Misconfiguration exception: "
                 + "the directive [" + line + "] in the file [" + mod_jk_conf + "] "
                     + "does not represent a file");
           }
+          
           break;
         }
+      }
+      if (!jkWorkersFileFound) {
+        throw new RuntimeException("Misconfiguration exception: "
+            + "the file [" + mod_jk_conf + "] contains no 'JkWorkersFile' directive");
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    
-    if (workers_properties == null) {
-      throw new RuntimeException("Misconfiguration exception: "
-          + "the file [" + mod_jk_conf + "] contains no 'JkWorkersFile' directive");
-    }
-    
   }
   
   @Override
