@@ -1,26 +1,24 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
-import org.jepria.httpd.apache.manager.core.jk.Binding;
+import org.jepria.httpd.apache.manager.core.jk.JkMount;
 import org.jepria.httpd.apache.manager.web.Environment;
-import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
+import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 
 public class JkApi {
 
-  public List<BindingDto> list(Environment environment) {
+  public List<JkMountDto> getJkMounts(Environment environment) {
     
     final ApacheConfJk apacheConf = new ApacheConfJk(
         () -> environment.getMod_jk_confInputStream(), 
         () -> environment.getWorkers_propertiesInputStream());
       
-    return getBindings(apacheConf, renameLocalhost(environment));
+    return getJkMounts(apacheConf);
   }
   
 //  private enum ModType {
@@ -327,11 +325,11 @@ public class JkApi {
 //      return;
 //    }
 //  }
-  
-  protected boolean renameLocalhost(Environment environment) {
-    return "true".equals(environment.getProperty("org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
-  }
-  
+//  
+//  protected boolean renameLocalhost(Environment environment) {
+//    return "true".equals(environment.getProperty("org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
+//  }
+//  
 //  private static ModStatus updateBinding(
 //      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType,
 //      Environment environment) {
@@ -618,7 +616,7 @@ public class JkApi {
 //    return emptyFields;
 //  }
 //    
-  
+//  
 //  private static class InstanceValueParser {
 //    public static final Pattern PATTERN = Pattern.compile("([^:]+):(\\d+)");
 //    
@@ -664,53 +662,37 @@ public class JkApi {
 //    return string == null || "".equals(string);
 //  }
   
-  protected List<BindingDto> getBindings(ApacheConfJk apacheConf, boolean renameLocalhost) {
-    Map<String, Binding> bindings = apacheConf.getBindings();
+  protected List<JkMountDto> getJkMounts(ApacheConfJk apacheConf) {
+    Map<String, JkMount> mounts = apacheConf.getMounts();
 
     // list all bindings
-    return bindings.entrySet().stream().map(
-        entry -> bindingToDto(entry.getKey(), entry.getValue(), renameLocalhost))
-        .sorted(bindingSorter()).collect(Collectors.toList());
+    return mounts.entrySet().stream().map(
+        entry -> mountToDto(entry.getKey(), entry.getValue()))
+        .sorted(mountSorter()).collect(Collectors.toList());
   }
   
-  protected String getLocalhostName() {
-    try {
-      return InetAddress.getLocalHost().getHostName().toLowerCase();
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
-      // TODO fail-fast or fail-safe?
-      return "localhost"; // fallback
-    }
-  }
+//  protected String getLocalhostName() {
+//    try {
+//      return InetAddress.getLocalHost().getHostName().toLowerCase();
+//    } catch (UnknownHostException e) {
+//      e.printStackTrace();
+//      // TODO fail-fast or fail-safe?
+//      return "localhost"; // fallback
+//    }
+//  }
   
-  protected BindingDto bindingToDto(String id, Binding binding, boolean renameLocalhost) {
-    BindingDto dto = new BindingDto();
-    
-    dto.put("active", Boolean.FALSE.equals(binding.isActive()) ? "false" : "true");
+  protected JkMountDto mountToDto(String id, JkMount mount) {
+    JkMountDto dto = new JkMountDto();
+    dto.put("active", Boolean.FALSE.equals(mount.isActive()) ? "false" : "true");
     dto.put("id", id);
-    dto.put("application", binding.getApplication());
-    
-    String host = binding.getWorkerHost();
-    if (renameLocalhost && "localhost".equals(host)) {
-      host = getLocalhostName();
-    }
-    
-    dto.put("host", host);
-    
-    Integer ajpPort = binding.getWorkerAjpPort();
-    if (ajpPort != null) {
-      dto.put("ajpPort", ajpPort == null ? null : String.valueOf(ajpPort));
-    }
-    if (host != null && ajpPort != null) {
-      dto.put("getHttpPortLink", "api/jk/get-http-port?host=" + host + "&ajp-port=" + ajpPort);
-    }
+    dto.put("application", mount.getApplication());
     return dto;
   }
   
-  protected Comparator<BindingDto> bindingSorter() {
-    return new Comparator<BindingDto>() {
+  protected Comparator<JkMountDto> mountSorter() {
+    return new Comparator<JkMountDto>() {
       @Override
-      public int compare(BindingDto o1, BindingDto o2) {
+      public int compare(JkMountDto o1, JkMountDto o2) {
         int applicationCmp = o1.get("application").toLowerCase().compareTo(o2.get("application").toLowerCase());
         if (applicationCmp == 0) {
           // the active is the first
@@ -727,4 +709,25 @@ public class JkApi {
       }
     };
   }
+  
+//  protected Comparator<BindingDto> bindingSorter() {
+//    return new Comparator<BindingDto>() {
+//      @Override
+//      public int compare(BindingDto o1, BindingDto o2) {
+//        int applicationCmp = o1.get("application").toLowerCase().compareTo(o2.get("application").toLowerCase());
+//        if (applicationCmp == 0) {
+//          // the active is the first
+//          if ("true".equals(o1.get("active")) && "false".equals(o2.get("active"))) {
+//            return -1;
+//          } else if ("true".equals(o2.get("active")) && "false".equals(o1.get("active"))) {
+//            return 1;
+//          } else {
+//            return 0;
+//          }
+//        } else {
+//          return applicationCmp;
+//        }
+//      }
+//    };
+//  }
 }

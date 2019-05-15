@@ -27,6 +27,10 @@ public class TomcatConfBase {
   private final Supplier<InputStream> context_xmlInput;
   private final Supplier<InputStream> server_xmlInput;
   
+  //TODO actually BOTH conf files are not necessarily needed (because we can need working 
+  // with context only or with server only). 
+  // So DO NOT require both inputs in constructor. Ideally, having the no-arg constructor
+  // and requiring inputs in such methods like getContext_xmlDoc() or getServer_xmlDoc()
   public TomcatConfBase(Supplier<InputStream> context_xmlInput,
       Supplier<InputStream> server_xmlInput) {
     this.context_xmlInput = context_xmlInput;

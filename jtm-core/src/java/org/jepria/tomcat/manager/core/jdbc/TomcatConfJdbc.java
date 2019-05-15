@@ -50,12 +50,14 @@ public class TomcatConfJdbc extends TomcatConfBase {
   }
 
   /**
-   * Lazily initialized map of connections
+   * Lazily initialized collection of connections
    */
   private Map<String, BaseConnection> baseConnections = null;
   
   /**
-   * @return unmodifiable Map&lt;ResourceId, Resource&gt;
+   * @return unmodifiable Map&lt;ResourceId, Resource&gt;. 
+   * ResourceIds are synthetic (the values actually reflect 
+   * location of nodes in configuration files)
    */
   public Map<String, Connection> getConnections() {
     return Collections.unmodifiableMap(getBaseConnections());
@@ -77,6 +79,8 @@ public class TomcatConfJdbc extends TomcatConfBase {
    */
   private void initBaseConnections() {
     
+    // TODO maintain order of insertion same as the connections are 
+    // declared in conf files using LinkedHashMap?
     Map<String, BaseConnection> baseConnections = new HashMap<>();
     
     // for filtering unique context names

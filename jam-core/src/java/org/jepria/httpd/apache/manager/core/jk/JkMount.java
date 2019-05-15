@@ -5,13 +5,7 @@ package org.jepria.httpd.apache.manager.core.jk;
  * consisting of two JkMount directives: 
  * root mount ('/Application') and asterisk mount ('/Application/*').
  */
-/*package*/interface JkMount {
-  
-  /**
-   * Service method.
-   * @return JkMount's id to be used as a part of {@link Binding}'s id  
-   */
-  String getId();
+public interface JkMount {
   
   boolean isActive();
   void setActive(boolean active);

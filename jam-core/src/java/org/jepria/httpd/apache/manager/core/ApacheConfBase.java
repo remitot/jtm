@@ -30,6 +30,10 @@ public class ApacheConfBase {
    * @param mod_jk_confInput supplier for a lazy initialization
    * @param workers_propertiesInput supplier for a lazy initialization
    */
+  //TODO actually BOTH conf files are not necessarily needed (because we can need working 
+  // with jk bindings only or with workers only). 
+  // So DO NOT require both inputs in constructor. Ideally, having the no-arg constructor
+  // and requiring inputs in such methods like getMod_jk_confLines() or getWorkers_propertiesLines()
   public ApacheConfBase(Supplier<InputStream> mod_jk_confInput,
       Supplier<InputStream> workers_propertiesInput) {
     this.mod_jk_confInput = mod_jk_confInput;

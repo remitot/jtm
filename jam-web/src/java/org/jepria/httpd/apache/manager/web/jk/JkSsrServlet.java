@@ -11,7 +11,7 @@ import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
-import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
+import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
@@ -42,9 +42,9 @@ public class JkSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
 
-      final List<BindingDto> bindings = new JkApi().list(env);
+      final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);
       
-      JkPageContent content = new JkPageContent(text, bindings);
+      JkPageContent content = new JkPageContent(text, jkMounts);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       

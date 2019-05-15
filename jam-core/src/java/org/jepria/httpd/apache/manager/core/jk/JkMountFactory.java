@@ -1,9 +1,7 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -21,7 +19,9 @@ public class JkMountFactory {
       this.asterMountDirective = asterMountDirective;
     }
 
-    @Override
+    /**
+     * @return id for this JkMount
+     */
     public String getId() {
       int r = rootMountDirective.getLine().lineNumber();
       int a = asterMountDirective.getLine().lineNumber();
@@ -84,10 +84,12 @@ public class JkMountFactory {
   /**
    * 
    * @param lines of the {@code mod_jk.conf} file
-   * @return or else empty list
+   * @return or else empty collection.
    */
-  public static List<JkMount> parse(Iterable<TextLineReference> lines) {
-    List<JkMount> ret = new ArrayList<>();
+  public static Map<String, JkMount> parse(Iterable<TextLineReference> lines) {
+    // TODO maintain order of insertion same as the JkMount directives are 
+    // declared in conf files using LinkedHashMap?
+    Map<String, JkMount> ret = new HashMap<>();
     
     if (lines != null) {
       // collect root mounts ('/Application'), with application names as keys
@@ -112,9 +114,10 @@ public class JkMountFactory {
         
         if (rootMountd.getWorkerName().equals(asterMountd.getWorkerName())) {
           
-          JkMount mount = new JkMountImpl(rootMountd, asterMountd);
+          JkMountImpl mount = new JkMountImpl(rootMountd, asterMountd);
+          String mountId = mount.getId();
           
-          ret.add(mount);
+          ret.put(mountId, mount);
         }
       }
     }

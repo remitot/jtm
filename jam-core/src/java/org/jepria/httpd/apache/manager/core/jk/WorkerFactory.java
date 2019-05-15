@@ -4,7 +4,6 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +26,9 @@ public class WorkerFactory {
       this.portWorkerProperty = portWorkerProperty;
     }
 
-    @Override
+    /**
+     * @return id for this worker
+     */
     public String getId() {
       int t = typeWorkerProperty.getLine().lineNumber();
       int h = hostWorkerProperty.getLine().lineNumber();
@@ -173,10 +174,12 @@ public class WorkerFactory {
   /**
    * 
    * @param lines of the {@code workers.properties} file
-   * @return or else empty list
+   * @return or else empty collection
    */
-  public static List<Worker> parse(Iterator<TextLineReference> lines) {
-    List<Worker> ret = new ArrayList<>();
+  public static Map<String, Worker> parse(Iterable<TextLineReference> lines) {
+    // TODO maintain order of insertion same as the workers are 
+    // declared in conf files using LinkedHashMap?
+    Map<String, Worker> ret = new HashMap<>();
     
     if (lines != null) {
       // collect worker.name.type properties, with worker names as keys
@@ -186,9 +189,7 @@ public class WorkerFactory {
       // collect worker.name.port properties, with worker names as keys
       Map<String, WorkerProperty> portProperties = new HashMap<>();
       
-      while (lines.hasNext()) {
-        final TextLineReference line = lines.next();
-        
+      for (TextLineReference line: lines) {
         // Apache actually uses the last declared property (over the the same worker types) 
         tryParseWorkerProperty(line, 
             m -> typeProperties.put(m.getWorkerName(), m), 
@@ -207,9 +208,10 @@ public class WorkerFactory {
         WorkerProperty hostWorkerp = hostProperties.get(name);
         WorkerProperty portWorkerp = portProperties.get(name);
         
-        Worker worker = new WorkerImpl(typeWorkerp, hostWorkerp, portWorkerp);
+        WorkerImpl worker = new WorkerImpl(typeWorkerp, hostWorkerp, portWorkerp);
+        String workerId = worker.getId();
         
-        ret.add(worker);
+        ret.put(workerId, worker);
       }
     }
     
@@ -348,7 +350,7 @@ public class WorkerFactory {
    * @param portWorkerPropertyLine will be reset
    * @return
    */
-  public static Worker create(String name,
+  public static WorkerImpl create(String name,
       TextLineReference typeWorkerPropertyLine,
       TextLineReference hostWorkerPropertyLine,
       TextLineReference portWorkerPropertyLine) {

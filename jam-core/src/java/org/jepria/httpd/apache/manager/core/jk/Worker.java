@@ -5,13 +5,7 @@ package org.jepria.httpd.apache.manager.core.jk;
  * consisting of three worker properties: 
  * {@code worker.name.type}, {@code worker.name.host} and {@code worker.name.port}.
  */
-/*package*/interface Worker {
-  
-  /**
-   * Service method.
-   * @return Worker's id to be used as a part of {@link Binding}'s id  
-   */
-  String getId();
+public interface Worker {
   
   /**
    * The common worker name for all three properties

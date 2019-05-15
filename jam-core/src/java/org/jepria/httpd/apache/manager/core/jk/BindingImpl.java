@@ -96,7 +96,7 @@ import java.util.Optional;
    * @return or else null
    */
   private Worker findWorker(String host, int ajpPort) {
-    Optional<Worker> workerOpt = apacheConf.getWorkers().stream().filter(
+    Optional<Worker> workerOpt = apacheConf.getWorkers().values().stream().filter(
         // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
         worker -> host.equals(worker.getHost()) && ajpPort == worker.getPort()).findAny();
     if (workerOpt.isPresent()) {
