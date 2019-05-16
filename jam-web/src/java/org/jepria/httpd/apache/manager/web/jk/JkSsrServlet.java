@@ -12,6 +12,7 @@ import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
+import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
@@ -39,16 +40,36 @@ public class JkSsrServlet extends SsrServletBase {
     final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
     pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
     
-    final PageHeader pageHeader = new JamPageHeader(text, CurrentMenuItem.JK);
+    
+    final String detailsId = req.getParameter("id");
+    final boolean showDetails = detailsId != null && !"".equals(detailsId);
+    
+    
+    final PageHeader pageHeader;
+    if (showDetails) {
+      pageHeader = new JamPageHeader(text, CurrentMenuItem.JK_DETAILS);
+    } else {
+      pageHeader = new JamPageHeader(text, CurrentMenuItem.JK);
+    }
     pageBuilder.setHeader(pageHeader);
     
     if (checkAuth(req)) {
 
       pageHeader.setButtonLogout(req);
       
-      String detailsId = req.getParameter("id");
-      
-      if (detailsId == null || "".equals(detailsId)) {
+      if (showDetails) {
+        // show details for JkMount by id from request param
+        
+        System.out.println("///did:" + detailsId);
+        BindingDto binding = new JkApi().getBinding(env, detailsId);
+        String text1 = "app:" + binding.get("application") + "; " + "act:" + binding.get("active") + "; "
+            + "host:" + binding.get("workerHost") + "; " + " ajp:" + binding.get("workerAjpPort");
+        
+        
+        El con = new El("label").setInnerHTML(text1, true);
+        pageBuilder.setContent(Arrays.asList(con));
+        
+      } else {
         // show table
         
         final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);
@@ -56,20 +77,6 @@ public class JkSsrServlet extends SsrServletBase {
         JkPageContent content = new JkPageContent(text, jkMounts);
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
-        
-      } else {
-        // show details for JkMount by id from request param
-        
-        String mountId = detailsId;
-        if (mountId.startsWith("/")) {
-          mountId = mountId.substring(1);
-        }
-        if (mountId.endsWith("/")) {
-          mountId = mountId.substring(0, mountId.length() - 1);
-        }
-        
-        El con = new El("label").setInnerHTML("details here for [" +mountId+ "]...");
-        pageBuilder.setContent(Arrays.asList(con));
       }
       
     } else {
@@ -80,5 +87,17 @@ public class JkSsrServlet extends SsrServletBase {
     
     HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
+  }
+  
+  private static String lookupTomcatManagerPath(Environment environment, String host, int port) {
+    String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
+    if (tomcatManagerPath == null) {
+      tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager.default.path");
+      if (tomcatManagerPath == null) {
+        throw new RuntimeException("Misconfiguration exception: "
+            + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.TomcatManager.default.path\" is not defined");
+      }
+    }
+    return tomcatManagerPath;
   }
 }

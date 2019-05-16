@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.Text;
 
@@ -14,6 +15,7 @@ public class JamPageHeader extends PageHeader {
    */
   public static enum CurrentMenuItem {
     JK,
+    JK_DETAILS,
   }
   
   /**
@@ -27,18 +29,44 @@ public class JamPageHeader extends PageHeader {
     // create and set items
     final List<El> items = new ArrayList<>();
     
-    {
-      El itemJk = new El("a");
-      itemJk.classList.add("page-header__menu-item");
-      itemJk.classList.add("page-header__menu-item_regular");
-      if (currentMenuItem == CurrentMenuItem.JK) {
+    if (currentMenuItem == CurrentMenuItem.JK) {
+      
+      {
+        El itemJk = new El("a");
+        itemJk.classList.add("page-header__menu-item");
+        
+        itemJk.classList.add("page-header__menu-item_regular");
         itemJk.classList.add("page-header__menu-item_current");
-      } else {
-        itemJk.classList.add("page-header__menu-item_hoverable");
-        itemJk.setAttribute("href", "jdbc");
+        
+        itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"), true);
+        items.add(itemJk);
       }
-      itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"), true);
-      items.add(itemJk);
+      
+    } else if (currentMenuItem == CurrentMenuItem.JK_DETAILS) {
+      
+      {
+        El itemJk = new El("a");
+        itemJk.classList.add("page-header__menu-item");
+        itemJk.classList.add("page-header__menu-item_regular");
+        
+        itemJk.classList.add("page-header__menu-item_hoverable");
+        itemJk.setAttribute("href", "jk");
+        
+        String innerHtmlEscaped = HtmlEscaper.escape(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"));
+        itemJk.setInnerHTML(innerHtmlEscaped + "&nbsp/&nbsp", false);
+        items.add(itemJk);
+      }
+      
+      {
+        El itemJk = new El("a");
+        itemJk.classList.add("page-header__menu-item");
+
+        itemJk.classList.add("page-header__menu-item_current");
+        
+        itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkDetails"), true);
+        items.add(itemJk);
+      }
+      
     }
     
     setItems(items);

@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
+import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.core.jk.JkMount;
 import org.jepria.httpd.apache.manager.web.Environment;
+import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 
 public class JkApi {
@@ -21,6 +23,15 @@ public class JkApi {
     return getJkMounts(apacheConf);
   }
   
+  public BindingDto getBinding(Environment environment, String jkMountId) {
+    
+    final ApacheConfJk apacheConf = new ApacheConfJk(
+        () -> environment.getMod_jk_confInputStream(), 
+        () -> environment.getWorkers_propertiesInputStream());
+      
+    return getBinding(apacheConf, jkMountId);
+  }
+  
 //  private enum ModType {
 //    HTTP,
 //    AJP
@@ -29,69 +40,7 @@ public class JkApi {
 //  private static final String MANAGER_EXT_AJP_PORT_URI = "/api/port/ajp";
 //  private static final String MANAGER_EXT_HTTP_PORT_URI = "/api/port/http";
 //  
-//  private static void getHttpPort(HttpServletRequest request, HttpServletResponse response)
-//      throws IOException {
-//    
-//    // the content type is defined for the entire method
-//    response.setContentType("application/json; charset=UTF-8");
-//
-//    String host = request.getParameter("host");
-//    String ajpPort = request.getParameter("ajp-port");
-//    
-//    if (host == null || ajpPort == null || !ajpPort.matches("\\d+")) {
-//      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-//      response.flushBuffer();
-//      return;
-//    }
-//    
-//    
-//    final int ajpPortNumber;
-//    try {
-//      ajpPortNumber = Integer.parseInt(ajpPort);
-//    } catch (NumberFormatException e) {
-//      // impossible
-//      throw e;
-//    }
-//    
-//    
-//    final Environment environment = EnvironmentFactory.get(request);
-//    
-//    final String tomcatManagerPath = lookupTomcatManagerPath(environment, host, ajpPortNumber);
-//    
-//    final String uri = tomcatManagerPath + MANAGER_EXT_HTTP_PORT_URI;
-//    
-//    final Subresponse subresponse = wrapSubrequest(new Subrequest() {
-//      @Override
-//      public Subresponse execute() throws IOException {
-//        SimpleAjpConnection connection = SimpleAjpConnection.open(
-//            host, ajpPortNumber, uri, CONNECT_TIMEOUT_MS);
-//        
-//        connection.connect();
-//        
-//        return new Subresponse(connection.getStatus(), connection.getResponseBody());
-//      }
-//    });
-//    
-//
-//    final Map<String, Object> responseJsonMap = new HashMap<>();
-//    
-//    
-//    final String ajpRequestUrl = "ajp://" + host + ":" + ajpPortNumber + uri;//TODO fake "ajp://" scheme!
-//    final String subresponseStatus = getSubresponseStatus(subresponse, ajpRequestUrl);
-//    responseJsonMap.put("status", subresponseStatus);
-//    if (subresponse.status == HttpServletResponse.SC_OK) {
-//      int httpPort = Integer.parseInt(subresponse.responseBody);
-//      responseJsonMap.put("httpPort", httpPort);
-//    }
-//    
-//    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-//    gson.toJson(responseJsonMap, new PrintStream(response.getOutputStream()));
 //  
-//    response.setStatus(HttpServletResponse.SC_OK);
-//    response.flushBuffer();
-//    return;
-//      
-//  }
 //  
 //  private static String lookupTomcatManagerPath(Environment environment, String host, int port) {
 //    String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
@@ -710,24 +659,22 @@ public class JkApi {
     };
   }
   
-//  protected Comparator<BindingDto> bindingSorter() {
-//    return new Comparator<BindingDto>() {
-//      @Override
-//      public int compare(BindingDto o1, BindingDto o2) {
-//        int applicationCmp = o1.get("application").toLowerCase().compareTo(o2.get("application").toLowerCase());
-//        if (applicationCmp == 0) {
-//          // the active is the first
-//          if ("true".equals(o1.get("active")) && "false".equals(o2.get("active"))) {
-//            return -1;
-//          } else if ("true".equals(o2.get("active")) && "false".equals(o1.get("active"))) {
-//            return 1;
-//          } else {
-//            return 0;
-//          }
-//        } else {
-//          return applicationCmp;
-//        }
-//      }
-//    };
-//  }
+  protected BindingDto getBinding(ApacheConfJk apacheConf, String jkMountId) {
+    Binding binding = apacheConf.getBinding(jkMountId);
+    
+    if (binding == null) {
+      return null;
+    } else {
+      return bindingToDto(binding);
+    }
+  }
+  
+  protected BindingDto bindingToDto(Binding binding) {
+    BindingDto dto = new BindingDto();
+    dto.put("active", Boolean.FALSE.equals(binding.isActive()) ? "false" : "true");
+    dto.put("application", binding.getApplication());
+    dto.put("workerHost", binding.getWorkerHost());
+    dto.put("workerAjpPort", String.valueOf(binding.getWorkerAjpPort()));// TODO refactor from here: change getWorkerAjpPort return type to String
+    return dto;
+  }
 }
