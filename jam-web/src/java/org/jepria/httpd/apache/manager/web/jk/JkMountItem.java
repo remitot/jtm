@@ -9,6 +9,7 @@ import org.jepria.web.ssr.table.ItemData;
   public JkMountItem() {
     put("active", new Field("active"));
     put("application", new Field("application"));
+    put("details", new Field("details"));
   }
   
   public Field active() {
@@ -16,5 +17,8 @@ import org.jepria.web.ssr.table.ItemData;
   }
   public Field application() {
     return get("application");
+  }
+  public Field details() {
+    return get("details");
   }
 }

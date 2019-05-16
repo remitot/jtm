@@ -42,7 +42,10 @@ public class JkMountTable extends Table<JkMountItem> {
     
     cell = createCell(div, "column-details");
     cell.classList.add("cell-field");
-    El a = new El("img").setAttribute("src", "img/delete.png").setAttribute("style", "width:24px;");
+    String detailsHref = item.details().value;
+    El a = new El("a").setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
+    El img = new El("img").setAttribute("src", "img/jk/details.png");
+    a.appendChild(img);
     El wrapper = wrapCellPad(a);
     cell.appendChild(wrapper);
     tabIndex.setNext(field);
@@ -54,7 +57,7 @@ public class JkMountTable extends Table<JkMountItem> {
     
     return row;
   }
-
+  
   @Override
   public El createRowCreated(JkMountItem item, Table.TabIndex tabIndex) {
     throw new UnsupportedOperationException();// TODO

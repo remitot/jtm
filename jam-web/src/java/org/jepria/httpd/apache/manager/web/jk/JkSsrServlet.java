@@ -1,6 +1,7 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -12,6 +13,7 @@ import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
+import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
@@ -42,13 +44,33 @@ public class JkSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
 
-      final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);
-      
-      JkPageContent content = new JkPageContent(text, jkMounts);
-      pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
-      
       pageHeader.setButtonLogout("jk"); // TODO this will erase any path- or request params of the current page
+      
+      String detailsId = req.getParameter("id");
+      
+      if (detailsId == null || "".equals(detailsId)) {
+        // show table
+        
+        final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);
+        
+        JkPageContent content = new JkPageContent(text, jkMounts);
+        pageBuilder.setContent(content);
+        pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
+        
+      } else {
+        // show details for JkMount by id from request param
+        
+        String mountId = detailsId;
+        if (mountId.startsWith("/")) {
+          mountId = mountId.substring(1);
+        }
+        if (mountId.endsWith("/")) {
+          mountId = mountId.substring(0, mountId.length() - 1);
+        }
+        
+        El con = new El("label").setInnerHTML("details here for [" +mountId+ "]...");
+        pageBuilder.setContent(Arrays.asList(con));
+      }
       
     } else {
       

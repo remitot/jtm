@@ -45,6 +45,9 @@ public class JkPageContent implements Iterable<El> {
         field.value = field.valueOriginal = dto.get(name);
       }
     }
+    
+    item.details().value = "jk?id=" + dto.get("id");
+    
     return item;
   }
 }
