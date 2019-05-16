@@ -44,7 +44,7 @@ public class JkSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
 
-      pageHeader.setButtonLogout("jk"); // TODO this will erase any path- or request params of the current page
+      pageHeader.setButtonLogout(req);
       
       String detailsId = req.getParameter("id");
       
