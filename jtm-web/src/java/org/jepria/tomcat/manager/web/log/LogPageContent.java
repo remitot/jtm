@@ -10,8 +10,8 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
-import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.Text;
 
 public class LogPageContent implements Iterable<El> {
 
@@ -62,19 +62,11 @@ public class LogPageContent implements Iterable<El> {
       item.lastmod().value = getItemLastModifiedValue(dto.getLastModified());
     }
     
-    item.download().value = "<a href=\"api/log?filename=" + dto.getName() + "\"" + " title=\"" 
-        + text.getString("org.jepria.tomcat.manager.web.log.item_download.title") + "\">" 
-        + text.getString("org.jepria.tomcat.manager.web.log.item_download.text") + "</a>";
+    item.download().value = "api/log?filename=" + dto.getName();
     
-    item.open().value = "<a href=\"api/log?filename=" + dto.getName() + "&inline\""
-        + " target=\"_blank\" title=\"" 
-        + text.getString("org.jepria.tomcat.manager.web.log.item_open.title") + "\">" 
-        + text.getString("org.jepria.tomcat.manager.web.log.item_open.text") + "</a>";
+    item.open().value = "api/log?filename=" + dto.getName() + "&inline";
     
-    item.monitor().value = "<a href=\"log-monitor?filename=" + dto.getName() + "\""
-        + " target=\"_blank\" title=\"" 
-        + text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title") + "\">" 
-        + text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text") + "</a>";
+    item.monitor().value = "log-monitor?filename=" + dto.getName();
     
     return item;
   }

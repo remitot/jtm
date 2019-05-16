@@ -31,19 +31,33 @@ public class LogTable extends Table<LogItem> {
     fieldEl = new El("label").setInnerHTML(item.lastmod().value);// create the label manually to avoid escaping 
     addField(cell, item.lastmod(), fieldEl, null);
     
+    El a;
+    
     cell = createCell(div, "column-download");
     cell.classList.add("cell-field");
-    fieldEl = new El("label").setInnerHTML(item.download().value);// create the label manually to avoid escaping
+    fieldEl = new El("label");
+    a = new El("a").setAttribute("href", item.download().value)
+        .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
+        .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
+    fieldEl.appendChild(a);
     addField(cell, item.download(), fieldEl, null);
     
     cell = createCell(div, "column-open");
     cell.classList.add("cell-field");
-    fieldEl = new El("label").setInnerHTML(item.open().value);// create the label manually to avoid escaping
+    fieldEl = new El("label");
+    a = new El("a").setAttribute("href", item.open().value).setAttribute("target", "_blank")
+        .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
+        .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
+    fieldEl.appendChild(a);
     addField(cell, item.open(), fieldEl, null);
     
     cell = createCell(div, "column-monitor");
     cell.classList.add("cell-monitor");
-    fieldEl = new El("label").setInnerHTML(item.monitor().value);// create the label manually to avoid escaping
+    fieldEl = new El("label");
+    a = new El("a").setAttribute("href", item.monitor().value).setAttribute("target", "_blank")
+        .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title"))
+        .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));
+    fieldEl.appendChild(a);
     addField(cell, item.monitor(), fieldEl, null);
     
     row.appendChild(div);
