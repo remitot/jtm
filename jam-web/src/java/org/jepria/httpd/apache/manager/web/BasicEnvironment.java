@@ -44,10 +44,9 @@ public class BasicEnvironment implements Environment {
     // init workers.properties
     workers_properties = null;
     try (Scanner sc = new Scanner(mod_jk_conf)) {
-      // JkWorkersFile syntax: seems like if the value is quoted then it is relative,
-      // if not quoted then absolute. TODO clarify this syntax in Apache docs!
-      // But for now, to be sure, accept both variants but distinguish using Path.isAbsolute()
-      final Pattern p = Pattern.compile("\\s*JkWorkersFile\\s+\"?(.+)\"?\\s*");
+
+      // JkWorkersFile directive syntax: the value may be quoted or non-quoted, absolute or relative
+      final Pattern p = Pattern.compile("\\s*JkWorkersFile\\s+\"?(.+?)\"?\\s*");
       
       boolean jkWorkersFileFound = false;
       while (sc.hasNextLine()) {
@@ -57,7 +56,7 @@ public class BasicEnvironment implements Environment {
         if (m.matches()) {
           jkWorkersFileFound = true;
           
-          Path workersFile = Paths.get(m.group(1));// may be absolute or relative (beginning with 'conf/')
+          Path workersFile = Paths.get(m.group(1));
           
           if (workersFile.isAbsolute()) {
             workers_properties = workersFile;
