@@ -1,5 +1,8 @@
 package org.jepria.web.ssr;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 public class LoginFragment extends AuthFragment {
   
   public final El inputUsername;
@@ -14,7 +17,21 @@ public class LoginFragment extends AuthFragment {
   public LoginFragment(Text text, String loginRedirectPath) {
     super(text);
     
-    final String action = "login" + (loginRedirectPath != null ? ("?redirect=" + loginRedirectPath) : "");
+    final String action;
+    {
+      StringBuilder sb = new StringBuilder();
+      sb.append("login");
+      if (loginRedirectPath != null) {
+        sb.append("?redirect=");
+        try {
+          sb.append(URLEncoder.encode(loginRedirectPath, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+          // impossible
+          throw new RuntimeException(e);
+        }
+      }
+      action = sb.toString();
+    }
     
     addClass("login-frame");
 

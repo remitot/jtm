@@ -1,5 +1,8 @@
 package org.jepria.web.ssr;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 public class ForbiddenFragment extends AuthFragment {
   
   /**
@@ -9,7 +12,21 @@ public class ForbiddenFragment extends AuthFragment {
   public ForbiddenFragment(Text text, String logoutRedirectPath, String userPrincipalName) {
     super(text);
 
-    final String action = "logout" + (logoutRedirectPath != null ? ("?redirect=" + logoutRedirectPath) : "");
+    final String action;
+    {
+      StringBuilder sb = new StringBuilder();
+      sb.append("logout");
+      if (logoutRedirectPath != null) {
+        sb.append("?redirect=");
+        try {
+          sb.append(URLEncoder.encode(logoutRedirectPath, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+          // impossible
+          throw new RuntimeException(e);
+        }
+      }
+      action = sb.toString();
+    }
     
     final El form = new El("form").addClass("auth-form")
         .setAttribute("action", action)

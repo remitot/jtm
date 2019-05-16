@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jepria.web.auth.AuthServletBase.Auth;
 import org.jepria.web.auth.AuthState;
+import org.jepria.web.auth.RedirectBuilder;
 
 public class SsrServletBase extends HttpServlet {
 
@@ -59,30 +60,6 @@ public class SsrServletBase extends HttpServlet {
     throw new IllegalArgumentException(String.valueOf(authState.auth));
   }
   
-  protected String getAuthRedirectPathDefault(HttpServletRequest request) {
-    String uri = request.getRequestURI();
-    String context = request.getContextPath();
-    
-    if (uri.startsWith(context)) {
-      
-      StringBuilder ret = new StringBuilder();
-      ret.append(uri.substring(context.length()));
-      if (ret.charAt(0) == '/') {
-        ret.deleteCharAt(0);
-      }
-      
-      String qs = request.getQueryString();
-      if (qs != null) {
-        ret.append('?').append(qs);
-      }
-      
-      return ret.toString();
-      
-    } else {
-      throw new IllegalStateException("HttpServletRequest.getRequestURI() must strint with HttpServletRequest.getContextPath()");
-    }
-  }
-  
   /**
    * Show an auth fragment ({@link LoginFragment} in case of non-authenticated user 
    * or {@link ForbiddenFragment} in case of the user having not enough rights) on the page,
@@ -100,12 +77,12 @@ public class SsrServletBase extends HttpServlet {
    * @param req current request that needs authentication
    * @param page original page that was about to be responded if the request had been authenticated
    * @param authRedirectPath path to redirect after a successful login or logout
-   * If {@code null}, the redirect path is the current request path
+   * If {@code null}, will redirect to the same requested resource
    */
   protected void requireAuth(HttpServletRequest req, HtmlPageExtBuilder page, String authRedirectPath) {
     
     // redirect to a current request path in case of null
-    authRedirectPath = authRedirectPath != null ? authRedirectPath : getAuthRedirectPathDefault(req);
+    authRedirectPath = authRedirectPath != null ? authRedirectPath : RedirectBuilder.self(req);
     
     final Text text = Texts.getCommon(req);
     

@@ -1,5 +1,12 @@
 package org.jepria.web.ssr;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.jepria.web.auth.RedirectBuilder;
+
 public class PageHeader extends El {
   
   protected final Text text;
@@ -62,15 +69,43 @@ public class PageHeader extends El {
   }
   
   /**
-   * @param logoutRedirectPath path to redirect after a successful logout (on logout form submit button click). 
+   * Sets the logout button to the page header, with redirecting to the current URI+QueryString after a successful logout
+   * @param request current request to get URI+QueryString from. 
    * If {@code null}, no redirect will be performed
+   */
+  public void setButtonLogout(HttpServletRequest request) {
+    if (request == null) {
+      setButtonLogout((String)null);
+    } else {
+      setButtonLogout(RedirectBuilder.self(request));
+    }
+  }
+  
+  /**
+   * Sets the logout button to the page header, redirecting to the specified path after a successful logout 
+   * @param logoutRedirectPath path to redirect after a successful logout (on logout form submit button click). 
+   * If {@code null}, no redirect will be performed. The value will be URL-encoded
    */
   public void setButtonLogout(String logoutRedirectPath) {
     // remove existing
     formLogoutContainer.childs.clear();
     
     // create
-    final String action = "logout" + (logoutRedirectPath != null ? ("?redirect=" + logoutRedirectPath) : "");
+    final String action;
+    {
+      StringBuilder sb = new StringBuilder();
+      sb.append("logout");
+      if (logoutRedirectPath != null) {
+        sb.append("?redirect=");
+        try {
+          sb.append(URLEncoder.encode(logoutRedirectPath, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+          // impossible
+          throw new RuntimeException(e);
+        }
+      }
+      action = sb.toString();
+    }
     
     formLogout = new El("form").setAttribute("action", action).setAttribute("method", "post")
         .addClass("button-form");
