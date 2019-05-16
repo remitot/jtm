@@ -27,7 +27,7 @@ public class WorkerFactory {
     }
 
     /**
-     * @return id for this worker
+     * @return id for this worker. The id <i>may</i> be further used in URL, so it must be URL-safe
      */
     public String getId() {
       int t = typeWorkerProperty.getLine().lineNumber();

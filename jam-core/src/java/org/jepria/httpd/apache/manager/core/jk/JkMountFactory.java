@@ -20,7 +20,7 @@ public class JkMountFactory {
     }
 
     /**
-     * @return id for this JkMount
+     * @return id for this JkMount. The id <i>may</i> be further used in URL, so it must be URL-safe 
      */
     public String getId() {
       int r = rootMountDirective.getLine().lineNumber();
@@ -84,7 +84,7 @@ public class JkMountFactory {
   /**
    * 
    * @param lines of the {@code mod_jk.conf} file
-   * @return or else empty collection.
+   * @return or else empty collection. Every {@link JkMount} element in the collection has unique {@link JkMount#getApplication()} field value
    */
   public static Map<String, JkMount> parse(Iterable<TextLineReference> lines) {
     // TODO maintain order of insertion same as the JkMount directives are 
@@ -98,7 +98,7 @@ public class JkMountFactory {
       Map<String, JkMountDirective> asterMounts = new HashMap<>();
 
       for (TextLineReference line: lines) {
-        // Apache actually uses the last declared directive (over the the same applications)
+        // Apache actually uses the last declared directive (among the same application names)
         tryParseJkMountDirective(line, 
             m -> rootMounts.put(m.getApplication(), m),
             m -> asterMounts.put(m.getApplication(), m));
