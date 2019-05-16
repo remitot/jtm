@@ -99,6 +99,7 @@ public class LogSsrServlet extends SsrServletBase {
     
     
     if (checkAuth(req)) {
+      pageHeader.setButtonLogout("log"); // TODO this will erase any path- or request params of the current page
       
       List<LogDto> logs = new LogApi().list(env, null);
 
@@ -106,8 +107,6 @@ public class LogSsrServlet extends SsrServletBase {
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
   
-      pageHeader.setButtonLogout("log"); // TODO this will erase any path- or request params of the current page
-      
     } else {
       
       requireAuth(req, pageBuilder);

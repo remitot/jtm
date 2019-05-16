@@ -60,6 +60,7 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     
     if (checkAuth(req)) {
+      pageHeader.setButtonLogout("jdbc"); // TODO this will erase any path- or request params of the current page
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
@@ -78,7 +79,6 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       
       pageBuilder.setStatusBar(createStatusBar(appState.modStatus, text));
-      pageHeader.setButtonLogout("jdbc"); // TODO this will erase any path- or request params of the current page
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;

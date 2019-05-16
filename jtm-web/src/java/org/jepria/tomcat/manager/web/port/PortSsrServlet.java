@@ -43,14 +43,13 @@ public class PortSsrServlet extends SsrServletBase {
     
     
     if (checkAuth(req)) {
-
+      pageHeader.setButtonLogout("port"); // TODO this will erase any path- or request params of the current page
+      
       final List<PortDto> ports = new PortApi().list(env);
       
       PortPageContent content = new PortPageContent(text, ports);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
-      
-      pageHeader.setButtonLogout("port"); // TODO this will erase any path- or request params of the current page
       
     } else {
       
