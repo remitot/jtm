@@ -6,7 +6,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.ApacheConfBase;
 
@@ -74,7 +76,7 @@ public class ApacheConfJk extends ApacheConfBase {
 
   protected Map<String, JkMount> getBaseMounts() {
     if (mounts == null) {
-      initBaseMounts();
+      initMounts();
     }
 
     return mounts;
@@ -83,7 +85,7 @@ public class ApacheConfJk extends ApacheConfBase {
   /**
    * Lazily initialize (or re-initialize) {@link #workers} list
    */
-  private void initBaseMounts() {
+  private void initMounts() {
     this.mounts = JkMountFactory.parse(getMod_jk_confLines());
   }
   
@@ -91,17 +93,41 @@ public class ApacheConfJk extends ApacheConfBase {
   
   /////////////////////////////////////////////////////////////
   
-  
+  protected final class BindingId {
+    public final String jkMountId, workerId;
+
+    public BindingId(String jkMountId, String workerId) {
+      this.jkMountId = jkMountId;
+      this.workerId = workerId;
+    }
+    
+    @Override
+    public int hashCode() {
+      return Objects.hash(jkMountId, workerId);
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      BindingId bindingId = (BindingId) obj;
+      return bindingId.hashCode() == this.hashCode();
+    }
+  }
   
   /**
    * Lazily initialized map of BaseBindings
    */
-  private Map<String, BaseBinding> baseBindings = null;
+  private Map<BindingId, BaseBinding> baseBindings = null;
 
   /**
    * @return unmodifiable Map&lt;BindingId, BaseBinding&gt;
    */
-  protected Map<String, BaseBinding> getBaseBindings() {
+  protected Map<BindingId, BaseBinding> getBaseBindings() {
     if (baseBindings == null) {
       initBaseBindings();
     }
@@ -115,14 +141,24 @@ public class ApacheConfJk extends ApacheConfBase {
    * location of nodes in configuration files)
    */
   public Map<String, Binding> getBindings() {
-    return Collections.unmodifiableMap(getBaseBindings());
+    return Collections.unmodifiableMap(getBaseBindings().entrySet().stream().collect(Collectors.toMap(
+        e -> e.getKey().jkMountId + "-" + e.getKey().workerId, e -> e.getValue())));
   }
-
+  
+  public Binding getBinding(String jkMountId) {
+    for (Map.Entry<BindingId, BaseBinding> e: getBaseBindings().entrySet()) {
+      if (jkMountId.equals(e.getKey().jkMountId)) {
+        return e.getValue();
+      }
+    }
+    return null;
+  }
+  
   /**
    * Lazily initialize (or re-initialize) {@link #baseBindings} map
    */
   private void initBaseBindings() {
-    Map<String, BaseBinding> bindings = new HashMap<>();
+    Map<BindingId, BaseBinding> bindings = new HashMap<>();
     
     for (Map.Entry<String, JkMount> mountEntry: getMounts().entrySet()) {
       String mountId = mountEntry.getKey();
@@ -144,10 +180,8 @@ public class ApacheConfJk extends ApacheConfBase {
       }
 
       if (worker != null) {
-        String bindingId = mountId + "+" + workerId;
-
+        BindingId bindingId = new BindingId(mountId, workerId);
         BaseBinding binding = new BindingImpl(jkMount, worker, this);
-
         bindings.put(bindingId, binding);
       }
     }
