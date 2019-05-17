@@ -124,8 +124,12 @@ public abstract class Table<T extends ItemData> extends El {
   public abstract El createRowCreated(T item, TabIndex tabIndex);
   
   protected El addField(El cell, Field field, String placeholder) {
+    return addField(cell, field, placeholder, isEditable());
+  }
+  
+  protected El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
     final El fieldEl;
-    if (isEditable()) {
+    if (fieldEditable) {
       fieldEl = createFieldInput(field.name, field.value, placeholder);
     } else {
       fieldEl = createFieldLabel(field.value);
