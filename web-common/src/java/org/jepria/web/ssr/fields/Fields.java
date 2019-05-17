@@ -3,6 +3,14 @@ package org.jepria.web.ssr.fields;
 import org.jepria.web.ssr.El;
 
 public class Fields {
+  
+  /**
+   * Creates an editable field element ({@code <input>}) from name, value and placeholder
+   * @param name
+   * @param value
+   * @param placeholder
+   * @return
+   */
   public static El createFieldInput(String name, String value, String placeholder) {
     El field = new El("input");
     field.setAttribute("type", "text");
@@ -12,6 +20,11 @@ public class Fields {
     return field;
   }
   
+  /**
+   * Creates a non-editable field element ({@code <label>}) from value
+   * @param value
+   * @return
+   */
   public static El createFieldLabel(String value) {
     El field = new El("label");
     field.setInnerHTML(value, true);
@@ -19,10 +32,10 @@ public class Fields {
   }
   
   /**
-   * Creates and adds a field to the {@code cell}
+   * Creates and adds an editable or non-editable field to the {@code cell}
    * @param cell to add a field to
-   * @param field
-   * @param placeholder
+   * @param field not null
+   * @param placeholder for an editable field
    * @param fieldEditable
    * @return
    */
@@ -34,16 +47,34 @@ public class Fields {
       fieldEl = createFieldLabel(field.value);
     }
     
-    addField(cell, field, fieldEl, placeholder);
+    addField(cell, field, fieldEl);
     
     return fieldEl;
   }
   
-  public static void addField(El cell, Field field, El fieldEl, String placeholder) {
-    
+  /**
+   * Adds an element to the cell as a field (with setting styles properly) 
+   * @param cell
+   * @param fieldEl
+   */
+  public static void addField(El cell, El fieldEl) {
     fieldEl.classList.add("field-text");
     fieldEl.classList.add("field-text_inactivatible");
     fieldEl.classList.add("disableable");
+    
+    El wrapper = wrapCellPad(fieldEl);
+    cell.appendChild(wrapper);
+  }
+
+  /**
+   * Adds an element to the cell as a field (with setting styles properly), sets top-level field attributes 
+   * ({@code invalid}, {@code value-original}) 
+   * @param cell
+   * @param field
+   * @param fieldEl
+   */
+  public static void addField(El cell, Field field, El fieldEl) {
+    addField(cell, fieldEl);
     
     if (field.readonly) {
       fieldEl.setReadonly(true);
@@ -57,9 +88,6 @@ public class Fields {
         fieldEl.setAttribute("title", field.invalidMessage);
       }
     }
-    
-    El wrapper = wrapCellPad(fieldEl);
-    cell.appendChild(wrapper);
   }
   
   public static El wrapCellPad(El element) {

@@ -32,7 +32,7 @@ public class LogTable extends Table<LogItem> {
     cell = createCell(div, "column-lastmod");
     cell.classList.add("cell-field");
     field = new El("label").setInnerHTML(item.lastmod().value);// create the label manually to avoid escaping 
-    Fields.addField(cell, item.lastmod(), field, null);
+    Fields.addField(cell, field);
     
     cell = createCell(div, "column-download");
     cell.classList.add("cell-field");
@@ -43,7 +43,7 @@ public class LogTable extends Table<LogItem> {
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
       field.appendChild(a);
     }
-    Fields.addField(cell, item.download(), field, null);
+    Fields.addField(cell, field);
     
     cell = createCell(div, "column-open");
     cell.classList.add("cell-field");
@@ -54,7 +54,7 @@ public class LogTable extends Table<LogItem> {
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
       field.appendChild(a);
     }
-    Fields.addField(cell, item.open(), field, null);
+    Fields.addField(cell, field);
     
     cell = createCell(div, "column-monitor");
     cell.classList.add("cell-monitor");
@@ -65,7 +65,7 @@ public class LogTable extends Table<LogItem> {
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));
       field.appendChild(a);
     }
-    Fields.addField(cell, item.monitor(), field, null);
+    Fields.addField(cell, field);
     
     row.appendChild(div);
     

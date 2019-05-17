@@ -57,7 +57,7 @@ public class JkMountTable extends Table<JkMountItem> {
       a.appendChild(img);
       field.appendChild(a);
     }
-    Fields.addField(cell, item.details(), field, null);
+    Fields.addField(cell, field);
     tabIndex.setNext(field);
     
     
