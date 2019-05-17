@@ -11,13 +11,11 @@
   display: inline-block;
   
   position: relative;
-  height: 32px;
+  /* height: 32px; */ /* better not no set height: it may discard line-height */
+  line-height: 32px; /* necessary, otherwise the two cells in a same row get not aligned properly */
   
   padding-top: 8px;
   padding-bottom: 4px;
-}
-#table div.cell label { /* magic for labels */
-  line-height: 32px;
 }
 
 #table .flexColumns div.cell > *, #table .strike {
@@ -86,10 +84,9 @@
   width: 24px;
   height: 24px;
   
-  padding-top: 0;
+  padding-top: 2px;
   padding-bottom: 2px;
 }
-
 
 /* elements that go opaque when inactive */
 #table .row.inactive .field-text_inactivatible {
@@ -178,6 +175,10 @@
   display: none;
 }
 #table .row.deleted .column-delete .button-delete_undelete {
+  display: block;
+}
+
+#table .row .column-delete .button-delete_delete {
   display: block;
 }
 

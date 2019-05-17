@@ -64,6 +64,14 @@ input.field-text:focus {
   border-color: #0089bd;
 }
 
+label.field-text {
+  padding-top: 8px;
+}
+
+input.field-text {
+  height: 18px;
+}
+
 .button-form {
   display: inline;
 }
