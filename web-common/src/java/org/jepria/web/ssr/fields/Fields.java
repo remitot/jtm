@@ -1,4 +1,4 @@
-package org.jepria.web.ssr.table;
+package org.jepria.web.ssr.fields;
 
 import org.jepria.web.ssr.El;
 

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.table.Field;
+import org.jepria.web.ssr.fields.Field;
 
 public class JkPageContent implements Iterable<El> {
 

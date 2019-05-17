@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.table.Field;
 
 public class PortPageContent implements Iterable<El> {
 

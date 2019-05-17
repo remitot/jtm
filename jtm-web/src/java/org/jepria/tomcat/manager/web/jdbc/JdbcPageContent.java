@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Field;
+import org.jepria.web.ssr.fields.Table.TabIndex;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.table.Field;
-import org.jepria.web.ssr.table.Table.TabIndex;
 
 public class JdbcPageContent implements Iterable<El> {
 

@@ -2,8 +2,8 @@ package org.jepria.tomcat.manager.web.jdbc;
 
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.table.CheckBox;
-import org.jepria.web.ssr.table.Table;
+import org.jepria.web.ssr.fields.CheckBox;
+import org.jepria.web.ssr.fields.Table;
 
 public class JdbcTable extends Table<JdbcItem> {
   

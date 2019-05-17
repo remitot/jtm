@@ -1,8 +1,8 @@
 package org.jepria.tomcat.manager.web.port;
 
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Table;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.table.Table;
 
 public class PortTable extends Table<PortItem> {
   

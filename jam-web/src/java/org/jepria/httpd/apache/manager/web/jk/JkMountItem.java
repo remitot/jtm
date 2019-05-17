@@ -1,7 +1,7 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
-import org.jepria.web.ssr.table.Field;
-import org.jepria.web.ssr.table.ItemData;
+import org.jepria.web.ssr.fields.Field;
+import org.jepria.web.ssr.fields.ItemData;
 
 /*package*/class JkMountItem extends ItemData {
   private static final long serialVersionUID = 1L;

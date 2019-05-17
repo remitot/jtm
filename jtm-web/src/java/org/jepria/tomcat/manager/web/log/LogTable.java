@@ -2,8 +2,8 @@ package org.jepria.tomcat.manager.web.log;
 
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.table.Fields;
-import org.jepria.web.ssr.table.Table;
+import org.jepria.web.ssr.fields.Fields;
+import org.jepria.web.ssr.fields.Table;
 
 public class LogTable extends Table<LogItem> {
 

@@ -1,7 +1,7 @@
 package org.jepria.tomcat.manager.web.log;
 
-import org.jepria.web.ssr.table.Field;
-import org.jepria.web.ssr.table.ItemData;
+import org.jepria.web.ssr.fields.Field;
+import org.jepria.web.ssr.fields.ItemData;
 
 /*package*/class LogItem extends ItemData {
   
