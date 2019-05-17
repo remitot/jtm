@@ -63,18 +63,13 @@ public class WorkerFactory {
     }
 
     @Override
-    public Integer getPort() {
-      String portStr = portWorkerProperty.getValue();
-      if (portStr != null) {
-        return Integer.parseInt(portStr);
-      } else {
-        return null;
-      }
+    public String getPort() {
+      return portWorkerProperty.getValue();
     }
     
     @Override
-    public void setPort(Integer port) {
-      portWorkerProperty.setValue(Integer.toString(port));
+    public void setPort(String port) {
+      portWorkerProperty.setValue(port);
     }
   }
   

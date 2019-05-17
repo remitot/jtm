@@ -1,7 +1,5 @@
 package org.jepria.httpd.apache.manager.core.jk;
 
-import java.util.Optional;
-
 /*package*/class BindingImpl extends BaseBinding {
   
   private final JkMount jkMount;
@@ -48,24 +46,19 @@ import java.util.Optional;
   }
   
   @Override
-  public Integer getWorkerAjpPort() {
-    if (worker != null) {
-      // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
-      return worker.getPort();
-    } else {
-      return null;
-    }
+  public String getWorkerAjpPort() {
+    // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
+    return worker.getPort();
   }
   
   @Override
-  public void rebind(String host, int ajpPort) {
-    final String ajpPortStr = Integer.toString(ajpPort);
+  public void rebind(String host, String ajpPort) {
     
     Worker existingWorker = findWorker(host, ajpPort);
     if (existingWorker != null) {
       worker = existingWorker;
     } else {
-      final String newWorkerName0 = getNewWorkerName(host, ajpPortStr);
+      final String newWorkerName0 = getNewWorkerName(host, ajpPort);
       
       // find unique name by appending _index
       String newWorkerName = newWorkerName0;
@@ -91,19 +84,18 @@ import java.util.Optional;
   
   /**
    * Lookup existing worker by host and AJP port
-   * @param host
-   * @param ajpPort
+   * @param host not null
+   * @param ajpPort not null
    * @return or else null
    */
-  private Worker findWorker(String host, int ajpPort) {
-    Optional<Worker> workerOpt = apacheConf.getWorkers().values().stream().filter(
-        // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
-        worker -> host.equals(worker.getHost()) && ajpPort == worker.getPort()).findAny();
-    if (workerOpt.isPresent()) {
-      return workerOpt.get();
-    } else {
-      return null;
+  private Worker findWorker(String host, String ajpPort) {
+    for (Worker worker: apacheConf.getWorkers().values()) {
+      // TODO assume "ajp13".equals(worker.getType()), see WorkerFactory.tryParseWorkerProperty
+      if (host.equals(worker.getHost()) && ajpPort.equals(worker.getPort())) {
+        return worker;
+      }
     }
+    return null;
   }
   
   @Override

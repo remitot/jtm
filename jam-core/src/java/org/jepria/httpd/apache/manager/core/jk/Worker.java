@@ -17,6 +17,6 @@ public interface Worker {
   String getHost();
   void setHost(String host);
   
-  Integer getPort();
-  void setPort(Integer port);
+  String getPort();
+  void setPort(String port);
 }

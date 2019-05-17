@@ -674,7 +674,7 @@ public class JkApi {
     dto.put("active", Boolean.FALSE.equals(binding.isActive()) ? "false" : "true");
     dto.put("application", binding.getApplication());
     dto.put("workerHost", binding.getWorkerHost());
-    dto.put("workerAjpPort", String.valueOf(binding.getWorkerAjpPort()));// TODO refactor from here: change getWorkerAjpPort return type to String
+    dto.put("workerAjpPort", binding.getWorkerAjpPort());
     return dto;
   }
 }

@@ -14,12 +14,12 @@ public interface Binding {
   
   String getWorkerHost();
   // TODO is this legal to bing the name of the method to AJP type?
-  Integer getWorkerAjpPort();
+  String getWorkerAjpPort();
   
   /**
    * Rebind this Binding to another Worker (existing or potentially new).
    * If rebinding succeeded, the subsequent binding modifications 
    * will affect the new worker (if they intend), but not the old (which is unbound)  
    */
-  void rebind(String host, int ajpPort);
+  void rebind(String host, String ajpPort);
 }
