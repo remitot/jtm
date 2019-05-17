@@ -1,7 +1,6 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -14,7 +13,6 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
-import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
@@ -61,12 +59,9 @@ public class JkSsrServlet extends SsrServletBase {
         // show details for JkMount by id from request param
         
         BindingDto binding = new JkApi().getBinding(env, detailsId);
-        String text1 = "app:" + binding.get("application") + "; " + "act:" + binding.get("active") + "; "
-            + "host:" + binding.get("workerHost") + "; " + " ajp:" + binding.get("workerAjpPort");
-        
-        
-        El con = new El("label").setInnerHTML(text1, true);
-        pageBuilder.setContent(Arrays.asList(con));
+        JkPageContent content = new JkPageContent(text, binding);
+        pageBuilder.setContent(content);
+        pageBuilder.setBodyAttributes("onload", "common_onload();");
         
       } else {
         // show table

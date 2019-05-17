@@ -6,9 +6,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Details;
 import org.jepria.web.ssr.fields.Field;
 
 public class JkPageContent implements Iterable<El> {
@@ -20,11 +22,14 @@ public class JkPageContent implements Iterable<El> {
     return elements.iterator();
   }
   
+  /**
+   * Creates content for a table
+   * @param text
+   * @param jkMounts
+   */
   public JkPageContent(Text text, List<JkMountDto> jkMounts) {
-    
     final List<El> elements = new ArrayList<>();
     
-    // table html
     final JkMountTable table = new JkMountTable(text);
     
     final List<JkMountItem> items = jkMounts.stream()
@@ -36,6 +41,22 @@ public class JkPageContent implements Iterable<El> {
 
     this.elements = Collections.unmodifiableList(elements);
   }
+  
+  /**
+   * Creates content for details
+   * @param text
+   * @param binding
+   */
+  public JkPageContent(Text text, BindingDto binding) {
+    final List<El> elements = new ArrayList<>();
+    
+    Details details = new Details();
+    
+    elements.add(details);
+
+    this.elements = Collections.unmodifiableList(elements);
+  }
+  
   
   protected JkMountItem dtoToItem(JkMountDto dto) {
     JkMountItem item = new JkMountItem();
