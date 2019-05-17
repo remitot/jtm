@@ -7,8 +7,10 @@ import org.jepria.web.ssr.table.Table;
 
 public class JdbcTable extends Table<JdbcItem> {
   
+  protected final Text text;
+  
   public JdbcTable(Text text) {
-    super(text);
+    this.text = text;
     addStyle("css/jdbc/jdbc.css");
   }
   
@@ -67,7 +69,9 @@ public class JdbcTable extends Table<JdbcItem> {
     cell = createCell(row, "column-active");
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
-    CheckBox checkBox = addCheckbox(cell, item.active());
+    String titleCheckboxActive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active");
+    String titleCheckboxInactive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
+    CheckBox checkBox = addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
     if (item.dataModifiable) {
       tabIndex.setNext(checkBox.input);
     } else {
@@ -125,7 +129,9 @@ public class JdbcTable extends Table<JdbcItem> {
     }
     
     if (item.dataModifiable) {
-      addFieldDelete(cellDelete, tabIndex);
+      String titleDelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete");
+      String titleUndelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.undelete");
+      addFieldDelete(cellDelete, tabIndex, titleDelete, titleUndelete);
     }
     
     row.appendChild(div);
@@ -149,7 +155,9 @@ public class JdbcTable extends Table<JdbcItem> {
     cell = createCell(row, "column-active");
     cell.classList.add("column-left");
     cell.classList.add("cell-field");
-    addCheckbox(cell, item.active());
+    String titleCheckboxActive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active");
+    String titleCheckboxInactive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
+    addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
     
     El cellDelete = createCell(row, "column-delete");
     
@@ -182,7 +190,9 @@ public class JdbcTable extends Table<JdbcItem> {
     tabIndex.setNext(field);
     
     
-    addFieldDelete(cellDelete, tabIndex);
+    String titleDelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete");
+    String titleUndelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.undelete");
+    addFieldDelete(cellDelete, tabIndex, titleDelete, titleUndelete);
     
     
     row.appendChild(flexColumns);

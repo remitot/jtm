@@ -6,8 +6,10 @@ import org.jepria.web.ssr.table.Table;
 
 public class LogTable extends Table<LogItem> {
 
+  protected final Text text;
+  
   public LogTable(Text text) {
-    super(text);
+    this.text = text;
     addStyle("css/log/log.css");
   }
   

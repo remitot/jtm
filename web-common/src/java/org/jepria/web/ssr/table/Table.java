@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.Text;
 
 public abstract class Table<T extends ItemData> extends El {
   
@@ -20,11 +19,8 @@ public abstract class Table<T extends ItemData> extends El {
     void setNext(El el);
   }
   
-  protected final Text text;
-  
-  public Table(Text text) {
+  public Table() {
     super("div");
-    this.text = text;
     
     // TODO remove id, use class and css
     setAttribute("id", "table");
@@ -208,7 +204,14 @@ public abstract class Table<T extends ItemData> extends El {
     return wrapper;
   }
   
-  protected void addFieldDelete(El cell, TabIndex tabIndex) {
+  /**
+   * 
+   * @param cell
+   * @param tabIndex
+   * @param titleDelete text to display as a title of delete button. If {@code null} then no title
+   * @param titleUndelete text to display as a title of undelete button. If {@code null} then no title
+   */
+  protected void addFieldDelete(El cell, TabIndex tabIndex, String titleDelete, String titleUndelete) {
 
     El field = new El("div");
     
@@ -217,7 +220,9 @@ public abstract class Table<T extends ItemData> extends El {
     buttonDelete.classList.add("button-delete_delete");
     buttonDelete.setAttribute("type", "image");
     buttonDelete.setAttribute("src", "img/delete.png");
-    buttonDelete.setAttribute("title", text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete"));
+    if (titleDelete != null) {
+      buttonDelete.setAttribute("title", titleDelete);
+    }
     tabIndex.setNext(buttonDelete);
     
     El buttonUndelete = new El("input");
@@ -225,7 +230,9 @@ public abstract class Table<T extends ItemData> extends El {
     buttonUndelete.classList.add("button-delete_undelete");
     buttonUndelete.setAttribute("type", "image");
     buttonUndelete.setAttribute("src", "img/undelete.png");
-    buttonUndelete.setAttribute("title", text.getString("org.jepria.web.ssr.table.buttonDelete.title.undelete"));
+    if (titleUndelete != null) {
+      buttonUndelete.setAttribute("title", titleUndelete);
+    }
     tabIndex.setNext(buttonUndelete);
     
     field.appendChild(buttonDelete);
@@ -245,7 +252,15 @@ public abstract class Table<T extends ItemData> extends El {
     return cell;
   }
   
-  protected CheckBox addCheckbox(El cell, Field field) {
+  /**
+   * 
+   * @param cell
+   * @param field
+   * @param titleCheckboxActive text to display as a title of active checkbox. If {@code null} then empty title
+   * @param titleCheckboxInactive text to display as a title of inactive checkbox. If {@code null} then empty title
+   * @return
+   */
+  protected CheckBox addCheckbox(El cell, Field field, String titleCheckboxActive, String titleCheckboxInactive) {
     
     boolean active = !"false".equals(field.value);
     CheckBox checkbox = new CheckBox(active);
@@ -277,8 +292,11 @@ public abstract class Table<T extends ItemData> extends El {
     }
     
     // add text attributes
-    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.inactive", text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive"));
-    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.active", text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active"));
+    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.active", 
+        titleCheckboxActive == null ? "" : titleCheckboxActive);
+    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.inactive", 
+        titleCheckboxInactive == null ? "" : titleCheckboxInactive);
+    
     
     
     return checkbox;

@@ -6,8 +6,10 @@ import org.jepria.web.ssr.table.Table;
 
 public class PortTable extends Table<PortItem> {
   
+  protected final Text text;
+  
   public PortTable(Text text) {
-    super(text);
+    this.text = text;
     addStyle("css/port/port.css");
   }
   
