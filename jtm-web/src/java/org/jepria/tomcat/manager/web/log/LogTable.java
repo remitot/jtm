@@ -16,7 +16,7 @@ public class LogTable extends Table<LogItem> {
     final El row = new El("div");
     row.classList.add("row");
     
-    El cell, fieldEl;
+    El cell, field;
     
     El div = new El("div");
     div.classList.add("flexColumns");
@@ -28,37 +28,41 @@ public class LogTable extends Table<LogItem> {
     
     cell = createCell(div, "column-lastmod");
     cell.classList.add("cell-field");
-    fieldEl = new El("label").setInnerHTML(item.lastmod().value);// create the label manually to avoid escaping 
-    addField(cell, item.lastmod(), fieldEl, null);
-    
-    El a;
+    field = new El("label").setInnerHTML(item.lastmod().value);// create the label manually to avoid escaping 
+    addField(cell, item.lastmod(), field, null);
     
     cell = createCell(div, "column-download");
     cell.classList.add("cell-field");
-    fieldEl = new El("label");
-    a = new El("a").setAttribute("href", item.download().value)
-        .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
-        .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
-    fieldEl.appendChild(a);
-    addField(cell, item.download(), fieldEl, null);
+    field = new El("label");
+    {
+      El a = new El("a").setAttribute("href", item.download().value)
+          .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
+          .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
+      field.appendChild(a);
+    }
+    addField(cell, item.download(), field, null);
     
     cell = createCell(div, "column-open");
     cell.classList.add("cell-field");
-    fieldEl = new El("label");
-    a = new El("a").setAttribute("href", item.open().value).setAttribute("target", "_blank")
-        .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
-        .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
-    fieldEl.appendChild(a);
-    addField(cell, item.open(), fieldEl, null);
+    field = new El("label");
+    {
+      El a = new El("a").setAttribute("href", item.open().value).setAttribute("target", "_blank")
+          .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
+          .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
+      field.appendChild(a);
+    }
+    addField(cell, item.open(), field, null);
     
     cell = createCell(div, "column-monitor");
     cell.classList.add("cell-monitor");
-    fieldEl = new El("label");
-    a = new El("a").setAttribute("href", item.monitor().value).setAttribute("target", "_blank")
-        .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title"))
-        .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));
-    fieldEl.appendChild(a);
-    addField(cell, item.monitor(), fieldEl, null);
+    field = new El("label");
+    {
+      El a = new El("a").setAttribute("href", item.monitor().value).setAttribute("target", "_blank")
+          .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title"))
+          .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));
+      field.appendChild(a);
+    }
+    addField(cell, item.monitor(), field, null);
     
     row.appendChild(div);
     
