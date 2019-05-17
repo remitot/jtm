@@ -36,18 +36,23 @@ public class JkMountTable extends Table<JkMountItem> {
     
     cell = createCell(div, "column-application");
     cell.classList.add("cell-field");
-    field = addField(cell, item.application(), null);
+    field = addField(cell, item.application(), null, false);
     tabIndex.setNext(field);
     
     
     cell = createCell(div, "column-details");
     cell.classList.add("cell-field");
     String detailsHref = item.details().value;
-    El a = new El("a").setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
-    El img = new El("img").setAttribute("src", "img/jk/details.png");
-    a.appendChild(img);
-    El wrapper = wrapCellPad(a);
-    cell.appendChild(wrapper);
+
+    
+    field = new El("label");
+    {
+      El a = new El("a").setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
+      El img = new El("img").setAttribute("src", "img/jk/details.png").addClass("button-details");
+      a.appendChild(img);
+      field.appendChild(a);
+    }
+    addField(cell, item.details(), field, null);
     tabIndex.setNext(field);
     
     

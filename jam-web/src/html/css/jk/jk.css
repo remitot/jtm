@@ -10,3 +10,11 @@
   width: 24px;
   height: 24px;
 }
+
+#table .row .column-details .button-details {
+  width: 24px;
+  height: 24px;
+  
+  display: block;
+  padding-bottom: 8px;
+}

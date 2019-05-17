@@ -60,7 +60,6 @@ public class JkSsrServlet extends SsrServletBase {
       if (showDetails) {
         // show details for JkMount by id from request param
         
-        System.out.println("///did:" + detailsId);
         BindingDto binding = new JkApi().getBinding(env, detailsId);
         String text1 = "app:" + binding.get("application") + "; " + "act:" + binding.get("active") + "; "
             + "host:" + binding.get("workerHost") + "; " + " ajp:" + binding.get("workerAjpPort");
