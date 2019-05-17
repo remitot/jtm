@@ -123,85 +123,20 @@ public abstract class Table<T extends ItemData> extends El {
     return addField(cell, field, placeholder, isEditable());
   }
   
-  protected El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
-    final El fieldEl;
-    if (fieldEditable) {
-      fieldEl = createFieldInput(field.name, field.value, placeholder);
-    } else {
-      fieldEl = createFieldLabel(field.value);
-    }
-    
-    return addField(cell, field, fieldEl, placeholder);
-  }
-  
-  protected El addField(El cell, Field field, El fieldEl, String placeholder) {
-    
-    fieldEl.classList.add("field-text");
-    fieldEl.classList.add("field-text_inactivatible");
-    fieldEl.classList.add("disableable");
-    
-    if (field.readonly) {
-      fieldEl.setReadonly(true);
-    } else {
-      fieldEl.setAttribute("value-original", field.valueOriginal);
-    }
-    
-    if (field.invalid) {
-      fieldEl.classList.add("invalid");
-      if (field.invalidMessage != null) {
-        fieldEl.setAttribute("title", field.invalidMessage);
-      }
-    }
-    
-    El wrapper = wrapCellPad(fieldEl);
-    cell.appendChild(wrapper);
-
-    if (isEditable()) {
-      addStrike(cell);
-    }
-      
-    return fieldEl;
-  }
-  
-  protected El createFieldInput(String name, String value, String placeholder) {
-    El field = new El("input");
-    field.setAttribute("type", "text");
-    field.setAttribute("name", name);
-    field.setAttribute("value", value);
-    field.setAttribute("placeholder", placeholder);
-    return field;
-  }
-
   protected void addStrike(El cell) {
     El strike = new El("div");
     strike.classList.add("strike");
     cell.appendChild(strike);
   }
 
-  protected El createFieldLabel(String value) {
-    El field = new El("label");
-    field.setInnerHTML(value, true);
-    return field;
-  }
-
-  protected El wrapCellPad(El element) {
-    El wrapper = new El("div");
+  protected El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
+    El ret = Fields.addField(cell, field, placeholder, fieldEditable);
     
-    El leftDiv = new El("div");
-    leftDiv.classList.add("cell-pad-left");
-    wrapper.appendChild(leftDiv);
+    if (isEditable()) {
+      addStrike(cell);
+    }
     
-    El rightDiv = new El("div");
-    rightDiv.classList.add("cell-pad-right");
-    wrapper.appendChild(rightDiv);
-    
-    El midDiv = new El("div");
-    midDiv.classList.add("cell-pad-mid");
-    wrapper.appendChild(midDiv);
-    
-    midDiv.appendChild(element);
-    
-    return wrapper;
+    return ret;
   }
   
   /**
@@ -238,7 +173,7 @@ public abstract class Table<T extends ItemData> extends El {
     field.appendChild(buttonDelete);
     field.appendChild(buttonUndelete);
     
-    El wrapper = wrapCellPad(field);  
+    El wrapper = Fields.wrapCellPad(field);  
     cell.appendChild(wrapper);
     
     //return field;
@@ -261,45 +196,13 @@ public abstract class Table<T extends ItemData> extends El {
    * @return
    */
   protected CheckBox addCheckbox(El cell, Field field, String titleCheckboxActive, String titleCheckboxInactive) {
-    
-    boolean active = !"false".equals(field.value);
-    CheckBox checkbox = new CheckBox(active);
-    
-    checkbox.setEnabled(!field.readonly);
-
-    if (field.readonly) {
-      checkbox.setReadonly(true);
-    } else {
-      checkbox.setAttribute("value-original", !"false".equals(field.valueOriginal));
-    }
-    
-    checkbox.classList.add("table__checkbox");
-    
-    checkbox.classList.add("disableable");
-
-    if (field.invalid) {
-      checkbox.classList.add("invalid");
-      if (field.invalidMessage != null) {
-        checkbox.setAttribute("title", field.invalidMessage);
-      }
-    }
-    
-    El wrapper = wrapCellPad(checkbox);  
-    cell.appendChild(wrapper);
+    CheckBox checkBox = Fields.addCheckbox(cell, field, titleCheckboxActive, titleCheckboxInactive);
     
     if (isEditable()) {
       addStrike(cell);
     }
     
-    // add text attributes
-    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.active", 
-        titleCheckboxActive == null ? "" : titleCheckboxActive);
-    checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.inactive", 
-        titleCheckboxInactive == null ? "" : titleCheckboxInactive);
-    
-    
-    
-    return checkbox;
+    return checkBox;
   }
   
   protected abstract El createHeader();
