@@ -69,35 +69,27 @@ public class Fields {
    * @param titleCheckboxInactive text to display as a title of inactive checkbox. If {@code null} then empty title
    * @return
    */
-  public static CheckBox addCheckbox(El cell, Field field, String titleCheckboxActive, String titleCheckboxInactive) {
+  public static FieldCheckBox addCheckbox(El cell, Field field, String titleCheckboxActive, String titleCheckboxInactive) {
     
     boolean active = !"false".equals(field.value);
-    CheckBox checkbox = new CheckBox(active);
+    Boolean valueOriginal;
+    if (!field.readonly && field.valueOriginal != null) {
+      valueOriginal = !"false".equals(field.valueOriginal);
+    } else {
+      valueOriginal = null;
+    }
+    
+    FieldCheckBox checkbox = new FieldCheckBox(field.name, active, valueOriginal, field.invalid, field.invalidMessage);
     
     checkbox.setEnabled(!field.readonly);
 
-    if (!field.readonly) {
-      checkbox.setAttribute("value-original", !"false".equals(field.valueOriginal));
-    }
-    
-    if (field.invalid) {
-      checkbox.classList.add("invalid");
-      if (field.invalidMessage != null) {
-        checkbox.setAttribute("title", field.invalidMessage);
-      }
-    }
-    
-    El wrapper = wrapCellPad(checkbox);  
-    cell.appendChild(wrapper);
-    
-    
     // add text attributes
     checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.active", 
         titleCheckboxActive == null ? "" : titleCheckboxActive);
     checkbox.setAttribute("org.jepria.web.ssr.Table.checkbox_active.title.inactive", 
         titleCheckboxInactive == null ? "" : titleCheckboxInactive);
     
-    
+    addField(cell, checkbox);
     
     return checkbox;
   }

@@ -208,7 +208,7 @@ public abstract class Table<T extends ItemData> extends El {
    * @return
    */
   protected CheckBox addCheckbox(El cell, Field field, String titleCheckboxActive, String titleCheckboxInactive) {
-    CheckBox checkBox = Fields.addCheckbox(cell, field, titleCheckboxActive, titleCheckboxInactive);
+    FieldCheckBox checkBox = Fields.addCheckbox(cell, field, titleCheckboxActive, titleCheckboxInactive);
     
     checkBox.classList.add("table__checkbox");
     checkBox.classList.add("table__field_disableable");

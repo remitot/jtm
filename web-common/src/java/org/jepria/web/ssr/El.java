@@ -27,18 +27,6 @@ public class El implements Node {
     this.tagName = tag;
   }
   
-  public void setEnabled(boolean enabled) {
-    
-  }
-  
-  public void setReadonly(boolean readonly) {
-    if (readonly) {
-      setAttribute("readonly", "true");
-    } else {
-      removeAttribute("readonly");
-    }
-  }
-  
   /**
    * 
    * @param className

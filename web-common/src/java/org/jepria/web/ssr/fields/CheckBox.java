@@ -8,14 +8,12 @@ public class CheckBox extends El {
   
   public final El checkmark;
   
-  // enabled by default
   public CheckBox(boolean active) {
     super("label");
     classList.add("checkbox");
     
     input = new El("input");
     input.setAttribute("type", "checkbox");
-    input.setAttribute("name", "active");
     if (active) {
       input.setAttribute("checked", "checked");
     }
@@ -30,10 +28,7 @@ public class CheckBox extends El {
     addScript("js/checkbox.js");
   }
   
-  @Override
   public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    
     if (enabled) {
       classList.remove("checkbox_disabled");
       input.attributes.remove("disabled");

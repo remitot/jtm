@@ -80,6 +80,11 @@
   border-color: #fb8f40;
 }
 
+/* comes after .checkbox.modified to override */
+.checkbox.invalid {
+  border-color: red;
+}
+
 .checkbox_disabled.modified {
   border-color: transparent !important;
 }
