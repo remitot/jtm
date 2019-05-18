@@ -42,12 +42,14 @@ public class LoginFragment extends AuthFragment {
     final El rowUsername = new El("div").addClass("auth-form__row");
     inputUsername = new El("input").setAttribute("type", "text").addClass("field-text").addClass("login-field_username")
         .setAttribute("name", "username").setAttribute("placeholder", text.getString("org.jepria.web.ssr.LoginFragment.fieldUsername.placeholder"));
+    inputUsername.addStyle("css/field-text.css");
     rowUsername.appendChild(inputUsername);
     loginForm.appendChild(rowUsername);
     
     final El rowPassword = new El("div").addClass("auth-form__row");
     inputPassword = new El("input").setAttribute("type", "password").addClass("field-text").addClass("login-field_password")
         .setAttribute("name", "password").setAttribute("placeholder", text.getString("org.jepria.web.ssr.LoginFragment.fieldPassword.placeholder"));
+    inputPassword.addStyle("css/field-text.css");
     rowPassword.appendChild(inputPassword);
     loginForm.appendChild(rowPassword);
     

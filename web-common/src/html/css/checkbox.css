@@ -8,6 +8,16 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  
+  border-width: 0 0 0 0;
+  border-bottom: 2px solid;
+  border-color: transparent;
+
+  width: 24px;
+  height: 24px;
+  
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
 /* Hide the browser's default checkbox */
@@ -64,4 +74,25 @@
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
+}
+
+.checkbox.modified {
+  border-color: #fb8f40;
+}
+
+.checkbox_disabled.modified {
+  border-color: transparent !important;
+}
+
+.checkbox_disabled {
+  cursor: default !important; /* overrides .checkbox */
+}
+.checkbox_disabled .checkmark {
+  background-color: transparent !important; /* overrides .checkmark */
+}
+.checkbox_disabled .checkmark.hovered {
+  background-color: transparent !important; /* overrides .checkmark.hovered */
+}
+.checkbox_disabled .checkmark:after {
+  border-color: black !important; /* overrides .checkmark:after */
 }

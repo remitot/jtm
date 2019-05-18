@@ -106,7 +106,7 @@ public class LogMonitorPageContent implements Iterable<El> {
           StringBuilder innerHtml = new StringBuilder();
           for (String line: contentLinesTop) {
             try {
-              HtmlEscaper.escapeAndWrite(line, innerHtml);
+              HtmlEscaper.escape(line, innerHtml, true);
             } catch (IOException e) {
               // impossible
               throw new RuntimeException(e);
@@ -124,7 +124,7 @@ public class LogMonitorPageContent implements Iterable<El> {
           StringBuilder innerHtml = new StringBuilder();
           for (String line: contentLinesBottom) {
             try {
-              HtmlEscaper.escapeAndWrite(line, innerHtml);
+              HtmlEscaper.escape(line, innerHtml, true);
             } catch (IOException e) {
               // impossible
               throw new RuntimeException(e);

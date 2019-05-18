@@ -1,0 +1,41 @@
+.field-text {
+  background-color: transparent;
+  outline: 0;
+  
+  border-width: 0 0 2px 0;
+  border-color: #ddd;
+  
+  font-family: monospace;
+  font-size: 13.5px;
+  color: black; 
+  
+  line-height: 18px;
+  padding-top: 6px;
+  padding-bottom: 2px;
+}
+
+label.field-text {
+  padding-top: 8px;
+}
+
+input.field-text {
+  height: 18px;
+}
+
+.field-text.modified {
+  border-color: #fb8f40;
+}
+
+/* comes after .field-text.modified to override */
+.field-text.invalid {
+  border-color: red;
+}
+
+/* comes after .field-text.modified to override */
+.field-text:focus {
+  border-color: #0089bd;
+}
+
+.field-text_readonly, .field-text:disabled, .field-text_readonly:focus, .field-text:disabled:focus {
+  border-color: transparent;
+}

@@ -72,7 +72,7 @@ function table_onload() {
 }
 
 function onFieldInput(field) {
-  if (!field.classList.contains("readonly")) {// ignore events for readonly fields
+  if (!field.classList.contains("field-text_readonly")) {// ignore events for readonly fields
     onFieldValueChanged(field, field.value);
   }
 }
@@ -94,7 +94,7 @@ function onFieldValueChanged(field, newValue) {
 }
 
 function onCheckboxInput(checkbox) {
-  if (!checkbox.classList.contains("readonly")) {// ignore events for readonly fields
+  if (!checkbox.classList.contains("checkbox_readonly")) {// ignore events for readonly fields
     
     if (getInput(checkbox).checked && checkbox.getAttribute("value-original") == "true" 
         || !getInput(checkbox).checked && checkbox.getAttribute("value-original") == "false") {
@@ -140,12 +140,13 @@ function checkModifications() {
 }
 
 /**
- * Disable everything '.disableable' in a composite
+ * Disable everything '.table__field_disableable' in a composite
  * @param disabled
  * @returns
  */
 function setDisabled(composite, disabled) {
-  var disableableElements = composite.querySelectorAll("input.disableable, button.disableable");
+  var disableableElements = composite.querySelectorAll(
+      "input.table__field_disableable, button.table__field_disableable");
 
   for (var i = 0; i < disableableElements.length; i++) {
     var disableableElement = disableableElements[i]; 
@@ -153,12 +154,10 @@ function setDisabled(composite, disabled) {
     // disableableElement.setAttribute("readonly", true); // alternative
   }
   
-  var checkboxes = composite.querySelectorAll(".checkbox.disableable");
+  var checkboxes = composite.querySelectorAll(".checkbox.table__field_disableable");
   for (var i = 0; i < checkboxes.length; i++) {
     var checkbox = checkboxes[i];
-    if (!checkbox.classList.contains("readonly")) {
-      setCheckboxEnabled(checkbox, !disabled);
-    }
+    setCheckboxEnabled(checkbox, !disabled);
   }
 }
 

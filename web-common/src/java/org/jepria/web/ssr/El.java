@@ -34,10 +34,8 @@ public class El implements Node {
   public void setReadonly(boolean readonly) {
     if (readonly) {
       setAttribute("readonly", "true");
-      classList.add("readonly");
     } else {
       removeAttribute("readonly");
-      classList.remove("readonly");
     }
   }
   
@@ -107,7 +105,9 @@ public class El implements Node {
    */
   private El setAttributeRegular(String name, Object value) {
     if (value != null) {
-      attributes.put(name, Optional.of(String.valueOf(value)));
+      String valueStr = String.valueOf(value);
+      String valueEsc = HtmlEscaper.escape(valueStr, false); // attribute values are always escaped
+      attributes.put(name, Optional.of(valueEsc));
     } else {
       attributes.remove(name);
     }

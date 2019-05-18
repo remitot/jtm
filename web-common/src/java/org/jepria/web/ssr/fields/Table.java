@@ -123,6 +123,15 @@ public abstract class Table<T extends ItemData> extends El {
     return addField(cell, field, placeholder, isEditable());
   }
   
+  protected El addField(El cell, El field) {
+    Fields.addField(cell, field);
+    
+    field.classList.add("table__field-text_inactivatible");
+    field.classList.add("table__field_disableable");
+    
+    return field;
+  }
+  
   protected void addStrike(El cell) {
     El strike = new El("div");
     strike.classList.add("strike");
@@ -131,6 +140,9 @@ public abstract class Table<T extends ItemData> extends El {
 
   protected El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
     El ret = Fields.addField(cell, field, placeholder, fieldEditable);
+    
+    ret.classList.add("table__field-text_inactivatible");
+    ret.classList.add("table__field_disableable");
     
     if (isEditable()) {
       addStrike(cell);
@@ -197,6 +209,10 @@ public abstract class Table<T extends ItemData> extends El {
    */
   protected CheckBox addCheckbox(El cell, Field field, String titleCheckboxActive, String titleCheckboxInactive) {
     CheckBox checkBox = Fields.addCheckbox(cell, field, titleCheckboxActive, titleCheckboxInactive);
+    
+    checkBox.classList.add("table__checkbox");
+    checkBox.classList.add("table__field_disableable");
+
     
     if (isEditable()) {
       addStrike(cell);

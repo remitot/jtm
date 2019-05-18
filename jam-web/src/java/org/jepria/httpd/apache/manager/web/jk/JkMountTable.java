@@ -3,7 +3,6 @@ package org.jepria.httpd.apache.manager.web.jk;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.CheckBox;
-import org.jepria.web.ssr.fields.Fields;
 import org.jepria.web.ssr.fields.Table;
 
 public class JkMountTable extends Table<JkMountItem> {
@@ -57,7 +56,7 @@ public class JkMountTable extends Table<JkMountItem> {
       a.appendChild(img);
       field.appendChild(a);
     }
-    Fields.addField(cell, field);
+    addField(cell, field);
     tabIndex.setNext(field);
     
     

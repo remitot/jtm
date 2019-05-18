@@ -5,22 +5,6 @@ import org.jepria.web.ssr.El;
 public class Fields {
   
   /**
-   * Creates an editable field element ({@code <input>}) from name, value and placeholder
-   * @param name
-   * @param value
-   * @param placeholder
-   * @return
-   */
-  public static El createFieldInput(String name, String value, String placeholder) {
-    El field = new El("input");
-    field.setAttribute("type", "text");
-    field.setAttribute("name", name);
-    field.setAttribute("value", value);
-    field.setAttribute("placeholder", placeholder);
-    return field;
-  }
-  
-  /**
    * Creates a non-editable field element ({@code <label>}) from value
    * @param value
    * @return
@@ -41,13 +25,16 @@ public class Fields {
    */
   public static El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
     final El fieldEl;
-    if (fieldEditable) {
-      fieldEl = createFieldInput(field.name, field.value, placeholder);
-    } else {
-      fieldEl = createFieldLabel(field.value);
+    
+    fieldEl = new FieldTextInput(field.name, 
+        field.value, field.valueOriginal, placeholder,
+        field.invalid, field.invalidMessage);
+    
+    if (!fieldEditable || field.readonly) {
+      fieldEl.setReadonly(true);
     }
     
-    addField(cell, field, fieldEl);
+    addField(cell, fieldEl);
     
     return fieldEl;
   }
@@ -58,38 +45,10 @@ public class Fields {
    * @param fieldEl
    */
   public static void addField(El cell, El fieldEl) {
-    fieldEl.classList.add("field-text");
-    fieldEl.classList.add("field-text_inactivatible");
-    fieldEl.classList.add("disableable");
-    
     El wrapper = wrapCellPad(fieldEl);
     cell.appendChild(wrapper);
   }
 
-  /**
-   * Adds an element to the cell as a field (with setting styles properly), sets top-level field attributes 
-   * ({@code invalid}, {@code value-original}) 
-   * @param cell
-   * @param field
-   * @param fieldEl
-   */
-  public static void addField(El cell, Field field, El fieldEl) {
-    addField(cell, fieldEl);
-    
-    if (field.readonly) {
-      fieldEl.setReadonly(true);
-    } else {
-      fieldEl.setAttribute("value-original", field.valueOriginal);
-    }
-    
-    if (field.invalid) {
-      fieldEl.classList.add("invalid");
-      if (field.invalidMessage != null) {
-        fieldEl.setAttribute("title", field.invalidMessage);
-      }
-    }
-  }
-  
   public static El wrapCellPad(El element) {
     El wrapper = new El("div");
     
@@ -131,10 +90,6 @@ public class Fields {
       checkbox.setAttribute("value-original", !"false".equals(field.valueOriginal));
     }
     
-    checkbox.classList.add("table__checkbox");
-    
-    checkbox.classList.add("disableable");
-
     if (field.invalid) {
       checkbox.classList.add("invalid");
       if (field.invalidMessage != null) {
