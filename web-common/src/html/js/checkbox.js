@@ -41,13 +41,11 @@ function checkbox_onload() {
 }
 
 function setCheckboxEnabled(checkbox, enabled) {
-  if (!checkbox.classList.contains("checkbox_readonly")) {
-	  if (enabled) {
-	    checkbox.classList.remove("checkbox_disabled");
-	    getInput(checkbox).disabled = false;
-	  } else {
-	    checkbox.classList.add("checkbox_disabled");
-	    getInput(checkbox).disabled = true;
-	  }
+  if (enabled) {
+    checkbox.classList.remove("checkbox_disabled");
+    getInput(checkbox).disabled = false;
+  } else {
+    checkbox.classList.add("checkbox_disabled");
+    getInput(checkbox).disabled = true;
   }
 }

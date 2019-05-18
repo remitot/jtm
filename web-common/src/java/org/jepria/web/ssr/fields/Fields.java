@@ -76,9 +76,7 @@ public class Fields {
     
     checkbox.setEnabled(!field.readonly);
 
-    if (field.readonly) {
-      checkbox.setReadonly(true);
-    } else {
+    if (!field.readonly) {
       checkbox.setAttribute("value-original", !"false".equals(field.valueOriginal));
     }
     

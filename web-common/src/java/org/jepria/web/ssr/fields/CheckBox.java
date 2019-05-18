@@ -42,17 +42,4 @@ public class CheckBox extends El {
       input.setAttribute("disabled", true);
     }
   }
-  
-  @Override
-  public void setReadonly(boolean readonly) {
-    super.setReadonly(readonly);
-    
-    if (readonly) {
-      classList.add("checkbox_readonly");
-    } else {
-      classList.remove("checkbox_readonly");
-    }
-    
-    setEnabled(false);
-  }
 }
