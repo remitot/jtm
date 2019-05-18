@@ -3,12 +3,9 @@ package org.jepria.httpd.apache.manager.core.jk;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.ApacheConfBase;
 
@@ -93,130 +90,34 @@ public class ApacheConfJk extends ApacheConfBase {
   
   /////////////////////////////////////////////////////////////
   
-  protected final class BindingId {
-    public final String jkMountId, workerId;
-
-    public BindingId(String jkMountId, String workerId) {
-      this.jkMountId = jkMountId;
-      this.workerId = workerId;
-    }
-    
-    @Override
-    public int hashCode() {
-      return Objects.hash(jkMountId, workerId);
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-      BindingId bindingId = (BindingId) obj;
-      return bindingId.hashCode() == this.hashCode();
-    }
-  }
-  
   /**
-   * Lazily initialized map of BaseBindings
-   */
-  private Map<BindingId, BaseBinding> baseBindings = null;
-
-  /**
-   * @return unmodifiable Map&lt;BindingId, BaseBinding&gt;
-   */
-  protected Map<BindingId, BaseBinding> getBaseBindings() {
-    if (baseBindings == null) {
-      initBaseBindings();
-    }
-
-    return baseBindings;
-  }
-
-  /**
-   * @return unmodifiable Map&lt;BindingId, Binding&gt;.
-   * BindingIds are synthetic (the values actually reflect 
-   * location of nodes in configuration files)
-   */
-  public Map<String, Binding> getBindings() {
-    return Collections.unmodifiableMap(getBaseBindings().entrySet().stream().collect(Collectors.toMap(
-        e -> e.getKey().jkMountId + "-" + e.getKey().workerId, e -> e.getValue())));
-  }
-  
-  public Binding getBinding(String jkMountId) {
-    for (Map.Entry<BindingId, BaseBinding> e: getBaseBindings().entrySet()) {
-      if (jkMountId.equals(e.getKey().jkMountId)) {
-        return e.getValue();
-      }
-    }
-    return null;
-  }
-  
-  /**
-   * Lazily initialize (or re-initialize) {@link #baseBindings} map
-   */
-  private void initBaseBindings() {
-    Map<BindingId, BaseBinding> bindings = new HashMap<>();
-    
-    for (Map.Entry<String, JkMount> mountEntry: getMounts().entrySet()) {
-      String mountId = mountEntry.getKey();
-      JkMount jkMount = mountEntry.getValue();
-      
-      String workerName = jkMount.workerName();
-
-      String workerId = null;
-      Worker worker = null;
-      for (Map.Entry<String, Worker> workerEntry: getWorkers().entrySet()) {
-        String workerId0 = workerEntry.getKey();
-        Worker worker0 = workerEntry.getValue();
-        
-        if (worker0.getName().equals(workerName)) {
-          workerId = workerId0;
-          worker = worker0;
-          break;
-        }
-      }
-
-      if (worker != null) {
-        BindingId bindingId = new BindingId(mountId, workerId);
-        BaseBinding binding = new BindingImpl(jkMount, worker, this);
-        bindings.put(bindingId, binding);
-      }
-    }
-
-
-    this.baseBindings = bindings;
-  }
-
-  /**
-   * Delete binding by id
+   * Delete binding by mountId
    * @param id
    */
-  public void delete(String id) {
-    BaseBinding binding = getBaseBindings().get(id);
+  public void delete(String mountId) {
+    JkMount mount = getMounts().get(mountId);
 
-    if (binding == null) {
-      throw new IllegalArgumentException("No binding found by id [" + id + "]");
+    if (mount == null) {
+      throw new IllegalArgumentException("No mount found by id [" + mountId + "]");
     }
 
-    binding.delete();
+    mount.delete();
   }
 
   /**
    * Create new (empty) Binding
    * @return
    */
-  public Binding create() {
+  public Object create() {
 
-    TextLineReference.addNewLine(getMod_jk_confLines());// empty line
-    TextLineReference rootMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
-    TextLineReference asterMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
-
-    JkMount jkMount = JkMountFactory.create(rootMountLine, asterMountLine);
-
-    return new BindingImpl(jkMount, null, this);// TODO it is bad to pass null as Worker because the 'Binding' entity literally MUST include Worker (otherwise 'binding' to what?)
+    throw new UnsupportedOperationException("Not impl yet");
+//    TextLineReference.addNewLine(getMod_jk_confLines());// empty line
+//    TextLineReference rootMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
+//    TextLineReference asterMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
+//
+//    JkMount jkMount = JkMountFactory.create(rootMountLine, asterMountLine);
+//
+//    return new BindingImpl(jkMount, null, this);// TODO it is bad to pass null as Worker because the 'Binding' entity literally MUST include Worker (otherwise 'binding' to what?)
   }
 
   /**
@@ -263,7 +164,7 @@ public class ApacheConfJk extends ApacheConfBase {
    * {@code false} if there is a binding with the same application
    */
   public boolean validateNewApplication(String application) {
-    return !getBindings().values().stream().anyMatch(
+    return !getMounts().values().stream().anyMatch(
         binding -> application.equals(binding.getApplication()));
   }
 

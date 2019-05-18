@@ -1,7 +1,11 @@
 package org.jepria.httpd.apache.manager.web.jk.dto;
 
-import java.util.HashMap;
-
-public class BindingDto extends HashMap<String, String> {
-  private static final long serialVersionUID = 1L;
+public class BindingDto {
+  public final JkMountDto jkMount;
+  public final WorkerDto worker;
+  
+  public BindingDto(JkMountDto jkMount, WorkerDto worker) {
+    this.jkMount = jkMount;
+    this.worker = worker;
+  }
 }

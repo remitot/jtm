@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jepria.httpd.apache.manager.core.jk.JkMount;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
@@ -39,8 +40,8 @@ public class JkSsrServlet extends SsrServletBase {
     pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
     
     
-    final String detailsId = req.getParameter("id");
-    final boolean showDetails = detailsId != null && !"".equals(detailsId);
+    final String mountId = req.getParameter("mount-id");
+    final boolean showDetails = mountId != null && !"".equals(mountId);
     
     
     final PageHeader pageHeader;
@@ -58,7 +59,8 @@ public class JkSsrServlet extends SsrServletBase {
       if (showDetails) {
         // show details for JkMount by id from request param
         
-        BindingDto binding = new JkApi().getBinding(env, detailsId);
+        BindingDto binding = new JkApi().getBinding(env, mountId);
+        
         JkPageContent content = new JkPageContent(text, binding);
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();");

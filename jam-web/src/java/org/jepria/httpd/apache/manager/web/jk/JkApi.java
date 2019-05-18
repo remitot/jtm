@@ -6,11 +6,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
-import org.jepria.httpd.apache.manager.core.jk.Binding;
 import org.jepria.httpd.apache.manager.core.jk.JkMount;
+import org.jepria.httpd.apache.manager.core.jk.Worker;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
+import org.jepria.httpd.apache.manager.web.jk.dto.WorkerDto;
 
 public class JkApi {
 
@@ -274,7 +275,7 @@ public class JkApi {
 //      return;
 //    }
 //  }
-//  
+//  String jkMountId
 //  protected boolean renameLocalhost(Environment environment) {
 //    return "true".equals(environment.getProperty("org.jepria.httpd.apache.manager.web.jk.renameLocalhost"));
 //  }
@@ -630,11 +631,23 @@ public class JkApi {
 //    }
 //  }
   
-  protected JkMountDto mountToDto(String id, JkMount mount) {
+  /**
+   * Null-safe
+   * @param mountId
+   * @param mount
+   * @return
+   */
+  protected JkMountDto mountToDto(String mountId, JkMount mount) {
+    if (mountId == null && mount == null) {
+      return null;
+    }
+    
     JkMountDto dto = new JkMountDto();
-    dto.put("active", Boolean.FALSE.equals(mount.isActive()) ? "false" : "true");
-    dto.put("id", id);
-    dto.put("application", mount.getApplication());
+    dto.map.put("id", mountId);
+    if (mount != null) {
+      dto.map.put("active", Boolean.FALSE.equals(mount.isActive()) ? "false" : "true");
+      dto.map.put("application", mount.getApplication());
+    }
     return dto;
   }
   
@@ -642,12 +655,12 @@ public class JkApi {
     return new Comparator<JkMountDto>() {
       @Override
       public int compare(JkMountDto o1, JkMountDto o2) {
-        int applicationCmp = o1.get("application").toLowerCase().compareTo(o2.get("application").toLowerCase());
+        int applicationCmp = o1.map.get("application").toLowerCase().compareTo(o2.map.get("application").toLowerCase());
         if (applicationCmp == 0) {
           // the active is the first
-          if ("true".equals(o1.get("active")) && "false".equals(o2.get("active"))) {
+          if ("true".equals(o1.map.get("active")) && "false".equals(o2.map.get("active"))) {
             return -1;
-          } else if ("true".equals(o2.get("active")) && "false".equals(o1.get("active"))) {
+          } else if ("true".equals(o2.map.get("active")) && "false".equals(o1.map.get("active"))) {
             return 1;
           } else {
             return 0;
@@ -660,21 +673,52 @@ public class JkApi {
   }
   
   protected BindingDto getBinding(ApacheConfJk apacheConf, String jkMountId) {
-    Binding binding = apacheConf.getBinding(jkMountId);
+    JkMount jkMount = apacheConf.getMounts().get(jkMountId);
     
-    if (binding == null) {
+    if (jkMount == null) {
       return null;
-    } else {
-      return bindingToDto(binding);
     }
+
+    
+    // lookup worker by name from jkMount
+    Map<String, Worker> workers = apacheConf.getWorkers();
+    
+    String workerId = null;
+    Worker worker = null;
+    for (Map.Entry<String, Worker> workerEntry: workers.entrySet()) {
+      if (workerEntry.getValue().getName().equals(jkMount.workerName())) {
+        workerId = workerEntry.getKey();
+        worker = workerEntry.getValue();
+        break;
+      }
+    }
+
+    
+    JkMountDto jkMountDto = mountToDto(jkMountId, jkMount);
+    WorkerDto workerDto = workerToDto(workerId, worker);
+    
+    return new BindingDto(jkMountDto, workerDto);
   }
   
-  protected BindingDto bindingToDto(Binding binding) {
-    BindingDto dto = new BindingDto();
-    dto.put("active", Boolean.FALSE.equals(binding.isActive()) ? "false" : "true");
-    dto.put("application", binding.getApplication());
-    dto.put("workerHost", binding.getWorkerHost());
-    dto.put("workerAjpPort", binding.getWorkerAjpPort());
+  /**
+   * Null-safe
+   * @param workerId
+   * @param worker
+   * @return
+   */
+  protected WorkerDto workerToDto(String workerId, Worker worker) {
+    if (workerId == null && worker == null) {
+      return null;
+    }
+    
+    WorkerDto dto = new WorkerDto();
+    dto.map.put("id", workerId);
+    if (worker != null) {
+      dto.map.put("name", worker.getName());
+      dto.map.put("type", worker.getType());
+      dto.map.put("host", worker.getHost());
+      dto.map.put("port", worker.getPort());
+    }
     return dto;
   }
 }
