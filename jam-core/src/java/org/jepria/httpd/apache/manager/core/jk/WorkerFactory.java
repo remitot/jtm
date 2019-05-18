@@ -317,7 +317,7 @@ public class WorkerFactory {
       final WorkerProperty workerProperty;
       final Consumer<WorkerProperty> targetConsumer;
       
-      if ("type".equals(workerType) && AJP_13_TYPE.equals(value)) {
+      if ("type".equals(workerType)) {
         workerProperty = new WorkerPropertyImpl(workerName, workerType, value, line, false);
         targetConsumer = typePropertyConsumer;
       } else if ("host".equals(workerType)) {
@@ -350,6 +350,7 @@ public class WorkerFactory {
       TextLineReference hostWorkerPropertyLine,
       TextLineReference portWorkerPropertyLine) {
     
+    // TODO parametirze worker type?
     WorkerProperty typeWorkerProperty = new WorkerPropertyImpl(name, "type", AJP_13_TYPE, typeWorkerPropertyLine, true);
     WorkerProperty hostWorkerProperty = new WorkerPropertyImpl(name, "host", null, hostWorkerPropertyLine, true);
     WorkerProperty portWorkerProperty = new WorkerPropertyImpl(name, "port", null, portWorkerPropertyLine, true); 
