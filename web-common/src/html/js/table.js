@@ -72,9 +72,7 @@ function table_onload() {
 }
 
 function onFieldInput(field) {
-  if (!field.classList.contains("field-text_readonly")) {// ignore events for readonly fields
-    onFieldValueChanged(field, field.value);
-  }
+  onFieldValueChanged(field, field.value);
 }
 
 function onFieldValueChanged(field, newValue) {

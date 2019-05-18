@@ -34,15 +34,4 @@ public class FieldTextInput extends El {
     
     addStyle("css/field-text.css");
   }
-  
-  @Override
-  public void setReadonly(boolean readonly) {
-    super.setReadonly(readonly);
-    
-    if (readonly) {
-      classList.add("field-text_readonly");
-    } else {
-      classList.remove("field-text_readonly");
-    }
-  }
 }

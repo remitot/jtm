@@ -1,19 +1,9 @@
 package org.jepria.web.ssr.fields;
 
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HtmlEscaper;
 
 public class Fields {
-  
-  /**
-   * Creates a non-editable field element ({@code <label>}) from value
-   * @param value
-   * @return
-   */
-  public static El createFieldLabel(String value) {
-    El field = new El("label");
-    field.setInnerHTML(value, true);
-    return field;
-  }
   
   /**
    * Creates and adds an editable or non-editable field to the {@code cell}
@@ -26,13 +16,15 @@ public class Fields {
   public static El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
     final El fieldEl;
     
-    fieldEl = new FieldTextInput(field.name, 
-        field.value, field.valueOriginal, placeholder,
-        field.invalid, field.invalidMessage);
-    
-    if (!fieldEditable || field.readonly) {
-      fieldEl.setReadonly(true);
-    }
+    if (fieldEditable && !field.readonly) {
+      fieldEl = new FieldTextInput(field.name, 
+          field.value, field.valueOriginal, placeholder,
+          field.invalid, field.invalidMessage);
+      
+    } else {
+      
+      fieldEl = new FieldTextLabel(HtmlEscaper.escape(field.value));
+    }      
     
     addField(cell, fieldEl);
     

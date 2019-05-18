@@ -15,7 +15,7 @@
 }
 
 label.field-text {
-  padding-top: 8px;
+  display: inline-block;
 }
 
 input.field-text {
@@ -36,6 +36,6 @@ input.field-text {
   border-color: #0089bd;
 }
 
-.field-text_readonly, .field-text:disabled, .field-text_readonly:focus, .field-text:disabled:focus {
+.field-text:disabled, .field-text:disabled:focus {
   border-color: transparent;
 }

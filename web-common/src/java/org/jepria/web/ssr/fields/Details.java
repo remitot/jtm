@@ -29,7 +29,7 @@ public class Details extends El {
         String label = fieldWithLabel.label;
         if (label != null) {
           El cellLabel = new El("div");
-          El fieldEl = Fields.createFieldLabel(label);
+          El fieldEl = new FieldTextLabel(label);
           Fields.addField(cellLabel, fieldEl);
           row.appendChild(cellLabel);
         }
