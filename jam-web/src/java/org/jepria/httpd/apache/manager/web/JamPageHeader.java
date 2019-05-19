@@ -52,9 +52,14 @@ public class JamPageHeader extends PageHeader {
         itemJk.classList.add("page-header__menu-item_hoverable");
         itemJk.setAttribute("href", "jk");
         
-        String innerHtmlEscaped = HtmlEscaper.escape(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"));
-        itemJk.setInnerHTML(innerHtmlEscaped + "&nbsp/&nbsp", false);
+        itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"), true);
         items.add(itemJk);
+        
+        
+        El itemSlash = new El("span");
+        itemSlash.classList.add("page-header__menu-item");
+        itemSlash.setInnerHTML("&nbsp/&nbsp");
+        items.add(itemSlash);
       }
       
       {
