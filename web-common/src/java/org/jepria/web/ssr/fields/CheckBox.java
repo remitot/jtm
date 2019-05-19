@@ -37,4 +37,12 @@ public class CheckBox extends El {
       input.setAttribute("disabled", true);
     }
   }
+  
+  public void setTitleActive(String titleActive) {
+    setAttribute("org.jepria.web.ssr.field.CheckBox.title.active", titleActive);
+  }
+  
+  public void setTitleInactive(String titleInactive) {
+    setAttribute("org.jepria.web.ssr.field.CheckBox.title.inactive", titleInactive);
+  }
 }

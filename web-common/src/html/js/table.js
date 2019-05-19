@@ -108,11 +108,21 @@ function onCheckboxInput(checkbox) {
   if (!getInput(checkbox).checked) {
     //TODO resolve the relative path to ".row" :
     checkbox.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
-    checkbox.title = checkbox.getAttribute("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
+    var title = checkbox.getAttribute("org.jepria.web.ssr.field.CheckBox.title.inactive");
+    if (title) {
+      checkbox.title = title;
+    } else {
+      checkbox.removeAttribute("title");
+    }
   } else {
     //TODO resolve the relative path to ".row":
     checkbox.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
-    checkbox.title = checkbox.getAttribute("org.jepria.web.ssr.Table.checkbox_active.title.active");
+    var title = checkbox.getAttribute("org.jepria.web.ssr.field.CheckBox.title.active");
+    if (title) {
+      checkbox.title = title;
+    } else {
+      checkbox.removeAttribute("title");
+    }
   }
   
   checkModifications();

@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HtmlEscaper;
 
 public abstract class Table<T extends ItemData> extends El {
   
@@ -124,7 +125,11 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected El addField(El cell, El field) {
-    Fields.addField(cell, field);
+    
+    
+    El wrapper = Fields.wrapCellPad(field);
+    cell.appendChild(wrapper);
+    
     
     field.classList.add("table__field-text_inactivatible");
     field.classList.add("table__field_disableable");
@@ -139,16 +144,33 @@ public abstract class Table<T extends ItemData> extends El {
   }
 
   protected El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
-    El ret = Fields.addField(cell, field, placeholder, fieldEditable);
     
-    ret.classList.add("table__field-text_inactivatible");
-    ret.classList.add("table__field_disableable");
+    El fieldEl;
+    {
+      if (fieldEditable && !field.readonly) {
+        fieldEl = new FieldTextInput(field.name, 
+            field.value, field.valueOriginal, placeholder,
+            field.invalid, field.invalidMessage);
+        
+      } else {
+        
+        fieldEl = new FieldTextLabel(HtmlEscaper.escape(field.value));
+      }      
+      
+      
+      El wrapper = Fields.wrapCellPad(fieldEl);
+      cell.appendChild(wrapper);
+    }
+    
+    
+    fieldEl.classList.add("table__field-text_inactivatible");
+    fieldEl.classList.add("table__field_disableable");
     
     if (isEditable()) {
       addStrike(cell);
     }
     
-    return ret;
+    return fieldEl;
   }
   
   /**
@@ -158,7 +180,7 @@ public abstract class Table<T extends ItemData> extends El {
    * @param titleDelete text to display as a title of delete button. If {@code null} then no title
    * @param titleUndelete text to display as a title of undelete button. If {@code null} then no title
    */
-  protected void addFieldDelete(El cell, TabIndex tabIndex, String titleDelete, String titleUndelete) {
+  protected El addFieldDelete(El cell, TabIndex tabIndex, String titleDelete, String titleUndelete) {
 
     El field = new El("div");
     
@@ -188,7 +210,7 @@ public abstract class Table<T extends ItemData> extends El {
     El wrapper = Fields.wrapCellPad(field);  
     cell.appendChild(wrapper);
     
-    //return field;
+    return field;
   }
   
   protected El createCell(El row, String columnClass) {
@@ -203,22 +225,47 @@ public abstract class Table<T extends ItemData> extends El {
    * 
    * @param cell
    * @param field
-   * @param titleCheckboxActive text to display as a title of active checkbox. If {@code null} then empty title
-   * @param titleCheckboxInactive text to display as a title of inactive checkbox. If {@code null} then empty title
+   * @param titleActive text to display as a title of active checkbox. If {@code null} then empty title
+   * @param titleInactive text to display as a title of inactive checkbox. If {@code null} then empty title
    * @return
    */
-  protected CheckBox addCheckbox(El cell, Field field, String titleCheckboxActive, String titleCheckboxInactive) {
-    FieldCheckBox checkBox = Fields.addCheckbox(cell, field, titleCheckboxActive, titleCheckboxInactive);
+  protected FieldCheckBox addCheckbox(El cell, Field field, String titleActive, String titleInactive) {
     
-    checkBox.classList.add("table__checkbox");
-    checkBox.classList.add("table__field_disableable");
+    FieldCheckBox checkbox;
+    
+    {
+      boolean active = !"false".equals(field.value);
+      Boolean valueOriginal;
+      if (!field.readonly && field.valueOriginal != null) {
+        valueOriginal = !"false".equals(field.valueOriginal);
+      } else {
+        valueOriginal = null;
+      }
+      
+      checkbox = new FieldCheckBox(field.name, active, valueOriginal, field.invalid, field.invalidMessage);
+      
+      checkbox.setEnabled(!field.readonly);
+  
+      
+      // add text attributes
+      checkbox.setTitleActive(null);
+      checkbox.setTitleInactive(titleInactive);
+      
+      
+      El wrapper = Fields.wrapCellPad(checkbox);
+      cell.appendChild(wrapper);
+    }
+    
+    
+    checkbox.classList.add("table__checkbox");
+    checkbox.classList.add("table__field_disableable");
 
     
     if (isEditable()) {
       addStrike(cell);
     }
     
-    return checkBox;
+    return checkbox;
   }
   
   protected abstract El createHeader();
