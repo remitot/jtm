@@ -1,6 +1,7 @@
 #table {
   margin-top: 15px;
   display: table;
+  width: 100%;
 }
 
 #table div.row {
@@ -142,4 +143,8 @@
 
 #table-new-row-template-container {
   display: none;
+}
+
+.cell .checkbox {
+  margin-bottom: 2px;
 }

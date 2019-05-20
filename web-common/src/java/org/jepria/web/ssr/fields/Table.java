@@ -25,8 +25,6 @@ public abstract class Table<T extends ItemData> extends El {
     
     // TODO remove id, use class and css
     setAttribute("id", "table");
-    setAttribute("style", "width: 100%;");
-    
     
     addScript("js/table.js");
     addStyle("css/table.css");
