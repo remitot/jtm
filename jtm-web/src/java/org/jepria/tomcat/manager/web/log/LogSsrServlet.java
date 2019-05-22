@@ -90,7 +90,7 @@ public class LogSsrServlet extends SsrServletBase {
     final Environment env = EnvironmentFactory.get(req);
     
     final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
-    pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.jdbc.title"));
+    pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.log.title"));
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
     
