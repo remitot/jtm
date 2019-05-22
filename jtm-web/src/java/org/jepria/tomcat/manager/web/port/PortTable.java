@@ -10,6 +10,7 @@ public class PortTable extends Table<PortItem> {
   
   public PortTable(Text text) {
     this.text = text;
+    addClass("table");
     addStyle("css/port/port.css");
   }
   

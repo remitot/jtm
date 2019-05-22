@@ -11,6 +11,7 @@ public class LogTable extends Table<LogItem> {
   
   public LogTable(Text text) {
     this.text = text;
+    addClass("table");
     addStyle("css/log/log.css");
   }
   

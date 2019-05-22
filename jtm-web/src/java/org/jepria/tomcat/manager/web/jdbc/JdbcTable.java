@@ -11,6 +11,7 @@ public class JdbcTable extends Table<JdbcItem> {
   
   public JdbcTable(Text text) {
     this.text = text;
+    addClass("table");
     addStyle("css/jdbc/jdbc.css");
   }
   
