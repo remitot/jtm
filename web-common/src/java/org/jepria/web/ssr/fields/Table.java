@@ -246,7 +246,7 @@ public abstract class Table<T extends ItemData> extends El {
   
       
       // add text attributes
-      checkbox.setTitleActive(null);
+      checkbox.setTitleActive(titleActive);
       checkbox.setTitleInactive(titleInactive);
       
       
