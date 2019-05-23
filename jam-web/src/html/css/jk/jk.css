@@ -1,24 +1,37 @@
 .table {
-  width: 100%;
+  width: 600px;
 }
 
-#table div.column-application {
-  width: 30%;
+.table div.column-application {
+  width: 80%;
 }
 
-#table div.column-details {
-  width: 10%;
+.table div.column-details {
+  width: 20%;
 }
 
-#table .row .column-details img {
+.table .row .column-details img {
   width: 24px;
   height: 24px;
 }
 
-#table .row .column-details .button-details {
+.table .row .column-details .button-details {
   width: 24px;
   height: 24px;
   
   display: block;
   padding-bottom: 8px;
+}
+
+.details .field-active {
+  width: 36px;
+}
+
+.details .cell_field-label {
+  width: 200px;
+  text-align: right;
+}
+
+.details .cell_field {
+  width: 300px;
 }

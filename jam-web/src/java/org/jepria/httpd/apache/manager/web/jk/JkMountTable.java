@@ -20,18 +20,19 @@ public class JkMountTable extends Table<JkMountItem> {
     El row = new El("div");
     row.classList.add("row");
     
-    El cell, field;
     
-    cell = createCell(row, "column-active");
-    cell.classList.add("column-left");
-    cell.classList.add("cell-field");
-    String titleCheckboxActive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active");
-    String titleCheckboxInactive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
-    CheckBox checkBox = addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
-    tabIndex.setNext(checkBox.input);
-    
-    if ("false".equals(item.active().value)) {
-      row.classList.add("inactive");
+    {
+      El cell = createCell(row, "column-active");
+      cell.classList.add("column-left");
+      cell.classList.add("cell-field");
+      String titleCheckboxActive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active");
+      String titleCheckboxInactive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
+      CheckBox checkBox = addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
+      tabIndex.setNext(checkBox.input);
+      
+      if ("false".equals(item.active().value)) {
+        row.classList.add("inactive");
+      }
     }
     
     El cellDelete = createCell(row, "column-delete");
@@ -39,26 +40,33 @@ public class JkMountTable extends Table<JkMountItem> {
     El div = new El("div");
     div.classList.add("flexColumns");
     
-    cell = createCell(div, "column-application");
-    cell.classList.add("cell-field");
-    field = addField(cell, item.application(), null, false);
-    tabIndex.setNext(field);
-    
-    
-    cell = createCell(div, "column-details");
-    cell.classList.add("cell-field");
-    String detailsHref = item.details().value;
-
-    
-    field = new El("label");
     {
-      El a = new El("a").setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
-      El img = new El("img").setAttribute("src", "img/jk/details.png").addClass("button-details");
-      a.appendChild(img);
-      field.appendChild(a);
+      El cell = createCell(div, "column-application");
+      cell.classList.add("cell-field");
+      El field = addField(cell, item.application(), null, false);
+      tabIndex.setNext(field);
     }
-    addField(cell, field);
-    tabIndex.setNext(field);
+    
+    
+    {
+      El cell = createCell(div, "column-details");
+      cell.classList.add("cell-field");
+      String detailsHref = item.details().value;
+      
+      El field = new El("label");
+      {
+        El a = new El("a").setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
+        El img = new El("img").setAttribute("src", "img/jk/details.png").addClass("button-details");
+        a.appendChild(img);
+        field.appendChild(a);
+      }
+      addField(cell, field);
+      tabIndex.setNext(field);
+      
+      if (isEditable()) {
+        addStrike(cell);
+      }
+    }
     
     
     String titleDelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete");
