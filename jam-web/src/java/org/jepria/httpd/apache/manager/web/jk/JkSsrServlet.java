@@ -62,7 +62,7 @@ public class JkSsrServlet extends SsrServletBase {
         
         JkPageContent content = new JkPageContent(text, binding);
         pageBuilder.setContent(content);
-        pageBuilder.setBodyAttributes("onload", "common_onload();");
+        pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
         
       } else {
         // show table

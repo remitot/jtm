@@ -23,11 +23,11 @@
   padding-bottom: 8px;
 }
 
-.table-details .cell_field-label {
+.table-details .column-label {
   width: 200px;
   text-align: right;
 }
 
-.table-details .cell_field {
+.table-details .column-field {
   width: 300px;
 }
