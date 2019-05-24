@@ -28,7 +28,6 @@ public abstract class Table<T extends ItemData> extends El {
     
     addScript("js/table.js");
     addStyle("css/table.css");
-    addStyle("css/common.css"); // for .field-text
   }
   
   protected boolean isEditable() {
@@ -57,7 +56,10 @@ public abstract class Table<T extends ItemData> extends El {
     };
     
     
-    appendChild(createHeader());
+    El header = createHeader();
+    if (header != null) {
+      appendChild(header);
+    }
     
     if (items != null) {
       
@@ -92,9 +94,11 @@ public abstract class Table<T extends ItemData> extends El {
     }
     if (itemsCreated != null) {
       for (T item: itemsCreated) {
-        final El row = createRowCreated(item, tabIndex);
-        row.setAttribute("item-id", item.getId());
-        appendChild(row);
+        El rowCreated = createRowCreated(item, tabIndex);
+        if (rowCreated != null) {
+          rowCreated.setAttribute("item-id", item.getId());
+          appendChild(rowCreated);
+        }
       }
     }
     
@@ -102,21 +106,23 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   /**
-   * Create a basic table row (possibly modified) representing a single item
+   * Create a basic table row (possibly modified) representing a single item. 
+   * <br/>Implementors should not manually add the element to the table, just return it.
    * @param item data from the server, non-null
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
    */
-  public abstract El createRow(T item, TabIndex tabIndex);
+  protected abstract El createRow(T item, TabIndex tabIndex);
   
   /**
    * Creates a table row (in created state) representing a single item, that has not been saved to the server yet,
-   * but having a UI table row created for saving
+   * but having a UI table row created for saving.
+   * <br/>Implementors should not manually add the element to the table, just return it.
    * @param item optional data from the UI to fill the created table row with, may be null
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
-   * @return
+   * @return {@code null} if no rowCreated required for the table (e.g. the table does not support creation of new items)
    */
-  public abstract El createRowCreated(T item, TabIndex tabIndex);
+  protected abstract El createRowCreated(T item, TabIndex tabIndex);
   
   protected El addField(El cell, Field field, String placeholder) {
     return addField(cell, field, placeholder, isEditable());
@@ -266,5 +272,10 @@ public abstract class Table<T extends ItemData> extends El {
     return checkbox;
   }
   
+  /**
+   * Create a table header.
+   * <br/>Implementors should not manually add the element to the table, just return it.
+   * @return {@code null} if no header required for the table
+   */
   protected abstract El createHeader();
 }
