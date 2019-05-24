@@ -43,7 +43,7 @@ public class LogPageContent implements Iterable<El> {
     // table html
     final LogTable table = new LogTable(text);
     
-    final List<LogItem> items = logs.stream()
+    final List<LogTable.Record> items = logs.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
     
     table.load(items, null, null);
@@ -53,8 +53,8 @@ public class LogPageContent implements Iterable<El> {
     this.elements = Collections.unmodifiableList(elements);
   }
   
-  protected LogItem dtoToItem(LogDto dto) {
-    final LogItem item = new LogItem();
+  protected LogTable.Record dtoToItem(LogDto dto) {
+    final LogTable.Record item = new LogTable.Record();
     
     item.name().value = dto.getName();
     

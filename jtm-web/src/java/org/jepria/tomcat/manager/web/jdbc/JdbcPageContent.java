@@ -11,11 +11,11 @@ import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.ssr.ControlButtons;
+import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.Table.TabIndex;
-import org.jepria.web.ssr.ControlButtons;
-import org.jepria.web.ssr.El;
 
 public class JdbcPageContent implements Iterable<El> {
 
@@ -42,10 +42,10 @@ public class JdbcPageContent implements Iterable<El> {
     // table html
     final JdbcTable table = new JdbcTable(text);
     
-    final List<JdbcItem> items = connections.stream()
+    final List<JdbcTable.Record> items = connections.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
     
-    final List<JdbcItem> itemsCreated = new ArrayList<>();
+    final List<JdbcTable.Record> itemsCreated = new ArrayList<>();
     final Set<String> itemsDeleted = new HashSet<>();
     
     // obtain created and deleted items, apply modifications
@@ -54,7 +54,7 @@ public class JdbcPageContent implements Iterable<El> {
         final String action = modRequest.getAction();
         
         if ("create".equals(action)) {
-          JdbcItem item = dtoToItemCreated(modRequest.getData());
+          JdbcTable.Record item = dtoToItemCreated(modRequest.getData());
           item.setId(modRequest.getId());
           itemsCreated.add(item);
           
@@ -62,7 +62,7 @@ public class JdbcPageContent implements Iterable<El> {
           
           // merge modifications into the existing item
           final String id = modRequest.getId();
-          JdbcItem target = items.stream().filter(
+          JdbcTable.Record target = items.stream().filter(
               item0 -> item0.getId().equals(id)).findAny().orElse(null);
           if (target == null) {
             // TODO cannot even treat as a new (because it can be filled only partially)
@@ -92,7 +92,7 @@ public class JdbcPageContent implements Iterable<El> {
           final ItemModStatus modStatus = modRequestIdAndModStatus.getValue();
           
           // lookup items
-          JdbcItem item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
+          JdbcTable.Record item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
               .findAny().orElse(null);
           if (item == null) {
             // lookup items created
@@ -154,7 +154,7 @@ public class JdbcPageContent implements Iterable<El> {
         el.setAttribute("tabindex-rel", i++);
       }
     };
-    final JdbcItem emptyItem = new JdbcItem();
+    final JdbcTable.Record emptyItem = new JdbcTable.Record();
     emptyItem.active().readonly = true;
     emptyItem.active().value = "true";
     final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
@@ -171,8 +171,8 @@ public class JdbcPageContent implements Iterable<El> {
     this.elements = Collections.unmodifiableList(elements);
   }
   
-  protected JdbcItem dtoToItem(ConnectionDto dto) {
-    JdbcItem item = new JdbcItem();
+  protected JdbcTable.Record dtoToItem(ConnectionDto dto) {
+    JdbcTable.Record item = new JdbcTable.Record();
     for (String name: dto.keySet()) {
       Field field = item.get(name);
       if (field != null) {
@@ -192,8 +192,8 @@ public class JdbcPageContent implements Iterable<El> {
     return item;
   }
   
-  protected JdbcItem dtoToItemCreated(Map<String, String> dto) {
-    JdbcItem item = new JdbcItem();
+  protected JdbcTable.Record dtoToItemCreated(Map<String, String> dto) {
+    JdbcTable.Record item = new JdbcTable.Record();
     for (String name: dto.keySet()) {
       Field field = item.get(name);
       if (field != null) {

@@ -1,10 +1,30 @@
 package org.jepria.tomcat.manager.web.port;
 
-import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.fields.Table;
+import org.jepria.tomcat.manager.web.port.PortTable.Record;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Field;
+import org.jepria.web.ssr.fields.ItemData;
+import org.jepria.web.ssr.fields.Table;
 
-public class PortTable extends Table<PortItem> {
+public class PortTable extends Table<Record> {
+  
+  public static class Record extends ItemData {
+    private static final long serialVersionUID = 1L;
+    
+    public Record() {
+      put("type", new Field("type"));
+      put("number", new Field("number"));
+    }
+    
+    public Field type() {
+      return get("type");
+    }
+    public Field number() {
+      return get("number");
+    }
+  }
+
   
   protected final Text text;
   
@@ -41,7 +61,7 @@ public class PortTable extends Table<PortItem> {
   }
   
   @Override
-  public El createRow(PortItem item, TabIndex tabIndex) {
+  public El createRow(Record item, TabIndex tabIndex) {
     El row = new El("div");
     row.classList.add("row");
     
@@ -65,7 +85,7 @@ public class PortTable extends Table<PortItem> {
   }
   
   @Override
-  public El createRowCreated(PortItem item, TabIndex tabIndex) {
+  public El createRowCreated(Record item, TabIndex tabIndex) {
     // the table is unmodifiable and must not allow creating rows
     throw new UnsupportedOperationException();
   }

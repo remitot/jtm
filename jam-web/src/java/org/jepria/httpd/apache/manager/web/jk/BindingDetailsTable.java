@@ -3,29 +3,58 @@ package org.jepria.httpd.apache.manager.web.jk;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jepria.httpd.apache.manager.web.jk.BindingDetailsTable.Record;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.WorkerDto;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.FieldCheckBox;
 import org.jepria.web.ssr.fields.FieldTextInput;
 import org.jepria.web.ssr.fields.FieldTextLabel;
 import org.jepria.web.ssr.fields.Fields;
+import org.jepria.web.ssr.fields.ItemData;
 import org.jepria.web.ssr.fields.Table;
 
-public class JkDetails extends Table<JkBindingItem> {
+public class BindingDetailsTable extends Table<Record> {
   
-  public JkDetails() {
+  public static class Record extends ItemData {
+    private static final long serialVersionUID = 1L;
+
+    private final String fieldLabel;
+    private final String placeholder;
+    
+    public Record(String fieldLabel, String placeholder) {
+      this.fieldLabel = fieldLabel;
+      this.placeholder = placeholder;
+      
+      put("field", new Field("field"));
+    }
+    
+    public String fieldLabel() {
+      return fieldLabel;
+    }
+    
+    public String placeholder() {
+      return placeholder;
+    }
+    
+    public Field field() {
+      return get("field");
+    }
+  }
+  
+  public BindingDetailsTable() {
     addClass("table-details");
     addStyle("css/jk/jk.css");
   }
   
   public void load(JkMountDto mount, WorkerDto worker) {
     
-    List<JkBindingItem> items = new ArrayList<>();
+    List<Record> items = new ArrayList<>();
     
     // mount fields
     {
-      JkBindingItem item = new JkBindingItem("Active", null); // TODO NON-NLS
+      Record item = new Record("Active", null); // TODO NON-NLS
       item.field().value = mount == null ? null : mount.map.get("active");
       item.setId("active");
       items.add(item);
@@ -44,7 +73,7 @@ public class JkDetails extends Table<JkBindingItem> {
 //      
 //      appendChild(row);
     {
-      JkBindingItem item = new JkBindingItem("Application", null); // TODO NON-NLS
+      Record item = new Record("Application", null); // TODO NON-NLS
       item.field().value = mount == null ? null : mount.map.get("application");
       item.setId("application");
       items.add(item);
@@ -52,25 +81,25 @@ public class JkDetails extends Table<JkBindingItem> {
     
     // worker fields
     {
-      JkBindingItem item = new JkBindingItem("Worker", "worker1"); // TODO NON-NLS
+      Record item = new Record("Worker", "worker1"); // TODO NON-NLS
       item.field().value = worker == null ? null : worker.map.get("name");
       item.setId("workerName");
       items.add(item);
     }
     {
-      JkBindingItem item = new JkBindingItem("Type", "ajp13"); // TODO NON-NLS NON-NLS
+      Record item = new Record("Type", "ajp13"); // TODO NON-NLS NON-NLS
       item.field().value = worker == null ? null : worker.map.get("type");
       item.setId("workerType");
       items.add(item);
     }
     {
-      JkBindingItem item = new JkBindingItem("Host", "server.com"); // TODO NON-NLS NON-NLS
+      Record item = new Record("Host", "server.com"); // TODO NON-NLS NON-NLS
       item.field().value = worker == null ? null : worker.map.get("host");
       item.setId("workerHost");
       items.add(item);
     }
     {
-      JkBindingItem item = new JkBindingItem("Port", "8080"); // TODO NON-NLS NON-NLS
+      Record item = new Record("Port", "8080"); // TODO NON-NLS NON-NLS
       item.field().value = worker == null ? null : worker.map.get("port");
       item.setId("workerPort");
       items.add(item);
@@ -113,7 +142,7 @@ public class JkDetails extends Table<JkBindingItem> {
 
 
   @Override
-  protected El createRow(JkBindingItem item, TabIndex tabIndex) {
+  protected El createRow(Record item, TabIndex tabIndex) {
     
     FieldTextLabel label = new FieldTextLabel();
     label.setInnerHTML(item.fieldLabel(), true);
@@ -146,7 +175,7 @@ public class JkDetails extends Table<JkBindingItem> {
 
 
   @Override
-  protected El createRowCreated(JkBindingItem item, TabIndex tabIndex) {
+  protected El createRowCreated(Record item, TabIndex tabIndex) {
     return null;
   }
 

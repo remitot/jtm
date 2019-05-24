@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
+import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
-import org.jepria.web.ssr.El;
 
 public class PortPageContent implements Iterable<El> {
 
@@ -27,7 +27,7 @@ public class PortPageContent implements Iterable<El> {
     // table html
     final PortTable table = new PortTable(text);
     
-    final List<PortItem> items = ports.stream()
+    final List<PortTable.Record> items = ports.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
     
     table.load(items, null, null);
@@ -37,8 +37,8 @@ public class PortPageContent implements Iterable<El> {
     this.elements = Collections.unmodifiableList(elements);
   }
   
-  protected PortItem dtoToItem(PortDto dto) {
-    PortItem item = new PortItem();
+  protected PortTable.Record dtoToItem(PortDto dto) {
+    PortTable.Record item = new PortTable.Record();
     for (String name: dto.keySet()) {
       Field field = item.get(name);
       if (field != null) {

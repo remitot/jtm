@@ -1,12 +1,49 @@
 package org.jepria.tomcat.manager.web.log;
 
+import org.jepria.tomcat.manager.web.log.LogTable.Record;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.FieldTextLabel;
+import org.jepria.web.ssr.fields.ItemData;
 import org.jepria.web.ssr.fields.Table;
 
-public class LogTable extends Table<LogItem> {
+public class LogTable extends Table<Record> {
 
+  public static class Record extends ItemData {
+    
+    private static final long serialVersionUID = 1L;
+
+    public Record() {
+      put("name", new Field("name"));
+      put("lastmod", new Field("lastmod"));
+      put("download", new Field("download"));
+      put("open", new Field("open"));
+      put("monitor", new Field("monitor"));
+    }
+    
+    public Field name() {
+      return get("name");
+    }
+    
+    public Field lastmod() {
+      return get("lastmod");
+    }
+    
+    public Field download() {
+      return get("download");
+    }
+    
+    public Field open() {
+      return get("open");
+    }
+    
+    public Field monitor() {
+      return get("monitor");
+    }
+  }
+
+  
   protected final Text text;
   
   public LogTable(Text text) {
@@ -16,7 +53,7 @@ public class LogTable extends Table<LogItem> {
   }
   
   @Override
-  public El createRow(LogItem item, Table.TabIndex tabIndex) {
+  public El createRow(Record item, Table.TabIndex tabIndex) {
     final El row = new El("div");
     row.classList.add("row");
     
@@ -74,7 +111,7 @@ public class LogTable extends Table<LogItem> {
   }
 
   @Override
-  public El createRowCreated(LogItem item, Table.TabIndex tabIndex) {
+  public El createRowCreated(Record item, Table.TabIndex tabIndex) {
     // the table is unmodifiable and must not allow creating rows
     throw new UnsupportedOperationException();
   }

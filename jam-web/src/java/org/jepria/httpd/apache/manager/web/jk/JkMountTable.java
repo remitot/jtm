@@ -1,12 +1,35 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
+import org.jepria.httpd.apache.manager.web.jk.JkMountTable.Record;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.CheckBox;
+import org.jepria.web.ssr.fields.Field;
+import org.jepria.web.ssr.fields.ItemData;
 import org.jepria.web.ssr.fields.Table;
 
-public class JkMountTable extends Table<JkMountItem> {
+public class JkMountTable extends Table<Record> {
 
+  public static class Record extends ItemData {
+    private static final long serialVersionUID = 1L;
+    
+    public Record() {
+      put("active", new Field("active"));
+      put("application", new Field("application"));
+      put("details", new Field("details"));
+    }
+    
+    public Field active() {
+      return get("active");
+    }
+    public Field application() {
+      return get("application");
+    }
+    public Field details() {
+      return get("details");
+    }
+  }
+  
   protected final Text text;
   
   public JkMountTable(Text text) {
@@ -16,7 +39,7 @@ public class JkMountTable extends Table<JkMountItem> {
   }
   
   @Override
-  public El createRow(JkMountItem item, Table.TabIndex tabIndex) {
+  public El createRow(Record item, Table.TabIndex tabIndex) {
     El row = new El("div");
     row.classList.add("row");
     
@@ -79,7 +102,7 @@ public class JkMountTable extends Table<JkMountItem> {
   }
   
   @Override
-  public El createRowCreated(JkMountItem item, Table.TabIndex tabIndex) {
+  public El createRowCreated(Record item, Table.TabIndex tabIndex) {
     throw new UnsupportedOperationException();// TODO
   }
 

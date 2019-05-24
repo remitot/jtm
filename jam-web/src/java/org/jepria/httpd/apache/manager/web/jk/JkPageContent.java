@@ -32,7 +32,7 @@ public class JkPageContent implements Iterable<Node> {
     
     final JkMountTable table = new JkMountTable(text);
     
-    final List<JkMountItem> items = jkMounts.stream()
+    final List<JkMountTable.Record> items = jkMounts.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
     
     table.load(items, null, null);
@@ -50,7 +50,7 @@ public class JkPageContent implements Iterable<Node> {
   public JkPageContent(Text text, BindingDto binding) {
     final List<El> elements = new ArrayList<>();
     
-    JkDetails details = new JkDetails();
+    BindingDetailsTable details = new BindingDetailsTable();
     details.load(binding.jkMount, binding.worker);
     
     elements.add(details);
@@ -58,8 +58,8 @@ public class JkPageContent implements Iterable<Node> {
     this.elements = Collections.unmodifiableList(elements);
   }
   
-  protected JkMountItem dtoToItem(JkMountDto dto) {
-    JkMountItem item = new JkMountItem();
+  protected JkMountTable.Record dtoToItem(JkMountDto dto) {
+    JkMountTable.Record item = new JkMountTable.Record();
     for (String name: dto.map.keySet()) {
       Field field = item.get(name);
       if (field != null) {

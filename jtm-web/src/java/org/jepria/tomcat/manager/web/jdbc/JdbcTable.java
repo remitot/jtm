@@ -1,11 +1,48 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
+import org.jepria.tomcat.manager.web.jdbc.JdbcTable.Record;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.CheckBox;
+import org.jepria.web.ssr.fields.Field;
+import org.jepria.web.ssr.fields.ItemData;
 import org.jepria.web.ssr.fields.Table;
 
-public class JdbcTable extends Table<JdbcItem> {
+public class JdbcTable extends Table<Record> {
+  
+  public static class Record extends ItemData {
+    private static final long serialVersionUID = 1L;
+    
+    public boolean dataModifiable = true;
+    
+    public Record() {
+      put("active", new Field("active"));
+      put("name", new Field("name"));
+      put("server", new Field("server"));
+      put("db", new Field("db"));
+      put("user", new Field("user"));
+      put("password", new Field("password"));
+    }
+    
+    public Field active() {
+      return get("active");
+    }
+    public Field name() {
+      return get("name");
+    }
+    public Field server() {
+      return get("server");
+    }
+    public Field db() {
+      return get("db");
+    }
+    public Field user() {
+      return get("user");
+    }
+    public Field password() {
+      return get("password");
+    }
+  }
   
   protected final Text text;
   
@@ -61,7 +98,7 @@ public class JdbcTable extends Table<JdbcItem> {
   }
   
   @Override
-  public El createRow(JdbcItem item, TabIndex tabIndex) {
+  public El createRow(Record item, TabIndex tabIndex) {
     El row = new El("div");
     row.classList.add("row");
     
@@ -145,7 +182,7 @@ public class JdbcTable extends Table<JdbcItem> {
   }
   
   @Override
-  public El createRowCreated(JdbcItem item, TabIndex tabIndex) {
+  public El createRowCreated(Record item, TabIndex tabIndex) {
 
     El row = new El("div");
     row.classList.add("row");
