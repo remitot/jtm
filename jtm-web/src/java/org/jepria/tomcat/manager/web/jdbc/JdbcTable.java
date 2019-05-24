@@ -102,22 +102,22 @@ public class JdbcTable extends Table<Record> {
     El row = new El("div");
     row.classList.add("row");
     
-    El cell, field;
-    
-    cell = createCell(row, "column-active");
-    cell.classList.add("column-left");
-    cell.classList.add("cell-field");
-    String titleCheckboxActive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active");
-    String titleCheckboxInactive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
-    CheckBox checkBox = addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
-    if (item.dataModifiable) {
-      tabIndex.setNext(checkBox.input);
-    } else {
-      addFieldUnmodifiableTitle(checkBox);
-    }
-    
-    if ("false".equals(item.active().value)) {
-      row.classList.add("inactive");
+    {
+      El cell = createCell(row, "column-active");
+      cell.classList.add("column-left");
+      cell.classList.add("cell-field");
+      String titleCheckboxActive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.active");
+      String titleCheckboxInactive = text.getString("org.jepria.web.ssr.Table.checkbox_active.title.inactive");
+      CheckBox checkBox = addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
+      if (item.dataModifiable) {
+        tabIndex.setNext(checkBox.input);
+      } else {
+        addFieldUnmodifiableTitle(checkBox);
+      }
+      
+      if ("false".equals(item.active().value)) {
+        row.classList.add("inactive");
+      }
     }
     
     El cellDelete = createCell(row, "column-delete");
@@ -125,45 +125,55 @@ public class JdbcTable extends Table<Record> {
     El div = new El("div");
     div.classList.add("flexColumns");
     
-    cell = createCell(div, "column-name");
-    cell.classList.add("cell-field");
-    field = addField(cell, item.name(), null);
-    tabIndex.setNext(field);
-    
-    cell = createCell(div, "column-server");
-    cell.classList.add("cell-field");
-    field = addField(cell, item.server(), null);
-    if (item.dataModifiable) {
+    {
+      El cell = createCell(div, "column-name");
+      cell.classList.add("cell-field");
+      El field = addField(cell, item.name(), null);
       tabIndex.setNext(field);
-    } else {
-      addFieldUnmodifiableTitle(field);
     }
     
-    cell = createCell(div, "column-db");
-    cell.classList.add("cell-field");
-    field = addField(cell, item.db(), null);
-    if (item.dataModifiable) {
-      tabIndex.setNext(field);
-    } else {
-      addFieldUnmodifiableTitle(field);
+    {
+      El cell = createCell(div, "column-server");
+      cell.classList.add("cell-field");
+      El field = addField(cell, item.server(), null);
+      if (item.dataModifiable) {
+        tabIndex.setNext(field);
+      } else {
+        addFieldUnmodifiableTitle(field);
+      }
     }
     
-    cell = createCell(div, "column-user");
-    cell.classList.add("cell-field");
-    field = addField(cell, item.user(), null);
-    if (item.dataModifiable) {
-      tabIndex.setNext(field);
-    } else {
-      addFieldUnmodifiableTitle(field);
+    {
+      El cell = createCell(div, "column-db");
+      cell.classList.add("cell-field");
+      El field = addField(cell, item.db(), null);
+      if (item.dataModifiable) {
+        tabIndex.setNext(field);
+      } else {
+        addFieldUnmodifiableTitle(field);
+      }
     }
     
-    cell = createCell(div, "column-password");
-    cell.classList.add("cell-field");
-    field = addField(cell, item.password(), null);
-    if (item.dataModifiable) {
-      tabIndex.setNext(field);
-    } else {
-      addFieldUnmodifiableTitle(field);
+    {
+      El cell = createCell(div, "column-user");
+      cell.classList.add("cell-field");
+      El field = addField(cell, item.user(), null);
+      if (item.dataModifiable) {
+        tabIndex.setNext(field);
+      } else {
+        addFieldUnmodifiableTitle(field);
+      }
+    }
+    
+    {
+      El cell = createCell(div, "column-password");
+      cell.classList.add("cell-field");
+      El field = addField(cell, item.password(), null);
+      if (item.dataModifiable) {
+        tabIndex.setNext(field);
+      } else {
+        addFieldUnmodifiableTitle(field);
+      }
     }
     
     if (item.dataModifiable) {
