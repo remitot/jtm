@@ -106,39 +106,6 @@ public class BindingDetailsTable extends Table<Record> {
     load(items, null, null);
   }
   
-//  protected El addFieldDelete(El cell, String titleDelete, String titleUndelete) {
-//
-//    El field = new El("div");
-//    
-//    El buttonDelete = new El("input");
-//    buttonDelete.classList.add("button-delete");
-//    buttonDelete.classList.add("button-delete_delete");
-//    buttonDelete.setAttribute("type", "image");
-//    buttonDelete.setAttribute("src", "img/delete.png");
-//    if (titleDelete != null) {
-//      buttonDelete.setAttribute("title", titleDelete);
-//    }
-//    
-//    El buttonUndelete = new El("input");
-//    buttonUndelete.classList.add("button-delete");
-//    buttonUndelete.classList.add("button-delete_undelete");
-//    buttonUndelete.setAttribute("type", "image");
-//    buttonUndelete.setAttribute("src", "img/undelete.png");
-//    if (titleUndelete != null) {
-//      buttonUndelete.setAttribute("title", titleUndelete);
-//    }
-//    
-//    field.appendChild(buttonDelete);
-//    field.appendChild(buttonUndelete);
-//    
-//    El wrapper = Fields.wrapCellPad(field);  
-//    cell.appendChild(wrapper);
-//    
-//    return field;
-//  }
-
-
-
   @Override
   protected El createRow(Record item, TabIndex tabIndex) {
     El row = new El("div");
@@ -160,6 +127,13 @@ public class BindingDetailsTable extends Table<Record> {
         
       } else {
         addField(cell, item.field(), item.placeholder());
+      }
+    }
+    
+    {// cell delete
+      if ("active".equals(item.getId())) {
+        El cell = createCell(row, "column-delete");
+        addFieldDelete(cell, null, "del!", "und!"); // TODO tabindex // TODO  NON-NLS NON-NLS
       }
     }
     
