@@ -58,8 +58,6 @@ public class JkMountTable extends Table<Record> {
       }
     }
     
-    El cellDelete = createCell(row, "column-delete");
-    
     El div = new El("div");
     div.classList.add("flexColumns");
     
@@ -91,11 +89,6 @@ public class JkMountTable extends Table<Record> {
       }
     }
     
-    
-    String titleDelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete");
-    String titleUndelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.undelete");
-    addFieldDelete(cellDelete, tabIndex, titleDelete, titleUndelete);
-    
     row.appendChild(div);
     
     return row;
@@ -116,8 +109,6 @@ public class JkMountTable extends Table<Record> {
     cell = createCell(row, "column-active");// empty cell
     cell.classList.add("column-left");
     
-    cell = createCell(row, "column-delete");// empty cell
-    
     div = new El("div");
     div.classList.add("flexColumns");
     
@@ -131,5 +122,10 @@ public class JkMountTable extends Table<Record> {
     row.appendChild(div);
     
     return row;
+  }
+  
+  @Override
+  protected boolean isEditable() {
+    return false;
   }
 }
