@@ -33,7 +33,7 @@ function table_onload() {
     }(checkbox);
   }
   
-  addFieldsDeleteScript(table);
+  addRowDeleteScript(table);
   
   // disable deleted rows
   var deletedRows = table.querySelectorAll(".row.deleted");
@@ -176,10 +176,10 @@ function setDisabled(composite, disabled) {
   }
 }
 
-function addFieldsDeleteScript(composite) {
-  var fieldsDelete = composite.querySelectorAll("input.button-delete");
-  for (var i = 0; i < fieldsDelete.length; i++) {
-    fieldsDelete[i].onclick = function(event){onDeleteButtonClick(event.target)};
+function addRowDeleteScript(composite) {
+  var buttonsDelete = composite.querySelectorAll(".column-delete input.button-delete");
+  for (var i = 0; i < buttonsDelete.length; i++) {
+    buttonsDelete[i].onclick = function(event){onDeleteButtonClick(event.target)};
   }
 }
 
@@ -355,7 +355,7 @@ function collectRowData(row) {
 }
 
 function addNewRowScript(rowCreate) {
-  addFieldsDeleteScript(rowCreate);
+  addRowDeleteScript(rowCreate);
   triggerFieldsInput(rowCreate);
 }
 
