@@ -196,7 +196,9 @@ public abstract class Table<T extends ItemData> extends El {
     if (titleDelete != null) {
       buttonDelete.setAttribute("title", titleDelete);
     }
-    tabIndex.setNext(buttonDelete);
+    if (tabIndex != null) {
+      tabIndex.setNext(buttonDelete);
+    }
     
     El buttonUndelete = new El("input");
     buttonUndelete.classList.add("button-delete");
@@ -206,7 +208,9 @@ public abstract class Table<T extends ItemData> extends El {
     if (titleUndelete != null) {
       buttonUndelete.setAttribute("title", titleUndelete);
     }
-    tabIndex.setNext(buttonUndelete);
+    if (tabIndex != null) {
+      tabIndex.setNext(buttonUndelete);
+    }
     
     field.appendChild(buttonDelete);
     field.appendChild(buttonUndelete);
