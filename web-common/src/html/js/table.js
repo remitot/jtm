@@ -106,8 +106,13 @@ function onCheckboxInput(checkbox) {
   }
   
   if (!getInput(checkbox).checked) {
-    //TODO resolve the relative path to ".row" :
-    checkbox.parentElement.parentElement.parentElement.parentElement.classList.add("inactive");
+    //TODO resolve the relative path:
+    var row = checkbox.parentElement.parentElement.parentElement;
+    if (!row.classList.contains("row")) {
+      console.error("The relative path did not match the row");
+    }
+    
+    row.classList.add("inactive");
     var title = checkbox.getAttribute("org.jepria.web.ssr.field.CheckBox.title.inactive");
     if (title) {
       checkbox.title = title;
@@ -115,8 +120,13 @@ function onCheckboxInput(checkbox) {
       checkbox.removeAttribute("title");
     }
   } else {
-    //TODO resolve the relative path to ".row":
-    checkbox.parentElement.parentElement.parentElement.parentElement.classList.remove("inactive");
+    //TODO resolve the relative path:
+    var row = checkbox.parentElement.parentElement.parentElement;
+    if (!row.classList.contains("row")) {
+      console.error("The relative path did not match the row");
+    }
+    
+    row.classList.remove("inactive");
     var title = checkbox.getAttribute("org.jepria.web.ssr.field.CheckBox.title.active");
     if (title) {
       checkbox.title = title;
@@ -175,7 +185,10 @@ function addFieldsDeleteScript(composite) {
 
 function onDeleteButtonClick(button) {
   //TODO resolve the relative path:
-  var row = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+  var row = button.parentElement.parentElement.parentElement.parentElement;
+  if (!row.classList.contains("row")) {
+    console.error("The relative path did not match the row");
+  }
   
   if (row.classList.contains("created")) {
     // for newly created rows just remove them from table

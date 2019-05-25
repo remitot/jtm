@@ -18,16 +18,6 @@
   padding-bottom: 4px;
 }
 
-#table .flexColumns div.cell > *, #table .strike {
-  width: 100%;
-}
-
-#table div.cell > .table__field_disableable, #table div.cell > .strike {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 #table .flexColumns {
   overflow: hidden;
 } 
@@ -47,17 +37,9 @@
   margin-left: 8px;
 }
 
-#table .cell-pad-left {
-  width: 6px;
-  height: 6px;
-  float: left;
-}
-#table .cell-pad-right {
-  width: 6px;
-  height: 6px;
-  float: right;
-}
-#table .cell-pad-mid {
+#table .cell__padding {
+  padding-left: 6px;
+  padding-right: 6px;
   overflow: hidden;
 }
 
@@ -86,7 +68,19 @@
 }
 
 
-#table div.strike {
+.cell .field-text {
+  width: 100%;
+}
+
+.cell__strike {
+  position: absolute;
+  top: 0;
+  left: 0;
+  
+  width: 100%;
+}
+
+.cell__strike {
   display: none;
   
   border-bottom: 2px solid;
@@ -94,17 +88,15 @@
   
   padding-left: 0px !important;
   padding-right: 0px !important;
-}
-
-#table div.strike {
+  
   border-color: #fb8f40;
 }
 
-#table .row.deleted div.strike {
+.row.deleted .cell__strike {
   display: block;
 }
 
-#table .row.deleted .table__field_disableable {
+.row.deleted .table__field_disableable {
   pointer-events: none;
   opacity: 0.3;
 }

@@ -142,9 +142,9 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected void addStrike(El cell) {
-    El strike = new El("div");
-    strike.classList.add("strike");
-    cell.appendChild(strike);
+    El cellStrike = new El("div");
+    cellStrike.classList.add("cell__strike");
+    cell.appendChild(cellStrike);
   }
 
   protected El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
