@@ -84,7 +84,7 @@
   display: none;
   
   border-bottom: 2px solid;
-  height: 19px;
+  height: 22px;
   
   padding-left: 0px !important;
   padding-right: 0px !important;
@@ -102,7 +102,7 @@
 }
 
 
-#table .row .column-delete input {
+#table input.button-delete {
   width: 24px;
   height: 24px;
 }
