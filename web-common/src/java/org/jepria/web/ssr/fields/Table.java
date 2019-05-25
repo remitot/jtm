@@ -238,6 +238,18 @@ public abstract class Table<T extends ItemData> extends El {
    * @return
    */
   protected FieldCheckBox addCheckbox(El cell, Field field, String titleActive, String titleInactive) {
+    return addCheckbox(cell, field, titleActive, titleInactive, isEditable());
+  }
+      
+  /**
+   * 
+   * @param cell
+   * @param field
+   * @param titleActive text to display as a title of active checkbox. If {@code null} then empty title
+   * @param titleInactive text to display as a title of inactive checkbox. If {@code null} then empty title
+   * @return
+   */
+  protected FieldCheckBox addCheckbox(El cell, Field field, String titleActive, String titleInactive, boolean fieldEditable) {
     
     FieldCheckBox checkbox;
     
@@ -252,7 +264,7 @@ public abstract class Table<T extends ItemData> extends El {
       
       checkbox = new FieldCheckBox(field.name, active, valueOriginal, field.invalid, field.invalidMessage);
       
-      checkbox.setEnabled(!field.readonly);
+      checkbox.setEnabled(fieldEditable && !field.readonly);
   
       
       // add text attributes
