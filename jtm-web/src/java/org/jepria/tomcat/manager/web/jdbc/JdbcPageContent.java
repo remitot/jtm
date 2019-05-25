@@ -159,7 +159,7 @@ public class JdbcPageContent implements Iterable<El> {
     emptyItem.active().value = "true";
     final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
     
-    final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
+    final El tableNewRowTemplateContainer = new El("div").addClass("table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
     elements.add(tableNewRowTemplateContainer);
     

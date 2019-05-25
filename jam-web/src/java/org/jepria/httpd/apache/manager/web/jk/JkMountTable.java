@@ -34,7 +34,6 @@ public class JkMountTable extends Table<Record> {
   
   public JkMountTable(Text text) {
     this.text = text;
-    addClass("table");
     addStyle("css/jk/jk.css");
   }
   

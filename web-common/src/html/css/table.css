@@ -1,13 +1,13 @@
-#table {
+.table {
   margin-top: 15px;
   display: table;
 }
 
-#table div.row {
+.table div.row {
   display: table-row;
 }
 
-#table div.cell {
+.table div.cell {
   display: inline-block;
   
   position: relative;
@@ -18,36 +18,36 @@
   padding-bottom: 4px;
 }
 
-#table .flexColumns {
+.table .flexColumns {
   overflow: hidden;
 } 
 
-#table div.cell.column-active {
+.table div.cell.column-active {
   width: 36px;
   float: left;
 }
-#table div.cell.column-delete {
+.table div.cell.column-delete {
   margin-right: 8px;
   width: 36px;
   float: right;
 }
 
 /* left margin for the leftmost column */
-#table .column-left {
+.table .column-left {
   margin-left: 8px;
 }
 
-#table .cell__padding {
+.table .cell__padding {
   padding-left: 6px;
   padding-right: 6px;
   overflow: hidden;
 }
 
-#table .cell-pad-mid > * {
+.table .cell-pad-mid > * {
   width: 100%;
 }
 
-#table .header label {
+.table .header label {
   background-color: transparent;
   
   font-family: serif;
@@ -59,11 +59,11 @@
 }
 
 /* elements that go opaque when inactive */
-#table .row.inactive .table__field-text_inactivatible {
+.table .row.inactive .table__field-text_inactivatible {
   color: #888;
 }
 
-#table .row.even-odd-gray {
+.table .row.even-odd-gray {
   background-color: #f2f2f2;
 }
 
@@ -102,12 +102,12 @@
 }
 
 
-#table input.button-delete {
+.table input.button-delete {
   width: 24px;
   height: 24px;
 }
 
-#table .row .column-delete input.hidden {
+.table .row .column-delete input.hidden {
   display: none;
 }
 
@@ -117,22 +117,22 @@
   box-shadow: 0 -3px 5px rgba(57, 63, 72, 0.3);  
 }
 
-#table .row .column-delete .button-delete_undelete {
+.table .row .column-delete .button-delete_undelete {
   display: none;
 }
-#table .row.deleted .column-delete .button-delete_undelete {
+.table .row.deleted .column-delete .button-delete_undelete {
   display: block;
 }
 
-#table .row .column-delete .button-delete_delete {
+.table .row .column-delete .button-delete_delete {
   display: block;
 }
 
-#table .row.deleted .column-delete .button-delete_delete {
+.table .row.deleted .column-delete .button-delete_delete {
   display: none;
 }
 
-#table-new-row-template-container {
+.table-new-row-template-container {
   display: none;
 }
 

@@ -48,7 +48,6 @@ public class LogTable extends Table<Record> {
   
   public LogTable(Text text) {
     this.text = text;
-    addClass("table");
     addStyle("css/log/log.css");
   }
   

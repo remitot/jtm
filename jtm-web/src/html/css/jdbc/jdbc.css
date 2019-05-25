@@ -2,18 +2,18 @@
   width: 100%;
 }
 
-#table div.cell.column-name {
+.table div.cell.column-name {
   width: 20%;
 }
-#table div.cell.column-server {
+.table div.cell.column-server {
   width: 30%;
 }
-#table div.cell.column-db {
+.table div.cell.column-db {
   width: 15%;
 }
-#table div.cell.column-user {
+.table div.cell.column-user {
   width: 15%;
 }
-#table div.cell.column-password {
+.table div.cell.column-password {
   width: 20%;
 }

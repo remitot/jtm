@@ -1,74 +1,64 @@
 function table_onload() {
-  var table = document.getElementById("table");
+  var table = document.getElementsByClassName("table")[0];
   
-  var fieldsText = table.querySelectorAll("input.field-text");
-  for (var i = 0; i < fieldsText.length; i++) {
-    var fieldText = fieldsText[i];
+  if (table) {
     
-    fieldText.oninput = function(field) {// javascript doesn't use block scope for variables
-      return function() {
-        onFieldInput(field);
+    var fieldsText = table.querySelectorAll("input.field-text");
+    for (var i = 0; i < fieldsText.length; i++) {
+      var fieldText = fieldsText[i];
       
-        // clear field 'invalid' state on manual value change only
-        field.classList.remove("invalid");
-        field.removeAttribute("title"); // TODO what if a field's title is not related to the invalid state?
-      }
-    }(fieldText);
-  }
-  
-  var checkboxes = document.getElementsByClassName("table__checkbox");
-  for (var i = 0; i < checkboxes.length; i++) {
-    var checkbox = checkboxes[i];
-    
-    checkbox.onclick = function(checkbox) {// javascript doesn't use block scope for variables
-      return function(event) {
-        // JS note: the handler is being invoked twice per single click 
-        // (first for onclick:event.target=SPAN, second for onclick:event.target=INPUT)
-        if (event.target.tagName.toLowerCase() == "input") {
-          onCheckboxInput(checkbox);
-          
-          // checkbox cannot have invalid value: either it is not modifiable at all, or the value is valid
+      fieldText.oninput = function(field) {// javascript doesn't use block scope for variables
+        return function() {
+          onFieldInput(field);
+        
+          // clear field 'invalid' state on manual value change only
+          field.classList.remove("invalid");
+          field.removeAttribute("title"); // TODO what if a field's title is not related to the invalid state?
         }
-      }
-    }(checkbox);
-  }
-  
-  addRowDeleteScript(table);
-  
-  // disable deleted rows
-  var deletedRows = table.querySelectorAll(".row.deleted");
-  for (var i = 0; i < deletedRows.length; i++) {
-    setDisabled(deletedRows[i], true);
-  }
-  
-  triggerFieldsInput(table);
-  
-  var formSave = document.getElementsByClassName("control-button-form_save")[0];
-  if (formSave) { // the save form (as indeed the control buttons) might not be present
-    formSave.onsubmit = function(event) {
-      var dataField = document.createElement("input");
-      dataField.type = "hidden";
-      dataField.name = "data";
-      dataField.value = JSON.stringify(prepareModData());
-      formSave.appendChild(dataField);
-      return true;
+      }(fieldText);
     }
-  }
-  
-  function adjustBottomShadow() {
-    var controlButtons = document.getElementsByClassName("control-buttons")[0];
     
-    if (controlButtons != null) {
-     if (document.getElementById("table").getBoundingClientRect().bottom <= 
-       controlButtons.getBoundingClientRect().top) {
-       controlButtons.classList.remove("bottom-shadow");
-     } else {
-       controlButtons.classList.add("bottom-shadow");
-     }
+    var checkboxes = document.getElementsByClassName("table__checkbox");
+    for (var i = 0; i < checkboxes.length; i++) {
+      var checkbox = checkboxes[i];
+      
+      checkbox.onclick = function(checkbox) {// javascript doesn't use block scope for variables
+        return function(event) {
+          // JS note: the handler is being invoked twice per single click 
+          // (first for onclick:event.target=SPAN, second for onclick:event.target=INPUT)
+          if (event.target.tagName.toLowerCase() == "input") {
+            onCheckboxInput(checkbox);
+            
+            // checkbox cannot have invalid value: either it is not modifiable at all, or the value is valid
+          }
+        }
+      }(checkbox);
     }
+    
+    addRowDeleteScript(table);
+    
+    // disable deleted rows
+    var deletedRows = table.querySelectorAll(".row.deleted");
+    for (var i = 0; i < deletedRows.length; i++) {
+      setDisabled(deletedRows[i], true);
+    }
+    
+    triggerFieldsInput(table);
+    
+    var formSave = document.getElementsByClassName("control-button-form_save")[0];
+    if (formSave) { // the save form (as indeed the control buttons) might not be present
+      formSave.onsubmit = function(event) {
+        var dataField = document.createElement("input");
+        dataField.type = "hidden";
+        dataField.name = "data";
+        dataField.value = JSON.stringify(prepareModData());
+        formSave.appendChild(dataField);
+        return true;
+      }
+    }
+    
+    adjustBottomShadow();
   }
-
-  adjustBottomShadow();
 }
 
 function onFieldInput(field) {
@@ -144,6 +134,7 @@ function onCheckboxInput(checkbox) {
  * Checks for any user modifications throughout the table
  */
 function checkModifications() {
+  //TODO check modifications not through the document, but through the particular table
   totalModifications = 
       document.getElementsByClassName("modified").length
       - document.querySelectorAll(".row.created.deleted .modified").length
@@ -210,43 +201,46 @@ function onDeleteButtonClick(button) {
 
 function onButtonCreateClick() {
   
-  var table = document.getElementById("table");
+  var table = document.getElementsByClassName("table")[0];
+  
+  if (table) {
 
-  var newRowTemplate = document.getElementById("table-new-row-template-container").firstElementChild;
-  var newRow = newRowTemplate.cloneNode(true);
-  
-  table.appendChild(newRow);
-  
-  addNewRowScript(newRow);
-  
-  
-  //set 'tabindex' attributes by 'tabindex-rel' attribute
-  var tabIndexAnchor = +table.getAttribute("tabindex-next");
-  var maxTabIndexRel = 0;
-  var hasTabIndexRels = Array.from(newRow.getElementsByClassName("has-tabindex-rel"));// element.getElementsByClassName FETCHES the elements 
-  for (var i = 0; i < hasTabIndexRels.length; i++) {
-    var hasTabIndexRel = hasTabIndexRels[i];
-    var tabIndexRel = +hasTabIndexRel.getAttribute("tabindex-rel");
-    maxTabIndexRel = Math.max(maxTabIndexRel, tabIndexRel);
-    hasTabIndexRel.setAttribute("tabindex", tabIndexAnchor + tabIndexRel);
+    var newRowTemplate = document.getElementsByClassName("table-new-row-template-container")[0].firstElementChild;
+    var newRow = newRowTemplate.cloneNode(true);
     
-    // cleanup
-    hasTabIndexRel.removeAttribute("tabindex-rel");
-    hasTabIndexRel.classList.remove("has-tabindex-rel");
+    table.appendChild(newRow);
+    
+    addNewRowScript(newRow);
+    
+    
+    //set 'tabindex' attributes by 'tabindex-rel' attribute
+    var tabIndexAnchor = +table.getAttribute("tabindex-next");
+    var maxTabIndexRel = 0;
+    var hasTabIndexRels = Array.from(newRow.getElementsByClassName("has-tabindex-rel"));// element.getElementsByClassName FETCHES the elements 
+    for (var i = 0; i < hasTabIndexRels.length; i++) {
+      var hasTabIndexRel = hasTabIndexRels[i];
+      var tabIndexRel = +hasTabIndexRel.getAttribute("tabindex-rel");
+      maxTabIndexRel = Math.max(maxTabIndexRel, tabIndexRel);
+      hasTabIndexRel.setAttribute("tabindex", tabIndexAnchor + tabIndexRel);
+      
+      // cleanup
+      hasTabIndexRel.removeAttribute("tabindex-rel");
+      hasTabIndexRel.classList.remove("has-tabindex-rel");
+    }
+    table.setAttribute("tabindex-next", tabIndexAnchor + maxTabIndexRel + 1);
+    
+    // TODO set proper tabindexes for control buttons
+    
+    
+    // focus on the first text input field
+    newRow.querySelectorAll(".cell input[type='text']")[0].focus();
+    
+    // scroll to the created row (bottom)
+    window.scrollTo(0, document.body.scrollHeight);
+    
+    
+    checkModifications();
   }
-  table.setAttribute("tabindex-next", tabIndexAnchor + maxTabIndexRel + 1);
-  
-  // TODO set proper tabindexes for control buttons
-  
-  
-  // focus on the first text input field
-  newRow.querySelectorAll(".cell input[type='text']")[0].focus();
-  
-  // scroll to the created row (bottom)
-  window.scrollTo(0, document.body.scrollHeight);
-  
-  
-  checkModifications();
 }
 
 function prepareModData() {
@@ -296,7 +290,7 @@ function prepareModData() {
 }
 
 function getRowsModified() {
-  var rows = document.querySelectorAll("#table div.row");
+  var rows = document.querySelectorAll(".table div.row");
   var data = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
@@ -309,7 +303,7 @@ function getRowsModified() {
 }
 
 function getRowsDeleted() {
-  var rows = document.querySelectorAll("#table div.row");
+  var rows = document.querySelectorAll(".table div.row");
   rowsDeletedIds = [];
   for (var i = 0; i < rows.length; i++) {
     row = rows[i];
@@ -321,7 +315,7 @@ function getRowsDeleted() {
 }
 
 function getRowsCreated() {
-  var rows = document.querySelectorAll("#table div.row");
+  var rows = document.querySelectorAll(".table div.row");
   var data = [];
   for (var i = 0; i < rows.length; i++) {
     var row = rows[i];
@@ -373,14 +367,17 @@ function triggerFieldsInput(composite) {
 
 function adjustBottomShadow() {
   var controlButtons = document.getElementsByClassName("control-buttons")[0];
+  var table = document.getElementsByClassName("table")[0];
   
-  if (controlButtons != null) {
-   if (document.getElementById("table").getBoundingClientRect().bottom <= 
-     controlButtons.getBoundingClientRect().top) {
-     controlButtons.classList.remove("bottom-shadow");
-   } else {
-     controlButtons.classList.add("bottom-shadow");
-   }
+  if (controlButtons) {
+    if (table) {
+      if (table.getBoundingClientRect().bottom <= 
+        controlButtons.getBoundingClientRect().top) {
+        controlButtons.classList.remove("bottom-shadow");
+      } else {
+        controlButtons.classList.add("bottom-shadow");
+      }
+    }
   }
 }
 

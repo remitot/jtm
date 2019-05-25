@@ -23,8 +23,7 @@ public abstract class Table<T extends ItemData> extends El {
   public Table() {
     super("div");
     
-    // TODO remove id, use class and css
-    setAttribute("id", "table");
+    addClass("table");
     
     addScript("js/table.js");
     addStyle("css/table.css");
