@@ -117,18 +117,13 @@ public class BindingDetailsTable extends Table<Record> {
       if ("active".equals(item.getId())) {
         addCheckbox(cell, item.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
         
-        El cellDelete = createCell(row, "column-delete");
-        addFieldDelete(cellDelete, null, "del!", "undel!");// TODO NON-NLS NON-NLS
+        {
+          El cellDelete = createCell(row, null);
+          addFieldDelete(cellDelete, null, "del!", "undel!");// TODO tabindex // TODO NON-NLS NON-NLS
+        }
         
       } else {
         addField(cell, item.field(), item.placeholder());
-      }
-    }
-    
-    {// cell delete
-      if ("active".equals(item.getId())) {
-        El cell = createCell(row, "column-delete");
-        addFieldDelete(cell, null, "del!", "und!"); // TODO tabindex // TODO  NON-NLS NON-NLS
       }
     }
     
