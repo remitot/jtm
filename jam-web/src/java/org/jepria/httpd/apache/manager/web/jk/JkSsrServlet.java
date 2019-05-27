@@ -39,12 +39,14 @@ public class JkSsrServlet extends SsrServletBase {
     final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
     pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
     
-    
-    String path = req.getPathInfo();
+
     final String mountId;
     final boolean details;
     final boolean list;
     final boolean newBinding;
+    
+    
+    final String path = req.getPathInfo();
     
     if (path == null || "/".equals(path) || "".equals(path)) {
       mountId = null;

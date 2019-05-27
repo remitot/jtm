@@ -233,6 +233,11 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       resp.sendRedirect(req.getContextPath() + "/jdbc");
       return;
+      
+    } else {
+      // unknown request
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
+      return;
     }
   }
 
