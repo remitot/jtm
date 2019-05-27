@@ -24,6 +24,12 @@ public class JkApi {
     return getJkMounts(apacheConf);
   }
   
+  /**
+   * 
+   * @param environment
+   * @param jkMountId
+   * @return or else {@code null}
+   */
   public BindingDto getBinding(Environment environment, String jkMountId) {
     
     final ApacheConfJk apacheConf = new ApacheConfJk(
@@ -672,6 +678,12 @@ public class JkApi {
     };
   }
   
+  /**
+   * 
+   * @param apacheConf
+   * @param jkMountId
+   * @return or else {@code null}
+   */
   protected BindingDto getBinding(ApacheConfJk apacheConf, String jkMountId) {
     JkMount jkMount = apacheConf.getMounts().get(jkMountId);
     

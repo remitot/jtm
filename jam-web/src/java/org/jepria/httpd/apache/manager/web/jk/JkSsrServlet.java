@@ -69,9 +69,15 @@ public class JkSsrServlet extends SsrServletBase {
       if (showDetails) {
         // show details for JkMount by id from request param
         
-        BindingDto binding = new JkApi().getBinding(env, mountId);
+        final JkPageContent content;
         
-        JkPageContent content = new JkPageContent(context, binding);
+        if ("new-binding".equals(mountId)) {
+          content = new JkPageContent(context);
+        } else {
+          BindingDto binding = new JkApi().getBinding(env, mountId);
+          content = new JkPageContent(context, binding);
+        }
+          
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();jk_onload();");
         

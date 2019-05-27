@@ -1,11 +1,6 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jepria.httpd.apache.manager.web.jk.BindingDetailsTable.Record;
-import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
-import org.jepria.httpd.apache.manager.web.jk.dto.WorkerDto;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.fields.Field;
@@ -42,60 +37,17 @@ public class BindingDetailsTable extends Table<Record> {
     }
   }
   
-  public BindingDetailsTable(Context context) {
+  protected final boolean newBinding;
+  
+  public BindingDetailsTable(Context context, boolean newBinding) {
     super(context);
+    
+    this.newBinding = newBinding;
     
     addClass("table-details");
     
     addScript("js/jk/jk.js");
     addStyle("css/jk/jk.css");
-  }
-  
-  public void load(JkMountDto mount, WorkerDto worker) {
-    
-    List<Record> items = new ArrayList<>();
-    
-    // mount fields
-    {
-      Record item = new Record("Active", null); // TODO NON-NLS
-      item.field().value = item.field().valueOriginal = (mount == null ? null : mount.map.get("active"));
-      item.setId("active");
-      items.add(item);
-    }
-    {
-      Record item = new Record("Application", null); // TODO NON-NLS
-      item.field().value = item.field().valueOriginal = (mount == null ? null : mount.map.get("application"));
-      item.setId("application");
-      items.add(item);
-    }
-    
-    // worker fields
-    {
-      Record item = new Record("Worker", "worker1"); // TODO NON-NLS
-      item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("name"));
-      item.setId("workerName");
-      items.add(item);
-    }
-    {
-      Record item = new Record("Type", "ajp13"); // TODO NON-NLS NON-NLS
-      item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("type"));
-      item.setId("workerType");
-      items.add(item);
-    }
-    {
-      Record item = new Record("Host", "server.com"); // TODO NON-NLS NON-NLS
-      item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("host"));
-      item.setId("workerHost");
-      items.add(item);
-    }
-    {
-      Record item = new Record("Port", "8080"); // TODO NON-NLS NON-NLS
-      item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("port"));
-      item.setId("workerPort");
-      items.add(item);
-    }
-    
-    load(items, null, null);
   }
   
   @Override
@@ -115,9 +67,9 @@ public class BindingDetailsTable extends Table<Record> {
       El cell = createCell(row, "column-field");
     
       if ("active".equals(item.getId())) {
-        addCheckbox(cell, item.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
+        addCheckbox(cell, item.field(), "act!", "inact!", !newBinding);// TODO NON-NLS NON-NLS
         
-        {
+        if (!newBinding) {
           El cellDelete = createCell(row, null);
           addFieldDelete(cellDelete, null, "del!", "undel!");// TODO tabindex // TODO NON-NLS NON-NLS
         }
