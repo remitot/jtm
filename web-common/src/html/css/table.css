@@ -117,18 +117,18 @@
   box-shadow: 0 -3px 5px rgba(57, 63, 72, 0.3);  
 }
 
-.table .row .column-delete .button-delete_undelete {
+.table .row .button-delete_undelete {
   display: none;
 }
-.table .row.deleted .column-delete .button-delete_undelete {
+.table .row.deleted .button-delete_undelete {
   display: block;
 }
 
-.table .row .column-delete .button-delete_delete {
+.table .row .button-delete_delete {
   display: block;
 }
 
-.table .row.deleted .column-delete .button-delete_delete {
+.table .row.deleted .button-delete_delete {
   display: none;
 }
 

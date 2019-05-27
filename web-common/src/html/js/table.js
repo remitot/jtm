@@ -168,7 +168,7 @@ function setDisabled(composite, disabled) {
 }
 
 function addRowDeleteScript(composite) {
-  var buttonsDelete = composite.querySelectorAll(".column-delete input.button-delete");
+  var buttonsDelete = composite.querySelectorAll(".row input.button-delete");
   for (var i = 0; i < buttonsDelete.length; i++) {
     buttonsDelete[i].onclick = function(event){onDeleteButtonClick(event.target)};
   }
