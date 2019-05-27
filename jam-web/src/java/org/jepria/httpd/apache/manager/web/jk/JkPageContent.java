@@ -45,7 +45,7 @@ public class JkPageContent implements Iterable<Node> {
     
     // control buttons
     final ControlButtons controlButtons = new ControlButtons(context);
-    final String createActionUrl = context.getContextPath() + "/jk/new-binding";// TODO stopped here
+    final String createActionUrl = context.getContextPath() + "/jk/new-binding";
     {
       Text text = context.getText();
       
@@ -81,7 +81,13 @@ public class JkPageContent implements Iterable<Node> {
     details.load(records, null, null);
     
     elements.add(details);
-
+    
+    
+    final JkControlButtons controlButtons = new JkControlButtons(context);
+    controlButtons.addButtonCancel(context.getContextPath() + "/jk");// TODO such url will erase any path- or request params of the current page
+    controlButtons.addButtonSave(context.getContextPath() + "/jk/new-binding");// TODO such url will erase any path- or request params of the current page
+    elements.add(controlButtons);
+    
     
     this.elements = Collections.unmodifiableList(elements);
   }
@@ -91,7 +97,7 @@ public class JkPageContent implements Iterable<Node> {
    * @param context
    * @param binding
    */
-  public JkPageContent(Context context, BindingDto binding) {
+  public JkPageContent(Context context, String mountId, BindingDto binding) {
     final List<El> elements = new ArrayList<>();
     
     // TODO process binding == null here (not found or already removed)
@@ -101,8 +107,16 @@ public class JkPageContent implements Iterable<Node> {
     details.load(records, null, null);
     
     elements.add(details);
-
     
+    
+    // control buttons
+    final JkControlButtons controlButtons = new JkControlButtons(context);
+    controlButtons.addButtonCancel(context.getContextPath() + "/jk");// TODO such url will erase any path- or request params of the current page
+    controlButtons.addButtonSave(context.getContextPath() + "/jk/" + mountId);// TODO such url will erase any path- or request params of the current page
+    controlButtons.addButtonDelete(context.getContextPath() + "/jk/" + mountId + "/delete");// TODO such url will erase any path- or request params of the current page
+    elements.add(controlButtons);
+    
+
     this.elements = Collections.unmodifiableList(elements);
   }
   

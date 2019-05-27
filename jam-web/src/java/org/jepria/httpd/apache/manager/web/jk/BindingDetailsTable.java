@@ -42,7 +42,6 @@ public class BindingDetailsTable extends Table<Record> {
     
     addClass("table-details");
     
-    addScript("js/jk/jk.js");
     addStyle("css/jk/jk.css");
   }
   
@@ -61,6 +60,7 @@ public class BindingDetailsTable extends Table<Record> {
     
     {
       El cell = createCell(row, "column-field");
+      cell.classList.add("cell-field");
     
       if ("active".equals(item.getId())) {
         addCheckbox(cell, item.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
