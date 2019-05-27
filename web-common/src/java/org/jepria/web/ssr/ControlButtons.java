@@ -2,26 +2,35 @@ package org.jepria.web.ssr;
 
 public class ControlButtons extends El {
   
-  public final El buttonCreate;
-  public final El buttonSave;
-  public final El buttonReset;
+  protected final Text text;
   
-  public ControlButtons(Text text, String saveActionUrl, String resetActionUrl) {
+  public ControlButtons(Text text) {
     super("div");
+    this.text = text;
     classList.add("control-buttons");
     
-    buttonCreate = new El("button")
+    addStyle("css/control-buttons.css");
+    addStyle("css/common.css"); // for .big-black-button
+    addScript("js/common.js"); // for .big-black-button
+  }
+  
+  public void addButtonCreate() {
+    El buttonCreate = new El("button")
         .addClass("control-button")
         .addClass("control-button_create")
         .addClass("big-black-button")
         .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonCreate.text"), true);
     
-    
+    appendChild(buttonCreate);
+  }
+  
+  public void addButtonSave(String saveActionUrl) {
+    // TODO if saveActionUrl == null then assign current url
     final El formSave = new El("form").setAttribute("action", saveActionUrl).setAttribute("method", "post")
         .addClass("button-form")
         .addClass("control-button-form_save");
     
-    buttonSave = new El("button")
+    El buttonSave = new El("button")
         .setAttribute("type", "submit")
         .setAttribute("disabled") // disabled by default
         .addClass("control-button")
@@ -34,11 +43,16 @@ public class ControlButtons extends El {
     
     formSave.appendChild(buttonSave);
     
+    appendChild(formSave);
+  }
+  
+  public void addButtonReset(String resetActionUrl) {
+    // TODO if resetActionUrl == null then assign current url
     
     final El formReset = new El("form").setAttribute("action", resetActionUrl).setAttribute("method", "post")
         .addClass("button-form");
     
-    buttonReset = new El("button")
+    El buttonReset = new El("button")
         .setAttribute("type", "submit")
         .setAttribute("disabled") // disabled by default
         .addClass("control-button")
@@ -51,14 +65,6 @@ public class ControlButtons extends El {
     
     formReset.appendChild(buttonReset);
     
-    
-    appendChild(buttonCreate);
-    appendChild(formSave);
     appendChild(formReset);
-    
-    
-    addStyle("css/control-buttons.css");
-    addStyle("css/common.css"); // for .big-black-button
-    addScript("js/common.js"); // for .big-black-button
   }
 }

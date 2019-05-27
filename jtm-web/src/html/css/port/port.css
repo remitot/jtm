@@ -2,14 +2,14 @@
   width: 100%;
 }
 
-#table div.cell.column-type {
+.table div.cell.column-type {
   width: 10%;
 }
-#table div.cell.column-number {
+.table div.cell.column-number {
   width: 10%;
 }
 
 /* left margin for the leftmost column */
-#table .column-left {
+.table .column-left {
   margin-left: 44px;
 }

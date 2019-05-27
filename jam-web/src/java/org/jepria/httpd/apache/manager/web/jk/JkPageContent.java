@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
+import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Node;
 import org.jepria.web.ssr.Text;
@@ -38,6 +39,27 @@ public class JkPageContent implements Iterable<Node> {
     table.load(items, null, null);
     
     elements.add(table);
+    
+    
+    // control buttons
+    final ControlButtons controlButtons = new ControlButtons(text);
+    final String createActionUrl = "jk/new-binding-url";// TODO stopped here
+    {
+      final El formCreate = new El("form").setAttribute("action", createActionUrl).setAttribute("method", "get")
+          .addClass("button-form");
+      
+      El button = new El("button")
+          .setAttribute("type", "submit")
+          .addClass("control-button")
+          .addClass("big-black-button")
+          .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonCreate.text"), true);
+      
+      formCreate.appendChild(button);
+      
+      controlButtons.appendChild(formCreate);
+    }
+    elements.add(controlButtons);
+    
 
     this.elements = Collections.unmodifiableList(elements);
   }
@@ -55,6 +77,7 @@ public class JkPageContent implements Iterable<Node> {
     
     elements.add(details);
 
+    
     this.elements = Collections.unmodifiableList(elements);
   }
   
@@ -67,7 +90,7 @@ public class JkPageContent implements Iterable<Node> {
       }
     }
     
-    item.details().value = "jk?mount-id=" + dto.map.get("id");
+    item.details().value = "jk/" + dto.map.get("id");
     
     return item;
   }

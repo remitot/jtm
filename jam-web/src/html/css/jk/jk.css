@@ -1,13 +1,13 @@
 .table {
-  width: 600px;
+  width: 100%;
 }
 
 .table div.column-application {
-  width: 80%;
+  width: 20%;
 }
 
 .table div.column-details {
-  width: 20%;
+  width: 80%;
 }
 
 .table .row .column-details img {

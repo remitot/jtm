@@ -2,28 +2,28 @@
   width: 100%;
 }
 
-#table div.cell.column-name {
+.table div.cell.column-name {
   width: 40%;
 }
 
-#table div.cell.column-lastmod {
+.table div.cell.column-lastmod {
   width: 30%;
 }
 
-#table div.cell.column-download {
+.table div.cell.column-download {
   width: 10%;
 }
 
-#table div.cell.column-open {
+.table div.cell.column-open {
   width: 10%;
 }
 
-#table div.cell.column-monitor {
+.table div.cell.column-monitor {
   width: 10%;
 }
 
 /* left margin for the leftmost column */
-#table .column-left {
+.table .column-left {
   margin-left: 44px;
 }
 

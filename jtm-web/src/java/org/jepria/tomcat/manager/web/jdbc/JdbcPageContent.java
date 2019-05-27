@@ -159,13 +159,16 @@ public class JdbcPageContent implements Iterable<El> {
     emptyItem.active().value = "true";
     final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
     
-    final El tableNewRowTemplateContainer = new El("div").setAttribute("id", "table-new-row-template-container")
+    final El tableNewRowTemplateContainer = new El("div").addClass("table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
     elements.add(tableNewRowTemplateContainer);
     
     
     // control buttons
-    final ControlButtons controlButtons = new ControlButtons(text, "jdbc/mod", "jdbc/mod-reset"); // TODO this will erase any path- or request params of the current page
+    final ControlButtons controlButtons = new ControlButtons(text);
+    controlButtons.addButtonCreate();
+    controlButtons.addButtonSave("jdbc/mod");// TODO such url will erase any path- or request params of the current page
+    controlButtons.addButtonReset("jdbc/mod-reset");// TODO such url will erase any path- or request params of the current page
     elements.add(controlButtons);
     
     this.elements = Collections.unmodifiableList(elements);

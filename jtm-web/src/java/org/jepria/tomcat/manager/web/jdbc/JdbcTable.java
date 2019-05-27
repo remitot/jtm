@@ -48,7 +48,6 @@ public class JdbcTable extends Table<Record> {
   
   public JdbcTable(Text text) {
     this.text = text;
-    addClass("table");
     addStyle("css/jdbc/jdbc.css");
   }
   
