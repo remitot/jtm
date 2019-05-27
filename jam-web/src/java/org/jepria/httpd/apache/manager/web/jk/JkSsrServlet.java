@@ -117,6 +117,51 @@ public class JkSsrServlet extends SsrServletBase {
     page.respond(resp);
   }
   
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    
+    boolean unknownRequest = false;
+    
+    final String path = req.getPathInfo();
+    
+    if (path == null) {
+      unknownRequest = true;
+      
+    } else if ("/new-binding".equals(path)) {
+      
+      // TODO create new binding
+      
+    } else {
+      final String[] split = path.split("/");
+      if (split.length == 2) {
+        
+        if ("mod".equals(split[1])) {
+      
+          final String mountId = split[0];
+          // TODO modify binding by mountId
+          
+        } else if ("del".equals(split[1])) {
+          
+          final String mountId = split[0];
+          // TODO delete binding by mountId
+          
+        } else {
+          
+          unknownRequest = true;
+        }
+        
+      } else {
+        unknownRequest = true;
+      }
+    }
+    
+    if (unknownRequest) {
+      // unknown request
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
+      return;
+    }
+  }
+  
   private static String lookupTomcatManagerPath(Environment environment, String host, int port) {
     String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
     if (tomcatManagerPath == null) {
