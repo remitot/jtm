@@ -26,6 +26,10 @@ public class JkMountTable extends Table<Record> {
     public Field application() {
       return get("application");
     }
+    /**
+     * Context-relative link to detail view
+     * @return
+     */
     public Field details() {
       return get("details");
     }
@@ -76,8 +80,12 @@ public class JkMountTable extends Table<Record> {
       
       El field = new El("label", cell.context);
       {
-        El a = new El("a", field.context).setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
-        El img = new El("img", field.context).setAttribute("src", "img/jk/details.png").addClass("button-details");
+        El a = new El("a", field.context)
+            .setAttribute("href", context.getContextPath() + "/" + detailsHref)
+            .setAttribute("title", "detali");// TODO NON-NLS
+        El img = new El("img", field.context)
+            .setAttribute("src", context.getContextPath() + "/img/jk/details.png")
+            .addClass("button-details");
         a.appendChild(img);
         field.appendChild(a);
       }

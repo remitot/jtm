@@ -77,7 +77,7 @@ public class LogTable extends Table<Record> {
     cell.classList.add("cell-field");
     field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a", field.context).setAttribute("href", item.download().value)
+      El a = new El("a", field.context).setAttribute("href", context.getContextPath() + "/" + item.download().value)
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
       field.appendChild(a);
@@ -88,7 +88,8 @@ public class LogTable extends Table<Record> {
     cell.classList.add("cell-field");
     field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a", field.context).setAttribute("href", item.open().value).setAttribute("target", "_blank")
+      El a = new El("a", field.context).setAttribute("href", context.getContextPath() + "/" + item.open().value)
+          .setAttribute("target", "_blank")
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
       field.appendChild(a);
@@ -99,7 +100,8 @@ public class LogTable extends Table<Record> {
     cell.classList.add("cell-monitor");
     field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a", field.context).setAttribute("href", item.monitor().value).setAttribute("target", "_blank")
+      El a = new El("a", field.context).setAttribute("href", context.getContextPath() + "/" + item.monitor().value)
+          .setAttribute("target", "_blank")
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));
       field.appendChild(a);

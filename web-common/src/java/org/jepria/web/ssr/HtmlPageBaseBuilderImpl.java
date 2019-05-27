@@ -96,10 +96,12 @@ import javax.servlet.http.HttpServletResponse;
      
     // add all scripts and styles to the head
     for (String style: page.body.getStyles()) {
-      page.head.appendChild(new El("link", context).setAttribute("rel", "stylesheet").setAttribute("href", style));
+      String href = context.getContextPath() + "/" + style;
+      page.head.appendChild(new El("link", context).setAttribute("rel", "stylesheet").setAttribute("href", href));
     }
     for (String script: page.body.getScripts()) {
-      page.head.appendChild(new El("script", context).setAttribute("type", "text/javascript").setAttribute("src", script));
+      String src = context.getContextPath() + "/" + script;
+      page.head.appendChild(new El("script", context).setAttribute("type", "text/javascript").setAttribute("src", src));
     }
 
     isBuilt = true;

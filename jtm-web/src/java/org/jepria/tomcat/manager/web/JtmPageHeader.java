@@ -38,7 +38,7 @@ public class JtmPageHeader extends PageHeader {
         El itemManagerApache = new El("a", context);
         itemManagerApache.classList.add("page-header__menu-item");
         itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
-        itemManagerApache.setAttribute("href", managerApacheHref);
+        itemManagerApache.setAttribute("href", context.getContextPath() + "/" + managerApacheHref);
         itemManagerApache.classList.add("page-header__menu-item_hoverable");
         
         itemManagerApache.setAttribute("target", "_blank");
@@ -58,7 +58,7 @@ public class JtmPageHeader extends PageHeader {
         itemJdbc.classList.add("page-header__menu-item_current");
       } else {
         itemJdbc.classList.add("page-header__menu-item_hoverable");
-        itemJdbc.setAttribute("href", "jdbc");
+        itemJdbc.setAttribute("href", context.getContextPath() + "/jdbc");
       }
       itemJdbc.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemJdbc"), true);
       items.add(itemJdbc);
@@ -72,7 +72,7 @@ public class JtmPageHeader extends PageHeader {
         itemLog.classList.add("page-header__menu-item_current");
       } else {
         itemLog.classList.add("page-header__menu-item_hoverable");
-        itemLog.setAttribute("href", "log");
+        itemLog.setAttribute("href", context.getContextPath() + "/log");
       }
       itemLog.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemLog"), true);
       items.add(itemLog);
@@ -86,7 +86,7 @@ public class JtmPageHeader extends PageHeader {
         itemPort.classList.add("page-header__menu-item_current");
       } else {
         itemPort.classList.add("page-header__menu-item_hoverable");
-        itemPort.setAttribute("href", "port");
+        itemPort.setAttribute("href", context.getContextPath() + "/port");
       }
       itemPort.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemPort"), true);
       items.add(itemPort);

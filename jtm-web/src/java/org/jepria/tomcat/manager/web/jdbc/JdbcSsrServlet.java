@@ -218,8 +218,7 @@ public class JdbcSsrServlet extends SsrServletBase {
         
       }
       
-      // jdbc/mod -> jdbc
-      resp.sendRedirect("../jdbc"); // TODO
+      resp.sendRedirect(req.getContextPath() + "/jdbc");
       return;
       
     } else if ("/mod-reset".equals(path)) {
@@ -232,8 +231,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       appState.modStatus = null;
 
       
-      // jdbc/mod-reset -> jdbc
-      resp.sendRedirect("../jdbc"); // TODO
+      resp.sendRedirect(req.getContextPath() + "/jdbc");
       return;
     }
   }

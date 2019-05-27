@@ -51,7 +51,7 @@ public class JamPageHeader extends PageHeader {
         itemJk.classList.add("page-header__menu-item_regular");
         
         itemJk.classList.add("page-header__menu-item_hoverable");
-        itemJk.setAttribute("href", "jk");
+        itemJk.setAttribute("href", context.getContextPath() + "/jk");
         
         itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"), true);
         items.add(itemJk);

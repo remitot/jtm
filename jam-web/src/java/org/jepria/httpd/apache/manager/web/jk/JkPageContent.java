@@ -44,7 +44,7 @@ public class JkPageContent implements Iterable<Node> {
     
     // control buttons
     final ControlButtons controlButtons = new ControlButtons(context);
-    final String createActionUrl = "jk/new-binding-url";// TODO stopped here
+    final String createActionUrl = context.getContextPath() + "/jk/new-binding-url";// TODO stopped here
     {
       Text text = context.getText();
       
