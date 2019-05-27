@@ -5,9 +5,9 @@ import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 
-public class JkControlButtons extends ControlButtons {
+public class BindingDetailsControlButtons extends ControlButtons {
   
-  public JkControlButtons(Context context) {
+  public BindingDetailsControlButtons(Context context) {
     super(context);
   }
   

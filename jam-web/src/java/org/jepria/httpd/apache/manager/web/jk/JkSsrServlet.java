@@ -82,7 +82,7 @@ public class JkSsrServlet extends SsrServletBase {
         // show details for JkMount by id
         
         BindingDto binding = new JkApi().getBinding(env, mountId);
-        JkPageContent content = new JkPageContent(context, mountId, binding);
+        BindingDetailsPageContent content = new BindingDetailsPageContent(context, mountId, binding);
         
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();jk_onload();");
@@ -90,7 +90,7 @@ public class JkSsrServlet extends SsrServletBase {
       } else if (newBinding) {
         // show details for a newly created binding
         
-        JkPageContent content = new JkPageContent(context);
+        BindingDetailsPageContent content = new BindingDetailsPageContent(context);
         
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
@@ -100,7 +100,7 @@ public class JkSsrServlet extends SsrServletBase {
         
         final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);
         
-        JkPageContent content = new JkPageContent(context, jkMounts);
+        JkMountTablePageContent content = new JkMountTablePageContent(context, jkMounts);
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       }
