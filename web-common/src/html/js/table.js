@@ -391,12 +391,21 @@ window.onscroll = adjustBottomShadow;
 function setButtonSaveEnabled(enabled) {
   var button = document.getElementsByClassName("control-button_save")[0];
   if (button) {
+    
+    var titleText;
+    
     if (enabled) {
       button.disabled = false;
-      button.title = button.getAttribute("org.jepria.web.ssr.ControlButtons.buttonSave.title.save");
+      titleText = button.getAttribute("org.jepria.web.ssr.ControlButtons.buttonSave.title.save");
     } else {
       button.disabled = true;
-      button.title = button.getAttribute("org.jepria.web.ssr.ControlButtons.button.title.no_mod");
+      titleText = button.getAttribute("org.jepria.web.ssr.ControlButtons.button.title.no_mod");
+    }
+    
+    if (titleText) {
+      button.title = titleText;
+    } else {
+      button.removeAttribute("title");
     }
   }
 }
