@@ -7,7 +7,7 @@ public interface HtmlPageExtBuilder extends HtmlPageBaseBuilder {
   void setHeader(PageHeader header);
   void setStatusBar(StatusBar statusBar);
   
-  public static HtmlPageExtBuilder newInstance(Text text) {
-    return new HtmlPageExtBuilderImpl(text);
+  public static HtmlPageExtBuilder newInstance(Context context) {
+    return new HtmlPageExtBuilderImpl(context);
   }
 }

@@ -31,8 +31,8 @@ public interface HtmlPageBaseBuilder {
   
   Page build();
   
-  public static HtmlPageBaseBuilder newInstance() {
-    return new HtmlPageBaseBuilderImpl();
+  public static HtmlPageBaseBuilder newInstance(Context context) {
+    return new HtmlPageBaseBuilderImpl(context);
   }
   
   public interface Page {

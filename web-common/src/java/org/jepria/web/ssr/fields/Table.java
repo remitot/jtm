@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlEscaper;
 
@@ -20,8 +21,8 @@ public abstract class Table<T extends ItemData> extends El {
     void setNext(El el);
   }
   
-  public Table() {
-    super("div");
+  public Table(Context context) {
+    super("div", context);
     
     addClass("table");
     
@@ -141,7 +142,7 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected void addStrike(El cell) {
-    El cellStrike = new El("div");
+    El cellStrike = new El("div", context);
     cellStrike.classList.add("cell__strike");
     cell.appendChild(cellStrike);
   }
@@ -151,13 +152,13 @@ public abstract class Table<T extends ItemData> extends El {
     El fieldEl;
     {
       if (fieldEditable && !field.readonly) {
-        fieldEl = new FieldTextInput(field.name, 
+        fieldEl = new FieldTextInput(cell.context, field.name, 
             field.value, field.valueOriginal, placeholder,
             field.invalid, field.invalidMessage);
         
       } else {
         
-        fieldEl = new FieldTextLabel(HtmlEscaper.escape(field.value));
+        fieldEl = new FieldTextLabel(cell.context, HtmlEscaper.escape(field.value));
       }      
       
       
@@ -185,34 +186,39 @@ public abstract class Table<T extends ItemData> extends El {
    */
   protected El addFieldDelete(El cell, TabIndex tabIndex, String titleDelete, String titleUndelete) {
 
-    El field = new El("div");
+    El field = new El("div", context);
     
-    El buttonDelete = new El("input");
-    buttonDelete.classList.add("button-delete");
-    buttonDelete.classList.add("button-delete_delete");
-    buttonDelete.setAttribute("type", "image");
-    buttonDelete.setAttribute("src", "img/delete.png");
-    if (titleDelete != null) {
-      buttonDelete.setAttribute("title", titleDelete);
-    }
-    if (tabIndex != null) {
-      tabIndex.setNext(buttonDelete);
-    }
-    
-    El buttonUndelete = new El("input");
-    buttonUndelete.classList.add("button-delete");
-    buttonUndelete.classList.add("button-delete_undelete");
-    buttonUndelete.setAttribute("type", "image");
-    buttonUndelete.setAttribute("src", "img/undelete.png");
-    if (titleUndelete != null) {
-      buttonUndelete.setAttribute("title", titleUndelete);
-    }
-    if (tabIndex != null) {
-      tabIndex.setNext(buttonUndelete);
+    {// button delete
+      El button = new El("input", context);
+      button.classList.add("button-delete");
+      button.classList.add("button-delete_delete");
+      button.setAttribute("type", "image");
+      button.setAttribute("src", "img/delete.png");
+      if (titleDelete != null) {
+        button.setAttribute("title", titleDelete);
+      }
+      if (tabIndex != null) {
+        tabIndex.setNext(button);
+      }
+      
+      field.appendChild(button);
     }
     
-    field.appendChild(buttonDelete);
-    field.appendChild(buttonUndelete);
+    {// button undelete
+      El button = new El("input", context);
+      button.classList.add("button-delete");
+      button.classList.add("button-delete_undelete");
+      button.setAttribute("type", "image");
+      button.setAttribute("src", "img/undelete.png");
+      if (titleUndelete != null) {
+        button.setAttribute("title", titleUndelete);
+      }
+      if (tabIndex != null) {
+        tabIndex.setNext(button);
+      }
+      
+      field.appendChild(button);
+    }
     
     El wrapper = Fields.wrapCellPad(field);  
     cell.appendChild(wrapper);
@@ -221,7 +227,7 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   protected El createCell(El row, String columnClass) {
-    El cell = new El("div");
+    El cell = new El("div", row.context);
     cell.classList.add("cell");
     cell.classList.add(columnClass);
     row.appendChild(cell);
@@ -261,7 +267,7 @@ public abstract class Table<T extends ItemData> extends El {
         valueOriginal = null;
       }
       
-      checkbox = new FieldCheckBox(field.name, active, valueOriginal, field.invalid, field.invalidMessage);
+      checkbox = new FieldCheckBox(cell.context, field.name, active, valueOriginal, field.invalid, field.invalidMessage);
       
       checkbox.setEnabled(fieldEditable && !field.readonly);
   

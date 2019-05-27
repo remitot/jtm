@@ -1,6 +1,7 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
 import org.jepria.tomcat.manager.web.jdbc.JdbcTable.Record;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.CheckBox;
@@ -44,16 +45,17 @@ public class JdbcTable extends Table<Record> {
     }
   }
   
-  protected final Text text;
-  
-  public JdbcTable(Text text) {
-    this.text = text;
+  public JdbcTable(Context context) {
+    super(context);
     addStyle("css/jdbc/jdbc.css");
   }
   
   @Override
   protected El createHeader() {
-    El row = new El("div");
+    
+    Text text = context.getText();
+    
+    El row = new El("div", context);
     row.classList.add("header");
     
     El cell, div, label;
@@ -63,31 +65,31 @@ public class JdbcTable extends Table<Record> {
     
     cell = createCell(row, "column-delete");// empty cell
     
-    div = new El("div");
+    div = new El("div", context);
     div.classList.add("flexColumns");
     
     cell = createCell(div, "column-name");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_name"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-server");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_server"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-db");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_db"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-user");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_user"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-password");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.Table.header.column_password"));
     cell.appendChild(label);
     
@@ -98,7 +100,10 @@ public class JdbcTable extends Table<Record> {
   
   @Override
   public El createRow(Record item, TabIndex tabIndex) {
-    El row = new El("div");
+    
+    Text text = context.getText();
+    
+    El row = new El("div", context);
     row.classList.add("row");
     
     {
@@ -121,7 +126,7 @@ public class JdbcTable extends Table<Record> {
     
     El cellDelete = createCell(row, "column-delete");
     
-    El div = new El("div");
+    El div = new El("div", row.context);
     div.classList.add("flexColumns");
     
     {
@@ -187,13 +192,15 @@ public class JdbcTable extends Table<Record> {
   }
   
   protected void addFieldUnmodifiableTitle(El field) {
-    field.setAttribute("title", text.getString("org.jepria.tomcat.manager.web.jdbc.field.unmodifiable"));
+    field.setAttribute("title", context.getText().getString("org.jepria.tomcat.manager.web.jdbc.field.unmodifiable"));
   }
   
   @Override
   public El createRowCreated(Record item, TabIndex tabIndex) {
 
-    El row = new El("div");
+    Text text = context.getText();
+    
+    El row = new El("div", context);
     row.classList.add("row");
     row.classList.add("created");
     
@@ -208,7 +215,7 @@ public class JdbcTable extends Table<Record> {
     
     El cellDelete = createCell(row, "column-delete");
     
-    El flexColumns = new El("div");
+    El flexColumns = new El("div", row.context);
     flexColumns.classList.add("flexColumns");
     
     cell = createCell(flexColumns, "column-name");

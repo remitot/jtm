@@ -16,6 +16,7 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageBaseBuilder;
 import org.jepria.web.ssr.HtmlPageBaseBuilder.Page;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
@@ -23,7 +24,6 @@ import org.jepria.web.ssr.Node;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.Texts;
 
 public class LogSsrServlet extends SsrServletBase {
   
@@ -49,8 +49,10 @@ public class LogSsrServlet extends SsrServletBase {
       req.getSession().setAttribute(LTZO_COOKIE_SESSION_ATTR_KEY, new Object());
       
 
+      Context context = Context.get(req);
+      
       // TODO populate the page with human-readable header or title (for the case of disabled JS, for example)
-      HtmlPageBaseBuilder pageBuilder = HtmlPageBaseBuilder.newInstance();
+      HtmlPageBaseBuilder pageBuilder = HtmlPageBaseBuilder.newInstance(context);
       
       Node script = Node.fromHtml("<script type=\"text/javascript\">document.cookie=\"local-timezone-offset=\" + (-new Date().getTimezoneOffset()); window.location.reload();</script>");
       
@@ -84,17 +86,17 @@ public class LogSsrServlet extends SsrServletBase {
     }
     
 
-    
-    final Text text = Texts.get(req, "text/org_jepria_tomcat_manager_web_Text");
+    Context context = Context.get(req, "text/org_jepria_tomcat_manager_web_Text");
+    Text text = context.getText();
     
     final Environment env = EnvironmentFactory.get(req);
     
-    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
+    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
     pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.log.title"));
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
     
-    final PageHeader pageHeader = new JtmPageHeader(text, managerApacheHref, CurrentMenuItem.LOG);
+    final PageHeader pageHeader = new JtmPageHeader(context, managerApacheHref, CurrentMenuItem.LOG);
     pageBuilder.setHeader(pageHeader);
     
     
@@ -103,7 +105,7 @@ public class LogSsrServlet extends SsrServletBase {
       
       List<LogDto> logs = new LogApi().list(env, null);
 
-      LogPageContent content = new LogPageContent(text, logs, clientTimezone);
+      LogPageContent content = new LogPageContent(context, logs, clientTimezone);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
   

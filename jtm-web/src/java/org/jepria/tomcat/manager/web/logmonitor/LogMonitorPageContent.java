@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.Text;
@@ -19,7 +20,7 @@ public class LogMonitorPageContent implements Iterable<El> {
   }
 
   /**
-   * @param text
+   * @param context
    * @param contentLinesTop log file content lines to be displayed above the split anchor
    * @param contentLinesBottom log content lines to be displayed below the split anchor
    * @param loadMoreLinesUrl the url to load more lines, relative to the current url
@@ -31,13 +32,15 @@ public class LogMonitorPageContent implements Iterable<El> {
    * @param resetAnchorUrl the url to reset the current anchor, relative to the current url 
    * (and thus monitor state). {@code null} if the current anchor cannot be reset
    */
-  public LogMonitorPageContent(Text text,
+  public LogMonitorPageContent(Context context,
       List<String> contentLinesTop,
       List<String> contentLinesBottom,
       String loadMoreLinesUrl,
       int loadMoreLinesPortion,
       String resetAnchorUrl) {
 
+    Text text = context.getText();
+    
     final List<El> elements = new ArrayList<>();
 
     final boolean hasLinesTop = contentLinesTop != null && !contentLinesTop.isEmpty();
@@ -46,7 +49,7 @@ public class LogMonitorPageContent implements Iterable<El> {
     final boolean canResetAnchor = hasLinesBottom && resetAnchorUrl != null;
 
     {
-      final El controlTop = new El("button");
+      final El controlTop = new El("button", context);
       controlTop.classList.add("control-top");
   
       if (canLoadMoreLines) {
@@ -74,19 +77,19 @@ public class LogMonitorPageContent implements Iterable<El> {
 
     
     {
-      El mainDiv = new El("div");
+      El mainDiv = new El("div", context);
       {
-        El anchorArea = new El("div")
+        El anchorArea = new El("div", mainDiv.context)
             .addClass("anchor-area");
         {
           if (hasLinesTop) {
-            El anchorAreaTop = new El("div")
+            El anchorAreaTop = new El("div", anchorArea.context)
                 .addClass("anchor-area__panel").addClass("top")
                 .setInnerHTML("&nbsp;");
             anchorArea.appendChild(anchorAreaTop);
           }
           if (hasLinesBottom) {
-            El anchorAreaBtm = new El("div")
+            El anchorAreaBtm = new El("div", anchorArea.context)
                 .addClass("anchor-area__panel").addClass("bottom")
                 .setInnerHTML("&nbsp;");
             anchorArea.appendChild(anchorAreaBtm);
@@ -96,11 +99,11 @@ public class LogMonitorPageContent implements Iterable<El> {
       }
       
       {
-        El contentArea = new El("div")
+        El contentArea = new El("div", mainDiv.context)
             .addClass("content-area");
         
         if (hasLinesTop) {
-          El contentAreaTop = new El("div")
+          El contentAreaTop = new El("div", contentArea.context)
               .addClass("content-area__lines").addClass("top");
           
           StringBuilder innerHtml = new StringBuilder();
@@ -118,7 +121,7 @@ public class LogMonitorPageContent implements Iterable<El> {
           contentArea.appendChild(contentAreaTop);
         }
         if (hasLinesBottom) {
-          El contentAreaBtm = new El("div")
+          El contentAreaBtm = new El("div", contentArea.context)
               .addClass("content-area__lines").addClass("bottom");
           
           StringBuilder innerHtml = new StringBuilder();
@@ -140,7 +143,7 @@ public class LogMonitorPageContent implements Iterable<El> {
       }
       
       {
-        El resetAnchorButton = new El("button")
+        El resetAnchorButton = new El("button", mainDiv.context)
             .addClass("control-button_reset-anchor").addClass("control-button")
             .addClass("big-black-button").addClass("hidden")
             .setAttribute("onclick", "onResetAnchorButtonClick();")
@@ -164,7 +167,7 @@ public class LogMonitorPageContent implements Iterable<El> {
     
     
     {
-      El script = new El("script")
+      El script = new El("script", context)
           .setAttribute("type", "text/javascript");
       
       // constants for using in log-monitor.js

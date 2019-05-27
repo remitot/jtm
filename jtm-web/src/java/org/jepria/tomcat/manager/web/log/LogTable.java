@@ -1,6 +1,7 @@
 package org.jepria.tomcat.manager.web.log;
 
 import org.jepria.tomcat.manager.web.log.LogTable.Record;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
@@ -44,21 +45,22 @@ public class LogTable extends Table<Record> {
   }
 
   
-  protected final Text text;
-  
-  public LogTable(Text text) {
-    this.text = text;
+  public LogTable(Context context) {
+    super(context);
     addStyle("css/log/log.css");
   }
   
   @Override
   public El createRow(Record item, Table.TabIndex tabIndex) {
-    final El row = new El("div");
+    
+    Text text = context.getText();
+    
+    final El row = new El("div", context);
     row.classList.add("row");
     
     El cell, field;
     
-    El div = new El("div");
+    El div = new El("div", row.context);
     div.classList.add("flexColumns");
     div.classList.add("column-left");
     
@@ -68,14 +70,14 @@ public class LogTable extends Table<Record> {
     
     cell = createCell(div, "column-lastmod");
     cell.classList.add("cell-field");
-    field = new FieldTextLabel(item.lastmod().value); 
+    field = new FieldTextLabel(cell.context, item.lastmod().value); 
     addField(cell, field);
     
     cell = createCell(div, "column-download");
     cell.classList.add("cell-field");
-    field = new FieldTextLabel();
+    field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a").setAttribute("href", item.download().value)
+      El a = new El("a", field.context).setAttribute("href", item.download().value)
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
       field.appendChild(a);
@@ -84,9 +86,9 @@ public class LogTable extends Table<Record> {
     
     cell = createCell(div, "column-open");
     cell.classList.add("cell-field");
-    field = new FieldTextLabel();
+    field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a").setAttribute("href", item.open().value).setAttribute("target", "_blank")
+      El a = new El("a", field.context).setAttribute("href", item.open().value).setAttribute("target", "_blank")
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
       field.appendChild(a);
@@ -95,9 +97,9 @@ public class LogTable extends Table<Record> {
     
     cell = createCell(div, "column-monitor");
     cell.classList.add("cell-monitor");
-    field = new FieldTextLabel();
+    field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a").setAttribute("href", item.monitor().value).setAttribute("target", "_blank")
+      El a = new El("a", field.context).setAttribute("href", item.monitor().value).setAttribute("target", "_blank")
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));
       field.appendChild(a);
@@ -117,22 +119,25 @@ public class LogTable extends Table<Record> {
 
   @Override
   protected El createHeader() {
-    final El row = new El("div");
+    
+    Text text = context.getText();
+    
+    final El row = new El("div", context);
     row.classList.add("header");
     
     El div, cell, label;
     
-    div = new El("div");
+    div = new El("div", row.context);
     div.classList.add("flexColumns");
     div.classList.add("column-left");
     
     cell = createCell(div, "column-name");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_name"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-lastmod");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_lastmod"));
     cell.appendChild(label);
     

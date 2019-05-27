@@ -23,8 +23,11 @@ public class El implements Node {
   
   private String innerHTML;
   
-  public El(String tag) {
+  public final Context context;
+  
+  public El(String tag, Context context) {
     this.tagName = tag;
+    this.context = context;
   }
   
   /**

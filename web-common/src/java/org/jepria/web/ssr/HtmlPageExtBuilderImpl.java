@@ -6,16 +6,14 @@ import java.util.List;
 
 /*package*/class HtmlPageExtBuilderImpl extends HtmlPageBaseBuilderImpl implements HtmlPageExtBuilder {
   
-  protected final Text text;
-
   protected PageHeader header;
   protected StatusBar statusBar;
   
   protected boolean setLogout = false;
   protected String logoutRedirectPath;
   
-  public HtmlPageExtBuilderImpl(Text text) {
-    this.text = text;
+  public HtmlPageExtBuilderImpl(Context context) {
+    super(context);
   }
   
   @Override

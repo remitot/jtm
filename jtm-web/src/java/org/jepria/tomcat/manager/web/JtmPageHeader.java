@@ -3,6 +3,7 @@ package org.jepria.tomcat.manager.web;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.Text;
@@ -24,16 +25,17 @@ public class JtmPageHeader extends PageHeader {
    * @param currentMenuItem the menu item to be displayed as currently active.
    * If {@code null}, no menu item will be displayed as currently active.
    */
-  public JtmPageHeader(Text text, String managerApacheHref, CurrentMenuItem currentMenuItem) {
-    super(text);
+  public JtmPageHeader(Context context, String managerApacheHref, CurrentMenuItem currentMenuItem) {
+    super(context);
     
+    Text text = context.getText();
     
     // create and set items
     final List<El> items = new ArrayList<>();
     
     {
       if (managerApacheHref != null) {
-        El itemManagerApache = new El("a");
+        El itemManagerApache = new El("a", context);
         itemManagerApache.classList.add("page-header__menu-item");
         itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
         itemManagerApache.setAttribute("href", managerApacheHref);
@@ -49,7 +51,7 @@ public class JtmPageHeader extends PageHeader {
     }
     
     {
-      El itemJdbc = new El("a");
+      El itemJdbc = new El("a", context);
       itemJdbc.classList.add("page-header__menu-item");
       itemJdbc.classList.add("page-header__menu-item_regular");
       if (currentMenuItem == CurrentMenuItem.JDBC) {
@@ -63,7 +65,7 @@ public class JtmPageHeader extends PageHeader {
     }
     
     {
-      El itemLog = new El("a");
+      El itemLog = new El("a", context);
       itemLog.classList.add("page-header__menu-item");
       itemLog.classList.add("page-header__menu-item_regular");
       if (currentMenuItem == CurrentMenuItem.LOG) {
@@ -77,7 +79,7 @@ public class JtmPageHeader extends PageHeader {
     }
     
     {
-      El itemPort = new El("a");
+      El itemPort = new El("a", context);
       itemPort.classList.add("page-header__menu-item");
       itemPort.classList.add("page-header__menu-item_regular");
       if (currentMenuItem == CurrentMenuItem.PORT) {

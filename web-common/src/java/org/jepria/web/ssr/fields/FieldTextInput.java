@@ -1,10 +1,12 @@
 package org.jepria.web.ssr.fields;
 
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 
 public class FieldTextInput extends El {
   
   public FieldTextInput(
+      Context context,
       String name, 
       String value,
       String valueOriginal,
@@ -12,7 +14,7 @@ public class FieldTextInput extends El {
       boolean invalid, 
       String invalidMessage) {
     
-    super("input");
+    super("input", context);
     
     addClass("field-text");
     

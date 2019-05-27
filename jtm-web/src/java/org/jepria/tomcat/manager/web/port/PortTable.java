@@ -1,6 +1,7 @@
 package org.jepria.tomcat.manager.web.port;
 
 import org.jepria.tomcat.manager.web.port.PortTable.Record;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
@@ -26,31 +27,32 @@ public class PortTable extends Table<Record> {
   }
 
   
-  protected final Text text;
-  
-  public PortTable(Text text) {
-    this.text = text;
+  public PortTable(Context context) {
+    super(context);
     addStyle("css/port/port.css");
   }
   
   @Override
   protected El createHeader() {
-    El row = new El("div");
+    
+    Text text = context.getText();
+    
+    El row = new El("div", context);
     row.classList.add("header");
     
     El cell, div, label;
     
-    div = new El("div");// empty cell
+    div = new El("div", row.context);// empty cell
     div.classList.add("flexColumns");
     div.classList.add("column-left");
       
     cell = createCell(div, "column-type");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.port.Table.header.column_type"));
     cell.appendChild(label);
     
     cell = createCell(div, "column-port");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.port.Table.header.column_port"));
     cell.appendChild(label);
     
@@ -61,12 +63,12 @@ public class PortTable extends Table<Record> {
   
   @Override
   public El createRow(Record item, TabIndex tabIndex) {
-    El row = new El("div");
+    El row = new El("div", context);
     row.classList.add("row");
     
     El cell, div;
     
-    div = new El("div");// empty cell
+    div = new El("div", row.context);// empty cell
     div.classList.add("flexColumns");
     div.classList.add("column-left");
     

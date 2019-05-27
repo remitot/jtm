@@ -5,7 +5,7 @@ import org.jepria.web.ssr.El;
 public class Fields {
   
   public static El wrapCellPad(El element) {
-    El cellPadding = new El("div").addClass("cell__padding");
+    El cellPadding = new El("div", element.context).addClass("cell__padding");
     cellPadding.appendChild(element);
     return cellPadding;
   }

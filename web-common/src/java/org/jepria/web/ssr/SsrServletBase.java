@@ -25,10 +25,13 @@ public class SsrServletBase extends HttpServlet {
         + "</a>";
   }
   
-  protected StatusBar createStatusBar(Text text, AuthState authState) {
+  protected StatusBar createStatusBar(Context context, AuthState authState) {
     if (authState == null || authState.auth == null) {
       return null;
     }
+    
+    final Text text = context.getText();
+    
     switch (authState.auth) {
     case LOGIN_FALIED: {
       String innerHtml = "<span class=\"span-bold\">"
@@ -38,20 +41,20 @@ public class SsrServletBase extends HttpServlet {
       if (authState.authPersistentData != null) {
         innerHtml += getStatusBarModDataSavedHtmlPostfix(text);
       }
-      return new StatusBar(StatusBar.Type.ERROR, innerHtml);
+      return new StatusBar(context, StatusBar.Type.ERROR, innerHtml);
     }
     case LOGOUT: {
-      return new StatusBar(StatusBar.Type.SUCCESS, text.getString("org.jepria.web.ssr.SsrServletBase.status.logouted"));
+      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.web.ssr.SsrServletBase.status.logouted"));
     }
     case UNAUTHORIZED: {
       String innerHtml = text.getString("org.jepria.web.ssr.SsrServletBase.status.auth_required");
       if (authState.authPersistentData != null) {
         innerHtml += getStatusBarModDataSavedHtmlPostfix(text);
       }
-      return new StatusBar(StatusBar.Type.INFO, innerHtml);
+      return new StatusBar(context, StatusBar.Type.INFO, innerHtml);
     }
     case FORBIDDEN: {
-      return new StatusBar(StatusBar.Type.ERROR, text.getString("org.jepria.web.ssr.SsrServletBase.status.forbidden"));
+      return new StatusBar(context, StatusBar.Type.ERROR, text.getString("org.jepria.web.ssr.SsrServletBase.status.forbidden"));
     }
     case AUTHORIZED: {
       return null;
@@ -81,10 +84,10 @@ public class SsrServletBase extends HttpServlet {
    */
   protected void requireAuth(HttpServletRequest req, HtmlPageExtBuilder page, String authRedirectPath) {
     
+    final Context context = Context.get(req);
+    
     // redirect to a current request path in case of null
     authRedirectPath = authRedirectPath != null ? authRedirectPath : RedirectBuilder.self(req);
-    
-    final Text text = Texts.getCommon(req);
     
     final AuthState authState = AuthState.get(req);
     
@@ -97,7 +100,7 @@ public class SsrServletBase extends HttpServlet {
     }
 
     if (req.getUserPrincipal() == null) {
-      final LoginFragment loginFragment = new LoginFragment(text, authRedirectPath);
+      final LoginFragment loginFragment = new LoginFragment(context, authRedirectPath);
       
       // restore preserved username
       if (authState.auth == Auth.LOGIN_FALIED && authState.username != null) {
@@ -107,7 +110,7 @@ public class SsrServletBase extends HttpServlet {
         loginFragment.inputUsername.addClass("requires-focus");
       }
       
-      final El content = new El("div");
+      final El content = new El("div", context);
       content.appendChild(loginFragment);
       
       page.setContent(content);
@@ -116,16 +119,16 @@ public class SsrServletBase extends HttpServlet {
     } else {
       authState.auth = Auth.FORBIDDEN;
       
-      final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(text, authRedirectPath, req.getUserPrincipal().getName());
+      final ForbiddenFragment forbiddenFragment = new ForbiddenFragment(context, authRedirectPath, req.getUserPrincipal().getName());
       
-      final El content = new El("div");
+      final El content = new El("div", context);
       content.appendChild(forbiddenFragment);
       
       page.setContent(content);
       page.setBodyAttributes("onload", "common_onload();", "class", "background_gray");
     }
     
-    page.setStatusBar(createStatusBar(text, authState));
+    page.setStatusBar(createStatusBar(context, authState));
     
     // reset a disposable state
     if (authState.auth == Auth.LOGIN_FALIED 

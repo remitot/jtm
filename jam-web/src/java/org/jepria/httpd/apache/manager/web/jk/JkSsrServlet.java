@@ -13,11 +13,11 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.Texts;
 
 public class JkSsrServlet extends SsrServletBase {
 
@@ -31,11 +31,12 @@ public class JkSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final Text text = Texts.get(req, "text/org_jepria_httpd_apache_manager_web_Text");
+    Context context = Context.get(req, "text/org_jepria_httpd_apache_manager_web_Text");
+    Text text = context.getText();
     
     final Environment env = EnvironmentFactory.get(req);
     
-    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
+    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
     pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
     
     
@@ -45,9 +46,9 @@ public class JkSsrServlet extends SsrServletBase {
     
     final PageHeader pageHeader;
     if (showDetails) {
-      pageHeader = new JamPageHeader(text, CurrentMenuItem.JK_DETAILS);
+      pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_DETAILS);
     } else {
-      pageHeader = new JamPageHeader(text, CurrentMenuItem.JK);
+      pageHeader = new JamPageHeader(context, CurrentMenuItem.JK);
     }
     pageBuilder.setHeader(pageHeader);
     
@@ -60,7 +61,7 @@ public class JkSsrServlet extends SsrServletBase {
         
         BindingDto binding = new JkApi().getBinding(env, mountId);
         
-        JkPageContent content = new JkPageContent(text, binding);
+        JkPageContent content = new JkPageContent(context, binding);
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();jk_onload();");
         
@@ -69,7 +70,7 @@ public class JkSsrServlet extends SsrServletBase {
         
         final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);
         
-        JkPageContent content = new JkPageContent(text, jkMounts);
+        JkPageContent content = new JkPageContent(context, jkMounts);
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       }

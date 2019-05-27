@@ -10,6 +10,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 
@@ -17,7 +18,7 @@ public class LogPageContent implements Iterable<El> {
 
   private final Iterable<El> elements;
   
-  protected final Text text;
+  protected final Context context;
   
   @Override
   public Iterator<El> iterator() {
@@ -32,16 +33,16 @@ public class LogPageContent implements Iterable<El> {
    * @param logs
    * @param clientTimeZone if non-null, the file last modified timestamp will be displayed in this timezone, otherwise in UTC timezone 
    */
-  public LogPageContent(Text text, List<LogDto> logs, TimeZone clientTimeZone) {
+  public LogPageContent(Context context, List<LogDto> logs, TimeZone clientTimeZone) {
+    this.context = context;
+    
     clientDateTimeFormat = clientTimeZone == null ? null : new DateTimeFormat(clientTimeZone);
     gmtDateTimeFormat = new DateTimeFormat(TimeZone.getTimeZone("GMT"));
-    
-    this.text = text;
     
     final List<El> elements = new ArrayList<>();
     
     // table html
-    final LogTable table = new LogTable(text);
+    final LogTable table = new LogTable(context);
     
     final List<LogTable.Record> items = logs.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
@@ -72,6 +73,8 @@ public class LogPageContent implements Iterable<El> {
   }
   
   protected String getItemLastModifiedValue(long lastModifiedTimestamp) {
+    
+    Text text = context.getText();
     
     final String lastModifiedDateTime;
     

@@ -9,8 +9,6 @@ import org.jepria.web.auth.RedirectBuilder;
 
 public class PageHeader extends El {
   
-  protected final Text text;
-  
   /**
    * Container for regular menu items (even if there are no items)
    */
@@ -32,13 +30,13 @@ public class PageHeader extends El {
   /**
    * @param text
    */
-  public PageHeader(Text text) {
-    super("div");
-    this.text = text;
+  public PageHeader(Context context) {
+    super("div", context);
+    
     classList.add("page-header");
 
-    itemsContainer = new El("div").addClass("page-header__container");
-    formLogoutContainer = new El("div").addClass("page-header__container");
+    itemsContainer = new El("div", context).addClass("page-header__container");
+    formLogoutContainer = new El("div", context).addClass("page-header__container");
     
     appendChild(itemsContainer);
     appendChild(formLogoutContainer);
@@ -107,10 +105,12 @@ public class PageHeader extends El {
       action = sb.toString();
     }
     
-    formLogout = new El("form").setAttribute("action", action).setAttribute("method", "post")
+    formLogout = new El("form", context).setAttribute("action", action).setAttribute("method", "post")
         .addClass("button-form");
     
-    El buttonLogout = new El("button")
+    final Text text = context.getText();
+    
+    El buttonLogout = new El("button", context)
         .setAttribute("type", "submit")
         .addClass("page-header__button-logout")
         .addClass("big-black-button")

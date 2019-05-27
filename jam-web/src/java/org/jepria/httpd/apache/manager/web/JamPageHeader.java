@@ -3,8 +3,8 @@ package org.jepria.httpd.apache.manager.web;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.Text;
 
@@ -22,9 +22,10 @@ public class JamPageHeader extends PageHeader {
    * @param currentMenuItem the menu item to be displayed as currently active.
    * If {@code null}, no menu item will be displayed as currently active.
    */
-  public JamPageHeader(Text text, CurrentMenuItem currentMenuItem) {
-    super(text);
+  public JamPageHeader(Context context, CurrentMenuItem currentMenuItem) {
+    super(context);
     
+    Text text = context.getText();
     
     // create and set items
     final List<El> items = new ArrayList<>();
@@ -32,7 +33,7 @@ public class JamPageHeader extends PageHeader {
     if (currentMenuItem == CurrentMenuItem.JK) {
       
       {
-        El itemJk = new El("a");
+        El itemJk = new El("a", context);
         itemJk.classList.add("page-header__menu-item");
         
         itemJk.classList.add("page-header__menu-item_regular");
@@ -45,7 +46,7 @@ public class JamPageHeader extends PageHeader {
     } else if (currentMenuItem == CurrentMenuItem.JK_DETAILS) {
       
       {
-        El itemJk = new El("a");
+        El itemJk = new El("a", context);
         itemJk.classList.add("page-header__menu-item");
         itemJk.classList.add("page-header__menu-item_regular");
         
@@ -56,14 +57,14 @@ public class JamPageHeader extends PageHeader {
         items.add(itemJk);
         
         
-        El itemSlash = new El("span");
+        El itemSlash = new El("span", context);
         itemSlash.classList.add("page-header__menu-item");
         itemSlash.setInnerHTML("&nbsp/&nbsp");
         items.add(itemSlash);
       }
       
       {
-        El itemJk = new El("a");
+        El itemJk = new El("a", context);
         itemJk.classList.add("page-header__menu-item");
 
         itemJk.classList.add("page-header__menu-item_current");

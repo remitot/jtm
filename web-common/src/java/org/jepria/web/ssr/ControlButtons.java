@@ -2,11 +2,8 @@ package org.jepria.web.ssr;
 
 public class ControlButtons extends El {
   
-  protected final Text text;
-  
-  public ControlButtons(Text text) {
-    super("div");
-    this.text = text;
+  public ControlButtons(Context context) {
+    super("div", context);
     classList.add("control-buttons");
     
     addStyle("css/control-buttons.css");
@@ -15,7 +12,10 @@ public class ControlButtons extends El {
   }
   
   public void addButtonCreate() {
-    El buttonCreate = new El("button")
+    
+    final Text text = context.getText();
+    
+    El buttonCreate = new El("button", context)
         .addClass("control-button")
         .addClass("control-button_create")
         .addClass("big-black-button")
@@ -25,12 +25,15 @@ public class ControlButtons extends El {
   }
   
   public void addButtonSave(String saveActionUrl) {
+    
+    final Text text = context.getText();
+    
     // TODO if saveActionUrl == null then assign current url
-    final El formSave = new El("form").setAttribute("action", saveActionUrl).setAttribute("method", "post")
+    final El formSave = new El("form", context).setAttribute("action", saveActionUrl).setAttribute("method", "post")
         .addClass("button-form")
         .addClass("control-button-form_save");
     
-    El buttonSave = new El("button")
+    El buttonSave = new El("button", context)
         .setAttribute("type", "submit")
         .setAttribute("disabled") // disabled by default
         .addClass("control-button")
@@ -47,12 +50,15 @@ public class ControlButtons extends El {
   }
   
   public void addButtonReset(String resetActionUrl) {
+    
+    final Text text = context.getText();
+    
     // TODO if resetActionUrl == null then assign current url
     
-    final El formReset = new El("form").setAttribute("action", resetActionUrl).setAttribute("method", "post")
+    final El formReset = new El("form", context).setAttribute("action", resetActionUrl).setAttribute("method", "post")
         .addClass("button-form");
     
-    El buttonReset = new El("button")
+    El buttonReset = new El("button", context)
         .setAttribute("type", "submit")
         .setAttribute("disabled") // disabled by default
         .addClass("control-button")

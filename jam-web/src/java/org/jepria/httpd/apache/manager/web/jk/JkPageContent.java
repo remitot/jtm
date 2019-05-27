@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Node;
@@ -25,13 +26,13 @@ public class JkPageContent implements Iterable<Node> {
   
   /**
    * Creates content for a table
-   * @param text
+   * @param context
    * @param jkMounts
    */
-  public JkPageContent(Text text, List<JkMountDto> jkMounts) {
+  public JkPageContent(Context context, List<JkMountDto> jkMounts) {
     final List<El> elements = new ArrayList<>();
     
-    final JkMountTable table = new JkMountTable(text);
+    final JkMountTable table = new JkMountTable(context);
     
     final List<JkMountTable.Record> items = jkMounts.stream()
         .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
@@ -42,13 +43,15 @@ public class JkPageContent implements Iterable<Node> {
     
     
     // control buttons
-    final ControlButtons controlButtons = new ControlButtons(text);
+    final ControlButtons controlButtons = new ControlButtons(context);
     final String createActionUrl = "jk/new-binding-url";// TODO stopped here
     {
-      final El formCreate = new El("form").setAttribute("action", createActionUrl).setAttribute("method", "get")
+      Text text = context.getText();
+      
+      final El formCreate = new El("form", context).setAttribute("action", createActionUrl).setAttribute("method", "get")
           .addClass("button-form");
       
-      El button = new El("button")
+      El button = new El("button", context)
           .setAttribute("type", "submit")
           .addClass("control-button")
           .addClass("big-black-button")
@@ -66,13 +69,13 @@ public class JkPageContent implements Iterable<Node> {
   
   /**
    * Creates content for details
-   * @param text
+   * @param context
    * @param binding
    */
-  public JkPageContent(Text text, BindingDto binding) {
+  public JkPageContent(Context context, BindingDto binding) {
     final List<El> elements = new ArrayList<>();
     
-    BindingDetailsTable details = new BindingDetailsTable();
+    BindingDetailsTable details = new BindingDetailsTable(context);
     details.load(binding.jkMount, binding.worker);
     
     elements.add(details);

@@ -17,12 +17,12 @@ import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.Texts;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -44,18 +44,19 @@ public class JdbcSsrServlet extends SsrServletBase {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    final Text text = Texts.get(req, "text/org_jepria_tomcat_manager_web_Text");
+    final Context context = Context.get(req, "text/org_jepria_tomcat_manager_web_Text");
+    Text text = context.getText();
     
     final AppState appState = getAppState(req);
 
     final Environment env = EnvironmentFactory.get(req);
     
-    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(text);
+    final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
     pageBuilder.setTitle(text.getString("org.jepria.tomcat.manager.web.jdbc.title"));
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
     
-    final PageHeader pageHeader = new JtmPageHeader(text, managerApacheHref, CurrentMenuItem.JDBC);
+    final PageHeader pageHeader = new JtmPageHeader(context, managerApacheHref, CurrentMenuItem.JDBC);
     pageBuilder.setHeader(pageHeader);
     
     
@@ -73,12 +74,12 @@ public class JdbcSsrServlet extends SsrServletBase {
       }
       
       
-      JdbcPageContent content = new JdbcPageContent(text, connections, itemModRequests, itemModStatuses);
+      JdbcPageContent content = new JdbcPageContent(context, connections, itemModRequests, itemModStatuses);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
       
       
-      pageBuilder.setStatusBar(createStatusBar(appState.modStatus, text));
+      pageBuilder.setStatusBar(createStatusBar(context, appState.modStatus));
       
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
@@ -265,19 +266,22 @@ public class JdbcSsrServlet extends SsrServletBase {
     MOD_INCORRECT_FIELD_DATA,
   }
   
-  protected StatusBar createStatusBar(ModStatus status, Text text) {
+  protected StatusBar createStatusBar(Context context, ModStatus status) {
     if (status == null) {
       return null;
     }
+    
+    Text text = context.getText();
+    
     switch (status) {
     case MOD_SUCCESS: {
-      return new StatusBar(StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success")); 
+      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success")); 
     }
     case MOD_INCORRECT_FIELD_DATA: {
       final String statusHTML = text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_incorrect_field_data") 
           + " <span class=\"span-bold\">" + text.getString("org.jepria.tomcat.manager.web.jdbc.status.no_mod_performed") 
           + "</span>";
-      return new StatusBar(StatusBar.Type.ERROR, statusHTML);
+      return new StatusBar(context, StatusBar.Type.ERROR, statusHTML);
     }
     }
     throw new IllegalArgumentException(String.valueOf(status));

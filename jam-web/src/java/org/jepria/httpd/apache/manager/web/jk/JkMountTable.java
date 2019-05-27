@@ -1,6 +1,7 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
 import org.jepria.httpd.apache.manager.web.jk.JkMountTable.Record;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.CheckBox;
@@ -30,20 +31,20 @@ public class JkMountTable extends Table<Record> {
     }
   }
   
-  protected final Text text;
-  
-  public JkMountTable(Text text) {
-    this.text = text;
+  public JkMountTable(Context context) {
+    super(context);
     addStyle("css/jk/jk.css");
   }
   
   @Override
   public El createRow(Record item, Table.TabIndex tabIndex) {
-    El row = new El("div");
+    El row = new El("div", context);
     row.classList.add("row");
     
     
     {
+      Text text = context.getText();
+      
       El cell = createCell(row, "column-active");
       cell.classList.add("column-left");
       cell.classList.add("cell-field");
@@ -57,7 +58,7 @@ public class JkMountTable extends Table<Record> {
       }
     }
     
-    El div = new El("div");
+    El div = new El("div", context);
     div.classList.add("flexColumns");
     
     {
@@ -73,10 +74,10 @@ public class JkMountTable extends Table<Record> {
       cell.classList.add("cell-field");
       String detailsHref = item.details().value;
       
-      El field = new El("label");
+      El field = new El("label", cell.context);
       {
-        El a = new El("a").setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
-        El img = new El("img").setAttribute("src", "img/jk/details.png").addClass("button-details");
+        El a = new El("a", field.context).setAttribute("href", detailsHref).setAttribute("title", "detali");// TODO NON-NLS
+        El img = new El("img", field.context).setAttribute("src", "img/jk/details.png").addClass("button-details");
         a.appendChild(img);
         field.appendChild(a);
       }
@@ -100,7 +101,7 @@ public class JkMountTable extends Table<Record> {
 
   @Override
   protected El createHeader() {
-    El row = new El("div");
+    El row = new El("div", context);
     row.classList.add("header");
     
     El cell, div, label;
@@ -108,11 +109,11 @@ public class JkMountTable extends Table<Record> {
     cell = createCell(row, "column-active");// empty cell
     cell.classList.add("column-left");
     
-    div = new El("div");
+    div = new El("div", row.context);
     div.classList.add("flexColumns");
     
     cell = createCell(div, "column-application");
-    label = new El("label");
+    label = new El("label", cell.context);
     label.setInnerHTML("apple");// TODO non-nls
     cell.appendChild(label);
     

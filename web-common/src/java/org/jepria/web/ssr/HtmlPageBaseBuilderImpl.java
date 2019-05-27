@@ -17,7 +17,11 @@ import javax.servlet.http.HttpServletResponse;
   
   protected Map<String, String> bodyAttributes;
   
-  public HtmlPageBaseBuilderImpl() {}
+  protected final Context context;
+  
+  public HtmlPageBaseBuilderImpl(Context context) {
+    this.context = context;
+  }
   
   @Override
   public void setTitle(String title) {
@@ -69,14 +73,14 @@ import javax.servlet.http.HttpServletResponse;
     final PageImpl page = createHtmlPage();
     
     if (title != null) {
-      page.head.appendChild(new El("title").setInnerHTML(title));
+      page.head.appendChild(new El("title", context).setInnerHTML(title));
     }
     
-    page.head.appendChild(new El("meta").setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
-        .appendChild(new El("meta").setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
+    page.head.appendChild(new El("meta", context).setAttribute("http-equiv", "X-UA-Compatible").setAttribute("content", "IE=Edge"))
+        .appendChild(new El("meta", context).setAttribute("http-equiv", "Content-Type").setAttribute("content", "text/html;charset=UTF-8"));
     
     if (content != null) {
-      El bodyContent = new El("div");
+      El bodyContent = new El("div", context);
       page.body.appendChild(bodyContent);
       
       for (Node node: content) {
@@ -92,10 +96,10 @@ import javax.servlet.http.HttpServletResponse;
      
     // add all scripts and styles to the head
     for (String style: page.body.getStyles()) {
-      page.head.appendChild(new El("link").setAttribute("rel", "stylesheet").setAttribute("href", style));
+      page.head.appendChild(new El("link", context).setAttribute("rel", "stylesheet").setAttribute("href", style));
     }
     for (String script: page.body.getScripts()) {
-      page.head.appendChild(new El("script").setAttribute("type", "text/javascript").setAttribute("src", script));
+      page.head.appendChild(new El("script", context).setAttribute("type", "text/javascript").setAttribute("src", script));
     }
 
     isBuilt = true;
@@ -113,9 +117,9 @@ import javax.servlet.http.HttpServletResponse;
     protected final El body;
     
     public PageImpl() {
-      root = new El("html");
-      head = new El("head");
-      body = new El("body");
+      root = new El("html", context);
+      head = new El("head", context);
+      body = new El("body", context);
       root.appendChild(head);
       root.appendChild(body);
     }

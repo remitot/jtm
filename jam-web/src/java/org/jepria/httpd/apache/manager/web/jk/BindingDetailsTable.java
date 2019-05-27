@@ -6,6 +6,7 @@ import java.util.List;
 import org.jepria.httpd.apache.manager.web.jk.BindingDetailsTable.Record;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.WorkerDto;
+import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.FieldTextLabel;
@@ -41,7 +42,9 @@ public class BindingDetailsTable extends Table<Record> {
     }
   }
   
-  public BindingDetailsTable() {
+  public BindingDetailsTable(Context context) {
+    super(context);
+    
     addClass("table-details");
     
     addScript("js/jk/jk.js");
@@ -97,13 +100,13 @@ public class BindingDetailsTable extends Table<Record> {
   
   @Override
   protected El createRow(Record item, TabIndex tabIndex) {
-    El row = new El("div");
+    El row = new El("div", context);
     row.addClass("row");
     
     {
       El cell = createCell(row, "column-label");
       
-      FieldTextLabel label = new FieldTextLabel();
+      FieldTextLabel label = new FieldTextLabel(cell.context);
       label.setInnerHTML(item.fieldLabel(), true);
       cell.appendChild(Fields.wrapCellPad(label));
     }
