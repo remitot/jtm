@@ -226,10 +226,18 @@ public abstract class Table<T extends ItemData> extends El {
     return field;
   }
   
+  /**
+   * 
+   * @param row
+   * @param columnClass nullable
+   * @return
+   */
   protected El createCell(El row, String columnClass) {
     El cell = new El("div", row.context);
     cell.classList.add("cell");
-    cell.classList.add(columnClass);
+    if (columnClass != null) {
+      cell.classList.add(columnClass);
+    }
     row.appendChild(cell);
     return cell;
   }
