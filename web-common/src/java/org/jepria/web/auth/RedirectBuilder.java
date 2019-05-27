@@ -15,15 +15,7 @@ public class RedirectBuilder {
     
     StringBuilder sb = new StringBuilder();
     
-    String uri = request.getRequestURI();
-    String ctx = request.getContextPath();
-    String uriNoCtx = uri.substring(uri.indexOf(ctx) + ctx.length()); // uri must start with ctx
-    
-    if (uriNoCtx.startsWith("/")) {
-      uriNoCtx = uriNoCtx.substring(1);
-    }
-    
-    sb.append(uriNoCtx); 
+    sb.append(request.getRequestURI()); 
     
     String qs = request.getQueryString();
     
