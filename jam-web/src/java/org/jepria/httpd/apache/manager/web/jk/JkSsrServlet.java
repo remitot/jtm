@@ -42,21 +42,33 @@ public class JkSsrServlet extends SsrServletBase {
     
     String path = req.getPathInfo();
     final String mountId;
-    final boolean showDetails;
+    final boolean details;
+    final boolean list;
+    final boolean newBinding;
     
     if (path == null || "/".equals(path) || "".equals(path)) {
       mountId = null;
-      showDetails = false;
+      details = newBinding = false;
+      list = true;
     } else {
-      mountId = path.substring("/".length());
-      showDetails = true;
+      if ("/new-binding".equals(path)) {
+        mountId = null;
+        details = list = false;
+        newBinding = true;
+      } else {
+        mountId = path.substring("/".length());
+        list = newBinding = false;
+        details = true;
+      }
     }
   
     
     
     final PageHeader pageHeader;
-    if (showDetails) {
+    if (details) {
       pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_DETAILS);
+    } else if (newBinding) {
+      pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_NEW_BINDING);
     } else {
       pageHeader = new JamPageHeader(context, CurrentMenuItem.JK);
     }
@@ -66,22 +78,24 @@ public class JkSsrServlet extends SsrServletBase {
 
       pageHeader.setButtonLogout(req);
       
-      if (showDetails) {
-        // show details for JkMount by id from request param
+      if (details) {
+        // show details for JkMount by id
         
-        final JkPageContent content;
+        BindingDto binding = new JkApi().getBinding(env, mountId);
+        JkPageContent content = new JkPageContent(context, binding);
         
-        if ("new-binding".equals(mountId)) {
-          content = new JkPageContent(context);
-        } else {
-          BindingDto binding = new JkApi().getBinding(env, mountId);
-          content = new JkPageContent(context, binding);
-        }
-          
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();jk_onload();");
         
-      } else {
+      } else if (newBinding) {
+        // show details for a newly created binding
+        
+        JkPageContent content = new JkPageContent(context);
+        
+        pageBuilder.setContent(content);
+        pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();jk_onload();");
+        
+      } else if (list) {
         // show table
         
         final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);

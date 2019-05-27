@@ -76,8 +76,8 @@ public class JkPageContent implements Iterable<Node> {
   public JkPageContent(Context context) {
     final List<El> elements = new ArrayList<>();
     
-    BindingDetailsTable details = new BindingDetailsTable(context, true);
-    List<BindingDetailsTable.Record> records = dtoToDetailItems(null, null);
+    BindingDetailsTable details = new BindingDetailsTable(context);
+    List<BindingDetailsTable.Record> records = createBindingRecords(null, null, true);
     details.load(records, null, null);
     
     elements.add(details);
@@ -94,8 +94,10 @@ public class JkPageContent implements Iterable<Node> {
   public JkPageContent(Context context, BindingDto binding) {
     final List<El> elements = new ArrayList<>();
     
-    BindingDetailsTable details = new BindingDetailsTable(context, false);
-    List<BindingDetailsTable.Record> records = dtoToDetailItems(binding.jkMount, binding.worker);
+    // TODO process binding == null here (not found or already removed)
+    
+    BindingDetailsTable details = new BindingDetailsTable(context);
+    List<BindingDetailsTable.Record> records = createBindingRecords(binding.jkMount, binding.worker, false);
     details.load(records, null, null);
     
     elements.add(details);
@@ -118,22 +120,25 @@ public class JkPageContent implements Iterable<Node> {
     return item;
   }
   
-  protected List<BindingDetailsTable.Record> dtoToDetailItems(JkMountDto mount, WorkerDto worker) {
+  protected List<BindingDetailsTable.Record> createBindingRecords(JkMountDto mount, WorkerDto worker, boolean newBinding) {
     
-    List<BindingDetailsTable.Record> items = new ArrayList<>();
+    List<BindingDetailsTable.Record> records = new ArrayList<>();
     
     // mount fields
     {
       BindingDetailsTable.Record item = new BindingDetailsTable.Record("Active", null); // TODO NON-NLS
       item.field().value = item.field().valueOriginal = (mount == null ? null : mount.map.get("active"));
+      if (newBinding) {
+        item.field().readonly = true;
+      }
       item.setId("active");
-      items.add(item);
+      records.add(item);
     }
     {
       BindingDetailsTable.Record item = new BindingDetailsTable.Record("Application", null); // TODO NON-NLS
       item.field().value = item.field().valueOriginal = (mount == null ? null : mount.map.get("application"));
       item.setId("application");
-      items.add(item);
+      records.add(item);
     }
     
     // worker fields
@@ -141,27 +146,27 @@ public class JkPageContent implements Iterable<Node> {
       BindingDetailsTable.Record item = new BindingDetailsTable.Record("Worker", "worker1"); // TODO NON-NLS
       item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("name"));
       item.setId("workerName");
-      items.add(item);
+      records.add(item);
     }
     {
       BindingDetailsTable.Record item = new BindingDetailsTable.Record("Type", "ajp13"); // TODO NON-NLS NON-NLS
       item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("type"));
       item.setId("workerType");
-      items.add(item);
+      records.add(item);
     }
     {
       BindingDetailsTable.Record item = new BindingDetailsTable.Record("Host", "server.com"); // TODO NON-NLS NON-NLS
       item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("host"));
       item.setId("workerHost");
-      items.add(item);
+      records.add(item);
     }
     {
       BindingDetailsTable.Record item = new BindingDetailsTable.Record("Port", "8080"); // TODO NON-NLS NON-NLS
       item.field().value = item.field().valueOriginal = (worker == null ? null : worker.map.get("port"));
       item.setId("workerPort");
-      items.add(item);
+      records.add(item);
     }
     
-    return items;
+    return records;
   }
 }

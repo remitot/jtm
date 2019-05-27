@@ -37,12 +37,8 @@ public class BindingDetailsTable extends Table<Record> {
     }
   }
   
-  protected final boolean newBinding;
-  
-  public BindingDetailsTable(Context context, boolean newBinding) {
+  public BindingDetailsTable(Context context) {
     super(context);
-    
-    this.newBinding = newBinding;
     
     addClass("table-details");
     
@@ -67,12 +63,7 @@ public class BindingDetailsTable extends Table<Record> {
       El cell = createCell(row, "column-field");
     
       if ("active".equals(item.getId())) {
-        addCheckbox(cell, item.field(), "act!", "inact!", !newBinding);// TODO NON-NLS NON-NLS
-        
-        if (!newBinding) {
-          El cellDelete = createCell(row, null);
-          addFieldDelete(cellDelete, null, "del!", "undel!");// TODO tabindex // TODO NON-NLS NON-NLS
-        }
+        addCheckbox(cell, item.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
         
       } else {
         addField(cell, item.field(), item.placeholder());

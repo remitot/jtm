@@ -16,6 +16,7 @@ public class JamPageHeader extends PageHeader {
   public static enum CurrentMenuItem {
     JK,
     JK_DETAILS,
+    JK_NEW_BINDING,
   }
   
   /**
@@ -43,7 +44,7 @@ public class JamPageHeader extends PageHeader {
         items.add(itemJk);
       }
       
-    } else if (currentMenuItem == CurrentMenuItem.JK_DETAILS) {
+    } else if (currentMenuItem == CurrentMenuItem.JK_DETAILS || currentMenuItem == CurrentMenuItem.JK_NEW_BINDING) {
       
       {
         El itemJk = new El("a", context);
@@ -68,8 +69,14 @@ public class JamPageHeader extends PageHeader {
         itemJk.classList.add("page-header__menu-item");
 
         itemJk.classList.add("page-header__menu-item_current");
-        
-        itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkDetails"), true);
+      
+        String itemText;
+        if (currentMenuItem == CurrentMenuItem.JK_DETAILS) {
+          itemText = text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkDetails");
+        } else {
+          itemText = text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkNewBinding");
+        }
+        itemJk.setInnerHTML(itemText, true);
         items.add(itemJk);
       }
       
