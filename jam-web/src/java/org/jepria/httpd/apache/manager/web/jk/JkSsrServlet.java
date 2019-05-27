@@ -40,8 +40,18 @@ public class JkSsrServlet extends SsrServletBase {
     pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
     
     
-    final String mountId = req.getParameter("mount-id");
-    final boolean showDetails = mountId != null && !"".equals(mountId);
+    String path = req.getPathInfo();
+    final String mountId;
+    final boolean showDetails;
+    
+    if (path == null || "/".equals(path) || "".equals(path)) {
+      mountId = null;
+      showDetails = false;
+    } else {
+      mountId = path.substring("/".length());
+      showDetails = true;
+    }
+  
     
     
     final PageHeader pageHeader;

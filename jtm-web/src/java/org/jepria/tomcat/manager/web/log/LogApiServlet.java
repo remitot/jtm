@@ -22,7 +22,7 @@ public class LogApiServlet extends HttpServlet {
 
     String path = req.getPathInfo();
     
-    if (path == null || "/".equals(path)) {
+    if (path == null || "/".equals(path) || "".equals(path)) {
       fileContents(req, resp);
       return;
       
