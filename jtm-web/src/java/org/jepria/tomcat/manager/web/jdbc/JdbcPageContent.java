@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
-import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;

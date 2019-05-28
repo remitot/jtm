@@ -1,4 +1,4 @@
-package org.jepria.tomcat.manager.web.jdbc.dto;
+package org.jepria.web.data;
 
 import java.util.Map;
 

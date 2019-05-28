@@ -16,7 +16,7 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
-import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
+import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;

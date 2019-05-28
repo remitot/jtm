@@ -89,14 +89,14 @@ public class JdbcApi {
     public boolean allModSuccess;
   }
   
-  protected ItemModStatus updateConnection(String id,
+  public ItemModStatus updateConnection(String id,
       Map<String, String> fields, TomcatConfJdbc tomcatConf) {
     
     Objects.requireNonNull(id, "id must not be null");
     
     final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
     
-    // validate empty fields
+    // validate empty but non-null fields
     List<String> emptyFields = validateEmptyFields(fields);
     if (!emptyFields.isEmpty()) {
       for (String fieldName: emptyFields) {
@@ -188,7 +188,7 @@ public class JdbcApi {
    * @param tomcatConf
    * @return
    */
-  protected ItemModStatus deleteConnection(String id, TomcatConfJdbc tomcatConf) {
+  public ItemModStatus deleteConnection(String id, TomcatConfJdbc tomcatConf) {
 
     Objects.requireNonNull(id, "id must not be null");
 
@@ -208,7 +208,7 @@ public class JdbcApi {
     return ItemModStatus.success();
   }
   
-  protected ItemModStatus createConnection(
+  public ItemModStatus createConnection(
       Map<String, String> fields, TomcatConfJdbc tomcatConf,
       ResourceInitialParams initialParams) {
 
@@ -282,9 +282,9 @@ public class JdbcApi {
   }
   
   /**
-   * Validate empty (but not mandatory) fields
-   * @param dto
-   * @return list of present but empty fields, or else empty list
+   * Validate empty but non-null fields
+   * @param fields
+   * @return list of empty but non-null fields, or else empty list, not null
    */
   protected List<String> validateEmptyFields(Map<String, String> fields) {
     List<String> emptyFields = new ArrayList<>();
