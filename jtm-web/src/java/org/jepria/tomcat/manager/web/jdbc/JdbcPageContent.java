@@ -117,7 +117,7 @@ public class JdbcPageContent implements Iterable<El> {
                 if (field != null) {
                   field.invalid = true;
                   switch (idAndInvalidFieldDataCode.getValue()) {
-                  case EMPTY: case MANDATORY_EMPTY: {
+                  case MANDATORY_EMPTY: {
                     field.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.empty");
                     break;
                   }

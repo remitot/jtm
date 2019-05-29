@@ -38,7 +38,6 @@ public class ItemModStatus {
    * Field invalidity description code
    */
   public static enum InvalidFieldDataCode {
-    EMPTY,
     MANDATORY_EMPTY,
     DUPLICATE_NAME,
     DUPLICATE_GLOBAL,

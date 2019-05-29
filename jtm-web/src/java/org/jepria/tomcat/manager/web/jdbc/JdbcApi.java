@@ -97,20 +97,13 @@ public class JdbcApi {
     final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
     
     // validate empty but non-null fields
-    List<String> emptyFields = validateEmptyFields(fields);
+    List<String> emptyFields = validateEmptyFieldsForUpdate(fields);
     if (!emptyFields.isEmpty()) {
       for (String fieldName: emptyFields) {
-        invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.EMPTY);
+        invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
       }
     }
     
-    final Map<String, Connection> connections = tomcatConf.getConnections();
-    final Connection connection = connections.get(id);
-
-    if (connection == null) {
-      throw new IllegalStateException("No resource found by such id=[" + id + "]");
-    }
-      
     // validate name
     final String name = fields.get("name");
     if (name != null) {
@@ -132,6 +125,15 @@ public class JdbcApi {
       return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
     }
     
+    
+    
+
+    final Map<String, Connection> connections = tomcatConf.getConnections();
+    final Connection connection = connections.get(id);
+
+    if (connection == null) {
+      throw new IllegalStateException("No resource found by such id=[" + id + "]");
+    }
     
     if (!validateDataModifiable(fields, connection)) {
       throw new IllegalStateException("Cannot modify the unmodifiable fields of the resource by id=[" + id + "]");
@@ -215,7 +217,7 @@ public class JdbcApi {
     final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
     
     // validate mandatory empty fields
-    List<String> emptyMandatoryFields = validateMandatoryEmptyFields(fields);
+    List<String> emptyMandatoryFields = validateEmptyFieldForCreate(fields);
     if (!emptyMandatoryFields.isEmpty()) {
       for (String fieldName: emptyMandatoryFields) {
         invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
@@ -253,42 +255,47 @@ public class JdbcApi {
   }
   
   /**
-   * Validate mandatory empty fields
+   * Validate empty fields for create
    * @param dto
-   * @return list of missing or empty mandatory fields, or else empty list
+   * @return list of invalidly empty or missing mandatory fields, or else empty list, not null
    */
-  protected List<String> validateMandatoryEmptyFields(Map<String, String> fields) {
+  protected List<String> validateEmptyFieldForCreate(Map<String, String> fields) {
     List<String> emptyFields = new ArrayList<>();
 
-    if (fields.get("db") == null) {
+    // the fields must be neither null, nor empty
+    String db = fields.get("db");
+    if (db == null || "".equals(db)) {
       emptyFields.add("db");
     }
-    if (fields.get("name") == null) {
+    String name = fields.get("name"); 
+    if (name == null || "".equals(name)) {
       emptyFields.add("name");
     }
-    if (fields.get("password") == null) {
+    String password = fields.get("password");
+    if (password == null || "".equals(password)) {
       emptyFields.add("password");
     }
-    if (fields.get("server") == null) {
+    String server = fields.get("server");
+    if (server == null || "".equals(server)) {
       emptyFields.add("server");
     }
-    if (fields.get("user") == null) {
+    String user = fields.get("user");
+    if (user == null || "".equals(user)) {
       emptyFields.add("user");
     }
-    
-    emptyFields.addAll(validateEmptyFields(fields));
     
     return emptyFields;
   }
   
   /**
-   * Validate empty but non-null fields
+   * Validate empty fields for update
    * @param fields
-   * @return list of empty but non-null fields, or else empty list, not null
+   * @return list of invalidly empty fields, or else empty list, not null
    */
-  protected List<String> validateEmptyFields(Map<String, String> fields) {
+  protected List<String> validateEmptyFieldsForUpdate(Map<String, String> fields) {
     List<String> emptyFields = new ArrayList<>();
 
+    // the fields may be null, but if not null then not empty
     if ("".equals(fields.get("db"))) {
       emptyFields.add("db");
     }
