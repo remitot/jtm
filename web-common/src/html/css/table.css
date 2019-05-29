@@ -102,9 +102,12 @@
 }
 
 
-.table input.button-delete {
+.cell input.button-delete {
   width: 24px;
   height: 24px;
+  
+  padding-top: 2px;
+  padding-bottom: 4px;
 }
 
 .table .row .column-delete input.hidden {
