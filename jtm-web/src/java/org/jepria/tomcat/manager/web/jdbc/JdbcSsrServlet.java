@@ -34,8 +34,6 @@ public class JdbcSsrServlet extends SsrServletBase {
 
   private static final long serialVersionUID = -2556094883694667549L;
 
-  private static final String APP_STATE_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState";
-  
   @Override
   protected boolean checkAuth(HttpServletRequest req) {
     return req.getUserPrincipal() != null && req.isUserInRole("manager-gui");
@@ -184,7 +182,7 @@ public class JdbcSsrServlet extends SsrServletBase {
           // 4) ignore illegal actions
     
           if (modSuccess) {
-            // save modifications and add a new _list to the response
+            // save modifications
             
             // Note: it is safe to save modifications to context.xml file here (before servlet response), 
             // because although Tomcat reloads the context after context.xml modification, 
@@ -241,6 +239,11 @@ public class JdbcSsrServlet extends SsrServletBase {
     }
   }
 
+  
+  //////// App State ////////
+  
+  private static final String APP_STATE_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState";
+  
   /**
    * Class stored into a session
    */
@@ -268,6 +271,10 @@ public class JdbcSsrServlet extends SsrServletBase {
     MOD_SUCCESS,
     MOD_INCORRECT_FIELD_DATA,
   }
+  
+  ///////////////////////////
+  
+  
   
   protected StatusBar createStatusBar(Context context, ModStatus status) {
     if (status == null) {
