@@ -31,3 +31,18 @@
 .table-details .column-field {
   width: 300px;
 }
+
+.table-details .column-field.field-link {
+  width: 600px;
+}
+
+.table-details .cell .hint {
+  width: 24px;
+  height: 24px;
+  
+  padding-top: 2px;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  
+  display: block;
+}

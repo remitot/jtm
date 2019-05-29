@@ -49,65 +49,53 @@ public class JkApi {
       return new BindingDto(jkMountDto, workerDto);
     }
   }
+  
+  public static class ModStatus {
+    
+    public enum Code {
+      /**
+       * Modification succeeded
+       */
+      SUCCESS,
+      /**
+       * Client field data is invalid (incorrect format, or value processing exception)
+       */
+      INVALID_FIELD_DATA,
+    }
+    
+    public final Code code;
+    
+    /**
+     * Only in case of {@link #code} == {@link InvalidFieldDataCode#INVALID_FIELD_DATA}: invalid field names mapped to error codes
+     */
+    public final Map<String, InvalidFieldDataCode> invalidFieldDataMap;
+    
+    private ModStatus(Code code, Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
+      this.code = code;
+      this.invalidFieldDataMap = invalidFieldDataMap;
+    }
 
-  //  private enum ModType {
-  //    HTTP,
-  //    AJP
-  //  }
-  //  
-  //  private static final String MANAGER_EXT_AJP_PORT_URI = "/api/port/ajp";
-  //  private static final String MANAGER_EXT_HTTP_PORT_URI = "/api/port/http";
-  //  
-  //  
-  //  
-  //  private static String lookupTomcatManagerPath(Environment environment, String host, int port) {
-  //    String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
-  //    if (tomcatManagerPath == null) {
-  //      tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager.default.path");
-  //      if (tomcatManagerPath == null) {
-  //        throw new RuntimeException("Misconfiguration exception: "
-  //            + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.TomcatManager.default.path\" is not defined");
-  //      }
-  //    }
-  //    return tomcatManagerPath;
-  //  }
-  //  
-  //  private static class Subresponse {
-  //    public static final int SC_UNKNOWN_HOST = 461;
-  //    public static final int SC_CONNECT_EXCEPTION = 462;
-  //    public static final int SC_SOCKET_EXCEPTION = 463;
-  //    public static final int SC_CONNECT_TIMEOUT = 464;
-  //    
-  //    public final int status;
-  //    public final String responseBody;
-  //    
-  //    public Subresponse(int status, String responseBody) {
-  //      this.status = status;
-  //      this.responseBody = responseBody;
-  //    }
-  //  }
-  //  
-  //  @Override
-  //  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-  //
-  //    String path = request.getPathInfo();
-  //    
-  //    if ("/mod/http".equals(path)) {
-  //      mod(request, response, ModType.HTTP);
-  //      return;
-  //      
-  //    } else if ("/mod/ajp".equals(path)) {
-  //      mod(request, response, ModType.AJP);
-  //      return;
-  //      
-  //    } else {
-  //      
-  //      response.sendError(HttpServletResponse.SC_NOT_FOUND);
-  //      response.flushBuffer();
-  //      return;
-  //    }
-  //  }
-  //  
+    public static ModStatus success() {
+      return new ModStatus(Code.SUCCESS, null); 
+    }
+    
+    /**
+     * Field invalidity description code
+     */
+    public static enum InvalidFieldDataCode {
+      MANDATORY_EMPTY,
+      BOTH_HTTP_AJP_PORT,
+    }
+    
+    /**
+     * 
+     * @param invalidFieldDataMap {@code Map<fieldName, errorCode>}
+     */
+    public static ModStatus errInvalidFieldData(Map<String, InvalidFieldDataCode> invalidFieldDataMap) {
+      return new ModStatus(Code.INVALID_FIELD_DATA, invalidFieldDataMap);
+    }
+  }
+
   //  /**
   //   * 
   //   * @param req
@@ -301,15 +289,30 @@ public class JkApi {
 
     Objects.requireNonNull(mountId, "mountId must not be null");
     
-    final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+    final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
     
-    // validate empty but non-null fields
-    List<String> emptyFields = validateEmptyFields(fields);
+    // validate mandatory empty fields
+    List<String> emptyFields = validateEmptyFieldsForUpdate(fields);
     if (!emptyFields.isEmpty()) {
       for (String fieldName: emptyFields) {
-        invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.EMPTY);
+        invalidFieldDataMap.put(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
       }
     }
+    
+    // validate httpPort and ajpPort dependency
+    // one and only one field must be not empty
+    String httpPort = fields.get("httpPort");
+    String ajpPort = fields.get("ajpPort");
+    if (httpPort != null && !"".equals(httpPort) && ajpPort != null && !"".equals(ajpPort)) {
+      invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+      invalidFieldDataMap.put("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+    }
+    
+    if (!invalidFieldDataMap.isEmpty()) {
+      return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+    }
+    
+    
     
     final Binding binding = getBinding(conf, mountId);
     
@@ -610,32 +613,56 @@ public class JkApi {
   //  }
 
   /**
-   * Validate empty but non-null fields
-   * @param fields
-   * @return list of empty but non-null fields, or else empty list, not null
+   * Validate empty fields for create
+   * @param dto
+   * @return list of invalidly empty or missing mandatory fields, or else empty list, not null
    */
-  protected List<String> validateEmptyFields(Map<String, String> fields) {
+  protected List<String> validateEmptyFieldForCreate(Map<String, String> fields) {
     List<String> emptyFields = new ArrayList<>();
 
-    if ("".equals(fields.get("active"))) {
-      emptyFields.add("active");
+    // the fields must be neither null, nor empty
+    String application = fields.get("application");
+    if (application == null || "".equals(application)) {
+      emptyFields.add("application");
     }
+    String workerName = fields.get("workerName"); 
+    if (workerName == null || "".equals(workerName)) {
+      emptyFields.add("workerName");
+    }
+    String host = fields.get("host");
+    if (host == null || "".equals(host)) {
+      emptyFields.add("host");
+    }
+    String httpPort = fields.get("httpPort");
+    String ajpPort = fields.get("ajpPort");
+    if (httpPort == null || "".equals(httpPort)) {
+      emptyFields.add("httpPort");
+    }
+    if (ajpPort == null || "".equals(ajpPort)) {
+      emptyFields.add("ajpPort");
+    }
+    
+    return emptyFields;
+  }
+  
+  /**
+   * Validate empty fields for update
+   * @param fields
+   * @return list of invalidly empty fields, or else empty list, not null
+   */
+  protected List<String> validateEmptyFieldsForUpdate(Map<String, String> fields) {
+    List<String> emptyFields = new ArrayList<>();
+
+    // the fields may be null, but if not null then not empty
     if ("".equals(fields.get("application"))) {
       emptyFields.add("application");
     }
     if ("".equals(fields.get("workerName"))) {
       emptyFields.add("workerName");
     }
-    if ("".equals(fields.get("workerType"))) {
-      emptyFields.add("workerType");
+    if ("".equals(fields.get("host"))) {
+      emptyFields.add("host");
     }
-    if ("".equals(fields.get("workerHost"))) {
-      emptyFields.add("workerHost");
-    }
-    if ("".equals(fields.get("workerPort"))) {
-      emptyFields.add("workerPort");
-    }
-    
     return emptyFields;
   }
   

@@ -3,6 +3,7 @@ package org.jepria.httpd.apache.manager.web.jk;
 import org.jepria.httpd.apache.manager.web.jk.BindingDetailsTable.Record;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.FieldTextLabel;
 import org.jepria.web.ssr.fields.Fields;
@@ -16,6 +17,7 @@ public class BindingDetailsTable extends Table<Record> {
 
     private final String fieldLabel;
     private final String placeholder;
+    private String hint;
     
     public Record(String fieldLabel, String placeholder) {
       this.fieldLabel = fieldLabel;
@@ -24,12 +26,20 @@ public class BindingDetailsTable extends Table<Record> {
       put("field", new Field("field"));
     }
     
+    public void setHint(String hint) {
+      this.hint = hint;
+    }
+    
     public String fieldLabel() {
       return fieldLabel;
     }
     
     public String placeholder() {
       return placeholder;
+    }
+    
+    public String getHint() {
+      return hint;
     }
     
     public Field field() {
@@ -46,28 +56,53 @@ public class BindingDetailsTable extends Table<Record> {
   }
   
   @Override
-  protected El createRow(Record item, TabIndex tabIndex) {
+  protected El createRow(Record record, TabIndex tabIndex) {
     El row = new El("div", context);
     row.addClass("row");
     
     {
       El cell = createCell(row, "column-label");
       
-      FieldTextLabel label = new FieldTextLabel(cell.context);
-      label.setInnerHTML(item.fieldLabel(), true);
-      cell.appendChild(Fields.wrapCellPad(label));
+      FieldTextLabel field = new FieldTextLabel(cell.context);
+      field.setInnerHTML(record.fieldLabel(), true);
+      cell.appendChild(Fields.wrapCellPad(field));
     }
     
     {
       El cell = createCell(row, "column-field");
       cell.classList.add("cell-field");
     
-      if ("active".equals(item.getId())) {
-        addCheckbox(cell, item.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
+      if ("active".equals(record.getId())) {
+        addCheckbox(cell, record.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
+        
+      } else if ("link".equals(record.getId())) {
+        
+        cell.addClass("field-link");
+        
+        String href = record.field().value;
+        El fieldEl = new FieldTextLabel(cell.context);
+        String hrefEscaped = HtmlEscaper.escape(href);
+        El a = new El("a", fieldEl.context)
+            .setAttribute("href", hrefEscaped)
+            .setAttribute("target", "_blank")
+            .setInnerHTML(hrefEscaped, false);
+        fieldEl.appendChild(a);
+        El wrapper = Fields.wrapCellPad(fieldEl);
+        cell.appendChild(wrapper);
         
       } else {
-        addField(cell, item.field(), item.placeholder());
+        addField(cell, record.field(), record.placeholder());
       }
+    }
+    
+    String hint = record.getHint(); 
+    if (hint != null) {
+      El cell = createCell(row, "column-hint");
+    
+      El img = new El("img", cell.context).addClass("hint")
+          .setAttribute("src", cell.context.getContextPath() + "/img/jk/hint.png")
+          .setAttribute("title", HtmlEscaper.escape(hint));
+      cell.appendChild(Fields.wrapCellPad(img));
     }
     
     return row;
