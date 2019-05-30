@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus;
+import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus.Code;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
@@ -107,9 +109,7 @@ public class JdbcPageContent implements Iterable<El> {
             throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
           }
           
-          switch (modStatus.code) {
-          case INVALID_FIELD_DATA: {
-            
+          if (modStatus.code == Code.INVALID_FIELD_DATA) {
             if (modStatus.invalidFieldDataMap != null) {
               for (Map.Entry<String, ItemModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
                   modStatus.invalidFieldDataMap.entrySet()) {
@@ -133,12 +133,6 @@ public class JdbcPageContent implements Iterable<El> {
                 }
               }
             }
-            break;
-          }
-          case SUCCESS: {
-            // do nothing
-            break;
-          }
           }
         }
       }

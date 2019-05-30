@@ -19,6 +19,7 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.AjpAdapter.AjpException;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.Code;
+import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.InvalidFieldDataCode;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.web.data.ItemModRequestDto;
@@ -96,8 +97,9 @@ public class JkSsrServlet extends SsrServletBase {
       pageHeader.setButtonLogout(req);
 
       
-      Map<String, String> modFields = appState.modFields;
-      ModStatus modStatus = appState.modStatus;
+      List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
+      @SuppressWarnings("unchecked")
+      Map<String, ModStatus> itemModStatuses = (Map<String, ModStatus>)appState.itemModStatuses;
       
       
       if (details) {
@@ -164,45 +166,42 @@ public class JkSsrServlet extends SsrServletBase {
           }
         }
         
-        overlayFields(records, modFields);
+        overlayFields(records, itemModRequests);
         
         // process invalid field data
-        if (modStatus != null) {
-          switch (modStatus.code) {
-          case INVALID_FIELD_DATA: {
-            if (modStatus.invalidFieldDataMap != null) {
+        if (itemModStatuses != null) {
+          for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: itemModStatuses.entrySet()) {
+            String modRequestId = modRequestIdAndModStatus.getKey();
+            ModStatus modStatus = modRequestIdAndModStatus.getValue();
+            
+            if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
               for (BindingDetailsTable.Record record: records) {
-                String key = record.getId();
-                ModStatus.InvalidFieldDataCode invalidFieldDataCode = modStatus.invalidFieldDataMap.get(key);
-                if (invalidFieldDataCode != null) {
-                  Field field = record.field();
-                  field.invalid = true;
-                  switch (invalidFieldDataCode) {
-                  case MANDATORY_EMPTY: {
-                    field.invalidMessage = "manda is empty"; // TODO NON-NLS
-                    break;
-                  }
-                  case BOTH_HTTP_AJP_PORT: {
-                    field.invalidMessage = "both http and ajp"; // TODO NON-NLS
-                    break;
-                  }
+                if (modRequestId.equals(record.getId())) {
+                  ModStatus.InvalidFieldDataCode invalidFieldDataCode = modStatus.invalidFieldDataMap.get("field");
+                  if (invalidFieldDataCode != null) {
+                    Field field = record.field();
+                    field.invalid = true;
+                    switch (invalidFieldDataCode) {
+                    case MANDATORY_EMPTY: {
+                      field.invalidMessage = "manda is empty"; // TODO NON-NLS
+                      break;
+                    }
+                    case BOTH_HTTP_AJP_PORT: {
+                      field.invalidMessage = "both http and ajp"; // TODO NON-NLS
+                      break;
+                    }
+                    }
                   }
                 }
               }
             }
-            break;
-          }
-          case SUCCESS: {
-            // do nothing
-            break;
-          }
           }
         }
         
         BindingDetailsPageContent content = new BindingDetailsPageContent(context, records, mountId);
 
         pageBuilder.setContent(content);
-        pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();jk_onload();");
+        pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
 
       } else if (newBinding) {
         // show details for a newly created binding
@@ -222,7 +221,7 @@ public class JkSsrServlet extends SsrServletBase {
           records.add(c.createRecordHttpPort(null));
         }       
         
-        overlayFields(records, modFields);
+        overlayFields(records, itemModRequests);
 
         BindingDetailsPageContent content = new BindingDetailsPageContent(context, records);
 
@@ -239,28 +238,39 @@ public class JkSsrServlet extends SsrServletBase {
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       }
       
-      appState.modFields = null;
-      appState.modStatus = null;
-
     } else {
 
-      clearAppState(req);
-      
       requireAuth(req, pageBuilder);
-
     }
 
     HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
+    
+    clearAppState(req);
   }
   
-  protected void overlayFields(List<BindingDetailsTable.Record> records, Map<String, String> modFields) {
-    if (records != null && modFields != null) {
-      for (BindingDetailsTable.Record record: records) {
-        String key = record.getId();
-        String modValue = modFields.get(key);
-        if (modValue != null) {
-          record.field().value = modValue;
+  protected void overlayFields(List<BindingDetailsTable.Record> records, List<ItemModRequestDto> itemModRequests) {
+    if (records != null && itemModRequests != null) {
+      
+      // create map from list
+      Map<String, BindingDetailsTable.Record> recordMap = new HashMap<>();
+      {
+        for (BindingDetailsTable.Record record: records) {
+          recordMap.put(record.getId(), record);
+        }
+      }
+      
+      for (ItemModRequestDto itemModRequest: itemModRequests) {
+        String modRequestId = itemModRequest.getId();
+        Map<String, String> modRequestData = itemModRequest.getData();
+        if (modRequestId != null && modRequestData != null) {
+          String modValue = modRequestData.get("field");
+          if (modValue != null) {
+            BindingDetailsTable.Record record = recordMap.get(modRequestId);
+            if (record != null) {
+              record.field().value = modValue;
+            }
+          }
         }
       }
     }
@@ -379,6 +389,16 @@ public class JkSsrServlet extends SsrServletBase {
 
               ModStatus modStatus = api.updateBinding(mountId, fields, conf);
 
+              Map<String, ModStatus> modStatuses = null;
+              if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
+                modStatuses = new HashMap<>();
+                for (Map.Entry<String, InvalidFieldDataCode> e: modStatus.invalidFieldDataMap.entrySet()) {
+                  Map<String, InvalidFieldDataCode> map = new HashMap<>();
+                  map.put("field", e.getValue());
+                  modStatuses.put(e.getKey(), ModStatus.errInvalidFieldData(map));
+                }
+              }
+              
               if (modStatus.code == Code.SUCCESS) {
                 // save modifications and add a new _list to the response
 
@@ -387,15 +407,15 @@ public class JkSsrServlet extends SsrServletBase {
 
                 // reset the servlet mod status after the successful mod
                 final AppState appState = getAppState(req);
-                appState.modFields = null;
-                appState.modStatus = modStatus;
+                appState.itemModRequests = null;
+                appState.itemModStatuses = modStatuses;
 
               } else {
 
                 // save session attributes
                 AppState appState = getAppState(req);
-                appState.modFields = fields;
-                appState.modStatus = modStatus;
+                appState.itemModRequests = itemModRequests;
+                appState.itemModStatuses = modStatuses;
               }
 
             } else {
@@ -429,38 +449,6 @@ public class JkSsrServlet extends SsrServletBase {
     }
   }
 
-  
-  
-  ////////App State ////////
-
-  private static final String APP_STATE_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState";
-
-  /**
-   * Class stored into a session
-   */
-
-  protected class AppState {
-    public ModStatus modStatus = null;
-    public Map<String, String> modFields = null;
-  }
-
-  protected AppState getAppState(HttpServletRequest request) {
-    AppState state = (AppState)request.getSession().getAttribute(APP_STATE_SESSION_ATTR_KEY);
-    if (state == null) {
-      state = new AppState();
-      request.getSession().setAttribute(APP_STATE_SESSION_ATTR_KEY, state);
-    }
-    return state;
-  }
-
-  protected void clearAppState(HttpServletRequest request) {
-    request.getSession().removeAttribute(APP_STATE_SESSION_ATTR_KEY);
-  }
-
-  ///////////////////////////
-
-  
-  
   protected String lookupTomcatManagerPath(Environment environment, String host, int port) {
     String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
     if (tomcatManagerPath == null) {

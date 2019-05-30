@@ -15,6 +15,8 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
+import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus;
+import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus.Code;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
@@ -63,12 +65,13 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
-      Map<String, ItemModStatus> itemModStatuses = appState.itemModStatuses;
+      @SuppressWarnings("unchecked")
+      Map<String, ItemModStatus> itemModStatuses = (Map<String, ItemModStatus>)appState.itemModStatuses;
       
       if (itemModRequests == null) {
         @SuppressWarnings("unchecked")
-        List<ItemModRequestDto> itemModRequestsUnchecked = (List<ItemModRequestDto>)getAuthPersistentData(req); 
-        itemModRequests = itemModRequestsUnchecked;
+        List<ItemModRequestDto> itemModRequestsAuthPers = (List<ItemModRequestDto>)getAuthPersistentData(req); 
+        itemModRequests = itemModRequestsAuthPers;
       }
       
       
@@ -77,22 +80,25 @@ public class JdbcSsrServlet extends SsrServletBase {
       pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
       
       
-      pageBuilder.setStatusBar(createStatusBar(context, appState.modStatus));
+      boolean hasInvalidFieldData;
+      if (itemModStatuses == null) {
+        hasInvalidFieldData = false;
+      } else {
+        hasInvalidFieldData = itemModStatuses.values().stream()
+            .anyMatch(modStatus -> modStatus.code == Code.INVALID_FIELD_DATA); 
+      }
       
-      appState.itemModRequests = null;
-      appState.itemModStatuses = null;
+      pageBuilder.setStatusBar(createStatusBar(context, hasInvalidFieldData));
       
     } else {
 
-      clearAppState(req);
-      
       requireAuth(req, pageBuilder);
     }
     
     final HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
     
-    appState.modStatus = null;
+    clearAppState(req);
   }
   
   @Override
@@ -194,7 +200,6 @@ public class JdbcSsrServlet extends SsrServletBase {
             final AppState appState = getAppState(req);
             appState.itemModRequests = null;
             appState.itemModStatuses = null;
-            appState.modStatus = ModStatus.MOD_SUCCESS;
             
           } else {
            
@@ -202,7 +207,6 @@ public class JdbcSsrServlet extends SsrServletBase {
             AppState appState = getAppState(req);
             appState.itemModRequests = itemModRequests;
             appState.itemModStatuses = itemModStatuses;
-            appState.modStatus = ModStatus.MOD_INCORRECT_FIELD_DATA;
           }
         
         } else {
@@ -226,7 +230,6 @@ public class JdbcSsrServlet extends SsrServletBase {
       final AppState appState = getAppState(req);
       appState.itemModRequests = null;
       appState.itemModStatuses = null;
-      appState.modStatus = null;
 
       
       resp.sendRedirect(req.getContextPath() + "/jdbc");
@@ -239,61 +242,20 @@ public class JdbcSsrServlet extends SsrServletBase {
     }
   }
 
-  
-  //////// App State ////////
-  
-  private static final String APP_STATE_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.jdbc.SessionAttributes.appState";
-  
-  /**
-   * Class stored into a session
-   */
-  
-  protected class AppState {
-    public ModStatus modStatus = null;
-    public List<ItemModRequestDto> itemModRequests = null;
-    public Map<String, ItemModStatus> itemModStatuses = null;
-  }
-  
-  protected AppState getAppState(HttpServletRequest request) {
-    AppState state = (AppState)request.getSession().getAttribute(APP_STATE_SESSION_ATTR_KEY);
-    if (state == null) {
-      state = new AppState();
-      request.getSession().setAttribute(APP_STATE_SESSION_ATTR_KEY, state);
-    }
-    return state;
-  }
-  
-  protected void clearAppState(HttpServletRequest request) {
-    request.getSession().removeAttribute(APP_STATE_SESSION_ATTR_KEY);
-  }
-  
-  protected enum ModStatus {
-    MOD_SUCCESS,
-    MOD_INCORRECT_FIELD_DATA,
-  }
-  
-  ///////////////////////////
-  
-  
-  
-  protected StatusBar createStatusBar(Context context, ModStatus status) {
-    if (status == null) {
-      return null;
-    }
-    
-    Text text = context.getText();
-    
-    switch (status) {
-    case MOD_SUCCESS: {
-      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success")); 
-    }
-    case MOD_INCORRECT_FIELD_DATA: {
+  protected StatusBar createStatusBar(Context context, boolean hasInvalidFieldData) {
+    if (hasInvalidFieldData) {
+      
+      Text text = context.getText();
+      
       final String statusHTML = text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_incorrect_field_data") 
           + " <span class=\"span-bold\">" + text.getString("org.jepria.tomcat.manager.web.jdbc.status.no_mod_performed") 
           + "</span>";
       return new StatusBar(context, StatusBar.Type.ERROR, statusHTML);
+      
+    } else {
+      
+      Text text = context.getText();
+      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success"));
     }
-    }
-    throw new IllegalArgumentException(String.valueOf(status));
   }
 }

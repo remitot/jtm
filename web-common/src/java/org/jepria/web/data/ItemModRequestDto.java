@@ -3,7 +3,7 @@ package org.jepria.web.data;
 import java.util.Map;
 
 /**
- * Class representing a single data item modification request
+ * Class representing a single record modification request
  */
 public class ItemModRequestDto {
   
