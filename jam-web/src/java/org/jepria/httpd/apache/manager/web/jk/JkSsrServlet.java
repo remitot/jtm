@@ -27,6 +27,7 @@ import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Field;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -94,12 +95,15 @@ public class JkSsrServlet extends SsrServletBase {
 
       pageHeader.setButtonLogout(req);
 
+      
+      Map<String, String> modFields = appState.modFields;
+      ModStatus modStatus = appState.modStatus;
+      
+      
       if (details) {
         // show details for JkMount by id
 
         BindingDto binding = new JkApi().getBinding(env, mountId);
-        Map<String, String> modFields = appState.modFields;
-        ModStatus modStatus = appState.modStatus;
         
         // TODO process binding == null here (not found or already removed)
 
@@ -118,26 +122,17 @@ public class JkSsrServlet extends SsrServletBase {
           }
         }
         
-
         // TODO stopped here: merge modFields into records
         List<BindingDetailsTable.Record> records = new ArrayList<>();
         {
           DetailsRecordCreator c = new DetailsRecordCreator();
-
           records.add(c.createRecordActive(fields.get("active")));
-
           final String application = fields.get("application");
-          
           records.add(c.createRecordApplication(application));
-
-          records.add(c.createRecordWorkerName(fields.get("name")));
-
+          records.add(c.createRecordWorkerName(fields.get("workerName")));
           final String host = fields.get("host");
-
           records.add(c.createRecordHost(host));
-
           final String ajpPort = fields.get("ajpPort");
-
           records.add(c.createRecordAjpPort(ajpPort));
 
           if (host != null && ajpPort != null) {
@@ -169,6 +164,40 @@ public class JkSsrServlet extends SsrServletBase {
           }
         }
         
+        overlayFields(records, modFields);
+        
+        // process invalid field data
+        if (modStatus != null) {
+          switch (modStatus.code) {
+          case INVALID_FIELD_DATA: {
+            if (modStatus.invalidFieldDataMap != null) {
+              for (BindingDetailsTable.Record record: records) {
+                String key = record.getId();
+                ModStatus.InvalidFieldDataCode invalidFieldDataCode = modStatus.invalidFieldDataMap.get(key);
+                if (invalidFieldDataCode != null) {
+                  Field field = record.field();
+                  field.invalid = true;
+                  switch (invalidFieldDataCode) {
+                  case MANDATORY_EMPTY: {
+                    field.invalidMessage = "manda is empty"; // TODO NON-NLS
+                    break;
+                  }
+                  case BOTH_HTTP_AJP_PORT: {
+                    field.invalidMessage = "both http and ajp"; // TODO NON-NLS
+                    break;
+                  }
+                  }
+                }
+              }
+            }
+            break;
+          }
+          case SUCCESS: {
+            // do nothing
+            break;
+          }
+          }
+        }
         
         BindingDetailsPageContent content = new BindingDetailsPageContent(context, records, mountId);
 
@@ -182,14 +211,18 @@ public class JkSsrServlet extends SsrServletBase {
         {
           DetailsRecordCreator c = new DetailsRecordCreator();
 
-          records.add(c.createRecordActive(null));
+          BindingDetailsTable.Record active = c.createRecordActive(null);
+          active.field().readonly = true;
+          records.add(active);
+          
           records.add(c.createRecordApplication(null));
-
           records.add(c.createRecordWorkerName(null));
           records.add(c.createRecordHost(null));
           records.add(c.createRecordAjpPort(null));
           records.add(c.createRecordHttpPort(null));
-        }          
+        }       
+        
+        overlayFields(records, modFields);
 
         BindingDetailsPageContent content = new BindingDetailsPageContent(context, records);
 
@@ -205,15 +238,32 @@ public class JkSsrServlet extends SsrServletBase {
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       }
+      
+      appState.modFields = null;
+      appState.modStatus = null;
 
     } else {
 
+      clearAppState(req);
+      
       requireAuth(req, pageBuilder);
 
     }
 
     HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
+  }
+  
+  protected void overlayFields(List<BindingDetailsTable.Record> records, Map<String, String> modFields) {
+    if (records != null && modFields != null) {
+      for (BindingDetailsTable.Record record: records) {
+        String key = record.getId();
+        String modValue = modFields.get(key);
+        if (modValue != null) {
+          record.field().value = modValue;
+        }
+      }
+    }
   }
 
   protected final class DetailsRecordCreator {
