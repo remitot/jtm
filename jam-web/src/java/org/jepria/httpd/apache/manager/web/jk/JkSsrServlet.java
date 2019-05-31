@@ -49,7 +49,7 @@ public class JkSsrServlet extends SsrServletBase {
     Text text = context.getText();
 
     final AppState appState = getAppState(req);
-    
+
     final Environment env = EnvironmentFactory.get(req);
 
     final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
@@ -96,18 +96,24 @@ public class JkSsrServlet extends SsrServletBase {
 
       pageHeader.setButtonLogout(req);
 
-      
-      List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
-      @SuppressWarnings("unchecked")
-      Map<String, ModStatus> itemModStatuses = (Map<String, ModStatus>)appState.itemModStatuses;
-      
-      
       if (details) {
         // show details for JkMount by id
 
+
         BindingDto binding = new JkApi().getBinding(env, mountId);
-        
         // TODO process binding == null here (not found or already removed)
+
+
+        // retrieve modRequests and modStatuses from the AppState ant auth-persistent data
+        List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
+        @SuppressWarnings("unchecked")
+        Map<String, ModStatus> itemModStatuses = (Map<String, ModStatus>)appState.itemModStatuses;
+        if (itemModRequests == null) {
+          @SuppressWarnings("unchecked")
+          List<ItemModRequestDto> itemModRequestsAuthPers = (List<ItemModRequestDto>)getAuthPersistentData(req); 
+          itemModRequests = itemModRequestsAuthPers;
+        }
+
 
         Map<String, String> fields = new HashMap<>();
         { // convert dtos to fields
@@ -123,7 +129,7 @@ public class JkSsrServlet extends SsrServletBase {
             }
           }
         }
-        
+
         List<BindingDetailsTable.Record> records = new ArrayList<>();
         {
           DetailsRecordCreator c = new DetailsRecordCreator();
@@ -164,15 +170,15 @@ public class JkSsrServlet extends SsrServletBase {
             }
           }
         }
-        
+
         overlayFields(records, itemModRequests);
-        
+
         // process invalid field data
         if (itemModStatuses != null) {
           for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: itemModStatuses.entrySet()) {
             String modRequestId = modRequestIdAndModStatus.getKey();
             ModStatus modStatus = modRequestIdAndModStatus.getValue();
-            
+
             if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
               for (BindingDetailsTable.Record record: records) {
                 if (modRequestId.equals(record.getId())) {
@@ -196,7 +202,7 @@ public class JkSsrServlet extends SsrServletBase {
             }
           }
         }
-        
+
         BindingDetailsPageContent content = new BindingDetailsPageContent(context, records, mountId);
 
         pageBuilder.setContent(content);
@@ -205,6 +211,18 @@ public class JkSsrServlet extends SsrServletBase {
       } else if (newBinding) {
         // show details for a newly created binding
 
+
+        // retrieve modRequests and modStatuses from the AppState ant auth-persistent data
+        List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
+        @SuppressWarnings("unchecked")
+        Map<String, ModStatus> itemModStatuses = (Map<String, ModStatus>)appState.itemModStatuses;
+        if (itemModRequests == null) {
+          @SuppressWarnings("unchecked")
+          List<ItemModRequestDto> itemModRequestsAuthPers = (List<ItemModRequestDto>)getAuthPersistentData(req); 
+          itemModRequests = itemModRequestsAuthPers;
+        }
+
+
         List<BindingDetailsTable.Record> records = new ArrayList<>();
         {
           DetailsRecordCreator c = new DetailsRecordCreator();
@@ -212,14 +230,14 @@ public class JkSsrServlet extends SsrServletBase {
           BindingDetailsTable.Record active = c.createRecordActive(null);
           active.field().readonly = true;
           records.add(active);
-          
+
           records.add(c.createRecordApplication(null));
           records.add(c.createRecordWorkerName(null));
           records.add(c.createRecordHost(null));
           records.add(c.createRecordAjpPort(null));
           records.add(c.createRecordHttpPort(null));
         }       
-        
+
         overlayFields(records, itemModRequests);
 
         BindingDetailsPageContent content = new BindingDetailsPageContent(context, records);
@@ -236,6 +254,9 @@ public class JkSsrServlet extends SsrServletBase {
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       }
+
+      // clear auth-persistent data
+      setAuthPersistentData(req, null);
       
     } else {
 
@@ -244,13 +265,13 @@ public class JkSsrServlet extends SsrServletBase {
 
     HtmlPageExtBuilder.Page page = pageBuilder.build();
     page.respond(resp);
-    
+
     clearAppState(req);
   }
-  
+
   protected void overlayFields(List<BindingDetailsTable.Record> records, List<ItemModRequestDto> itemModRequests) {
     if (records != null && itemModRequests != null) {
-      
+
       // create map from list
       Map<String, BindingDetailsTable.Record> recordMap = new HashMap<>();
       {
@@ -258,7 +279,7 @@ public class JkSsrServlet extends SsrServletBase {
           recordMap.put(record.getId(), record);
         }
       }
-      
+
       for (ItemModRequestDto itemModRequest: itemModRequests) {
         String modRequestId = itemModRequest.getId();
         Map<String, String> modRequestData = itemModRequest.getData();
@@ -397,14 +418,14 @@ public class JkSsrServlet extends SsrServletBase {
                   modStatuses.put(e.getKey(), ModStatus.errInvalidFieldData(map));
                 }
               }
-              
+
               if (modStatus.code == Code.SUCCESS) {
                 // save modifications and add a new _list to the response
 
                 conf.save(env.getMod_jk_confOutputStream(), 
                     env.getWorkers_propertiesOutputStream());
 
-                // reset the servlet mod status after the successful mod
+                // clear modRequests after the successful modification (but preserve modStatuses)
                 final AppState appState = getAppState(req);
                 appState.itemModRequests = null;
                 appState.itemModStatuses = modStatuses;
@@ -417,12 +438,21 @@ public class JkSsrServlet extends SsrServletBase {
                 appState.itemModStatuses = modStatuses;
               }
 
+              // clear auth-persistent data
+              setAuthPersistentData(req, null);
+
             } else {
-              // TODO
+
+              final AppState appState = getAppState(req);
+              appState.itemModRequests = itemModRequests;
+              appState.itemModStatuses = null;
+
+
+              setAuthPersistentData(req, itemModRequests);
             }
 
           }
-          
+
           resp.sendRedirect(req.getContextPath() + "/jk/" + mountId);
           return;
 

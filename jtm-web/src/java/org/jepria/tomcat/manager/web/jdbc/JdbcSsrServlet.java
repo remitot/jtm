@@ -64,10 +64,11 @@ public class JdbcSsrServlet extends SsrServletBase {
       pageHeader.setButtonLogout(req);
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
+      
+      // retrieve modRequests and modStatuses from the AppState
       List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
       @SuppressWarnings("unchecked")
       Map<String, ItemModStatus> itemModStatuses = (Map<String, ItemModStatus>)appState.itemModStatuses;
-      
       if (itemModRequests == null) {
         @SuppressWarnings("unchecked")
         List<ItemModRequestDto> itemModRequestsAuthPers = (List<ItemModRequestDto>)getAuthPersistentData(req); 
