@@ -1,5 +1,7 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -34,6 +36,17 @@ public class JkApi {
    * @return or else {@code null}
    */
   public BindingDto getBinding(Environment environment, String jkMountId) {
+    return getBinding(environment, jkMountId, true);
+  }
+  
+  /**
+   * 
+   * @param environment
+   * @param jkMountId
+   * @param renameLocalhost whether to rename {@code localhost} value of the {@link Worker#getHost()} with the real hostname
+   * @return or else {@code null}
+   */
+  public BindingDto getBinding(Environment environment, String jkMountId, boolean renameLocalhost) {
 
     final ApacheConfJk apacheConf = new ApacheConfJk(
         () -> environment.getMod_jk_confInputStream(), 
@@ -45,7 +58,7 @@ public class JkApi {
       return null;
     } else {
       JkMountDto jkMountDto = mountToDto(jkMountId, binding.jkMount());
-      WorkerDto workerDto = workerToDto(binding.workerId(), binding.worker());
+      WorkerDto workerDto = workerToDto(binding.workerId(), binding.worker(), renameLocalhost);
       return new BindingDto(jkMountDto, workerDto);
     }
   }
@@ -486,15 +499,6 @@ public class JkApi {
         .sorted(mountSorter()).collect(Collectors.toList());
   }
 
-  //  protected String getLocalhostName() {
-  //    try {
-  //      return InetAddress.getLocalHost().getHostName().toLowerCase();
-  //    } catch (UnknownHostException e) {
-  //      e.printStackTrace();
-  //      // TODO fail-fast or fail-safe?
-  //      return "localhost"; // fallback
-  //    }
-  //  }
 
   /**
    * Null-safe
@@ -566,14 +570,28 @@ public class JkApi {
     
     return new BindingImpl(jkMountId, jkMount, workerId, worker);
   }
-
+  
+  /**
+   * @return hostname of the localhost
+   */
+  protected String getLocalhostName() {
+    try {
+      return InetAddress.getLocalHost().getHostName().toLowerCase();
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+      // TODO fail-fast or fail-safe?
+      return "localhost"; // fallback
+    }
+  }
+  
   /**
    * Null-safe
    * @param workerId
    * @param worker
+   * @param renameLocalhost whether to rename {@code localhost} value of the {@link Worker#getHost()} with the real hostname
    * @return
    */
-  protected WorkerDto workerToDto(String workerId, Worker worker) {
+  protected WorkerDto workerToDto(String workerId, Worker worker, boolean renameLocalhost) {
     if (workerId == null && worker == null) {
       return null;
     }
@@ -583,7 +601,13 @@ public class JkApi {
     if (worker != null) {
       dto.map.put("name", worker.getName());
       dto.map.put("type", worker.getType());
-      dto.map.put("host", worker.getHost());
+      
+      String host = worker.getHost();
+      if (renameLocalhost && "localhost".equals(host)) {
+        host = getLocalhostName();
+      }
+      dto.map.put("host", host);
+      
       dto.map.put("port", worker.getPort());
     }
     return dto;
