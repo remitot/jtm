@@ -82,7 +82,7 @@ public abstract class Table<T extends ItemData> extends El {
         } else {
           // check any field modified
           if (item.values().stream().anyMatch(
-              field -> !Objects.equals(field.value, field.valueOriginal))) {
+              field -> !field.readonly && !Objects.equals(field.value, field.valueOriginal))) {
             row.classList.add("modified");
           }
         }
