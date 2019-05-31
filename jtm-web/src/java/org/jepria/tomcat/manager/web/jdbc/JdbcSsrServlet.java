@@ -88,7 +88,8 @@ public class JdbcSsrServlet extends SsrServletBase {
             .anyMatch(modStatus -> modStatus.code == Code.INVALID_FIELD_DATA); 
       }
       
-      pageBuilder.setStatusBar(createStatusBar(context, hasInvalidFieldData));
+      // clear auth-persistent data
+      setAuthPersistentData(req, null);
       
     } else {
 
@@ -208,7 +209,10 @@ public class JdbcSsrServlet extends SsrServletBase {
             appState.itemModRequests = itemModRequests;
             appState.itemModStatuses = itemModStatuses;
           }
-        
+          
+          // clear auth-persistent data
+          setAuthPersistentData(req, null);
+          
         } else {
 
           setAuthPersistentData(req, itemModRequests);
