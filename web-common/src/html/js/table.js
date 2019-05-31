@@ -138,7 +138,7 @@ function checkModifications() {
   totalModifications = 
       document.getElementsByClassName("modified").length
       - document.querySelectorAll(".row.created.deleted .modified").length
-      + document.getElementsByClassName("row deleted").length;
+      + document.querySelectorAll(".row.deleted").length;
   
   var buttonEnabled = totalModifications > 0;
   setButtonSaveEnabled(buttonEnabled);
