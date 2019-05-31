@@ -49,13 +49,14 @@ public class ControlButtons extends El {
     appendChild(formSave);
   }
   
+  // TODO this actually is a RELOAD button. It needs no arguments, and must just reload the current url
   public void addButtonReset(String resetActionUrl) {
     
     final Text text = context.getText();
     
     // TODO if resetActionUrl == null then assign current url
     
-    final El formReset = new El("form", context).setAttribute("action", resetActionUrl).setAttribute("method", "post")
+    final El formReset = new El("form", context).setAttribute("action", resetActionUrl).setAttribute("method", "get")
         .addClass("button-form");
     
     El buttonReset = new El("button", context)

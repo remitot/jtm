@@ -228,18 +228,6 @@ public class JdbcSsrServlet extends SsrServletBase {
       resp.sendRedirect(req.getContextPath() + "/jdbc");
       return;
       
-    } else if ("/mod-reset".equals(path)) {
-      
-      
-      // TODO no need to checkAuth?
-      final AppState appState = getAppState(req);
-      appState.itemModRequests = null;
-      appState.itemModStatuses = null;
-
-      
-      resp.sendRedirect(req.getContextPath() + "/jdbc");
-      return;
-      
     } else {
       // unknown request
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");

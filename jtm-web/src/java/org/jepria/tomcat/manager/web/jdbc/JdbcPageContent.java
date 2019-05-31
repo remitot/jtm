@@ -165,7 +165,7 @@ public class JdbcPageContent implements Iterable<El> {
     final ControlButtons controlButtons = new ControlButtons(context);
     controlButtons.addButtonCreate();
     controlButtons.addButtonSave(context.getContextPath() + "/jdbc/mod");// TODO such url will erase any path- or request params of the current page
-    controlButtons.addButtonReset(context.getContextPath() + "/jdbc/mod-reset");// TODO such url will erase any path- or request params of the current page
+    controlButtons.addButtonReset(context.getContextPath() + "/jdbc");// TODO such url will erase any path- or request params of the current page
     elements.add(controlButtons);
     
     this.elements = Collections.unmodifiableList(elements);
