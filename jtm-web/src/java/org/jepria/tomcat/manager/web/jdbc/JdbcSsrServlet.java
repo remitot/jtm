@@ -197,10 +197,10 @@ public class JdbcSsrServlet extends SsrServletBase {
             tomcatConf.save(env.getContextXmlOutputStream(), 
                 env.getServerXmlOutputStream());
             
-            // reset the servlet mod status after the successful mod
+            // clear modRequests after the successful modification (but preserve modStatuses)
             final AppState appState = getAppState(req);
             appState.itemModRequests = null;
-            appState.itemModStatuses = null;
+            appState.itemModStatuses = itemModStatuses;
             
           } else {
            
@@ -215,11 +215,12 @@ public class JdbcSsrServlet extends SsrServletBase {
           
         } else {
 
-          setAuthPersistentData(req, itemModRequests);
-          
           final AppState appState = getAppState(req);
           appState.itemModRequests = itemModRequests;
           appState.itemModStatuses = null;
+          
+          
+          setAuthPersistentData(req, itemModRequests);
         }
         
       }
