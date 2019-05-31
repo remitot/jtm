@@ -80,12 +80,12 @@ public class JdbcSsrServlet extends SsrServletBase {
       pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
       
       
-      boolean hasInvalidFieldData;
-      if (itemModStatuses == null) {
-        hasInvalidFieldData = false;
-      } else {
-        hasInvalidFieldData = itemModStatuses.values().stream()
-            .anyMatch(modStatus -> modStatus.code == Code.INVALID_FIELD_DATA); 
+      if (itemModStatuses != null) {
+        boolean hasInvalidFieldData = itemModStatuses.values().stream()
+            .anyMatch(modStatus -> modStatus.code == Code.INVALID_FIELD_DATA);
+        
+        StatusBar statusBar = createModStatusBar(context, hasInvalidFieldData);
+        pageBuilder.setStatusBar(statusBar);
       }
       
       // clear auth-persistent data
@@ -246,7 +246,13 @@ public class JdbcSsrServlet extends SsrServletBase {
     }
   }
 
-  protected StatusBar createStatusBar(Context context, boolean hasInvalidFieldData) {
+  /**
+   * Creates a StatusBar for a modification status
+   * @param context
+   * @param hasInvalidFieldData
+   * @return
+   */
+  protected StatusBar createModStatusBar(Context context, boolean hasInvalidFieldData) {
     if (hasInvalidFieldData) {
       
       Text text = context.getText();

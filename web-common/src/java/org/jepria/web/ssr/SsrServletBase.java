@@ -142,6 +142,8 @@ public class SsrServletBase extends HttpServlet {
     authState.username = null;
   }
 
+  //////// Auth-persistent data ////////
+  
   protected Object getAuthPersistentData(HttpServletRequest req) {
     return AuthState.get(req).authPersistentData;
   }
