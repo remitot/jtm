@@ -124,7 +124,6 @@ public class JkSsrServlet extends SsrServletBase {
           }
         }
         
-        // TODO stopped here: merge modFields into records
         List<BindingDetailsTable.Record> records = new ArrayList<>();
         {
           DetailsRecordCreator c = new DetailsRecordCreator();
