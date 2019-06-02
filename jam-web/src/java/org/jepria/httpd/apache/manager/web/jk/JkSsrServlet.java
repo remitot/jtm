@@ -24,6 +24,7 @@ import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
@@ -56,48 +57,59 @@ public class JkSsrServlet extends SsrServletBase {
     pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
 
 
+    
+    // what view to show on the page
+    
     final String mountId;
+    // whether to show details view for an existing binding (by mountId)
     final boolean details;
+    // whether to show list view
     final boolean list;
+    // whether to show details view for a newly created binding
     final boolean newBinding;
-
-
-    final String path = req.getPathInfo();
-
-    if (path == null || "/".equals(path) || "".equals(path)) {
-      mountId = null;
-      details = newBinding = false;
-      list = true;
-    } else {
-      if ("/new-binding".equals(path)) {
+    {
+      final String path = req.getPathInfo();
+      if (path == null || "/".equals(path) || "".equals(path)) {
         mountId = null;
-        details = list = false;
-        newBinding = true;
+        details = newBinding = false;
+        list = true;
       } else {
-        mountId = path.substring("/".length());
-        list = newBinding = false;
-        details = true;
+        if ("/new-binding".equals(path)) {
+          mountId = null;
+          details = list = false;
+          newBinding = true;
+        } else {
+          mountId = path.substring("/".length());
+          list = newBinding = false;
+          details = true;
+        }
       }
     }
+      
 
 
-
+    // page header
+    
     final PageHeader pageHeader;
-    if (details) {
-      pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_DETAILS);
-    } else if (newBinding) {
-      pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_NEW_BINDING);
-    } else {
-      pageHeader = new JamPageHeader(context, CurrentMenuItem.JK);
+    {
+      if (details) {
+        pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_DETAILS);
+      } else if (newBinding) {
+        pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_NEW_BINDING);
+      } else {
+        pageHeader = new JamPageHeader(context, CurrentMenuItem.JK);
+      }
     }
     pageBuilder.setHeader(pageHeader);
 
+    
+    
     if (checkAuth(req)) {
 
       pageHeader.setButtonLogout(req);
 
       if (details) {
-        // show details for JkMount by id
+        // show details view for for an existing binding (by mountId)
 
 
         BindingDto binding = new JkApi().getBinding(env, mountId);
@@ -115,41 +127,68 @@ public class JkSsrServlet extends SsrServletBase {
         }
 
 
-        Map<String, String> fields = new HashMap<>();
-        { // convert dtos to fields
-          if (binding.jkMount != null) {
-            fields.put("active", binding.jkMount.map.get("active"));
-            fields.put("application", binding.jkMount.map.get("application"));
-          }
-          if (binding.worker != null) {
-            fields.put("workerName", binding.worker.map.get("name"));
-            fields.put("host", binding.worker.map.get("host"));
-            if ("ajp13".equalsIgnoreCase(binding.worker.map.get("type"))) {
-              fields.put("ajpPort", binding.worker.map.get("port"));
-            }
-          }
-        }
-
+        
+        // create records
+        
         List<BindingDetailsTable.Record> records = new ArrayList<>();
         {
-          DetailsRecordCreator c = new DetailsRecordCreator();
-          records.add(c.createRecordActive(fields.get("active")));
-          final String application = fields.get("application");
-          records.add(c.createRecordApplication(application));
-          records.add(c.createRecordWorkerName(fields.get("workerName")));
-          final String host = fields.get("host");
-          records.add(c.createRecordHost(host));
-          final String ajpPort = fields.get("ajpPort");
-          records.add(c.createRecordAjpPort(ajpPort));
-
+          String application = null, host = null, ajpPort = null;
+          
+          if (binding.jkMount != null) {
+            {
+              BindingDetailsTable.Record record = new BindingDetailsTable.Record("active");
+              record.field().value = record.field().valueOriginal = binding.jkMount.map.get("active");
+              records.add(record);
+            }
+            application = binding.jkMount.map.get("application");
+            {
+              BindingDetailsTable.Record record = new BindingDetailsTable.Record("application");
+              record.field().value = record.field().valueOriginal = application;
+              records.add(record);
+            }
+          }
+          
+          if (binding.worker != null) {
+            {
+              BindingDetailsTable.Record record = new BindingDetailsTable.Record("workerName");
+              record.field().value = record.field().valueOriginal = binding.worker.map.get("name");
+              records.add(record);
+            }
+            host = binding.worker.map.get("host");
+            {
+              BindingDetailsTable.Record record = new BindingDetailsTable.Record("host");
+              record.field().value = record.field().valueOriginal = host;
+              records.add(record);
+            }
+            if ("ajp13".equalsIgnoreCase(binding.worker.map.get("type"))) {
+              ajpPort = binding.worker.map.get("port");
+              {
+                BindingDetailsTable.Record record = new BindingDetailsTable.Record("ajpPort");
+                record.field().value = record.field().valueOriginal = ajpPort;
+                records.add(record);
+              }
+            } else {
+              // TODO what if another port type?
+            }
+          }
+          
+          
+          
+          // request http port over ajp
+          
           if (host != null && ajpPort != null) {
-            // request http port over ajp
             Integer ajpPortInt = Integer.parseInt(ajpPort);
             String tomcatManagerExtCtxPath = lookupTomcatManagerPath(env, host, ajpPortInt);
-            int httpPort;
+            
+            BindingDetailsTable.Record recordHttpPort;
+            {
+              recordHttpPort = new BindingDetailsTable.Record("httpPort");
+              records.add(recordHttpPort);
+            }
+            
             try {
-              httpPort = AjpAdapter.requestHttpPortOverAjp(host, ajpPortInt, tomcatManagerExtCtxPath);
-              records.add(c.createRecordHttpPort(String.valueOf(httpPort)));
+              int httpPort = AjpAdapter.requestHttpPortOverAjp(host, ajpPortInt, tomcatManagerExtCtxPath);
+              recordHttpPort.field().value = recordHttpPort.field().valueOriginal = String.valueOf(httpPort);
 
               if (application != null) {
                 StringBuilder link = new StringBuilder();
@@ -158,15 +197,20 @@ public class JkSsrServlet extends SsrServletBase {
                   link.append(':').append(httpPort);
                 }
                 link.append("/").append(application);
-                records.add(c.createRecordLink(link.toString()));
+                
+                {
+                  BindingDetailsTable.Record record = new BindingDetailsTable.Record("link");
+                  record.field().value = link.toString();
+                  record.field().readonly = true;
+                  records.add(record);
+                }
               }
 
             } catch (AjpException e) {
               e.printStackTrace();
-
-              BindingDetailsTable.Record record = c.createRecordHttpPort("");
-              record.setHint("Failed to get HTTP port number for the Tomcat instance, see logs for details");// TODO NON-NLS
-              records.add(record);
+              
+              recordHttpPort.field().value = recordHttpPort.field().valueOriginal = ""; // empty string instead of null to avoid initial modified field state
+              recordHttpPort.setHint("Failed to get HTTP port number for the Tomcat instance, see logs for details");// TODO NON-NLS
             }
           }
         }
@@ -203,13 +247,27 @@ public class JkSsrServlet extends SsrServletBase {
           }
         }
 
-        BindingDetailsPageContent content = new BindingDetailsPageContent(context, records, mountId);
-
+        
+        // page content
+        List<El> content = new ArrayList<>();
+        {
+          BindingDetailsTable table = new BindingDetailsTable(context);
+          table.load(records, null, null);
+          content.add(table);
+          
+          // control buttons
+          final BindingDetailsControlButtons controlButtons = new BindingDetailsControlButtons(context);
+          controlButtons.addButtonSave(context.getContextPath() + "/jk/" + mountId + "/mod");// TODO such url will erase any path- or request params of the current page
+          controlButtons.addButtonDelete(context.getContextPath() + "/jk/" + mountId + "/del");// TODO such url will erase any path- or request params of the current page
+          content.add(controlButtons);
+        }
+        
+        
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
 
       } else if (newBinding) {
-        // show details for a newly created binding
+        // show details view for a newly created binding
 
 
         // retrieve modRequests and modStatuses from the AppState ant auth-persistent data
@@ -223,30 +281,65 @@ public class JkSsrServlet extends SsrServletBase {
         }
 
 
+        // create records
+        
         List<BindingDetailsTable.Record> records = new ArrayList<>();
         {
-          DetailsRecordCreator c = new DetailsRecordCreator();
-
-          BindingDetailsTable.Record active = c.createRecordActive(null);
-          active.field().readonly = true;
-          records.add(active);
-
-          records.add(c.createRecordApplication(null));
-          records.add(c.createRecordWorkerName(null));
-          records.add(c.createRecordHost(null));
-          records.add(c.createRecordAjpPort(null));
-          records.add(c.createRecordHttpPort(null));
+          {
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("active");
+            record.field().value = record.field().valueOriginal = null;
+            record.field().readonly = true;
+            records.add(record);
+          }
+          {
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("application");
+            record.field().value = record.field().valueOriginal = null;
+            records.add(record);
+          }
+          {
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("workerName");
+            record.field().value = "lookup existing"; // TODO NON-NLS
+            record.field().readonly = true;
+            records.add(record);
+          }
+          {
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("host");
+            record.field().value = record.field().valueOriginal = null;
+            records.add(record);
+          }
+          {
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("ajpPort");
+            record.field().value = record.field().valueOriginal = null;
+            records.add(record);
+          }
+          {
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("httpPort");
+            record.field().value = record.field().valueOriginal = null;
+            records.add(record);
+          }
         }       
 
         overlayFields(records, itemModRequests);
 
-        BindingDetailsPageContent content = new BindingDetailsPageContent(context, records);
+        
+        // page content
+        List<El> content = new ArrayList<>();
+        {
+          BindingDetailsTable table = new BindingDetailsTable(context);
+          table.load(records, null, null);
+          content.add(table);
+          
+          final BindingDetailsControlButtons controlButtons = new BindingDetailsControlButtons(context);
+          controlButtons.addButtonSave(context.getContextPath() + "/jk/new-binding/mod");// TODO such url will erase any path- or request params of the current page
+          content.add(controlButtons);
+        }
 
+        
         pageBuilder.setContent(content);
         pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
 
       } else if (list) {
-        // show table
+        // show list view
 
         final List<JkMountDto> jkMounts = new JkApi().getJkMounts(env);
 
@@ -296,58 +389,6 @@ public class JkSsrServlet extends SsrServletBase {
     }
   }
 
-  protected final class DetailsRecordCreator {
-    public BindingDetailsTable.Record createRecordActive(String value) {
-      BindingDetailsTable.Record record = new BindingDetailsTable.Record("Active", null); // TODO NON-NLS
-      record.field().value = record.field().valueOriginal = value;
-      record.setId("active");
-      return record;
-    }
-
-    public BindingDetailsTable.Record createRecordApplication(String value) {
-      BindingDetailsTable.Record record = new BindingDetailsTable.Record("Application", null); // TODO NON-NLS
-      record.field().value = record.field().valueOriginal = value;
-      record.setId("application");
-      return record;
-    }
-
-    public BindingDetailsTable.Record createRecordWorkerName(String value) {
-      BindingDetailsTable.Record record = new BindingDetailsTable.Record("Worker", "worker1"); // TODO NON-NLS
-      record.field().value = record.field().valueOriginal = value;
-      record.setId("workerName");
-      return record;
-    }
-
-    public BindingDetailsTable.Record createRecordHost(String value) {
-      BindingDetailsTable.Record record = new BindingDetailsTable.Record("Host", "server.com"); // TODO NON-NLS NON-NLS
-      record.field().value = record.field().valueOriginal = value;
-      record.setId("host");
-      return record;
-    }
-
-    public BindingDetailsTable.Record createRecordAjpPort(String value) {
-      BindingDetailsTable.Record record = new BindingDetailsTable.Record("AJP port", "8009"); // TODO NON-NLS NON-NLS
-      record.field().value = record.field().valueOriginal = value;
-      record.setId("ajpPort");
-      return record;
-    }
-
-    public BindingDetailsTable.Record createRecordHttpPort(String value) {
-      BindingDetailsTable.Record record = new BindingDetailsTable.Record("HTTP port", "8080"); // TODO NON-NLS NON-NLS
-      record.field().value = record.field().valueOriginal = value;
-      record.setId("httpPort");
-      return record;
-    }
-
-    public BindingDetailsTable.Record createRecordLink(String value) {
-      BindingDetailsTable.Record record = new BindingDetailsTable.Record("Link", null); // TODO NON-NLS
-      record.field().value = value;
-      record.field().readonly = true;
-      record.setId("link");
-      return record;
-    }
-  }
-
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
@@ -357,10 +398,6 @@ public class JkSsrServlet extends SsrServletBase {
 
     if (path == null) {
       unknownRequest = true;
-
-    } else if ("/new-binding".equals(path)) {
-
-      // TODO create new binding
 
     } else {
       final String[] split = path.split("(?=/)");
@@ -407,7 +444,12 @@ public class JkSsrServlet extends SsrServletBase {
                 }
               }
 
-              ModStatus modStatus = api.updateBinding(mountId, fields, conf);
+              ModStatus modStatus;
+              if ("new-binding".equals(mountId)) {
+                modStatus = api.createBinding(fields, conf);
+              } else {
+                modStatus = api.updateBinding(mountId, fields, conf);
+              }
 
               Map<String, ModStatus> modStatuses = null;
               if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {

@@ -15,27 +15,21 @@ public class BindingDetailsTable extends Table<Record> {
   public static class Record extends ItemData {
     private static final long serialVersionUID = 1L;
 
-    private final String fieldLabel;
-    private final String placeholder;
     private String hint;
     
-    public Record(String fieldLabel, String placeholder) {
-      this.fieldLabel = fieldLabel;
-      this.placeholder = placeholder;
-      
+    // every details table record has ID
+    public Record(String id) {
+      super.setId(id);
       put("field", new Field("field"));
+    }
+    
+    @Override
+    public void setId(String id) {
+      throw new UnsupportedOperationException("ID can only be set in constructor");
     }
     
     public void setHint(String hint) {
       this.hint = hint;
-    }
-    
-    public String fieldLabel() {
-      return fieldLabel;
-    }
-    
-    public String placeholder() {
-      return placeholder;
     }
     
     public String getHint() {
@@ -45,6 +39,8 @@ public class BindingDetailsTable extends Table<Record> {
     public Field field() {
       return get("field");
     }
+    
+    
   }
   
   public BindingDetailsTable(Context context) {
@@ -59,53 +55,85 @@ public class BindingDetailsTable extends Table<Record> {
   protected El createRow(Record record, TabIndex tabIndex) {
     El row = new El("div", context);
     row.addClass("row");
+  
     
-    {
-      El cell = createCell(row, "column-label");
+    final El cellLabel = createCell(row, "column-label");
+    
+    final El cell = createCell(row, "column-field");
+    cell.classList.add("cell-field");
+  
+
+    switch(record.getId()) {
+    case "active": {
+      addFieldLabel(cellLabel, "Active"); // TODO NON-NLS
+      addCheckbox(cell, record.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
+      break;
+    }
+    case "application": {
+      addFieldLabel(cellLabel, "Application"); // TODO NON-NLS
+      addField(cell, record.field(), "__application"); // TODO NON-NLS
+      break;
+    }
+    case "workerName": {
+      addFieldLabel(cellLabel, "Worker name"); // TODO NON-NLS
+      addField(cell, record.field(), "__worker name"); // TODO NON-NLS
+      break;
+    }
+    case "host": {
+      addFieldLabel(cellLabel, "Host"); // TODO NON-NLS
+      addField(cell, record.field(), "__host"); // TODO NON-NLS
+      break;
+    }
+    case "ajpPort": {
+      addFieldLabel(cellLabel, "AJP port"); // TODO NON-NLS
+      addField(cell, record.field(), "800900"); // TODO NON-NLS
+      break;
+    }
+    case "httpPort": {
+      addFieldLabel(cellLabel, "HTTP port"); // TODO NON-NLS
+      addField(cell, record.field(), "808000"); // TODO NON-NLS
+      break;
+    }
+    case "link": {
+      addFieldLabel(cellLabel, "Link"); // TODO NON-NLS
       
-      FieldTextLabel field = new FieldTextLabel(cell.context);
-      field.setInnerHTML(record.fieldLabel(), true);
-      cell.appendChild(Fields.wrapCellPad(field));
+      cell.addClass("field-link");
+      String href = record.field().value;
+      El fieldEl = new FieldTextLabel(cell.context);
+      String hrefEscaped = HtmlEscaper.escape(href);
+      El a = new El("a", fieldEl.context)
+          .setAttribute("href", hrefEscaped)
+          .setAttribute("target", "_blank")
+          .setInnerHTML(hrefEscaped, false);
+      fieldEl.appendChild(a);
+      El wrapper = Fields.wrapCellPad(fieldEl);
+      cell.appendChild(wrapper);
+      
+      break;
+    }
+    default: {
+      throw new IllegalArgumentException(record.getId());
+    }
     }
     
-    {
-      El cell = createCell(row, "column-field");
-      cell.classList.add("cell-field");
-    
-      if ("active".equals(record.getId())) {
-        addCheckbox(cell, record.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
-        
-      } else if ("link".equals(record.getId())) {
-        
-        cell.addClass("field-link");
-        
-        String href = record.field().value;
-        El fieldEl = new FieldTextLabel(cell.context);
-        String hrefEscaped = HtmlEscaper.escape(href);
-        El a = new El("a", fieldEl.context)
-            .setAttribute("href", hrefEscaped)
-            .setAttribute("target", "_blank")
-            .setInnerHTML(hrefEscaped, false);
-        fieldEl.appendChild(a);
-        El wrapper = Fields.wrapCellPad(fieldEl);
-        cell.appendChild(wrapper);
-        
-      } else {
-        addField(cell, record.field(), record.placeholder());
-      }
-    }
     
     String hint = record.getHint(); 
     if (hint != null) {
-      El cell = createCell(row, "column-hint");
+      El cellHint = createCell(row, "column-hint");
     
-      El img = new El("img", cell.context).addClass("hint")
-          .setAttribute("src", cell.context.getContextPath() + "/img/jk/hint.png")
+      El img = new El("img", cellHint.context).addClass("hint")
+          .setAttribute("src", cellHint.context.getContextPath() + "/img/jk/hint.png")
           .setAttribute("title", HtmlEscaper.escape(hint));
-      cell.appendChild(Fields.wrapCellPad(img));
+      cellHint.appendChild(Fields.wrapCellPad(img));
     }
     
     return row;
+  }
+  
+  protected void addFieldLabel(El cell, String label) {
+    FieldTextLabel field = new FieldTextLabel(cell.context);
+    field.setInnerHTML(label, true);
+    cell.appendChild(Fields.wrapCellPad(field));
   }
 
 

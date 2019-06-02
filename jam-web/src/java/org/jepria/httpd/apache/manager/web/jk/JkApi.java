@@ -331,65 +331,86 @@ public class JkApi {
   //    }
   //  }
   //  
-  //  private static ModStatus createBinding(
-  //      ModRequestBodyDto mreq, ApacheConfJk apacheConf, ModType modType,
-  //      Environment environment) {
-  //    
-  //    try {
-  //      BindingModDto bindingDto = mreq.getData();
-  //
-  //      
-  //      // validate mandatory fields
-  //      List<String> emptyMandatoryFields = validateMandatoryFields(bindingDto);
-  //      if (!emptyMandatoryFields.isEmpty()) {
-  //        String[] invalidFields = new String[emptyMandatoryFields.size() * 3];
-  //        int i = 0;
-  //        for (String fieldName: emptyMandatoryFields) {
-  //          invalidFields[i++] = fieldName;
-  //          invalidFields[i++] = "MANDATORY_EMPTY";
-  //          invalidFields[i++] = null;
-  //        }
-  //        return ModStatus.errInvalidFieldData(invalidFields);
-  //      }
-  //      // validate 'instance' field value
-  //      if (!validateInstanceFieldValue(bindingDto)) {
-  //        return ModStatus.errInvalidFieldData("instance", "INVALID", null);
-  //      }
-  //
-  //      // validate application
-  //      if (!apacheConf.validateNewApplication(bindingDto.getApplication())) {
-  //        return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
-  //      }
-  //      
-  //      
-  //      Binding newBinding = apacheConf.create();
-  //      
-  //      return updateFields(bindingDto, newBinding, modType, environment);
-  //
-  //    } catch (Throwable e) {
-  //      e.printStackTrace();
-  //      
-  //      return ModStatus.errServerException();
-  //    }
-  //  }
-  //  
-  //  /**
-  //   * Validate mandatory fields
-  //   * @param dto
-  //   * @return list of field names whose values are empty (but must not be empty), or else empty list
-  //   */
-  //  private static List<String> validateMandatoryFields(BindingModDto dto) {
-  //    List<String> emptyFields = new ArrayList<>();
-  //
-  //    if (empty(dto.getApplication())) {
-  //      emptyFields.add("application");
-  //    }
-  //    if (empty(dto.getInstance())) {
-  //      emptyFields.add("instance");
-  //    }
-  //    return emptyFields;
-  //  }
-  //    
+  public ModStatus createBinding(Map<String, String> fields, ApacheConfJk conf) {
+
+    final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+    
+    // validate mandatory empty fields
+    List<String> emptyFields = validateEmptyFieldsForCreate(fields);
+    if (!emptyFields.isEmpty()) {
+      for (String fieldName: emptyFields) {
+        invalidFieldDataMap.put(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
+      }
+    }
+    
+    // validate httpPort and ajpPort dependency
+    // one and only one field must be not empty
+    String httpPort = fields.get("httpPort");
+    String ajpPort = fields.get("ajpPort");
+    if (httpPort != null && !"".equals(httpPort) && ajpPort != null && !"".equals(ajpPort)) {
+      invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+      invalidFieldDataMap.put("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+    }
+    
+    if (!invalidFieldDataMap.isEmpty()) {
+      return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+    }
+    
+    
+    // TODO stopped here. conf.createMount(); conf.createWorker; validate worker name, request ajp over http etc
+//    // NEW:
+//    final Binding binding = conf.create();
+//    
+//    if (binding == null) {
+//      throw new IllegalStateException("No binding found by such mountId=[" + mountId + "]");
+//    }
+//    
+//    return updateFields(fields, binding);
+    return null;
+    
+    // OLD:
+    
+//    try {
+//      BindingModDto bindingDto = mreq.getData();
+//
+//
+//      // validate 'instance' field value
+//      if (!validateInstanceFieldValue(bindingDto)) {
+//        return ModStatus.errInvalidFieldData("instance", "INVALID", null);
+//      }
+//
+//      // validate application
+//      if (!apacheConf.validateNewApplication(bindingDto.getApplication())) {
+//        return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
+//      }
+//
+//
+//      Binding newBinding = apacheConf.create();
+//
+//      return updateFields(bindingDto, newBinding, modType, environment);
+//
+//    } catch (Throwable e) {
+//      e.printStackTrace();
+//
+//      return ModStatus.errServerException();
+//    }
+  }
+  
+  /**
+   * Validates new 'application' field of the binding that is about to be created (before the creation) or updated.
+   * @param application application of the binding that is about to be created or updated
+   * @return {@code true} if the new name is OK; 
+   * {@code false} if there is a binding with the same application
+   */
+  protected boolean validateNewApplication(String application, ApacheConfJk conf) {
+    return !conf.getMounts().values().stream().anyMatch(
+        binding -> application.equals(binding.getApplication()));
+  }
+
+  protected boolean validateNewWorkerName(String workerName, ApacheConfJk conf) {
+    return !conf.getWorkers().values().stream().anyMatch(worker -> workerName.equals(worker.getName()));
+  }
+  
   //  
   //  private static class InstanceValueParser {
   //    public static final Pattern PATTERN = Pattern.compile("([^:]+):(\\d+)");
@@ -441,7 +462,7 @@ public class JkApi {
    * @param dto
    * @return list of invalidly empty or missing mandatory fields, or else empty list, not null
    */
-  protected List<String> validateEmptyFieldForCreate(Map<String, String> fields) {
+  protected List<String> validateEmptyFieldsForCreate(Map<String, String> fields) {
     List<String> emptyFields = new ArrayList<>();
 
     // the fields must be neither null, nor empty

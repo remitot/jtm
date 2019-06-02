@@ -156,20 +156,5 @@ public class ApacheConfJk extends ApacheConfBase {
     saveMod_jk_conf(mod_jk_confOutputStream);
     saveWorkers_properties(workers_propertiesOutputStream);
   }
-
-  /**
-   * Validates new 'application' field of the binding that is about to be created (before the creation) or updated.
-   * @param application application of the binding that is about to be created or updated
-   * @return {@code true} if the new name is OK; 
-   * {@code false} if there is a binding with the same application
-   */
-  public boolean validateNewApplication(String application) {
-    return !getMounts().values().stream().anyMatch(
-        binding -> application.equals(binding.getApplication()));
-  }
-
-  public boolean validateNewWorkerName(String workerName) {
-    return !getWorkers().values().stream().anyMatch(worker -> workerName.equals(worker.getName()));
-  }
 }
 
