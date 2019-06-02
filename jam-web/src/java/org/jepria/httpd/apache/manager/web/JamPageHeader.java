@@ -19,6 +19,8 @@ public class JamPageHeader extends PageHeader {
     JK_NEW_BINDING,
   }
   
+  private El itemJkDetails = null;
+  
   /**
    * @param currentMenuItem the menu item to be displayed as currently active.
    * If {@code null}, no menu item will be displayed as currently active.
@@ -70,18 +72,31 @@ public class JamPageHeader extends PageHeader {
 
         itemJk.classList.add("page-header__menu-item_current");
       
-        String itemText;
         if (currentMenuItem == CurrentMenuItem.JK_DETAILS) {
-          itemText = text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkDetails");
+          itemJkDetails = itemJk;
+          
+          // initial
+          setCurrentDetailsMenuItemText(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkDetails.default"));
         } else {
-          itemText = text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkNewBinding");
+          itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkNewBinding"), true);
         }
-        itemJk.setInnerHTML(itemText, true);
         items.add(itemJk);
       }
       
     }
     
     setItems(items);
+  }
+  
+  /**
+   * Sets a text for the current details menu item 
+   * (applicable for the headers created with {@link CurrentMenuItem#JK_DETAILS} only, for any other header does nothing). 
+   * @param text
+   */
+  // TODO bad architecture: the method is only JK_DETAILS-specific, senseless for any other CurrentMenuItem type
+  public void setCurrentDetailsMenuItemText(String text) {
+    if (itemJkDetails != null) {
+      itemJkDetails.setInnerHTML(text, true);
+    }
   }
 }

@@ -26,7 +26,6 @@ import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
-import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
@@ -54,8 +53,6 @@ public class JkSsrServlet extends SsrServletBase {
     final Environment env = EnvironmentFactory.get(req);
 
     final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
-    pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
-
 
     
     // what view to show on the page
@@ -88,16 +85,21 @@ public class JkSsrServlet extends SsrServletBase {
       
 
 
-    // page header
+    // page header and title
     
-    final PageHeader pageHeader;
+    final JamPageHeader pageHeader;
     {
       if (details) {
         pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_DETAILS);
+        pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title") + "&nbsp;&mdash;&nbsp;"
+            + text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkDetails.default"));
       } else if (newBinding) {
         pageHeader = new JamPageHeader(context, CurrentMenuItem.JK_NEW_BINDING);
+        pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title") + "&nbsp;&mdash;&nbsp;"
+            + text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkNewBinding"));
       } else {
         pageHeader = new JamPageHeader(context, CurrentMenuItem.JK);
+        pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title"));
       }
     }
     pageBuilder.setHeader(pageHeader);
@@ -128,6 +130,21 @@ public class JkSsrServlet extends SsrServletBase {
 
 
         
+        // details header text and page title (from application) 
+        {
+          if (binding != null && binding.jkMount != null) {
+            String application = binding.jkMount.map.get("application");
+            final int maxBindingTitleLength = 24;
+            if (application != null && application.length() > maxBindingTitleLength) { 
+              application = application.substring(0, maxBindingTitleLength) + "...";
+            }
+            pageHeader.setCurrentDetailsMenuItemText(application);
+            pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.jk.title") + "&nbsp;&mdash;&nbsp;" + application);
+          }
+        }
+        
+        
+          
         // create records
         
         List<BindingDetailsTable.Record> records = new ArrayList<>();
