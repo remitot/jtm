@@ -151,7 +151,11 @@ public class JkSsrServlet extends SsrServletBase {
           if (binding.worker != null) {
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("workerName");
-              record.field().value = record.field().valueOriginal = binding.worker.map.get("name");
+              record.field().value = binding.worker.map.get("name");
+              
+              // TODO the user may want to change the worker name or worker-name-to-port binding, 
+              // or to have multiple same-host-and-port workers (e.g. for different applications). Consider this! 
+              record.field().readonly = true; // for now, the worker name is read-only; modification only through host:port binding
               records.add(record);
             }
             host = binding.worker.map.get("host");
