@@ -11,7 +11,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
@@ -220,36 +219,7 @@ public class JkSsrServlet extends SsrServletBase {
 
         overlayFields(records, itemModRequests);
 
-        // process invalid field data
-        if (itemModStatuses != null) {
-          for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: itemModStatuses.entrySet()) {
-            String modRequestId = modRequestIdAndModStatus.getKey();
-            ModStatus modStatus = modRequestIdAndModStatus.getValue();
-
-            if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
-              for (BindingDetailsTable.Record record: records) {
-                if (modRequestId.equals(record.getId())) {
-                  ModStatus.InvalidFieldDataCode invalidFieldDataCode = modStatus.invalidFieldDataMap.get("field");
-                  if (invalidFieldDataCode != null) {
-                    Field field = record.field();
-                    field.invalid = true;
-                    switch (invalidFieldDataCode) {
-                    case MANDATORY_EMPTY: {
-                      field.invalidMessage = "manda is empty"; // TODO NON-NLS
-                      break;
-                    }
-                    case BOTH_HTTP_AJP_PORT: {
-                      field.invalidMessage = "both http and ajp"; // TODO NON-NLS
-                      break;
-                    }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-
+        processInvalidFieldData(records, itemModStatuses);
         
         // page content
         List<El> content = new ArrayList<>();
@@ -324,6 +294,7 @@ public class JkSsrServlet extends SsrServletBase {
 
         overlayFields(records, itemModRequests);
 
+        processInvalidFieldData(records, itemModStatuses);
         
         // page content
         List<El> content = new ArrayList<>();
@@ -363,6 +334,49 @@ public class JkSsrServlet extends SsrServletBase {
     page.respond(resp);
 
     clearAppState(req);
+  }
+  
+  protected void processInvalidFieldData(Iterable<BindingDetailsTable.Record> records, Map<String, ModStatus> modStatuses) {
+    if (modStatuses != null) {
+      for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: modStatuses.entrySet()) {
+        String modRequestId = modRequestIdAndModStatus.getKey();
+        ModStatus modStatus = modRequestIdAndModStatus.getValue();
+
+        if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
+          for (BindingDetailsTable.Record record: records) {
+            if (modRequestId.equals(record.getId())) {
+              ModStatus.InvalidFieldDataCode invalidFieldDataCode = modStatus.invalidFieldDataMap.get("field");
+              if (invalidFieldDataCode != null) {
+                Field field = record.field();
+                field.invalid = true;
+                switch (invalidFieldDataCode) {
+                case MANDATORY_EMPTY: {
+                  field.invalidMessage = "manda is empty"; // TODO NON-NLS
+                  break;
+                }
+                case DUPLICATE_APPLICATION: {
+                  field.invalidMessage = "duplicate application"; // TODO NON-NLS
+                  break;
+                }
+                case BOTH_HTTP_AJP_PORT_EMPTY: {
+                  field.invalidMessage = "either http or ajp must be filled"; // TODO NON-NLS
+                  break;
+                }
+                case BOTH_HTTP_AJP_PORT: {
+                  field.invalidMessage = "both http and ajp"; // TODO NON-NLS
+                  break;
+                }
+                case HTTP_PORT_REQUEST_FAILED: {
+                  field.invalidMessage = "Could not get AJP port over HTTP"; // TODO NON-NLS
+                  break;
+                }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   protected void overlayFields(List<BindingDetailsTable.Record> records, List<ItemModRequestDto> itemModRequests) {
@@ -434,10 +448,6 @@ public class JkSsrServlet extends SsrServletBase {
 
               final Environment env = EnvironmentFactory.get(req);
 
-              final ApacheConfJk conf = new ApacheConfJk(
-                  () -> env.getMod_jk_confInputStream(), 
-                  () -> env.getWorkers_propertiesInputStream());
-
               final JkApi api = new JkApi();
 
               Map<String, String> fields = new HashMap<>();
@@ -449,9 +459,9 @@ public class JkSsrServlet extends SsrServletBase {
 
               ModStatus modStatus;
               if ("new-binding".equals(mountId)) {
-                modStatus = api.createBinding(fields, conf);
+                modStatus = api.createBinding(env, fields);
               } else {
-                modStatus = api.updateBinding(mountId, fields, conf);
+                modStatus = api.updateBinding(env, mountId, fields);
               }
 
               Map<String, ModStatus> modStatuses = null;
@@ -465,10 +475,6 @@ public class JkSsrServlet extends SsrServletBase {
               }
 
               if (modStatus.code == Code.SUCCESS) {
-                // save modifications and add a new _list to the response
-
-                conf.save(env.getMod_jk_confOutputStream(), 
-                    env.getWorkers_propertiesOutputStream());
 
                 // clear modRequests after the successful modification (but preserve modStatuses)
                 final AppState appState = getAppState(req);

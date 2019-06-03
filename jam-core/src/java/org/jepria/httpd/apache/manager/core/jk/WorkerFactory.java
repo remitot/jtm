@@ -48,8 +48,20 @@ public class WorkerFactory {
     }
     
     @Override
+    public void setName(String name) {
+      typeWorkerProperty.setWorkerName(name);
+      hostWorkerProperty.setWorkerName(name);
+      portWorkerProperty.setWorkerName(name);
+    }
+    
+    @Override
     public String getType() {
       return typeWorkerProperty.getValue();
+    }
+    
+    @Override
+    public void setType(String type) {
+      typeWorkerProperty.setValue(type);
     }
 
     @Override
@@ -218,6 +230,10 @@ public class WorkerFactory {
    */
   private static interface WorkerProperty {
     String getWorkerName();
+    void setWorkerName(String workerName);
+    
+    public String getWorkerType();
+    public void setWorkerType(String workerType);
     
     /**
      * The property value
@@ -232,28 +248,35 @@ public class WorkerFactory {
   }
   
   private static class WorkerPropertyImpl implements WorkerProperty {
-    /**
-     * final: must not be changed normally
-     */
-    private final String workerName;
+    private String workerName;
     private String workerType;
     private String value;
     private final TextLineReference line;
     
-    public WorkerPropertyImpl(String workerName, String workerType, String value, TextLineReference line, boolean rebuild) {
-      this.workerName = workerName;
-      this.workerType = workerType;
-      this.value = value;
+    public WorkerPropertyImpl(TextLineReference line) {
       this.line = line;
-      
-      if (rebuild) {
-        rebuild();
-      }
     }
-
+    
     @Override
     public String getWorkerName() {
       return workerName;
+    }
+    
+    @Override
+    public void setWorkerName(String workerName) {
+      this.workerName = workerName;
+      rebuild();
+    }
+    
+    @Override
+    public String getWorkerType() {
+      return workerType;
+    }
+
+    @Override
+    public void setWorkerType(String workerType) {
+      this.workerType = workerType;
+      rebuild();
     }
 
     @Override
@@ -292,11 +315,6 @@ public class WorkerFactory {
   }
   
   /**
-   * {@code worker.name.type} value
-   */
-  public static final String AJP_13_TYPE = "ajp13";// TODO extract?
-  
-  /**
    * Does nothing if failed to parse the line into a WorkerProperty, 
    * otherwise tells one of the consumers to consume the parsed object.
    * @param line
@@ -315,20 +333,23 @@ public class WorkerFactory {
       final String value = m.group(3);
       
       final WorkerProperty workerProperty;
+      { 
+        workerProperty = new WorkerPropertyImpl(line);
+        workerProperty.setWorkerName(workerName);
+        workerProperty.setWorkerType(workerType);
+        workerProperty.setValue(value);
+      }
+      
       final Consumer<WorkerProperty> targetConsumer;
       
       if ("type".equals(workerType)) {
-        workerProperty = new WorkerPropertyImpl(workerName, workerType, value, line, false);
         targetConsumer = typePropertyConsumer;
       } else if ("host".equals(workerType)) {
-        workerProperty = new WorkerPropertyImpl(workerName, workerType, value, line, false);
         targetConsumer = hostPropertyConsumer;
       } else if ("port".equals(workerType)) {
-        workerProperty = new WorkerPropertyImpl(workerName, workerType, value, line, false);
         targetConsumer = portPropertyConsumer;
       } else {
-        workerProperty = null;
-        targetConsumer = null;
+        throw new IllegalArgumentException("Unknown worker type '" + workerType + "'");
       }
       
       if (workerProperty != null && targetConsumer != null) {
@@ -338,22 +359,33 @@ public class WorkerFactory {
   }
   
   /**
-   * Creates a new (empty) non-commented worker with the name specified
+   * Creates a new (empty) non-commented worker with the name and type specified
    * @param name
+   * @param type if {@code null} then {@code ajp13} value is used
    * @param typeWorkerPropertyLine will be reset  
    * @param hostWorkerPropertyLine will be reset
    * @param portWorkerPropertyLine will be reset
    * @return
    */
-  public static WorkerImpl create(String name,
+  public static WorkerImpl create(String name, String type,
       TextLineReference typeWorkerPropertyLine,
       TextLineReference hostWorkerPropertyLine,
       TextLineReference portWorkerPropertyLine) {
     
-    // TODO parametirze worker type?
-    WorkerProperty typeWorkerProperty = new WorkerPropertyImpl(name, "type", AJP_13_TYPE, typeWorkerPropertyLine, true);
-    WorkerProperty hostWorkerProperty = new WorkerPropertyImpl(name, "host", null, hostWorkerPropertyLine, true);
-    WorkerProperty portWorkerProperty = new WorkerPropertyImpl(name, "port", null, portWorkerPropertyLine, true); 
+    WorkerProperty typeWorkerProperty = new WorkerPropertyImpl(typeWorkerPropertyLine);
+    typeWorkerProperty.setWorkerName(name);
+    typeWorkerProperty.setWorkerType("type");
+    typeWorkerProperty.setValue(type == null ? "ajp13" : type);
+    
+    WorkerProperty hostWorkerProperty = new WorkerPropertyImpl(hostWorkerPropertyLine);
+    hostWorkerProperty.setWorkerName(name);
+    hostWorkerProperty.setWorkerType("host");
+    hostWorkerProperty.setValue(null);
+    
+    WorkerProperty portWorkerProperty = new WorkerPropertyImpl(portWorkerPropertyLine); 
+    portWorkerProperty.setWorkerName(name);
+    portWorkerProperty.setWorkerType("port");
+    portWorkerProperty.setValue(null);
     
     return new WorkerImpl(typeWorkerProperty, hostWorkerProperty, portWorkerProperty);
   }

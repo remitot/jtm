@@ -11,8 +11,10 @@ public interface Worker {
    * The common worker name for all three properties
    */
   String getName();
+  void setName(String name);
   
   String getType();
+  void setType(String type);
   
   String getHost();
   void setHost(String host);

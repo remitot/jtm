@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.jepria.httpd.apache.manager.core.ApacheConfBase;
@@ -105,26 +106,39 @@ public class ApacheConfJk extends ApacheConfBase {
   }
 
   /**
-   * Create new (empty) Binding
+   * Create new active mount.
+   * The subsequent {@link #getMounts()} invocations will return the original mount collection,
+   * not containing the newly created worker.
    * @return
    */
-  public Object create() {
+  public JkMount createMount() {
+    
+    TextLineReference.addNewLine(getMod_jk_confLines());// empty line
+    TextLineReference rootMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
+    TextLineReference asterMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
 
-    throw new UnsupportedOperationException("Not impl yet");
-//    TextLineReference.addNewLine(getMod_jk_confLines());// empty line
-//    TextLineReference rootMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
-//    TextLineReference asterMountLine = TextLineReference.addNewLine(getMod_jk_confLines());
-//
-//    JkMount jkMount = JkMountFactory.create(rootMountLine, asterMountLine);
-//
-//    return new BindingImpl(jkMount, null, this);// TODO it is bad to pass null as Worker because the 'Binding' entity literally MUST include Worker (otherwise 'binding' to what?)
+    JkMount jkMount = JkMountFactory.create(rootMountLine, asterMountLine);
+
+    return jkMount;
   }
 
   /**
    * Creates a new active worker.
+   * The subsequent {@link #getWorkers()} invocations will return the original worker collection,
+   * not containing the newly created worker.
+   * @param name not null
+   * @param type
+   * @throws IllegalArgumentException if the worker with the same name already exists
    */
-  protected Worker createWorker(String name) {
+  public Worker createWorker(String name, String type) {
 
+    Objects.requireNonNull(name);
+    
+    // validate new worker name
+    if (getWorkers().values().stream().anyMatch(worker -> name.equals(worker.getName()))) {
+      throw new IllegalArgumentException("The worker with name '" + name + "' already exists");
+    }
+    
     TextLineReference.addNewLine(getWorkers_propertiesLines());// empty line
     TextLineReference typeWorkerPropertyLine = TextLineReference.addNewLine(getWorkers_propertiesLines());
     TextLineReference hostWorkerPropertyLine = TextLineReference.addNewLine(getWorkers_propertiesLines());
@@ -136,17 +150,7 @@ public class ApacheConfJk extends ApacheConfBase {
       workerNames.add(name);
     }
 
-    Worker worker = WorkerFactory.create(name, typeWorkerPropertyLine, hostWorkerPropertyLine, portWorkerPropertyLine);
-
-
-    // add the new worker to the list
-
-    // TODO unchecked add! 
-    // Future getWorkers() external access may rely on the new worker presence,
-    // but the new worker is NOT saved to the target file yet (added to the list only instead),
-    // and if the save fails, this may lead to inconsistency 
-    // (because the new 'present' worker will be actually absent)
-//    getBaseWorkers().put(worker); 
+    Worker worker = WorkerFactory.create(name, type, typeWorkerPropertyLine, hostWorkerPropertyLine, portWorkerPropertyLine);
 
     return worker;
   }

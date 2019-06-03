@@ -90,7 +90,13 @@ public class AjpAdapter {
     return httpPort;
   }
   
+  /**
+   * For requesting HTTP port over AJP
+   */
   private static final String MANAGER_EXT_HTTP_PORT_URI = "/api/port/http";
 
-  private static final int CONNECT_TIMEOUT_MS = 2000; // TODO parametrize?
+  /**
+   * For requesting HTTP port over AJP
+   */
+  private static final int CONNECT_TIMEOUT_MS = 2000;
 } 

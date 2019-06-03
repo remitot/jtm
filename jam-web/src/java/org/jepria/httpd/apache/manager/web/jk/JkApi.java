@@ -1,6 +1,9 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
@@ -15,6 +19,7 @@ import org.jepria.httpd.apache.manager.core.jk.JkMount;
 import org.jepria.httpd.apache.manager.core.jk.Worker;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.jk.AjpAdapter.AjpException;
+import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.Code;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.WorkerDto;
@@ -149,7 +154,13 @@ public class JkApi {
      */
     public static enum InvalidFieldDataCode {
       MANDATORY_EMPTY,
+      DUPLICATE_APPLICATION,
+      BOTH_HTTP_AJP_PORT_EMPTY,
       BOTH_HTTP_AJP_PORT,
+      /**
+       * Failed to request HTTP port over AJP
+       */
+      HTTP_PORT_REQUEST_FAILED,
     }
     
     /**
@@ -161,7 +172,7 @@ public class JkApi {
     }
   }
 
-  public ModStatus updateBinding(String mountId, Map<String, String> fields, ApacheConfJk conf) {
+  public ModStatus updateBinding(Environment environment, String mountId, Map<String, String> fields) {
 
     Objects.requireNonNull(mountId, "mountId must not be null");
     
@@ -189,6 +200,9 @@ public class JkApi {
     }
     
     
+    final ApacheConfJk conf = new ApacheConfJk(
+        () -> environment.getMod_jk_confInputStream(), 
+        () -> environment.getWorkers_propertiesInputStream());
     
     final Binding binding = getBinding(conf, mountId);
     
@@ -196,7 +210,14 @@ public class JkApi {
       throw new IllegalStateException("No binding found by such mountId=[" + mountId + "]");
     }
     
-    return updateFields(fields, binding);
+    ModStatus modStatus = updateFields(environment, conf, fields, binding);
+    
+    if (modStatus.code == Code.SUCCESS) {
+      conf.save(environment.getMod_jk_confOutputStream(), 
+          environment.getWorkers_propertiesOutputStream());
+    }
+    
+    return modStatus;
   }
   
   
@@ -207,8 +228,63 @@ public class JkApi {
    * @param target non null
    * @return
    */
-  protected ModStatus updateFields(Map<String, String> fields, Binding target) {
-    return null;
+  protected ModStatus updateFields(Environment environment, ApacheConfJk conf, Map<String, String> fields, Binding target) {
+    
+    // validate application
+    final String application = fields.get("application");
+    Map<String, JkMount> mounts = conf.getMounts();
+    if (mounts.values().stream().anyMatch(jkMount -> application.equals(jkMount.getApplication()))) {
+      // duplicate application
+      final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+      invalidFieldDataMap.put("application", ModStatus.InvalidFieldDataCode.DUPLICATE_APPLICATION);
+      return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+    }
+    
+    
+
+    // obtain ajpPort
+    final String ajpPort;
+    {
+      String ajpPort0 = fields.get("ajpPort");
+      if (ajpPort0 == null || "".equals(ajpPort0)) {
+        // request ajp port over http
+        
+        final String host = fields.get("host");
+        final String httpPort = fields.get("httpPort");
+        
+        if (host != null && httpPort != null) {
+          Integer httpPortInt = Integer.parseInt(httpPort);
+          String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, httpPortInt);
+          
+          try {
+            int ajpPortInt = requestAjpPortOverHttp(host, httpPortInt, tomcatManagerExtCtxPath + "/api/port/ajp");
+            ajpPort0 = String.valueOf(ajpPortInt);
+            
+          } catch (Exception e) {
+            e.printStackTrace();
+            
+            ajpPort0 = null;
+          }
+        }
+        
+        
+        if (ajpPort0 == null) {
+          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+        }
+      }
+      
+      ajpPort = ajpPort0;
+    }
+    
+    
+    // ajpPort is not null at this point
+    
+
+    throw new UnsupportedOperationException("Not impl yet. AjpPort ready: ajp=" + ajpPort);
+    
     // rebind first
     
 //    if (sourceDto.getInstance() != null) {
@@ -383,85 +459,108 @@ public class JkApi {
   //    }
   //  }
   //  
-  public ModStatus createBinding(Map<String, String> fields, ApacheConfJk conf) {
+  public ModStatus createBinding(Environment environment, Map<String, String> fields) {
 
-    final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-    
-    // validate mandatory empty fields
-    List<String> emptyFields = validateEmptyFieldsForCreate(fields);
-    if (!emptyFields.isEmpty()) {
-      for (String fieldName: emptyFields) {
-        invalidFieldDataMap.put(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
+    { // validation
+      final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+      
+      // validate mandatory empty fields
+      List<String> emptyFields = validateEmptyFieldsForCreate(fields);
+      if (!emptyFields.isEmpty()) {
+        for (String fieldName: emptyFields) {
+          invalidFieldDataMap.putIfAbsent(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
+        }
+      }
+  
+      
+      String httpPort = fields.get("httpPort");
+      String ajpPort = fields.get("ajpPort");
+      
+      
+      // validate httpPort and ajpPort dependency
+      // one and only one field must be not empty
+      if ((httpPort == null || "".equals(httpPort)) && (ajpPort == null || "".equals(ajpPort))) {
+        invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
+        invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
+      }
+      if (httpPort != null && !"".equals(httpPort) && ajpPort != null && !"".equals(ajpPort)) {
+        invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+        invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+      }
+      
+      
+      if (!invalidFieldDataMap.isEmpty()) {
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
       }
     }
     
-    // validate httpPort and ajpPort dependency
-    // one and only one field must be not empty
-    String httpPort = fields.get("httpPort");
-    String ajpPort = fields.get("ajpPort");
-    if (httpPort != null && !"".equals(httpPort) && ajpPort != null && !"".equals(ajpPort)) {
-      invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
-      invalidFieldDataMap.put("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+    
+    final ApacheConfJk conf = new ApacheConfJk(
+        () -> environment.getMod_jk_confInputStream(), 
+        () -> environment.getWorkers_propertiesInputStream());
+    
+    
+    Binding binding = createBinding();
+    
+    ModStatus modStatus = updateFields(environment, conf, fields, binding);
+    
+    if (modStatus.code == Code.SUCCESS) {
+      conf.save(environment.getMod_jk_confOutputStream(), 
+          environment.getWorkers_propertiesOutputStream());
     }
     
-    if (!invalidFieldDataMap.isEmpty()) {
-      return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+    return modStatus;
+  }
+  
+  protected Binding createBinding() {
+    // TODO stopped here
+    return new BindingImpl(null, null, null, null);
+  }
+  
+  protected int requestAjpPortOverHttp(String host, int httpPort, String uri) throws Exception {
+    try {
+      
+      final URL url;
+      try {
+        url = new URL("http", host, httpPort, uri);
+      } catch (MalformedURLException e) {
+        // impossible: trusted url
+        throw new RuntimeException(e);
+      }
+    
+      HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+  
+      // both timeouts necessary 
+      connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+      connection.setReadTimeout(CONNECT_TIMEOUT_MS);
+  
+      connection.connect();
+  
+      int status = connection.getResponseCode();
+  
+      String responseBody = null;
+      if (status == 200) {// TODO or check 2xx?
+        try (Scanner sc = new Scanner(connection.getInputStream())) {
+          sc.useDelimiter("\\Z");
+          if (sc.hasNext()) {
+            responseBody = sc.next();
+          } else {
+            throw new RuntimeException("Empty response body");
+          }
+        }
+      }
+      
+      return Integer.parseInt(responseBody);
+      
+    } catch (Throwable e) {
+      throw new Exception(e);
     }
-    
-    
-    // TODO stopped here. conf.createMount(); conf.createWorker; validate worker name, request ajp over http etc
-//    // NEW:
-//    final Binding binding = conf.create();
-//    
-//    if (binding == null) {
-//      throw new IllegalStateException("No binding found by such mountId=[" + mountId + "]");
-//    }
-//    
-//    return updateFields(fields, binding);
-    return null;
-    
-    // OLD:
-    
-//    try {
-//      BindingModDto bindingDto = mreq.getData();
-//
-//
-//      // validate 'instance' field value
-//      if (!validateInstanceFieldValue(bindingDto)) {
-//        return ModStatus.errInvalidFieldData("instance", "INVALID", null);
-//      }
-//
-//      // validate application
-//      if (!apacheConf.validateNewApplication(bindingDto.getApplication())) {
-//        return ModStatus.errInvalidFieldData("application", "DUPLICATE_NAME", null);
-//      }
-//
-//
-//      Binding newBinding = apacheConf.create();
-//
-//      return updateFields(bindingDto, newBinding, modType, environment);
-//
-//    } catch (Throwable e) {
-//      e.printStackTrace();
-//
-//      return ModStatus.errServerException();
-//    }
   }
   
   /**
-   * Validates new 'application' field of the binding that is about to be created (before the creation) or updated.
-   * @param application application of the binding that is about to be created or updated
-   * @return {@code true} if the new name is OK; 
-   * {@code false} if there is a binding with the same application
+   * For requesting AJP port over HTTP
    */
-  protected boolean validateNewApplication(String application, ApacheConfJk conf) {
-    return !conf.getMounts().values().stream().anyMatch(
-        binding -> application.equals(binding.getApplication()));
-  }
-
-  protected boolean validateNewWorkerName(String workerName, ApacheConfJk conf) {
-    return !conf.getWorkers().values().stream().anyMatch(worker -> workerName.equals(worker.getName()));
-  }
+  private static final int CONNECT_TIMEOUT_MS = 2000;
   
   //  
   //  private static class InstanceValueParser {
@@ -522,21 +621,9 @@ public class JkApi {
     if (application == null || "".equals(application)) {
       emptyFields.add("application");
     }
-    String workerName = fields.get("workerName"); 
-    if (workerName == null || "".equals(workerName)) {
-      emptyFields.add("workerName");
-    }
     String host = fields.get("host");
     if (host == null || "".equals(host)) {
       emptyFields.add("host");
-    }
-    String httpPort = fields.get("httpPort");
-    String ajpPort = fields.get("ajpPort");
-    if (httpPort == null || "".equals(httpPort)) {
-      emptyFields.add("httpPort");
-    }
-    if (ajpPort == null || "".equals(ajpPort)) {
-      emptyFields.add("ajpPort");
     }
     
     return emptyFields;
@@ -553,9 +640,6 @@ public class JkApi {
     // the fields may be null, but if not null then not empty
     if ("".equals(fields.get("application"))) {
       emptyFields.add("application");
-    }
-    if ("".equals(fields.get("workerName"))) {
-      emptyFields.add("workerName");
     }
     if ("".equals(fields.get("host"))) {
       emptyFields.add("host");
