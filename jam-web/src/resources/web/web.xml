@@ -35,25 +35,6 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>JkHttpGui</servlet-name>
-    <jsp-file>/gui/jk/jk-http.jsp</jsp-file>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>JkHttpGui</servlet-name>
-    <url-pattern>/jk-http</url-pattern>
-  </servlet-mapping>
-  
-  <servlet>
-    <servlet-name>JkAjpGui</servlet-name>
-    <jsp-file>/gui/jk/jk-ajp.jsp</jsp-file>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>JkAjpGui</servlet-name>
-    <url-pattern>/jk-ajp</url-pattern>
-  </servlet-mapping>
-  
-  
-  <servlet>
     <servlet-name>RestartServlet</servlet-name>
     <servlet-class>org.jepria.httpd.apache.manager.web.RestartServlet
     </servlet-class>
