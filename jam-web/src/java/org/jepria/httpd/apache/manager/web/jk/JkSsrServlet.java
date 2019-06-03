@@ -16,7 +16,6 @@ import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
-import org.jepria.httpd.apache.manager.web.jk.AjpAdapter.AjpException;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.Code;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.InvalidFieldDataCode;
@@ -149,18 +148,15 @@ public class JkSsrServlet extends SsrServletBase {
         
         List<BindingDetailsTable.Record> records = new ArrayList<>();
         {
-          String application = null, host = null, ajpPort = null;
-          
           if (binding.jkMount != null) {
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("active");
               record.field().value = record.field().valueOriginal = binding.jkMount.map.get("active");
               records.add(record);
             }
-            application = binding.jkMount.map.get("application");
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("application");
-              record.field().value = record.field().valueOriginal = application;
+              record.field().value = record.field().valueOriginal = binding.jkMount.map.get("application");
               records.add(record);
             }
           }
@@ -175,17 +171,15 @@ public class JkSsrServlet extends SsrServletBase {
               record.field().readonly = true; // for now, the worker name is read-only; modification only through host:port binding
               records.add(record);
             }
-            host = binding.worker.map.get("host");
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("host");
-              record.field().value = record.field().valueOriginal = host;
+              record.field().value = record.field().valueOriginal = binding.worker.map.get("host");
               records.add(record);
             }
             if ("ajp13".equalsIgnoreCase(binding.worker.map.get("type"))) {
-              ajpPort = binding.worker.map.get("port");
               {
                 BindingDetailsTable.Record record = new BindingDetailsTable.Record("ajpPort");
-                record.field().value = record.field().valueOriginal = ajpPort;
+                record.field().value = record.field().valueOriginal = binding.worker.map.get("port");
                 records.add(record);
               }
             } else {
@@ -195,44 +189,32 @@ public class JkSsrServlet extends SsrServletBase {
           
           
           
-          // request http port over ajp
+          // http port
           
-          if (host != null && ajpPort != null) {
-            Integer ajpPortInt = Integer.parseInt(ajpPort);
-            String tomcatManagerExtCtxPath = lookupTomcatManagerPath(env, host, ajpPortInt);
-            
+          if (binding.httpPort != null || binding.httpErrorCode != null) {
             BindingDetailsTable.Record recordHttpPort;
             {
               recordHttpPort = new BindingDetailsTable.Record("httpPort");
               records.add(recordHttpPort);
             }
             
-            try {
-              int httpPort = AjpAdapter.requestHttpPortOverAjp(host, ajpPortInt, tomcatManagerExtCtxPath);
-              recordHttpPort.field().value = recordHttpPort.field().valueOriginal = String.valueOf(httpPort);
-
-              if (application != null) {
-                StringBuilder link = new StringBuilder();
-                link.append("http://").append(host);
-                if (httpPort != 80) {
-                  link.append(':').append(httpPort);
-                }
-                link.append("/").append(application);
-                
-                {
-                  BindingDetailsTable.Record record = new BindingDetailsTable.Record("link");
-                  record.field().value = link.toString();
-                  record.field().readonly = true;
-                  records.add(record);
-                }
-              }
-
-            } catch (AjpException e) {
-              e.printStackTrace();
-              
+            if (binding.httpPort != null) {
+              recordHttpPort.field().value = recordHttpPort.field().valueOriginal = binding.httpPort;
+            }
+            if (binding.httpErrorCode != null && binding.httpErrorCode == 1) {
               recordHttpPort.field().value = recordHttpPort.field().valueOriginal = ""; // empty string instead of null to avoid initial modified field state
               recordHttpPort.setHint("Failed to get HTTP port number for the Tomcat instance, see logs for details");// TODO NON-NLS
             }
+          }
+          
+
+          // http link
+          
+          if (binding.httpLink != null) {
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("link");
+            record.field().value = binding.httpLink;
+            record.field().readonly = true;
+            records.add(record);
           }
         }
 
@@ -539,17 +521,5 @@ public class JkSsrServlet extends SsrServletBase {
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
       return;
     }
-  }
-
-  protected String lookupTomcatManagerPath(Environment environment, String host, int port) {
-    String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
-    if (tomcatManagerPath == null) {
-      tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager.default.path");
-      if (tomcatManagerPath == null) {
-        throw new RuntimeException("Misconfiguration exception: "
-            + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.TomcatManager.default.path\" is not defined");
-      }
-    }
-    return tomcatManagerPath;
   }
 }

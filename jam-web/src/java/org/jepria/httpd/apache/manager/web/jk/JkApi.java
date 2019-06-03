@@ -14,6 +14,7 @@ import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
 import org.jepria.httpd.apache.manager.core.jk.JkMount;
 import org.jepria.httpd.apache.manager.core.jk.Worker;
 import org.jepria.httpd.apache.manager.web.Environment;
+import org.jepria.httpd.apache.manager.web.jk.AjpAdapter.AjpException;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.WorkerDto;
@@ -56,11 +57,62 @@ public class JkApi {
     
     if (binding == null) {
       return null;
-    } else {
-      JkMountDto jkMountDto = mountToDto(jkMountId, binding.jkMount());
-      WorkerDto workerDto = workerToDto(binding.workerId(), binding.worker(), renameLocalhost);
-      return new BindingDto(jkMountDto, workerDto);
     }
+    
+    
+    JkMountDto jkMountDto = mountToDto(jkMountId, binding.jkMount());
+    WorkerDto workerDto = workerToDto(binding.workerId(), binding.worker(), renameLocalhost);
+    
+    final BindingDto bindingDto = new BindingDto(jkMountDto, workerDto);
+    
+    
+    
+    // request http port over ajp
+    Integer httpPort = null;
+    if (binding.worker() != null) {
+      
+      final String host = binding.worker().getHost();
+      final String ajpPort = binding.worker().getPort();
+      
+      if (host != null && ajpPort != null) {
+        Integer ajpPortInt = Integer.parseInt(ajpPort);
+        String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, ajpPortInt);
+        
+        try {
+          httpPort = AjpAdapter.requestHttpPortOverAjp(host, ajpPortInt, tomcatManagerExtCtxPath);
+          bindingDto.httpPort = String.valueOf(httpPort);
+          
+        } catch (AjpException e) {
+          e.printStackTrace();
+          
+          httpPort = null;
+          bindingDto.httpErrorCode = 1;
+        }
+      }
+    }
+    
+    
+    
+    // build http link
+    if (bindingDto.jkMount != null && bindingDto.worker != null && httpPort != null) {
+      
+      final String application = bindingDto.jkMount.map.get("application");
+      final String host = bindingDto.worker.map.get("host"); 
+          
+      if (application != null) {
+        StringBuilder link = new StringBuilder();
+        link.append("http://").append(host);
+        if (httpPort != 80) {
+          link.append(':').append(httpPort);
+        }
+        link.append("/").append(application);
+        
+        bindingDto.httpLink = link.toString();
+      }
+    }
+    
+    
+    return bindingDto;
   }
   
   public static class ModStatus {
@@ -632,5 +684,17 @@ public class JkApi {
       dto.map.put("port", worker.getPort());
     }
     return dto;
+  }
+  
+  protected String lookupTomcatManagerPath(Environment environment, String host, int port) {
+    String tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager." + host + "." + port + ".path");
+    if (tomcatManagerPath == null) {
+      tomcatManagerPath = environment.getProperty("org.jepria.httpd.apache.manager.web.TomcatManager.default.path");
+      if (tomcatManagerPath == null) {
+        throw new RuntimeException("Misconfiguration exception: "
+            + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.TomcatManager.default.path\" is not defined");
+      }
+    }
+    return tomcatManagerPath;
   }
 }
