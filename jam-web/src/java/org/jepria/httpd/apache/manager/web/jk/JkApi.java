@@ -1,8 +1,11 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Comparator;
@@ -162,6 +165,9 @@ public class JkApi {
        * Failed to request HTTP port over AJP
        */
       HTTP_PORT_REQUEST_FAILED,
+      HTTP_PORT_REQUEST_FAILED__NOT_HTTP_PORT,
+      HTTP_PORT_REQUEST_FAILED__NOT_WORKING_PORT,
+      HTTP_PORT_REQUEST_FAILED__UNKNOWN_HOST,
     }
     
     /**
@@ -314,20 +320,32 @@ public class JkApi {
         try {
           int ajpPort = requestAjpPortOverHttp(host, httpPort, tomcatManagerExtCtxPath + "/api/port/ajp");
           ajpPortForUpdate = String.valueOf(ajpPort);
+         
+        } catch (UnknownHostException e) {
+          // wrong host
+          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__UNKNOWN_HOST);
+          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
           
+        } catch (ConnectException e) {
+          // host OK, port is not working at all
+          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__NOT_WORKING_PORT);
+          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+
+        } catch (SocketException | SocketTimeoutException e) {
+          // host OK, port OK, invalid protocol
+          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__NOT_HTTP_PORT);
+          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+
         } catch (Exception e) {
-          e.printStackTrace();
-          
-          ajpPortForUpdate = null;
+          // other error
+          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+          invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
         }
-      }
-      
-      
-      if (ajpPortForUpdate == null) {
-        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-        invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
-        invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
-        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
       }
     }
     
@@ -518,6 +536,18 @@ public class JkApi {
     return new BindingImpl(null, newJkMount, null, newWorker);
   }
   
+  /**
+   * 
+   * @param host
+   * @param httpPort
+   * @param uri
+   * @return
+   * @throws UnknownHostException wrong host
+   * @throws ConnectException host OK, port is not working at all
+   * @throws SocketException host OK, port OK, invalid protocol
+   * @throws SocketTimeoutException host OK, port OK, invalid protocol
+   * @throws Exception other error
+   */
   protected int requestAjpPortOverHttp(String host, int httpPort, String uri) throws Exception {
     try {
       
@@ -553,7 +583,20 @@ public class JkApi {
       
       return Integer.parseInt(responseBody);
       
+    } catch (UnknownHostException e) {
+      // wrong host
+      throw e;
+      
+    } catch (ConnectException e) {
+      // host OK, port is not working at all
+      throw e;
+
+    } catch (SocketException | SocketTimeoutException e) {
+      // host OK, port OK, invalid protocol
+      throw e;
+
     } catch (Throwable e) {
+      // other error
       throw new Exception(e);
     }
   }

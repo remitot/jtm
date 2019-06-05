@@ -217,7 +217,8 @@ public class JkSsrServlet extends SsrServletBase {
             }
             if (binding.httpErrorCode != null && binding.httpErrorCode == 1) {
               httpPortField.value = httpPortField.valueOriginal = ""; // empty string instead of null to avoid initial modified field state
-              portRecord.setHint("Failed to get HTTP port number for the Tomcat instance, see logs for details");// TODO NON-NLS
+              portRecord.setHint(text.getString(
+                  "org.jepria.httpd.apache.manager.web.jk.Deatils.field.hint.http_port_request_failed"));
             }
           }
           
@@ -240,7 +241,7 @@ public class JkSsrServlet extends SsrServletBase {
 
         overlayFields(records, itemModRequests);
 
-        processInvalidFieldData(records, itemModStatuses);
+        processInvalidFieldData(records, itemModStatuses, text);
         
         // page content
         List<El> content = new ArrayList<>();
@@ -318,7 +319,7 @@ public class JkSsrServlet extends SsrServletBase {
 
         overlayFields(records, itemModRequests);
 
-        processInvalidFieldData(records, itemModStatuses);
+        processInvalidFieldData(records, itemModStatuses, text);
         
         // page content
         List<El> content = new ArrayList<>();
@@ -360,7 +361,7 @@ public class JkSsrServlet extends SsrServletBase {
     clearAppState(req);
   }
   
-  protected void processInvalidFieldData(Iterable<BindingDetailsTable.Record> records, Map<String, ModStatus> modStatuses) {
+  protected void processInvalidFieldData(Iterable<BindingDetailsTable.Record> records, Map<String, ModStatus> modStatuses, Text text) {
     if (records != null && modStatuses != null) {
       
       // create map from list
@@ -385,27 +386,39 @@ public class JkSsrServlet extends SsrServletBase {
                   field.invalid = true;
                   switch (invalidFieldDataCode) {
                   case MANDATORY_EMPTY: {
-                    field.invalidMessage = "manda is empty"; // TODO NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.empty");
                     break;
                   }
                   case DUPLICATE_APPLICATION: {
-                    field.invalidMessage = "duplicate application"; // TODO NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.duplicate_application");
                     break;
                   }
                   case BOTH_HTTP_AJP_PORT_EMPTY: {
-                    field.invalidMessage = "either http or ajp must be filled"; // TODO NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.both_ajp_http_empty");
                     break;
                   }
                   case BOTH_HTTP_AJP_PORT: {
-                    field.invalidMessage = "both http and ajp"; // TODO NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.both_ajp_http");
                     break;
                   }
                   case PORT_SYNTAX: {
-                    field.invalidMessage = "port not digital"; // TODO NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.port_syntax");
+                    break;
+                  }
+                  case HTTP_PORT_REQUEST_FAILED__UNKNOWN_HOST: {
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.http_port_request_failed.unknown_host");
+                    break;
+                  }
+                  case HTTP_PORT_REQUEST_FAILED__NOT_WORKING_PORT: {
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.http_port_request_failed.not_working_port");
+                    break;
+                  }
+                  case HTTP_PORT_REQUEST_FAILED__NOT_HTTP_PORT: {
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.http_port_request_failed.not_http_port");
                     break;
                   }
                   case HTTP_PORT_REQUEST_FAILED: {
-                    field.invalidMessage = "Could not get AJP port over HTTP"; // TODO NON-NLS
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.http_port_request_failed");
                     break;
                   }
                   }
@@ -440,6 +453,11 @@ public class JkSsrServlet extends SsrServletBase {
             Field field = record.get(name);
             if (field != null) {
               field.value = modValue;
+              
+              // reset hint for the modified http port
+              if ("ports".equals(modRequestId) && "httpPort".equals(name)) {
+                record.setHint(null);
+              }
             }
           }
         }

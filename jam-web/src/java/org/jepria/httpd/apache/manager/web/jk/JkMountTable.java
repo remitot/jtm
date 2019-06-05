@@ -82,7 +82,8 @@ public class JkMountTable extends Table<Record> {
       {
         El a = new El("a", field.context)
             .setAttribute("href", context.getContextPath() + "/" + detailsHref)
-            .setAttribute("title", "detali");// TODO NON-NLS
+            .setAttribute("title", context.getText().getString(
+                "org.jepria.httpd.apache.manager.web.jk.Table.column_details"));
         El img = new El("img", field.context)
             .setAttribute("src", context.getContextPath() + "/img/jk/details.png")
             .addClass("button-details");
@@ -104,7 +105,7 @@ public class JkMountTable extends Table<Record> {
   
   @Override
   public El createRowCreated(Record item, Table.TabIndex tabIndex) {
-    throw new UnsupportedOperationException();// TODO
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -122,7 +123,8 @@ public class JkMountTable extends Table<Record> {
     
     cell = createCell(div, "column-application");
     label = new El("label", cell.context);
-    label.setInnerHTML("apple");// TODO non-nls
+    label.setInnerHTML(context.getText().getString(
+        "org.jepria.httpd.apache.manager.web.jk.Table.header.column_application"));
     cell.appendChild(label);
     
     createCell(div, "column-details");

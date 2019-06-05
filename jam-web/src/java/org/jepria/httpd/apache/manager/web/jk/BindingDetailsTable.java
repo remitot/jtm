@@ -4,6 +4,7 @@ import org.jepria.httpd.apache.manager.web.jk.BindingDetailsTable.Record;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlEscaper;
+import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.FieldTextLabel;
 import org.jepria.web.ssr.fields.Fields;
 import org.jepria.web.ssr.fields.ItemData;
@@ -54,57 +55,53 @@ public class BindingDetailsTable extends Table<Record> {
     final El cell = createCell(row, "column-field");
     cell.classList.add("cell-field");
   
-
+    Text text = context.getText();
+    
     switch(record.getId()) {
     case "active": {
-      addFieldLabel(cellLabel, "Active"); // TODO NON-NLS
-      addCheckbox(cell, record.get("field"), "act!", "inact!");// TODO NON-NLS NON-NLS
+      addFieldLabel(cellLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.active"));
+      addCheckbox(cell, record.get("field"), null, null);
       break;
     }
     case "application": {
-      addFieldLabel(cellLabel, "Application"); // TODO NON-NLS
-      addField(cell, record.get("field"), "__application"); // TODO NON-NLS
+      addFieldLabel(cellLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.application"));
+      addField(cell, record.get("field"), "Application");
       break;
     }
     case "workerName": {
-      addFieldLabel(cellLabel, "Worker name"); // TODO NON-NLS
-      addField(cell, record.get("field"), "__worker name"); // TODO NON-NLS
+      addFieldLabel(cellLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.workerName"));
+      addField(cell, record.get("field"), "worker");
       break;
     }
     case "host": {
-      addFieldLabel(cellLabel, "Host"); // TODO NON-NLS
-      addField(cell, record.get("field"), "__host"); // TODO NON-NLS
+      addFieldLabel(cellLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.host"));
+      addField(cell, record.get("field"), "hostname");
       break;
     }
     case "ports": {
-      addFieldLabel(cellLabel, "Port"); // TODO NON-NLS
+      addFieldLabel(cellLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.port"));
       
       // TODO awful workaround! (because the cell has been already added)
       row.childs.remove(cell);
       
       El cellAjpPortLabel = createCell(row, "column-ajp-port-label");
-      addFieldLabel(cellAjpPortLabel, "AJP"); // TODO NON-NLS
+      addFieldLabel(cellAjpPortLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.port.ajp"));
       
       El cellAjpPort = createCell(row, "column-ajp-port");
       cellAjpPort.classList.add("cell-field");
-      addField(cellAjpPort, record.get("ajpPort"), "__8009"); // TODO NON-NLS
+      addField(cellAjpPort, record.get("ajpPort"), "8009");
       
       El cellHttpPortLabel = createCell(row, "column-http-port-label");
-      addFieldLabel(cellHttpPortLabel, "or HTTP"); // TODO NON-NLS
+      addFieldLabel(cellHttpPortLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.port.or_http"));
       
       El cellHttpPort = createCell(row, "column-http-port");
       cellHttpPort.classList.add("cell-field");
-      addField(cellHttpPort, record.get("httpPort"), "__8080"); // TODO NON-NLS
+      addField(cellHttpPort, record.get("httpPort"), "8080");
       
       break;
     }
-    case "httpPort": {
-      addFieldLabel(cellLabel, "HTTP port"); // TODO NON-NLS
-      addField(cell, record.get("field"), "808000"); // TODO NON-NLS
-      break;
-    }
     case "link": {
-      addFieldLabel(cellLabel, "Link"); // TODO NON-NLS
+      addFieldLabel(cellLabel, text.getString("org.jepria.httpd.apache.manager.web.jk.Details.label.link"));
       
       cell.addClass("field-link");
       String href = record.get("field").value;
