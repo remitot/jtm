@@ -313,7 +313,7 @@ public class JkApi {
       // request ajp port over http
       final String host = fields.get("host");
       
-      if (host != null && httpPortForUpdate != null) {
+      if (host != null && httpPortForUpdate != null) { // TODO stopped here: take host from fields or target, it must not be null
         Integer httpPort = Integer.parseInt(httpPortForUpdate);
         String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, httpPort);
         
@@ -350,8 +350,8 @@ public class JkApi {
     }
     
     
+    
     // apply changes
-    // TODO stopped here
 //    String active = fields.get("active");
 //    if (active != null) {
 //      target.jkMount().setActive(!"false".equals(active));
