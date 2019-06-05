@@ -32,6 +32,14 @@
   width: 300px;
 }
 
+.table-details .column-ajp-port, .table-details .column-http-port {
+  width: 75px;
+}
+
+.table-details .column-ajp-port-label .cell__padding, .table-details .column-http-port-label .cell__padding {
+  padding-right: 0px;
+}
+
 .table-details .column-field.field-link {
   width: 600px;
 }

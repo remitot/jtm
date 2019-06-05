@@ -4,7 +4,6 @@ import org.jepria.httpd.apache.manager.web.jk.BindingDetailsTable.Record;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlEscaper;
-import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.FieldTextLabel;
 import org.jepria.web.ssr.fields.Fields;
 import org.jepria.web.ssr.fields.ItemData;
@@ -20,7 +19,6 @@ public class BindingDetailsTable extends Table<Record> {
     // every details table record has ID
     public Record(String id) {
       super.setId(id);
-      put("field", new Field("field"));
     }
     
     @Override
@@ -35,12 +33,6 @@ public class BindingDetailsTable extends Table<Record> {
     public String getHint() {
       return hint;
     }
-    
-    public Field field() {
-      return get("field");
-    }
-    
-    
   }
   
   public BindingDetailsTable(Context context) {
@@ -66,39 +58,56 @@ public class BindingDetailsTable extends Table<Record> {
     switch(record.getId()) {
     case "active": {
       addFieldLabel(cellLabel, "Active"); // TODO NON-NLS
-      addCheckbox(cell, record.field(), "act!", "inact!");// TODO NON-NLS NON-NLS
+      addCheckbox(cell, record.get("field"), "act!", "inact!");// TODO NON-NLS NON-NLS
       break;
     }
     case "application": {
       addFieldLabel(cellLabel, "Application"); // TODO NON-NLS
-      addField(cell, record.field(), "__application"); // TODO NON-NLS
+      addField(cell, record.get("field"), "__application"); // TODO NON-NLS
       break;
     }
     case "workerName": {
       addFieldLabel(cellLabel, "Worker name"); // TODO NON-NLS
-      addField(cell, record.field(), "__worker name"); // TODO NON-NLS
+      addField(cell, record.get("field"), "__worker name"); // TODO NON-NLS
       break;
     }
     case "host": {
       addFieldLabel(cellLabel, "Host"); // TODO NON-NLS
-      addField(cell, record.field(), "__host"); // TODO NON-NLS
+      addField(cell, record.get("field"), "__host"); // TODO NON-NLS
       break;
     }
-    case "ajpPort": {
-      addFieldLabel(cellLabel, "AJP port"); // TODO NON-NLS
-      addField(cell, record.field(), "800900"); // TODO NON-NLS
+    case "ports": {
+      addFieldLabel(cellLabel, "Port"); // TODO NON-NLS
+      
+      // TODO awful workaround! (because the cell has been already added)
+      row.childs.remove(cell);
+      
+      El cellAjpPortLabel = createCell(row, "column-ajp-port-label");
+      addFieldLabel(cellAjpPortLabel, "AJP"); // TODO NON-NLS
+      
+      El cellAjpPort = createCell(row, "column-ajp-port");
+      cellAjpPort.classList.add("cell-field");
+      addField(cellAjpPort, record.get("ajpPort"), "__8009"); // TODO NON-NLS
+      
+      El cellHttpPortLabel = createCell(row, "column-http-port-label");
+      addFieldLabel(cellHttpPortLabel, "or HTTP"); // TODO NON-NLS
+      
+      El cellHttpPort = createCell(row, "column-http-port");
+      cellHttpPort.classList.add("cell-field");
+      addField(cellHttpPort, record.get("httpPort"), "__8080"); // TODO NON-NLS
+      
       break;
     }
     case "httpPort": {
       addFieldLabel(cellLabel, "HTTP port"); // TODO NON-NLS
-      addField(cell, record.field(), "808000"); // TODO NON-NLS
+      addField(cell, record.get("field"), "808000"); // TODO NON-NLS
       break;
     }
     case "link": {
       addFieldLabel(cellLabel, "Link"); // TODO NON-NLS
       
       cell.addClass("field-link");
-      String href = record.field().value;
+      String href = record.get("field").value;
       El fieldEl = new FieldTextLabel(cell.context);
       String hrefEscaped = HtmlEscaper.escape(href);
       El a = new El("a", fieldEl.context)

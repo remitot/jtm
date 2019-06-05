@@ -5,7 +5,6 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +19,7 @@ import org.jepria.httpd.apache.manager.core.jk.Worker;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.jk.AjpAdapter.AjpException;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.Code;
+import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.InvalidFieldDataCode;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.JkMountDto;
 import org.jepria.httpd.apache.manager.web.jk.dto.WorkerDto;
@@ -157,6 +157,7 @@ public class JkApi {
       DUPLICATE_APPLICATION,
       BOTH_HTTP_AJP_PORT_EMPTY,
       BOTH_HTTP_AJP_PORT,
+      PORT_SYNTAX,
       /**
        * Failed to request HTTP port over AJP
        */
@@ -175,30 +176,6 @@ public class JkApi {
   public ModStatus updateBinding(Environment environment, String mountId, Map<String, String> fields) {
 
     Objects.requireNonNull(mountId, "mountId must not be null");
-    
-    final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-    
-    // validate mandatory empty fields
-    List<String> emptyFields = validateEmptyFieldsForUpdate(fields);
-    if (!emptyFields.isEmpty()) {
-      for (String fieldName: emptyFields) {
-        invalidFieldDataMap.put(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
-      }
-    }
-    
-    // validate httpPort and ajpPort dependency
-    // one and only one field must be not empty
-    String httpPort = fields.get("httpPort");
-    String ajpPort = fields.get("ajpPort");
-    if (httpPort != null && !"".equals(httpPort) && ajpPort != null && !"".equals(ajpPort)) {
-      invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
-      invalidFieldDataMap.put("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
-    }
-    
-    if (!invalidFieldDataMap.isEmpty()) {
-      return ModStatus.errInvalidFieldData(invalidFieldDataMap);
-    }
-    
     
     final ApacheConfJk conf = new ApacheConfJk(
         () -> environment.getMod_jk_confInputStream(), 
@@ -230,135 +207,166 @@ public class JkApi {
    */
   protected ModStatus updateFields(Environment environment, ApacheConfJk conf, Map<String, String> fields, Binding target) {
     
-    // validate application
-    final String application = fields.get("application");
-    Map<String, JkMount> mounts = conf.getMounts();
-    if (mounts.values().stream().anyMatch(jkMount -> application.equals(jkMount.getApplication()))) {
-      // duplicate application
+    // either one of two may be (not null and not empty)
+    String ajpPortForUpdate = null;
+    String httpPortForUpdate = null;
+    
+    { // validation
       final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-      invalidFieldDataMap.put("application", ModStatus.InvalidFieldDataCode.DUPLICATE_APPLICATION);
-      return ModStatus.errInvalidFieldData(invalidFieldDataMap);
-    }
-    
-    
-
-    // obtain ajpPort
-    final String ajpPort;
-    {
-      String ajpPort0 = fields.get("ajpPort");
-      if (ajpPort0 == null || "".equals(ajpPort0)) {
-        // request ajp port over http
-        
-        final String host = fields.get("host");
-        final String httpPort = fields.get("httpPort");
-        
-        if (host != null && httpPort != null) {
-          Integer httpPortInt = Integer.parseInt(httpPort);
-          String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, httpPortInt);
-          
-          try {
-            int ajpPortInt = requestAjpPortOverHttp(host, httpPortInt, tomcatManagerExtCtxPath + "/api/port/ajp");
-            ajpPort0 = String.valueOf(ajpPortInt);
-            
-          } catch (Exception e) {
-            e.printStackTrace();
-            
-            ajpPort0 = null;
-          }
-        }
-        
-        
-        if (ajpPort0 == null) {
-          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
-          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
-          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+      
+      
+      final String application = fields.get("application");
+      final String host = fields.get("host");
+      final String httpPort = fields.get("httpPort");
+      final String ajpPort = fields.get("ajpPort");      
+      
+      
+      // validate empty fields
+      
+      if ((application == null && (target.jkMount().getApplication() == null || "".equals(target.jkMount().getApplication())))
+          || "".equals(application)) {
+        invalidFieldDataMap.putIfAbsent("application", InvalidFieldDataCode.MANDATORY_EMPTY);
+      }
+      if ((host == null && (target.worker().getHost() == null || "".equals(target.worker().getHost())))
+          || "".equals(host)) {
+        invalidFieldDataMap.putIfAbsent("host", InvalidFieldDataCode.MANDATORY_EMPTY);
+      }
+      
+      
+      // validate duplicate application
+      
+      if (application != null) {
+        Map<String, JkMount> mounts = conf.getMounts();
+        if (mounts.values().stream().anyMatch(jkMount -> application.equals(jkMount.getApplication()))) {
+          // duplicate application
+          invalidFieldDataMap.putIfAbsent("application", ModStatus.InvalidFieldDataCode.DUPLICATE_APPLICATION);
         }
       }
       
-      ajpPort = ajpPort0;
+      
+      // port dependency: one and the only port field must be not empty
+      
+      if (httpPort == null || "".equals(httpPort)) {
+        if ("".equals(ajpPort)) {
+          if (httpPort == null) {
+            // no changes
+          } else {
+            // report both empty
+            invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
+            invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
+          }
+          
+        } else if (ajpPort == null) {
+          // check target ajpPort
+          if (target.worker().getPort() == null || "".equals(target.worker().getPort())) {
+            // report both empty
+            invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
+            invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
+            
+          } else {
+            // no changes
+          }
+          
+        } else {
+          // apply ajp13 field value
+          ajpPortForUpdate = ajpPort;
+          httpPortForUpdate = null;
+        }
+        
+      } else {
+        if (ajpPort == null || "".equals(ajpPort)) {
+          // apply httpfield value
+          ajpPortForUpdate = null;
+          httpPortForUpdate = httpPort;
+          
+        } else {
+          // report both not empty
+          invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+          invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+        }
+      }
+          
+
+      // validate port syntax
+      if (httpPortForUpdate != null && !httpPortForUpdate.matches("\\d+")) {
+        invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.PORT_SYNTAX);
+      }
+      if (ajpPortForUpdate != null && !ajpPortForUpdate.matches("\\d+")) {
+        invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.PORT_SYNTAX);
+      }
+      
+      
+      if (!invalidFieldDataMap.isEmpty()) {
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+      }
+    }      
+
+    
+    
+    if (ajpPortForUpdate == null && httpPortForUpdate != null) {
+      // request ajp port over http
+      final String host = fields.get("host");
+      
+      if (host != null && httpPortForUpdate != null) {
+        Integer httpPort = Integer.parseInt(httpPortForUpdate);
+        String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, httpPort);
+        
+        try {
+          int ajpPort = requestAjpPortOverHttp(host, httpPort, tomcatManagerExtCtxPath + "/api/port/ajp");
+          ajpPortForUpdate = String.valueOf(ajpPort);
+          
+        } catch (Exception e) {
+          e.printStackTrace();
+          
+          ajpPortForUpdate = null;
+        }
+      }
+      
+      
+      if (ajpPortForUpdate == null) {
+        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+        invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+      }
     }
     
     
-    // ajpPort is not null at this point
+    // apply changes
+    // TODO stopped here
+//    String active = fields.get("active");
+//    if (active != null) {
+//      target.jkMount().setActive(!"false".equals(active));
+//    }
+//    
+//    String application = fields.get("application");
+//    if (application != null) {
+//      target.jkMount().setApplication(application);
+//    }
+//    
+//    String host = fields.get("host");
+//    if (host == null && target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
+//      target.rebind(host, ajpPortNumber);
+//    }
+      
+//    // TODO worker name? rebind? optimize?
+//    
+//    String host = fields.get("host");
+//    if (host != null) {
+//      target.worker().setHost(host);
+//    }
+//    
+//    if (ajpPort != null) {
+//      target.worker().setType("ajp13");
+//      target.worker().setPort(ajpPort);
+//    }
     
-
-    throw new UnsupportedOperationException("Not impl yet. AjpPort ready: ajp=" + ajpPort);
+    
+    
+    throw new UnsupportedOperationException("Not impl yet: update "+fields+"; ajp=" + ajpPortForUpdate + "; http=" + httpPortForUpdate);
     
     // rebind first
     
-//    if (sourceDto.getInstance() != null) {
-//
-//      final InstanceValueParser.ParseResult parseResult = InstanceValueParser.tryParse(sourceDto.getInstance());
-//
-//      final String host = parseResult.host;
-//      final int ajpPortNumber;
-//
-//      switch (modType) {
-//      case AJP: {
-//        ajpPortNumber = parseResult.port;
-//        break;
-//      }
-//
-//      case HTTP: {
-//        // get ajp port by http
-//        final int httpPortNumber = parseResult.port;
-//
-//        final String tomcatManagerPath = lookupTomcatManagerPath(environment, host, httpPortNumber);
-//
-//        final URL url;
-//        try {
-//          url = new URL("http", host, httpPortNumber, tomcatManagerPath + MANAGER_EXT_AJP_PORT_URI);
-//        } catch (MalformedURLException e) {
-//          // impossible: trusted url
-//          throw new RuntimeException(e);
-//        }
-//
-//        final Subresponse subresponse = wrapSubrequest(new Subrequest() {
-//          @Override
-//          public Subresponse execute() throws IOException {
-//
-//            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-//
-//            // both timeouts necessary 
-//            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-//            connection.setReadTimeout(CONNECT_TIMEOUT_MS);
-//
-//            connection.connect();
-//
-//            int status = connection.getResponseCode();
-//
-//            String responseBody = null;
-//            if (status == 200) {// TODO or check 2xx?
-//              try (Scanner sc = new Scanner(connection.getInputStream())) {
-//                sc.useDelimiter("\\Z");
-//                if (sc.hasNext()) {
-//                  responseBody = sc.next();
-//                }
-//              }
-//            }
-//
-//            return new Subresponse(status, responseBody);
-//          }
-//        });
-//
-//
-//
-//        if (subresponse.status == HttpServletResponse.SC_OK) {
-//          ajpPortNumber = Integer.parseInt(subresponse.responseBody);
-//
-//        } else {
-//          final String errorCode = getSubresponseStatus(subresponse, url.toString());
-//
-//          return ModStatus.errInvalidFieldData("instance", errorCode, null);
-//        }
-//        break;
-//      }
-//      default: {
-//        throw new IllegalArgumentException("Unknown modType [" + modType + "]");
-//      }
-//      }
-//
 //
 //      if (!host.equals(target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
 //        target.rebind(host, ajpPortNumber);
@@ -375,62 +383,6 @@ public class JkApi {
 //
 //    return ModStatus.success();
   }
-  //  
-  //  /**
-  //   * Convert {@link Subresponse} to an errorCode String to pass to the client
-  //   * @param subresponse
-  //   * @param url url of the subrequest, for client logging/messaging
-  //   * @return
-  //   */
-  //  private static String getSubresponseStatus(Subresponse subresponse, String url) {
-  //    if (subresponse.status == HttpServletResponse.SC_OK) {
-  //      return "SUCCESS";
-  //    } else if (subresponse.status == Subresponse.SC_UNKNOWN_HOST) { 
-  //      return "UNKNOWN_HOST@@" + url;
-  //    } else if (subresponse.status == Subresponse.SC_CONNECT_EXCEPTION) { 
-  //      return "CONNECT_EXCEPTION@@" + url;
-  //    } else if (subresponse.status == Subresponse.SC_SOCKET_EXCEPTION) {
-  //      return "SOCKET_EXCEPTION@@" + url;
-  //    } else if (subresponse.status == Subresponse.SC_CONNECT_TIMEOUT) { 
-  //      return "CONNECT_TIMEOUT@@" + url;
-  //    } else {
-  //      // @@ is a safe delimiter
-  //      return "UNSUCCESS_STATUS@@" + subresponse.status + "@@" + url;
-  //    }
-  //  }
-  //  
-  //  private static final int CONNECT_TIMEOUT_MS = 2000; // TODO parametrize?
-  //  
-  //  private static interface Subrequest {
-  //    Subresponse execute() throws IOException;
-  //  }
-  //  
-  //  private static Subresponse wrapSubrequest(Subrequest subrequest) {
-  //    try {
-  //      return subrequest.execute();
-  //      
-  //    } catch (UnknownHostException e) {
-  //      // wrong host
-  //      return new Subresponse(Subresponse.SC_UNKNOWN_HOST, null);
-  //      
-  //    } catch (ConnectException e) {
-  //      // host OK, port is not working at all
-  //      return new Subresponse(Subresponse.SC_CONNECT_EXCEPTION, null);
-  //      
-  //    } catch (SocketException e) {
-  //      // host OK, port OK, invalid protocol
-  //      return new Subresponse(Subresponse.SC_SOCKET_EXCEPTION, null);
-  //      
-  //    } catch (SocketTimeoutException e) {
-  //      // host OK, port OK, invalid protocol
-  //      return new Subresponse(Subresponse.SC_CONNECT_TIMEOUT, null);
-  //      
-  //    } catch (Throwable e) {
-  //      e.printStackTrace();
-  //      
-  //      return new Subresponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null);
-  //    }
-  //  }
   //  
   //  private static ModStatus deleteBinding(
   //      ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
@@ -461,40 +413,6 @@ public class JkApi {
   //  
   public ModStatus createBinding(Environment environment, Map<String, String> fields) {
 
-    { // validation
-      final Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-      
-      // validate mandatory empty fields
-      List<String> emptyFields = validateEmptyFieldsForCreate(fields);
-      if (!emptyFields.isEmpty()) {
-        for (String fieldName: emptyFields) {
-          invalidFieldDataMap.putIfAbsent(fieldName, ModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
-        }
-      }
-  
-      
-      String httpPort = fields.get("httpPort");
-      String ajpPort = fields.get("ajpPort");
-      
-      
-      // validate httpPort and ajpPort dependency
-      // one and only one field must be not empty
-      if ((httpPort == null || "".equals(httpPort)) && (ajpPort == null || "".equals(ajpPort))) {
-        invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
-        invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT_EMPTY);
-      }
-      if (httpPort != null && !"".equals(httpPort) && ajpPort != null && !"".equals(ajpPort)) {
-        invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
-        invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
-      }
-      
-      
-      if (!invalidFieldDataMap.isEmpty()) {
-        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
-      }
-    }
-    
-    
     final ApacheConfJk conf = new ApacheConfJk(
         () -> environment.getMod_jk_confInputStream(), 
         () -> environment.getWorkers_propertiesInputStream());
@@ -513,8 +431,91 @@ public class JkApi {
   }
   
   protected Binding createBinding() {
-    // TODO stopped here
-    return new BindingImpl(null, null, null, null);
+    JkMount newJkMount = new JkMount() {
+      @Override
+      public String workerName() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+      @Override
+      public void setWorkerName(String workerName) {
+        // TODO Auto-generated method stub
+        
+      }
+      @Override
+      public void setApplication(String application) {
+        // TODO Auto-generated method stub
+      }
+      @Override
+      public void setActive(boolean active) {
+        // TODO Auto-generated method stub
+      }
+      @Override
+      public boolean isActive() {
+        // TODO Auto-generated method stub
+        return false;
+      }
+      @Override
+      public String getApplication() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+      @Override
+      public void delete() {
+        // TODO Auto-generated method stub
+      }
+    };
+    
+    Worker newWorker = new Worker() {
+      @Override
+      public void setType(String type) {
+        // TODO Auto-generated method stub
+        
+      }
+      
+      @Override
+      public void setPort(String port) {
+        // TODO Auto-generated method stub
+        
+      }
+      
+      @Override
+      public void setName(String name) {
+        // TODO Auto-generated method stub
+        
+      }
+      
+      @Override
+      public void setHost(String host) {
+        // TODO Auto-generated method stub
+        
+      }
+      
+      @Override
+      public String getType() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+      
+      @Override
+      public String getPort() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+      
+      @Override
+      public String getName() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+      
+      @Override
+      public String getHost() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+    };
+    return new BindingImpl(null, newJkMount, null, newWorker);
   }
   
   protected int requestAjpPortOverHttp(String host, int httpPort, String uri) throws Exception {
@@ -561,91 +562,6 @@ public class JkApi {
    * For requesting AJP port over HTTP
    */
   private static final int CONNECT_TIMEOUT_MS = 2000;
-  
-  //  
-  //  private static class InstanceValueParser {
-  //    public static final Pattern PATTERN = Pattern.compile("([^:]+):(\\d+)");
-  //    
-  //    public static ParseResult tryParse(String instance) {
-  //      if (instance != null) {
-  //        Matcher m = PATTERN.matcher(instance);
-  //        if (m.matches()) {
-  //          try {
-  //            int port = Integer.parseInt(m.group(2)); 
-  //            if (port >= 0 && port <= 65535) {
-  //              return new ParseResult(true, m.group(1), port);
-  //            } 
-  //          } catch (NumberFormatException e) {
-  //          }
-  //        }
-  //      }
-  //      return new ParseResult(false, null, 0);
-  //    }
-  //    
-  //    public static class ParseResult {
-  //      public final boolean success;
-  //      public final String host;
-  //      public final int port;
-  //      
-  //      private ParseResult(boolean success, String host, int port) {
-  //        this.success = success;
-  //        this.host = host;
-  //        this.port = port;
-  //      }
-  //    }
-  //  }
-  //  
-  //  /**
-  //   * Validate 'instance' field value
-  //   * @param dto
-  //   * @return true if dto has no 'instance' field or the 'instance' field value is not empty and valid 
-  //   */
-  //  protected boolean validateInstanceFieldValue(BindingModDto dto) {
-  //    return dto.getInstance() == null || InstanceValueParser.tryParse(dto.getInstance()).success;
-  //  }
-  //  
-  //  protected boolean empty(String string) {
-  //    return string == null || "".equals(string);
-  //  }
-
-  /**
-   * Validate empty fields for create
-   * @param dto
-   * @return list of invalidly empty or missing mandatory fields, or else empty list, not null
-   */
-  protected List<String> validateEmptyFieldsForCreate(Map<String, String> fields) {
-    List<String> emptyFields = new ArrayList<>();
-
-    // the fields must be neither null, nor empty
-    String application = fields.get("application");
-    if (application == null || "".equals(application)) {
-      emptyFields.add("application");
-    }
-    String host = fields.get("host");
-    if (host == null || "".equals(host)) {
-      emptyFields.add("host");
-    }
-    
-    return emptyFields;
-  }
-  
-  /**
-   * Validate empty fields for update
-   * @param fields
-   * @return list of invalidly empty fields, or else empty list, not null
-   */
-  protected List<String> validateEmptyFieldsForUpdate(Map<String, String> fields) {
-    List<String> emptyFields = new ArrayList<>();
-
-    // the fields may be null, but if not null then not empty
-    if ("".equals(fields.get("application"))) {
-      emptyFields.add("application");
-    }
-    if ("".equals(fields.get("host"))) {
-      emptyFields.add("host");
-    }
-    return emptyFields;
-  }
   
   protected List<JkMountDto> getJkMounts(ApacheConfJk apacheConf) {
     Map<String, JkMount> mounts = apacheConf.getMounts();

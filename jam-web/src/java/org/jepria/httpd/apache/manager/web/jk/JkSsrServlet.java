@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -150,36 +151,48 @@ public class JkSsrServlet extends SsrServletBase {
           if (binding.jkMount != null) {
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("active");
-              record.field().value = record.field().valueOriginal = binding.jkMount.map.get("active");
+              Field field = new Field("field");
+              record.put("field", field);
+              field.value = field.valueOriginal = binding.jkMount.map.get("active");
               records.add(record);
             }
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("application");
-              record.field().value = record.field().valueOriginal = binding.jkMount.map.get("application");
+              Field field = new Field("field");
+              record.put("field", field);
+              field.value = field.valueOriginal = binding.jkMount.map.get("application");
               records.add(record);
             }
           }
           
+          BindingDetailsTable.Record portRecord = null;
+          
           if (binding.worker != null) {
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("workerName");
-              record.field().value = binding.worker.map.get("name");
+              Field field = new Field("field");
+              record.put("field", field);
+              field.value = binding.worker.map.get("name");
               
               // TODO the user may want to change the worker name or worker-name-to-port binding, 
               // or to have multiple same-host-and-port workers (e.g. for different applications). Consider this! 
-              record.field().readonly = true; // for now, the worker name is read-only; modification only through host:port binding
+              field.readonly = true; // for now, the worker name is read-only; modification only through host:port binding
               records.add(record);
             }
             {
               BindingDetailsTable.Record record = new BindingDetailsTable.Record("host");
-              record.field().value = record.field().valueOriginal = binding.worker.map.get("host");
+              Field field = new Field("field");
+              record.put("field", field);
+              field.value = field.valueOriginal = binding.worker.map.get("host");
               records.add(record);
             }
             if ("ajp13".equalsIgnoreCase(binding.worker.map.get("type"))) {
               {
-                BindingDetailsTable.Record record = new BindingDetailsTable.Record("ajpPort");
-                record.field().value = record.field().valueOriginal = binding.worker.map.get("port");
-                records.add(record);
+                portRecord = new BindingDetailsTable.Record("ports");
+                
+                Field ajpPortField = new Field("ajpPort");
+                ajpPortField.value = ajpPortField.valueOriginal = binding.worker.map.get("port");
+                portRecord.put("ajpPort", ajpPortField);
               }
             } else {
               // TODO what if another port type?
@@ -191,19 +204,25 @@ public class JkSsrServlet extends SsrServletBase {
           // http port
           
           if (binding.httpPort != null || binding.httpErrorCode != null) {
-            BindingDetailsTable.Record recordHttpPort;
-            {
-              recordHttpPort = new BindingDetailsTable.Record("httpPort");
-              records.add(recordHttpPort);
+            if (portRecord == null) {
+              portRecord = new BindingDetailsTable.Record("ports");
             }
             
+            Field httpPortField = new Field("httpPort");
+            httpPortField.value = httpPortField.valueOriginal = binding.worker.map.get("port");
+            portRecord.put("httpPort", httpPortField);
+            
             if (binding.httpPort != null) {
-              recordHttpPort.field().value = recordHttpPort.field().valueOriginal = binding.httpPort;
+              httpPortField.value = httpPortField.valueOriginal = binding.httpPort;
             }
             if (binding.httpErrorCode != null && binding.httpErrorCode == 1) {
-              recordHttpPort.field().value = recordHttpPort.field().valueOriginal = ""; // empty string instead of null to avoid initial modified field state
-              recordHttpPort.setHint("Failed to get HTTP port number for the Tomcat instance, see logs for details");// TODO NON-NLS
+              httpPortField.value = httpPortField.valueOriginal = ""; // empty string instead of null to avoid initial modified field state
+              portRecord.setHint("Failed to get HTTP port number for the Tomcat instance, see logs for details");// TODO NON-NLS
             }
+          }
+          
+          if (portRecord != null) {
+            records.add(portRecord);
           }
           
 
@@ -211,8 +230,10 @@ public class JkSsrServlet extends SsrServletBase {
           
           if (binding.httpLink != null) {
             BindingDetailsTable.Record record = new BindingDetailsTable.Record("link");
-            record.field().value = binding.httpLink;
-            record.field().readonly = true;
+            Field field = new Field("field");
+            record.put("field", field);
+            field.value = binding.httpLink;
+            field.readonly = true;
             records.add(record);
           }
         }
@@ -260,34 +281,37 @@ public class JkSsrServlet extends SsrServletBase {
         {
           {
             BindingDetailsTable.Record record = new BindingDetailsTable.Record("active");
-            record.field().value = record.field().valueOriginal = null;
-            record.field().readonly = true;
+            Field field = new Field("field");
+            record.put("field", field);
+            field.value = field.valueOriginal = null;
+            field.readonly = true;
             records.add(record);
           }
           {
             BindingDetailsTable.Record record = new BindingDetailsTable.Record("application");
-            record.field().value = record.field().valueOriginal = null;
-            records.add(record);
-          }
-          {
-            BindingDetailsTable.Record record = new BindingDetailsTable.Record("workerName");
-            record.field().value = "lookup existing"; // TODO NON-NLS
-            record.field().readonly = true;
+            Field field = new Field("field");
+            record.put("field", field);
+            field.value = field.valueOriginal = null;
             records.add(record);
           }
           {
             BindingDetailsTable.Record record = new BindingDetailsTable.Record("host");
-            record.field().value = record.field().valueOriginal = null;
+            Field field = new Field("field");
+            record.put("field", field);
+            field.value = field.valueOriginal = null;
             records.add(record);
           }
           {
-            BindingDetailsTable.Record record = new BindingDetailsTable.Record("ajpPort");
-            record.field().value = record.field().valueOriginal = null;
-            records.add(record);
-          }
-          {
-            BindingDetailsTable.Record record = new BindingDetailsTable.Record("httpPort");
-            record.field().value = record.field().valueOriginal = null;
+            BindingDetailsTable.Record record = new BindingDetailsTable.Record("ports");
+            
+            Field httpPortField = new Field("httpPort");
+            httpPortField.value = httpPortField.valueOriginal = null;
+            record.put("httpPort", httpPortField);
+            
+            Field ajpPortField = new Field("ajpPort");
+            ajpPortField.value = ajpPortField.valueOriginal = null;
+            record.put("ajpPort", ajpPortField);
+            
             records.add(record);
           }
         }       
@@ -337,39 +361,54 @@ public class JkSsrServlet extends SsrServletBase {
   }
   
   protected void processInvalidFieldData(Iterable<BindingDetailsTable.Record> records, Map<String, ModStatus> modStatuses) {
-    if (modStatuses != null) {
+    if (records != null && modStatuses != null) {
+      
+      // create map from list
+      Map<String, BindingDetailsTable.Record> recordMap = new HashMap<>();
+      {
+        for (BindingDetailsTable.Record record: records) {
+          recordMap.put(record.getId(), record);
+        }
+      }
+      
       for (Map.Entry<String, ModStatus> modRequestIdAndModStatus: modStatuses.entrySet()) {
         String modRequestId = modRequestIdAndModStatus.getKey();
-        ModStatus modStatus = modRequestIdAndModStatus.getValue();
-
-        if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
-          for (BindingDetailsTable.Record record: records) {
-            if (modRequestId.equals(record.getId())) {
-              ModStatus.InvalidFieldDataCode invalidFieldDataCode = modStatus.invalidFieldDataMap.get("field");
+        BindingDetailsTable.Record record = recordMap.get(modRequestId);
+        if (record != null) {
+          ModStatus modStatus = modRequestIdAndModStatus.getValue();
+          if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
+            for (String name: modStatus.invalidFieldDataMap.keySet()) {
+              ModStatus.InvalidFieldDataCode invalidFieldDataCode = modStatus.invalidFieldDataMap.get(name);
               if (invalidFieldDataCode != null) {
-                Field field = record.field();
-                field.invalid = true;
-                switch (invalidFieldDataCode) {
-                case MANDATORY_EMPTY: {
-                  field.invalidMessage = "manda is empty"; // TODO NON-NLS
-                  break;
-                }
-                case DUPLICATE_APPLICATION: {
-                  field.invalidMessage = "duplicate application"; // TODO NON-NLS
-                  break;
-                }
-                case BOTH_HTTP_AJP_PORT_EMPTY: {
-                  field.invalidMessage = "either http or ajp must be filled"; // TODO NON-NLS
-                  break;
-                }
-                case BOTH_HTTP_AJP_PORT: {
-                  field.invalidMessage = "both http and ajp"; // TODO NON-NLS
-                  break;
-                }
-                case HTTP_PORT_REQUEST_FAILED: {
-                  field.invalidMessage = "Could not get AJP port over HTTP"; // TODO NON-NLS
-                  break;
-                }
+                Field field = record.get(name);
+                if (field != null) {
+                  field.invalid = true;
+                  switch (invalidFieldDataCode) {
+                  case MANDATORY_EMPTY: {
+                    field.invalidMessage = "manda is empty"; // TODO NON-NLS
+                    break;
+                  }
+                  case DUPLICATE_APPLICATION: {
+                    field.invalidMessage = "duplicate application"; // TODO NON-NLS
+                    break;
+                  }
+                  case BOTH_HTTP_AJP_PORT_EMPTY: {
+                    field.invalidMessage = "either http or ajp must be filled"; // TODO NON-NLS
+                    break;
+                  }
+                  case BOTH_HTTP_AJP_PORT: {
+                    field.invalidMessage = "both http and ajp"; // TODO NON-NLS
+                    break;
+                  }
+                  case PORT_SYNTAX: {
+                    field.invalidMessage = "port not digital"; // TODO NON-NLS
+                    break;
+                  }
+                  case HTTP_PORT_REQUEST_FAILED: {
+                    field.invalidMessage = "Could not get AJP port over HTTP"; // TODO NON-NLS
+                    break;
+                  }
+                  }
                 }
               }
             }
@@ -392,13 +431,15 @@ public class JkSsrServlet extends SsrServletBase {
 
       for (ItemModRequestDto itemModRequest: itemModRequests) {
         String modRequestId = itemModRequest.getId();
-        Map<String, String> modRequestData = itemModRequest.getData();
-        if (modRequestId != null && modRequestData != null) {
-          String modValue = modRequestData.get("field");
-          if (modValue != null) {
-            BindingDetailsTable.Record record = recordMap.get(modRequestId);
-            if (record != null) {
-              record.field().value = modValue;
+        BindingDetailsTable.Record record = recordMap.get(modRequestId);
+        if (record != null) {
+          Map<String, String> modRequestData = itemModRequest.getData();
+          for (String name: modRequestData.keySet()) {
+            String modValue = modRequestData.get(name);
+            // TODO check (modValue != null) ? Or (modValue == null) is a valid modValue?  
+            Field field = record.get(name);
+            if (field != null) {
+              field.value = modValue;
             }
           }
         }
@@ -450,12 +491,7 @@ public class JkSsrServlet extends SsrServletBase {
 
               final JkApi api = new JkApi();
 
-              Map<String, String> fields = new HashMap<>();
-              {
-                for (ItemModRequestDto itemModRequest: itemModRequests) {
-                  fields.put(itemModRequest.getId(), itemModRequest.getData().get("field"));
-                }
-              }
+              Map<String, String> fields = extractFields(itemModRequests);
 
               ModStatus modStatus;
               if ("new-binding".equals(mountId)) {
@@ -466,12 +502,7 @@ public class JkSsrServlet extends SsrServletBase {
 
               Map<String, ModStatus> modStatuses = null;
               if (modStatus.code == Code.INVALID_FIELD_DATA && modStatus.invalidFieldDataMap != null) {
-                modStatuses = new HashMap<>();
-                for (Map.Entry<String, InvalidFieldDataCode> e: modStatus.invalidFieldDataMap.entrySet()) {
-                  Map<String, InvalidFieldDataCode> map = new HashMap<>();
-                  map.put("field", e.getValue());
-                  modStatuses.put(e.getKey(), ModStatus.errInvalidFieldData(map));
-                }
+                modStatuses = convertModStatuses(modStatus.invalidFieldDataMap);
               }
 
               if (modStatus.code == Code.SUCCESS) {
@@ -527,5 +558,65 @@ public class JkSsrServlet extends SsrServletBase {
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
       return;
     }
+  }
+  
+  /**
+   * Convert list of mod requests to map of fields
+   * @param modRequests
+   * @return {@code null} for {@code null}
+   */
+  protected Map<String, String> extractFields(List<ItemModRequestDto> modRequests) {
+    if (modRequests == null) {
+      return null;
+    }
+    
+    Map<String, String> fields = new LinkedHashMap<>(); // maintain order
+    
+    for (ItemModRequestDto modRequest: modRequests) {
+      String name = modRequest.getId();
+      if ("ports".equals(name)) {
+        fields.put("ajpPort", modRequest.getData().get("ajpPort"));
+        fields.put("httpPort", modRequest.getData().get("httpPort"));
+      } else {
+        fields.put(name, modRequest.getData().get("field"));
+      }
+    }
+    
+    return fields;
+  }
+  
+  /**
+   * Convert modStatuses from a map with key as binding fields to map with keys as record IDs
+   * @param invalidFieldData
+   * @return
+   */
+  Map<String, ModStatus> convertModStatuses(Map<String, InvalidFieldDataCode> invalidFieldData) {
+    if (invalidFieldData == null) {
+      return null;
+    }
+    
+    Map<String, ModStatus> modStatuses = new LinkedHashMap<>(); // maintain order
+    
+    Map<String, InvalidFieldDataCode> portsInvalidFieldMap = null;
+    
+    for (Map.Entry<String, InvalidFieldDataCode> e: invalidFieldData.entrySet()) {
+      String key = e.getKey();
+      if ("ajpPort".equals(key) || "httpPort".equals(key)) {
+        if (portsInvalidFieldMap == null) {
+          portsInvalidFieldMap = new HashMap<>();
+        }
+        portsInvalidFieldMap.put(key, e.getValue());
+      } else {
+        Map<String, InvalidFieldDataCode> map = new HashMap<>();
+        map.put("field", e.getValue());
+        modStatuses.put(key, ModStatus.errInvalidFieldData(map));
+      }
+    }
+    
+    if (portsInvalidFieldMap != null && !portsInvalidFieldMap.isEmpty()) {
+      modStatuses.put("ports", ModStatus.errInvalidFieldData(portsInvalidFieldMap));
+    }
+    
+    return modStatuses;
   }
 }
