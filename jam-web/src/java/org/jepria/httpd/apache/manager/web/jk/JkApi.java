@@ -16,11 +16,11 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import org.jepria.httpd.apache.manager.core.ajp.SimpleAjpConnection;
 import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
 import org.jepria.httpd.apache.manager.core.jk.JkMount;
 import org.jepria.httpd.apache.manager.core.jk.Worker;
 import org.jepria.httpd.apache.manager.web.Environment;
-import org.jepria.httpd.apache.manager.web.jk.AjpAdapter.AjpException;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.Code;
 import org.jepria.httpd.apache.manager.web.jk.JkApi.ModStatus.InvalidFieldDataCode;
 import org.jepria.httpd.apache.manager.web.jk.dto.BindingDto;
@@ -87,10 +87,32 @@ public class JkApi {
         String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, ajpPortInt);
         
         try {
-          httpPort = AjpAdapter.requestHttpPortOverAjp(host, ajpPortInt, tomcatManagerExtCtxPath);
+          httpPort = requestHttpPortOverAjp(host, ajpPortInt, tomcatManagerExtCtxPath + "/api/port/http");
           bindingDto.httpPort = String.valueOf(httpPort);
           
-        } catch (AjpException e) {
+        } catch (UnknownHostException e) {
+          // wrong host
+          e.printStackTrace();
+          
+          httpPort = null;
+          bindingDto.httpErrorCode = 1;
+          
+        } catch (ConnectException e) {
+          // host OK, port is not working at all
+          e.printStackTrace();
+          
+          httpPort = null;
+          bindingDto.httpErrorCode = 1;
+
+        } catch (SocketException | SocketTimeoutException e) {
+          // host OK, port OK, invalid protocol
+          e.printStackTrace();
+          
+          httpPort = null;
+          bindingDto.httpErrorCode = 1;
+
+        } catch (Exception e) {
+          // other error
           e.printStackTrace();
           
           httpPort = null;
@@ -159,7 +181,7 @@ public class JkApi {
       MANDATORY_EMPTY,
       DUPLICATE_APPLICATION,
       BOTH_HTTP_AJP_PORT_EMPTY,
-      BOTH_HTTP_AJP_PORT,
+      HTTP_AJP_PORT_NOT_MATCH,
       PORT_SYNTAX,
       /**
        * Failed to request HTTP port over AJP
@@ -213,7 +235,6 @@ public class JkApi {
    */
   protected ModStatus updateFields(Environment environment, ApacheConfJk conf, Map<String, String> fields, Binding target) {
     
-    // either one of two may be (not null and not empty)
     String ajpPortForUpdate = null;
     String httpPortForUpdate = null;
     
@@ -250,7 +271,7 @@ public class JkApi {
       }
       
       
-      // port dependency: one and the only port field must be not empty
+      // port dependency
       
       if (httpPort == null || "".equals(httpPort)) {
         if ("".equals(ajpPort)) {
@@ -281,14 +302,14 @@ public class JkApi {
         
       } else {
         if (ajpPort == null || "".equals(ajpPort)) {
-          // apply httpfield value
+          // apply http field value
           ajpPortForUpdate = null;
           httpPortForUpdate = httpPort;
           
         } else {
-          // report both not empty
-          invalidFieldDataMap.putIfAbsent("httpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
-          invalidFieldDataMap.putIfAbsent("ajpPort", ModStatus.InvalidFieldDataCode.BOTH_HTTP_AJP_PORT);
+          // both ports filled
+          ajpPortForUpdate = ajpPort;
+          httpPortForUpdate = httpPort;
         }
       }
           
@@ -309,126 +330,111 @@ public class JkApi {
 
     
     
-    if (ajpPortForUpdate == null && httpPortForUpdate != null) {
+    if (httpPortForUpdate != null) {
       // request ajp port over http
-      final String host = fields.get("host");
       
-      if (host != null && httpPortForUpdate != null) { // TODO stopped here: take host from fields or target, it must not be null
-        Integer httpPort = Integer.parseInt(httpPortForUpdate);
-        String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, httpPort);
+      String ajpPortActual;
+      
+      String host = (host = fields.get("host")) != null ? host : target.worker().getHost();
+      
+      Integer httpPort = Integer.parseInt(httpPortForUpdate);
+      String tomcatManagerExtCtxPath = lookupTomcatManagerPath(environment, host, httpPort);
+      
+      try {
+        int ajpPort = requestAjpPortOverHttp(host, httpPort, tomcatManagerExtCtxPath + "/api/port/ajp");
+        ajpPortActual = String.valueOf(ajpPort);
+       
+      } catch (UnknownHostException e) {
+        // wrong host
+        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__UNKNOWN_HOST);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
         
-        try {
-          int ajpPort = requestAjpPortOverHttp(host, httpPort, tomcatManagerExtCtxPath + "/api/port/ajp");
-          ajpPortForUpdate = String.valueOf(ajpPort);
-         
-        } catch (UnknownHostException e) {
-          // wrong host
-          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__UNKNOWN_HOST);
-          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
-          
-        } catch (ConnectException e) {
-          // host OK, port is not working at all
-          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__NOT_WORKING_PORT);
-          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+      } catch (ConnectException e) {
+        // host OK, port is not working at all
+        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__NOT_WORKING_PORT);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
 
-        } catch (SocketException | SocketTimeoutException e) {
-          // host OK, port OK, invalid protocol
-          Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__NOT_HTTP_PORT);
-          return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+      } catch (SocketException | SocketTimeoutException e) {
+        // host OK, port OK, invalid protocol
+        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED__NOT_HTTP_PORT);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
 
-        } catch (Exception e) {
-          // other error
+      } catch (Exception e) {
+        // other error
+        e.printStackTrace();
+        
+        Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
+        invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+        invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+        return ModStatus.errInvalidFieldData(invalidFieldDataMap);
+      }
+      
+      
+      // if ajp port field specified, check the value
+      if (ajpPortForUpdate != null) {
+        if (!ajpPortForUpdate.equals(ajpPortActual)) {
           Map<String, ModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
-          invalidFieldDataMap.put("host", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
-          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_PORT_REQUEST_FAILED);
+          invalidFieldDataMap.put("ajpPort", ModStatus.InvalidFieldDataCode.HTTP_AJP_PORT_NOT_MATCH);
+          invalidFieldDataMap.put("httpPort", ModStatus.InvalidFieldDataCode.HTTP_AJP_PORT_NOT_MATCH);
           return ModStatus.errInvalidFieldData(invalidFieldDataMap);
         }
+      } else {
+        ajpPortForUpdate = ajpPortActual;
       }
+      
     }
     
     
     
-    // apply changes
-//    String active = fields.get("active");
-//    if (active != null) {
-//      target.jkMount().setActive(!"false".equals(active));
-//    }
-//    
-//    String application = fields.get("application");
-//    if (application != null) {
-//      target.jkMount().setApplication(application);
-//    }
-//    
-//    String host = fields.get("host");
-//    if (host == null && target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
-//      target.rebind(host, ajpPortNumber);
-//    }
+    // prepare the pair {host, ajpPort} for possible rebinding (both null or both filled)
+    String hostForUpdate = fields.get("host");
+    if (hostForUpdate != null && ajpPortForUpdate == null) {
+      ajpPortForUpdate = target.worker().getPort();
+    } else if (ajpPortForUpdate != null && hostForUpdate == null) {
+      hostForUpdate = target.worker().getHost();
+    } else {
+      hostForUpdate = ajpPortForUpdate = null;
+    }
+    
+    
+    
+    // perform modifications
+    
+    String active = fields.get("active");
+    if (active != null) {
+      target.jkMount().setActive(!"false".equals(active));
+    }
+    
+    String application = fields.get("application");
+    if (application != null) {
+      target.jkMount().setApplication(application);
+    }
+    
+
+    
+    // rebind
+    
+    if (hostForUpdate != null && !hostForUpdate.equals((String)target.worker().getHost()) 
+        && ajpPortForUpdate != null && !ajpPortForUpdate.equals((String)target.worker().getPort())) {
       
-//    // TODO worker name? rebind? optimize?
-//    
-//    String host = fields.get("host");
-//    if (host != null) {
-//      target.worker().setHost(host);
-//    }
-//    
-//    if (ajpPort != null) {
-//      target.worker().setType("ajp13");
-//      target.worker().setPort(ajpPort);
-//    }
+      // TODO rebind to a new worker (or create the one) with host=hostForUpdate and ajpPort=ajpPortForUpdate
+    }
     
+    // TODO save modifications
+
     
-    
-    throw new UnsupportedOperationException("Not impl yet: update "+fields+"; ajp=" + ajpPortForUpdate + "; http=" + httpPortForUpdate);
-    
-    // rebind first
-    
-//
-//      if (!host.equals(target.getWorkerHost()) || ajpPortNumber != target.getWorkerAjpPort()) {
-//        target.rebind(host, ajpPortNumber);
-//      }
-//    }
-//
-//
-//    if (sourceDto.getActive() != null) {
-//      target.setActive(sourceDto.getActive());
-//    }
-//    if (sourceDto.getApplication() != null) {
-//      target.setApplication(sourceDto.getApplication());
-//    }
-//
-//    return ModStatus.success();
+    // TODO stopped here
+    throw new UnsupportedOperationException("Not implemented yet");
   }
-  //  
-  //  private static ModStatus deleteBinding(
-  //      ModRequestBodyDto mreq, ApacheConfJk apacheConf) {
-  //
-  //    try {
-  //      String id = mreq.getId();
-  //
-  //      if (id == null) {
-  //        return ModStatus.errEmptyId();
-  //      }
-  //
-  //      Binding binding = apacheConf.getBindings().get(id);
-  //
-  //      if (binding == null) {
-  //        return ModStatus.errNoItemFoundById();
-  //      }
-  //      
-  //      apacheConf.delete(id);
-  //      
-  //      return ModStatus.success();
-  //      
-  //    } catch (Throwable e) {
-  //      e.printStackTrace();
-  //      
-  //      return ModStatus.errServerException();
-  //    }
-  //  }
-  //  
+
+  public ModStatus deleteBinding(Environment env, String mountId) {
+    // TODO stopped here
+    throw new UnsupportedOperationException("Not implemented yet");
+  }
+
   public ModStatus createBinding(Environment environment, Map<String, String> fields) {
 
     final ApacheConfJk conf = new ApacheConfJk(
@@ -571,16 +577,75 @@ public class JkApi {
   
       String responseBody = null;
       if (status == 200) {// TODO or check 2xx?
-        try (Scanner sc = new Scanner(connection.getInputStream())) {
+        try (Scanner sc = new Scanner(connection.getInputStream())) { // TODO do not use scanner to read inlut stream
           sc.useDelimiter("\\Z");
           if (sc.hasNext()) {
             responseBody = sc.next();
           } else {
+            // TODO handle user-friendly?
+            throw new RuntimeException("Empty response body");
+          }
+        }
+      } else {
+        // TODO handle user-friendly?
+        throw new RuntimeException("Response status is " + status);
+      }
+      
+      return Integer.parseInt(responseBody);
+      
+    } catch (UnknownHostException e) {
+      // wrong host
+      throw e;
+      
+    } catch (ConnectException e) {
+      // host OK, port is not working at all
+      throw e;
+
+    } catch (SocketException | SocketTimeoutException e) {
+      // host OK, port OK, invalid protocol
+      throw e;
+
+    } catch (Throwable e) {
+      // other error
+      throw new Exception(e);
+    }
+  }
+
+  /**
+   * 
+   * @param host
+   * @param ajpPort
+   * @param uri
+   * @return
+   * @throws UnknownHostException wrong host
+   * @throws ConnectException host OK, port is not working at all
+   * @throws SocketException host OK, port OK, invalid protocol
+   * @throws SocketTimeoutException host OK, port OK, invalid protocol
+   * @throws Exception other error
+   */
+  protected int requestHttpPortOverAjp(String host, int ajpPort, String uri) throws Exception {
+    try {
+      
+      SimpleAjpConnection connection = SimpleAjpConnection.open(
+          host, ajpPort, uri, CONNECT_TIMEOUT_MS);
+
+      connection.connect();
+
+      int status = connection.getStatus();
+      
+      String responseBody = null;
+      if (status == 200) {
+        try (Scanner sc = new Scanner(connection.getResponseBody())) { // TODO do not use scanner to read inlut stream
+          sc.useDelimiter("\\Z");
+          if (sc.hasNext()) {
+            responseBody = sc.next();
+          } else {
+            // TODO handle user-friendly?
             throw new RuntimeException("Empty response body");
           }
         }
       }
-      
+        
       return Integer.parseInt(responseBody);
       
     } catch (UnknownHostException e) {
