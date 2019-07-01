@@ -6,14 +6,7 @@ body {
   padding-top: 8px; 
 }
 
-.anchor-area {
-  float: left;
-  width: 15px;
-}
-
 .content-area {
-  margin-left: 15px;
-
   font-family: monospace;
   word-break: break-all;
 }

@@ -78,25 +78,6 @@ public class LogMonitorPageContent implements Iterable<El> {
     
     {
       El mainDiv = new El("div", context);
-      {
-        El anchorArea = new El("div", mainDiv.context)
-            .addClass("anchor-area");
-        {
-          if (hasLinesTop) {
-            El anchorAreaTop = new El("div", anchorArea.context)
-                .addClass("anchor-area__panel").addClass("top")
-                .setInnerHTML("&nbsp;");
-            anchorArea.appendChild(anchorAreaTop);
-          }
-          if (hasLinesBottom) {
-            El anchorAreaBtm = new El("div", anchorArea.context)
-                .addClass("anchor-area__panel").addClass("bottom")
-                .setInnerHTML("&nbsp;");
-            anchorArea.appendChild(anchorAreaBtm);
-          }
-        }
-        mainDiv.appendChild(anchorArea);
-      }
       
       {
         El contentArea = new El("div", mainDiv.context)
