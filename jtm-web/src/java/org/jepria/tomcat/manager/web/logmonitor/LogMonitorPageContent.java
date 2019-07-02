@@ -53,15 +53,34 @@ public class LogMonitorPageContent implements Iterable<El> {
       controlTop.classList.add("control-top");
   
       if (canLoadMoreLines) {
-        controlTop.classList.add("control-top__load-more-lines");
+        controlTop.classList.add("control-top_load-more-lines");
         controlTop.setAttribute("onclick", "onControlTopClick();");
-        String innerHtml = String.format(
-            text.getString("org.jepria.tomcat.manager.web.logmonitor.load_more_lines"), 
-            loadMoreLinesPortion);
-        controlTop.setInnerHTML(innerHtml);
+        
+        {
+          El spanLoad = new El("span", context);
+          
+          spanLoad.classList.add("control-top__span_load");
+          String innerHtml = String.format(
+              text.getString("org.jepria.tomcat.manager.web.logmonitor.load_more_lines.load"), 
+              loadMoreLinesPortion);
+          spanLoad.setInnerHTML(innerHtml);
+          
+          controlTop.appendChild(spanLoad);
+        }
+        
+        {
+          El spanLoading = new El("span", context);
+          
+          spanLoading.classList.add("control-top__span_loading");
+          String innerHtml = text.getString("org.jepria.tomcat.manager.web.logmonitor.load_more_lines.loading");
+          spanLoading.setInnerHTML(innerHtml);
+          
+          controlTop.appendChild(spanLoading);
+        }
+        
       } else {
         if (hasLinesTop || hasLinesBottom) {
-          controlTop.classList.add("control-top__file-begin-reached");
+          controlTop.classList.add("control-top_file-begin-reached");
           controlTop.setAttribute("disabled");
           controlTop.setInnerHTML(text.getString(
               "org.jepria.tomcat.manager.web.logmonitor.file_begin_reached"));
