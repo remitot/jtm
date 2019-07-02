@@ -6,14 +6,7 @@ body {
   padding-top: 8px; 
 }
 
-.anchor-area {
-  float: left;
-  width: 15px;
-}
-
 .content-area {
-  margin-left: 15px;
-
   font-family: monospace;
   word-break: break-all;
 }
@@ -51,12 +44,12 @@ button.control-top {
   border: medium none;
 }
 
-.control-top__load-more-lines {
+.control-top_load-more-lines {
   background-color: #CFFFC1;
   cursor: pointer;
 }
 
-.control-top__file-begin-reached {
+.control-top_file-begin-reached {
   margin-bottom: 8px;
 }
 
@@ -64,6 +57,15 @@ button.control-top {
   background-color: #BFBFBF;
   cursor: default;
 }
+
+.control-top_load-more-lines .control-top__span_load, .control-top_load-more-lines:disabled .control-top__span_loading {
+  display: inline-block;
+}
+
+.control-top_load-more-lines:disabled .control-top__span_load, .control-top_load-more-lines .control-top__span_loading {
+  display: none;
+}
+
 
 .big-black-button.control-button_reset-anchor {
   height: 44px;

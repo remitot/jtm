@@ -55,16 +55,6 @@ function logmonitor_onload() {
   }
 
 
-  /* set anchor-area size */
-  var anchorAreaTop = document.querySelectorAll(".anchor-area__panel.top")[0];
-  anchorAreaTop.style.height = logmonitor_linesTop.clientHeight + "px";
-
-  var anchorAreaBottom = document.querySelectorAll(".anchor-area__panel.bottom")[0];
-  if (anchorAreaBottom) {
-    anchorAreaBottom.style.height = logmonitor_linesBottom.clientHeight + "px";
-  }
-
-
   addHoverForBigBlackButton(document.getElementsByClassName("big-black-button")[0]);
 
   adjustResetAnchorButtonVisiblity();
