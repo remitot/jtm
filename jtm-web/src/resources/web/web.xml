@@ -86,10 +86,26 @@
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
 
+  <security-role>
+    <role-name>manager-gui</role-name>
+  </security-role>
+  
   <security-constraint>
     <web-resource-collection>
-      <web-resource-name>Public resources</web-resource-name>
+      <web-resource-name>Public resources (SSR)</web-resource-name>
       <url-pattern>/*</url-pattern>
     </web-resource-collection>
   </security-constraint>
+  
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Protected resources (API)</web-resource-name>
+      <url-pattern>/api/log/*</url-pattern>
+      <url-pattern>/api/restart/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>manager-gui</role-name>
+    </auth-constraint>
+  </security-constraint>
+  
 </web-app>
