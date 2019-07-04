@@ -15,7 +15,7 @@ public class PortApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2791033129244689227L;
 
-  private static void portHttp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected void portHttp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("text/plain; charset=UTF-8");
@@ -51,7 +51,7 @@ public class PortApiServlet extends HttpServlet {
     }
   }
   
-  private static void portAjp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected void portAjp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     
     // the content type is defined for the entire method
     resp.setContentType("text/plain; charset=UTF-8");
