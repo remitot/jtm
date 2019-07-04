@@ -25,7 +25,7 @@ function onControlTopClick() {
 function onResetAnchorButtonClick() {
   var resetAnchorButton = document.getElementsByClassName("control-button_reset-anchor")[0];
   resetAnchorButton.disabled = true;
-  resetAnchorButton.title = null;
+  resetAnchorButton.removeAttribute("title");
 
   // reset anchor
   var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
