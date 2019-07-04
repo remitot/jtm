@@ -1,10 +1,8 @@
 package org.jepria.tomcat.manager.web.log;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Scanner;
+import java.util.List;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,9 +31,6 @@ public class LogApiServlet extends HttpServlet {
       return;
     }
   }
-  
-  // TODO this value is assumed. But how to determine it? 
-  private static final String LOG_FILE_READ_ENCODING = "UTF-8";
   
   /**
    * @param request
@@ -71,28 +66,22 @@ public class LogApiServlet extends HttpServlet {
       
       Environment environment = EnvironmentFactory.get(request);
 
-      File logsDirectory = environment.getLogsDirectory();
+      final List<String> fileContents;
       
-      Path logFile = logsDirectory.toPath().resolve(filename);
-
-      try (Scanner sc = new Scanner(logFile.toFile(), LOG_FILE_READ_ENCODING)) {
-        while (sc.hasNextLine()) {
-          response.getWriter().println(sc.nextLine());
-        }
+      try {
+        fileContents = new LogApi().fileContents(environment, filename);
+        
       } catch (FileNotFoundException e) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         response.flushBuffer();
         return;
-      }// TODO catch also non-readable file excepiton
-
-      
-      /*
-      // XXX consider the simple solution
-      //(but it copies byte-by-byte and hence does not consider encoding):
-      try (OutputStream out = resp.getOutputStream()) {
-        Files.copy(logFile, out);
       }
-       */
+      
+      if (fileContents != null) {
+        for (String line: fileContents) {
+          response.getWriter().println(line);
+        }
+      }
       
       response.setStatus(HttpServletResponse.SC_OK);
       response.flushBuffer();
