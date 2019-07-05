@@ -1,7 +1,7 @@
 package org.jepria.tomcat.manager.web.log;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.List;
 
 import javax.servlet.http.HttpServlet;
@@ -71,7 +71,7 @@ public class LogApiServlet extends HttpServlet {
       try {
         fileContents = new LogApi().fileContents(environment, filename);
         
-      } catch (FileNotFoundException e) {
+      } catch (NoSuchFileException e) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         response.flushBuffer();
         return;

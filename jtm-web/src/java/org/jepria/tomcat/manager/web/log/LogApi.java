@@ -2,9 +2,13 @@ package org.jepria.tomcat.manager.web.log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -143,9 +147,9 @@ public class LogApi {
   }
 
   // TODO this value is assumed. But how to determine it? 
-  private static final String LOG_FILE_READ_ENCODING = "UTF-8";
+  private static final Charset LOG_FILE_ENCODING = Charset.forName("UTF-8");
 
-  public List<String> fileContents(Environment environment, String filename) throws FileNotFoundException {
+  public List<String> fileContents(Environment environment, String filename) throws NoSuchFileException {
 
     File logsDirectory = environment.getLogsDirectory();
 
@@ -154,13 +158,43 @@ public class LogApi {
     final List<String> ret;
     
     try {
-      ret = Files.lines(logFile, Charset.forName(LOG_FILE_READ_ENCODING)).collect(Collectors.toList());
-    } catch (FileNotFoundException e) {
+      ret = Files.lines(logFile, LOG_FILE_ENCODING).collect(Collectors.toList());
+    } catch (NoSuchFileException e) {
       throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }// TODO catch also non-readable file excepiton
     
     return ret;
+  }
+
+  /**
+   * 
+   * @param environment
+   * @param filename
+   * @param logRecord null-safe
+   */
+  public void writeLogRecord(Environment environment, String filename, String logRecord) {
+    if (logRecord != null) {
+      
+      File logsDirectory = environment.getLogsDirectory();
+  
+      File logFile = logsDirectory.toPath().resolve(filename).toFile();
+      
+      synchronized (LogApi.class) {
+        try {
+          logFile.createNewFile();
+        } catch (IOException e1) {
+          throw new RuntimeException(e1);
+        }
+      
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(logFile, true), LOG_FILE_ENCODING))) {
+          writer.println(logRecord);
+        } catch (FileNotFoundException e) {
+          // impossible due to File.createNewFile() invocation
+          throw new RuntimeException(e);
+        }
+      }
+    }
   }
 }
