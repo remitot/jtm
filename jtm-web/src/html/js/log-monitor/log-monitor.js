@@ -28,7 +28,9 @@ function onResetAnchorButtonClick() {
   resetAnchorButton.removeAttribute("title");
 
   // reset anchor
-  var offset = getOffset() + document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
+  var offset = getOffset();
+  // TODO at this point offset may be null or Number. But in fact it is never null. Add null-check anyway?
+  offset += document.querySelectorAll(".content-area__lines.bottom")[0].clientHeight;
   window.location.hash = "#" + offset; // TODO remove this action? (The window will be reloaded immediately anyway)
   windowReload(logmonitor_resetAnchorUrl + "#" + offset);
   
@@ -37,8 +39,8 @@ function onResetAnchorButtonClick() {
 function logmonitor_onload() { 
   /* scroll to the offset */ 
 
-  var offset = getOffset(); 
-  if (offset) {
+  var offset = getOffset();
+  if (offset != null) {
     // scroll to the particular offset
     scrollVerticalTo(getSplitY() - offset); 
   } else {
