@@ -110,10 +110,10 @@ public class LogTable extends Table<Record> {
       field.appendChild(a);
       
       if (item.largeFile) {
-        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
-        El img = new El("img", field.context).addClass("hint")
+        String hintTitle = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
+        El img = new El("img", field.context).addClass("field-text__hint_large-file")
             .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
-            .setAttribute("title", hint);
+            .setAttribute("title", hintTitle);
         field.appendChild(img);
       }
     }
@@ -130,10 +130,10 @@ public class LogTable extends Table<Record> {
       field.appendChild(a);
       
       if (item.largeFile) {
-        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
-        El img = new El("img", field.context).addClass("hint")
+        String hintTitle = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
+        El img = new El("img", field.context).addClass("field-text__hint_large-file")
             .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
-            .setAttribute("title", hint);
+            .setAttribute("title", hintTitle);
         field.appendChild(img);
       }
     }

@@ -58,7 +58,7 @@ public class LogPageContent implements Iterable<El> {
   /**
    * Threshold for a log file size in bytes to warn the user it is large 
    */
-  public static final long FILE_SIZE_THRESHOLD_LARGE = 52428800;
+  public static final long FILE_SIZE_THRESHOLD_LARGE = 10485760; // 10 MB
   
   protected LogTable.Record dtoToItem(LogDto dto) {
     final LogTable.Record item = new LogTable.Record();

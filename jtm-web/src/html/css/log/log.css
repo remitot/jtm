@@ -26,10 +26,10 @@
   width: 10%;
 }
 
-.table .cell .hint {
+.table .cell .field-text__hint_large-file {
   width: 1em;
   height: 1em;
-  margin-bottom: -0.2em;
+  margin-bottom: -0.12em;
   margin-left: 0.3em;
   
   display: inline-block;
