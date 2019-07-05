@@ -56,9 +56,9 @@ public class LogPageContent implements Iterable<El> {
   }
   
   /**
-   * Threshold for a log file size in bytes to display it's size value bold in the table 
+   * Threshold for a log file size in bytes to warn the user it is large 
    */
-  public static final long FILE_SIZE_THRESHOLD_BOLD = 52428800;
+  public static final long FILE_SIZE_THRESHOLD_LARGE = 52428800;
   
   protected LogTable.Record dtoToItem(LogDto dto) {
     final LogTable.Record item = new LogTable.Record();
@@ -68,6 +68,8 @@ public class LogPageContent implements Iterable<El> {
     if (dto.getLastModified() != null) {
       item.lastmod().value = getItemLastModifiedValue(dto.getLastModified());
     }
+    
+    item.largeFile = dto.getSize() != null && dto.getSize() >= FILE_SIZE_THRESHOLD_LARGE;
     
     item.size_().value = getItemSizeValue(dto.getSize());
     
@@ -181,15 +183,7 @@ public class LogPageContent implements Iterable<El> {
       unit = "GB"; // TODO non-nls;
     }
     
-    value = value.replaceAll(" ", "&nbsp;");
-    
-    String ret = value + "&nbsp;" + unit;
-    
-    if (size >= FILE_SIZE_THRESHOLD_BOLD) {
-      ret = "<b class=\"b_large-file\">" + ret + "</b>";
-    }
-    
-    return ret;
+    return value + " " + unit;
   }
   
   private static class DateTimeFormat {

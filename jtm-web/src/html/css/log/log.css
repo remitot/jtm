@@ -26,6 +26,15 @@
   width: 10%;
 }
 
+.table .cell .hint {
+  width: 1em;
+  height: 1em;
+  margin-bottom: -0.2em;
+  margin-left: 0.3em;
+  
+  display: inline-block;
+}
+
 .table div.cell.column-monitor {
   width: 10%;
 }

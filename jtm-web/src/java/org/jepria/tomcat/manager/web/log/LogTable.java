@@ -3,6 +3,7 @@ package org.jepria.tomcat.manager.web.log;
 import org.jepria.tomcat.manager.web.log.LogTable.Record;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.FieldTextLabel;
@@ -47,6 +48,11 @@ public class LogTable extends Table<Record> {
     public Field monitor() {
       return get("monitor");
     }
+    
+    /**
+     * Is the log file denoted by this record of a large size
+     */
+    public boolean largeFile = false;
   }
 
   
@@ -80,7 +86,16 @@ public class LogTable extends Table<Record> {
     
     cell = createCell(div, "column-size");
     cell.classList.add("cell-field");
-    field = new FieldTextLabel(cell.context, item.size_().value); 
+    final String html;
+    {
+      String valueEsc = HtmlEscaper.escape(item.size_().value, true);
+      if (item.largeFile) {
+        html = "<b class=\"b_large-file\">" + valueEsc + "</b>"; 
+      } else {
+        html = valueEsc;
+      }
+    }
+    field = new FieldTextLabel(cell.context, html); 
     addField(cell, field);
     
     cell = createCell(div, "column-download");
@@ -91,6 +106,14 @@ public class LogTable extends Table<Record> {
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
       field.appendChild(a);
+      
+      if (item.largeFile) {
+        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + ": " + item.size_().value;
+        El img = new El("img", field.context).addClass("hint")
+            .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
+            .setAttribute("title", hint);
+        field.appendChild(img);
+      }
     }
     addField(cell, field);
     
@@ -103,6 +126,14 @@ public class LogTable extends Table<Record> {
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
       field.appendChild(a);
+      
+      if (item.largeFile) {
+        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + ": " + item.size_().value;
+        El img = new El("img", field.context).addClass("hint")
+            .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
+            .setAttribute("title", hint);
+        field.appendChild(img);
+      }
     }
     addField(cell, field);
     
