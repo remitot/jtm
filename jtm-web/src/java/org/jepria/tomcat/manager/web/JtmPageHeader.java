@@ -92,6 +92,12 @@ public class JtmPageHeader extends PageHeader {
       items.add(itemPort);
     }
     
+    
+    // add class to the left item
+    if (items.size() > 0) {
+      items.get(0).classList.add("page-header__menu-item_left");
+    }
+    
     setItems(items);
   }
 }

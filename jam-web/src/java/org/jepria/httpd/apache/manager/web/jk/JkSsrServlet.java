@@ -397,8 +397,8 @@ public class JkSsrServlet extends SsrServletBase {
                     field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.both_ajp_http_empty");
                     break;
                   }
-                  case BOTH_HTTP_AJP_PORT: {
-                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.both_ajp_http");
+                  case HTTP_AJP_PORT_NOT_MATCH: {
+                    field.invalidMessage = text.getString("org.jepria.httpd.apache.manager.web.jk.Deatils.field.invalid.http_ajp_port_not_match");
                     break;
                   }
                   case PORT_SYNTAX: {
@@ -559,7 +559,12 @@ public class JkSsrServlet extends SsrServletBase {
         } else if ("/del".equals(split[1])) {
 
           final String mountId = split[0];
-          // TODO delete binding by mountId
+          
+          final Environment env = EnvironmentFactory.get(req);
+
+          final JkApi api = new JkApi();
+          
+          api.deleteBinding(env, mountId);
 
         } else {
 

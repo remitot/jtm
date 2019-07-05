@@ -1,9 +1,6 @@
 .page-header {
   background-color: black;
-  
   height: 45px;
-  
-  padding-left: 28px;
 }
 
 .page-header__menu-item {
@@ -19,11 +16,17 @@ div.page-header__container {
 }
 
 .page-header__menu-item_regular {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.page-header__menu-item_left {
   padding-left: 28px;
 }
 
 a.page-header__menu-item {
   text-decoration: none;
+  display: inline-block;
 }
 
 .page-header__menu-item_current {
