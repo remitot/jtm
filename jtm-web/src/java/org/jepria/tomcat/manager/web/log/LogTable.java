@@ -53,6 +53,8 @@ public class LogTable extends Table<Record> {
      * Is the log file denoted by this record of a large size
      */
     public boolean largeFile = false;
+    
+    public String sizeHint = null;
   }
 
   
@@ -108,7 +110,7 @@ public class LogTable extends Table<Record> {
       field.appendChild(a);
       
       if (item.largeFile) {
-        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + ": " + item.size_().value;
+        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
         El img = new El("img", field.context).addClass("hint")
             .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
             .setAttribute("title", hint);
@@ -128,7 +130,7 @@ public class LogTable extends Table<Record> {
       field.appendChild(a);
       
       if (item.largeFile) {
-        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + ": " + item.size_().value;
+        String hint = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
         El img = new El("img", field.context).addClass("hint")
             .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
             .setAttribute("title", hint);

@@ -69,9 +69,10 @@ public class LogPageContent implements Iterable<El> {
       item.lastmod().value = getItemLastModifiedValue(dto.getLastModified());
     }
     
-    item.largeFile = dto.getSize() != null && dto.getSize() >= FILE_SIZE_THRESHOLD_LARGE;
-    
-    item.size_().value = getItemSizeValue(dto.getSize());
+    ItemSizeInfo itemSizeInfo = getItemSizeInfo(dto);
+    item.largeFile = itemSizeInfo.largeFile;
+    item.size_().value = itemSizeInfo.sizeFieldValue;
+    item.sizeHint = itemSizeInfo.sizeHint;
     
     item.download().value = "api/log?filename=" + dto.getName();
     
@@ -80,6 +81,62 @@ public class LogPageContent implements Iterable<El> {
     item.monitor().value = "log-monitor?filename=" + dto.getName();
     
     return item;
+  }
+  
+  protected class ItemSizeInfo {
+    /**
+     * Whether or not the fiel is large
+     */
+    public boolean largeFile;
+    /**
+     * Value to display in the field
+     */
+    public String sizeFieldValue;
+    /**
+     * Hint text
+     */
+    public String sizeHint;
+  }
+  
+  protected ItemSizeInfo getItemSizeInfo(LogDto dto) {
+    if (dto == null) {
+      return null;
+    }
+    
+    ItemSizeInfo ret = new ItemSizeInfo();
+    
+    final Long size = dto.getSize();
+    
+    if (size == null) {
+      ret.largeFile = false;
+      ret.sizeFieldValue = null;
+      ret.sizeHint = null;
+      
+    } else {
+      ret.largeFile = size >= FILE_SIZE_THRESHOLD_LARGE;
+      
+      String value;
+      String unit;
+      
+      if (size < 1048576) {
+        long kb = (long)Math.ceil((double)size / 1024);
+        value = String.valueOf(kb);
+        unit = "KB"; // TODO non-nls;
+      } else if (size < 1073741824) {
+        long mb = (long)Math.ceil((double)size / 1048576);
+        value = String.valueOf(mb);
+        unit = "MB"; // TODO non-nls;
+      } else {
+        double gb = (double)size / 1073741824;
+        value = String.format(Locale.UK, "%.1f", gb);
+        unit = "GB"; // TODO non-nls;
+      }
+      
+      ret.sizeFieldValue = String.format("%4s", value) + " " + unit;
+      ret.sizeHint = value + " " + unit;
+    }
+    
+    return ret;
   }
   
   protected String getItemLastModifiedValue(long lastModifiedTimestamp) {
@@ -154,36 +211,6 @@ public class LogPageContent implements Iterable<El> {
     }
     
     return lastModifiedDateTime + (lastModifiedAgoVerb == null ? "" : (", <b>" + lastModifiedAgoVerb + "</b>"));
-  }
-  
-  /**
-   * 
-   * @param size in bytes
-   * @return
-   */
-  protected String getItemSizeValue(Long size) {
-    if (size == null) {
-      return null;
-    }
-    
-    String value;
-    String unit;
-    
-    if (size < 1048576) {
-      long kb = (long)Math.ceil((double)size / 1024);
-      value = String.format("%4d", kb);
-      unit = "KB"; // TODO non-nls;
-    } else if (size < 1073741824) {
-      long mb = (long)Math.ceil((double)size / 1048576);
-      value = String.format("%4d", mb);
-      unit = "MB"; // TODO non-nls;
-    } else {
-      double gb = (double)size / 1073741824;
-      value = String.format(Locale.UK, "%4.1f", gb);
-      unit = "GB"; // TODO non-nls;
-    }
-    
-    return value + " " + unit;
   }
   
   private static class DateTimeFormat {
