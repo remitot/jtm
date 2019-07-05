@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -54,6 +55,11 @@ public class LogPageContent implements Iterable<El> {
     this.elements = Collections.unmodifiableList(elements);
   }
   
+  /**
+   * Threshold for a log file size in bytes to display it's size value bold in the table 
+   */
+  public static final long FILE_SIZE_THRESHOLD_BOLD = 52428800;
+  
   protected LogTable.Record dtoToItem(LogDto dto) {
     final LogTable.Record item = new LogTable.Record();
     
@@ -62,6 +68,8 @@ public class LogPageContent implements Iterable<El> {
     if (dto.getLastModified() != null) {
       item.lastmod().value = getItemLastModifiedValue(dto.getLastModified());
     }
+    
+    item.size_().value = getItemSizeValue(dto.getSize());
     
     item.download().value = "api/log?filename=" + dto.getName();
     
@@ -144,6 +152,44 @@ public class LogPageContent implements Iterable<El> {
     }
     
     return lastModifiedDateTime + (lastModifiedAgoVerb == null ? "" : (", <b>" + lastModifiedAgoVerb + "</b>"));
+  }
+  
+  /**
+   * 
+   * @param size in bytes
+   * @return
+   */
+  protected String getItemSizeValue(Long size) {
+    if (size == null) {
+      return null;
+    }
+    
+    String value;
+    String unit;
+    
+    if (size < 1048576) {
+      long kb = (long)Math.ceil((double)size / 1024);
+      value = String.format("%4d", kb);
+      unit = "KB"; // TODO non-nls;
+    } else if (size < 1073741824) {
+      long mb = (long)Math.ceil((double)size / 1048576);
+      value = String.format("%4d", mb);
+      unit = "MB"; // TODO non-nls;
+    } else {
+      double gb = (double)size / 1073741824;
+      value = String.format(Locale.UK, "%4.1f", gb);
+      unit = "GB"; // TODO non-nls;
+    }
+    
+    value = value.replaceAll(" ", "&nbsp;");
+    
+    String ret = value + "&nbsp;" + unit;
+    
+    if (size >= FILE_SIZE_THRESHOLD_BOLD) {
+      ret = "<b class=\"b_large-file\">" + ret + "</b>";
+    }
+    
+    return ret;
   }
   
   private static class DateTimeFormat {

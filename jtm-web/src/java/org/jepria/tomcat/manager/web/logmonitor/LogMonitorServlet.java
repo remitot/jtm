@@ -46,6 +46,10 @@ public class LogMonitorServlet extends SsrServletBase  {
   }
   
   // TODO extract?
+  /**
+   * Maximum number of chars to load per a monitor request
+   */
+  // TODO measure in bytes instead of chars
   private static final long LOAD_LIMIT = 1000000;
   //TODO extract?
   private static final boolean RESET_LINES_ON_ANCHOR_RESET = true;

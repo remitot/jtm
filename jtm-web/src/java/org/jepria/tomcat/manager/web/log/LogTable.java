@@ -18,6 +18,7 @@ public class LogTable extends Table<Record> {
     public Record() {
       put("name", new Field("name"));
       put("lastmod", new Field("lastmod"));
+      put("size", new Field("size"));
       put("download", new Field("download"));
       put("open", new Field("open"));
       put("monitor", new Field("monitor"));
@@ -29,6 +30,10 @@ public class LogTable extends Table<Record> {
     
     public Field lastmod() {
       return get("lastmod");
+    }
+    
+    public Field size_() {
+      return get("size");
     }
     
     public Field download() {
@@ -71,6 +76,11 @@ public class LogTable extends Table<Record> {
     cell = createCell(div, "column-lastmod");
     cell.classList.add("cell-field");
     field = new FieldTextLabel(cell.context, item.lastmod().value); 
+    addField(cell, field);
+    
+    cell = createCell(div, "column-size");
+    cell.classList.add("cell-field");
+    field = new FieldTextLabel(cell.context, item.size_().value); 
     addField(cell, field);
     
     cell = createCell(div, "column-download");
@@ -141,6 +151,11 @@ public class LogTable extends Table<Record> {
     cell = createCell(div, "column-lastmod");
     label = new El("label", cell.context);
     label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_lastmod"));
+    cell.appendChild(label);
+    
+    cell = createCell(div, "column-size");
+    label = new El("label", cell.context);
+    label.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_size"));
     cell.appendChild(label);
     
     createCell(div, "column-download");

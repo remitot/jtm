@@ -3,11 +3,19 @@
 }
 
 .table div.cell.column-name {
-  width: 40%;
+  width: 35%;
 }
 
 .table div.cell.column-lastmod {
-  width: 30%;
+  width: 25%;
+}
+
+.table div.cell.column-size {
+  width: 10%;
+}
+
+.table div.cell.column-size .b_large-file {
+  color: #CC0000
 }
 
 .table div.cell.column-download {
