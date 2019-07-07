@@ -47,7 +47,7 @@ public class LogMonitorServlet extends SsrServletBase  {
   
   // TODO extract?
   /**
-   * Maximum number of chars to load per a monitor request
+   * Maximum number of chars for a log file fragment to load per a monitor request
    */
   // TODO measure in bytes instead of chars
   private static final long LOAD_LIMIT = 1000000;
@@ -239,19 +239,23 @@ public class LogMonitorServlet extends SsrServletBase  {
       }
     }
     
-    return lineCount > 0 ? lineCount - 1 : 0;
+    return lineCount > 0 ? lineCount : 1;
   }
   
   /**
    * @param log file reader
-   * @param anchor index of the anchor line in the file 
-   * (index of the last line loaded on the {@link #initMonitor} request), from 0 
+   * @param anchor index of the anchor line in the file, beginning with {@code 1}. 
+   * Must be {@code 1} of greater
+   * (equivalently of the value is number of lines in the file) 
    * @param lines > 0, total number of lines to load (counting back from the anchor, including it)
    * @return
    */
   protected MonitorResultDto monitor(Reader fileReader, int anchor, int lines) {
 
     if (lines < 1) {
+      throw new IllegalArgumentException();
+    }
+    if (anchor < 1) {
       throw new IllegalArgumentException();
     }
     
@@ -267,8 +271,19 @@ public class LogMonitorServlet extends SsrServletBase  {
       int lineIndex = 0;
       
       try (BufferedReader reader = new BufferedReader(fileReader)) {
+        
         String line;
-        while ((line = reader.readLine()) != null) {
+
+        // load lines above the anchor
+        while (true) {
+          
+          line = reader.readLine();
+          if (line == null) {
+            // file end reached
+            break;
+          }
+          
+          lineIndex++;
           
           if (lineIndex <= anchor) {
             contentLinesTop.add(line);
@@ -280,33 +295,51 @@ public class LogMonitorServlet extends SsrServletBase  {
               fileBeginReached = false;
             }
           } else {
-            contentLinesBottom.add(line);
-            charCount += line.length();
+            // enough lines loaded
+            break;
           }
-
-          lineIndex++;
         }
         
         
-        // count all newlines as single chars
-        if (contentLinesTop.size() > 1) {
-          charCount += contentLinesTop.size() - 1;
+        // count all newlines as single chars // TODO that's wrong!
+        if (contentLinesTop.size() > 0) {
+          charCount += contentLinesTop.size();
         }
-        if (!contentLinesTop.isEmpty() && !contentLinesBottom.isEmpty()) {
+        
+        
+        // check load limit
+        if (charCount > LOAD_LIMIT) {
+          // TODO return error of crop the load against the limit?
+          throw new RuntimeException("Load limit overflow");
+        }
+        
+        
+        // load lines below the anchor
+        while (true) {
+          
+          line = reader.readLine();
+          if (line == null) {
+            // file end reached
+            break;
+          }
+          
+          contentLinesBottom.add(line);
+          charCount += line.length();
+          
+          
+          // count newlines as single chars // TODO that's wrong!
           charCount++;
+          
+         
+          // check load limit
+          if (charCount > LOAD_LIMIT) {
+            // TODO return error of crop the load against the limit?
+            throw new RuntimeException("Load limit overflow");
+          }
         }
-        if (contentLinesBottom.size() > 1) {
-          charCount += contentLinesBottom.size() - 1;
-        }
+        
       }
 
-      
-      // check load limit
-      if (charCount > LOAD_LIMIT) {
-        // TODO return error of crop the load against the limit?
-        throw new RuntimeException("Load limit overflow");
-      }
-      
       
       final MonitorResultDto ret = new MonitorResultDto(
           contentLinesTop,
