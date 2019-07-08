@@ -130,13 +130,10 @@ import javax.servlet.http.HttpServletResponse;
     public void respond(HttpServletResponse response) throws IOException {
       response.setContentType("text/html; charset=UTF-8");
       
-      // check the encoding
-      if (!"UTF-8".equalsIgnoreCase(response.getCharacterEncoding())) {
-        throw new IllegalStateException();
+      try (PrintWriter writer = response.getWriter()) {
+        // PrintWriter encoding is UTF-8, as set above
+        print(writer);
       }
-      
-      // the encoding is UTF-8, as it has been set and checked above
-      print(response.getWriter());
       
       response.flushBuffer();
     }
