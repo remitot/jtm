@@ -129,7 +129,15 @@ import javax.servlet.http.HttpServletResponse;
     @Override
     public void respond(HttpServletResponse response) throws IOException {
       response.setContentType("text/html; charset=UTF-8");
+      
+      // check the encoding
+      if (!"UTF-8".equalsIgnoreCase(response.getCharacterEncoding())) {
+        throw new IllegalStateException();
+      }
+      
+      // the encoding is UTF-8, as it has been set and checked above
       print(response.getWriter());
+      
       response.flushBuffer();
     }
     
