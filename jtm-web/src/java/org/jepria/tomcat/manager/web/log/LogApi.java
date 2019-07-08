@@ -1,5 +1,6 @@
 package org.jepria.tomcat.manager.web.log;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -149,7 +150,7 @@ public class LogApi {
   // TODO this value is assumed. But how to determine it? 
   private static final Charset LOG_FILE_ENCODING = Charset.forName("UTF-8");
 
-  public List<String> fileContents(Environment environment, String filename) throws NoSuchFileException {
+  public List<String> readFileLines(Environment environment, String filename) throws NoSuchFileException {
 
     File logsDirectory = environment.getLogsDirectory();
 
@@ -163,7 +164,26 @@ public class LogApi {
       throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);
-    }// TODO catch also non-readable file excepiton
+    }// TODO catch also non-readable file excepiton (e.g. permission denied)
+    
+    return ret;
+  }
+  
+  public BufferedReader readFile(Environment environment, String filename) throws NoSuchFileException {
+
+    File logsDirectory = environment.getLogsDirectory();
+
+    Path logFile = logsDirectory.toPath().resolve(filename);
+
+    final BufferedReader ret;
+    
+    try {
+      ret = Files.newBufferedReader(logFile, LOG_FILE_ENCODING);
+    } catch (NoSuchFileException e) {
+      throw e;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }// TODO catch also non-readable file excepiton (e.g. permission denied)
     
     return ret;
   }

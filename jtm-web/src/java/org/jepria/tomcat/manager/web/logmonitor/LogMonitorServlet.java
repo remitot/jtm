@@ -1,15 +1,10 @@
 package org.jepria.tomcat.manager.web.logmonitor;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -18,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
+import org.jepria.tomcat.manager.web.log.LogApi;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.SsrServletBase;
@@ -71,30 +67,12 @@ public class LogMonitorServlet extends SsrServletBase  {
   private static final boolean RESET_LINES_ON_ANCHOR_RESET = true;
   //TODO extract?
   private static final int FRAME_SIZE = 500; //TODO extract?
-  //TODO this value is assumed. But how to determine it? 
-  private static final String LOG_FILE_READ_ENCODING = "UTF-8";
-  
-  
-  protected Reader readFile(HttpServletRequest request, String filename) 
-      throws FileNotFoundException {
-    
-    Environment environment = EnvironmentFactory.get(request);
-
-    File logsDirectory = environment.getLogsDirectory();
-
-    Path logFile = logsDirectory.toPath().resolve(filename);
-    
-    try {
-      return new InputStreamReader(new FileInputStream(logFile.toFile()), LOG_FILE_READ_ENCODING);
-    } catch (UnsupportedEncodingException e) {
-      // impossible
-      throw new RuntimeException(e);
-    }// TODO catch also non-readable file excepiton (e.g. permission denied)
-  }
   
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    
+    final Environment env = EnvironmentFactory.get(request);
     
     
     // 'filename' request parameter
@@ -163,7 +141,7 @@ public class LogMonitorServlet extends SsrServletBase  {
       if (anchorStr == null) {
         // anchor-undefined (initial) monitor request
       
-        try (Reader fileReader = readFile(request, filename)){
+        try (Reader fileReader = new LogApi().readFile(env, filename)){
           anchor = getAnchorLine(fileReader);
           
         } catch (FileNotFoundException e) {
@@ -195,7 +173,7 @@ public class LogMonitorServlet extends SsrServletBase  {
         
         final MonitorResultDto monitor;
         
-        try (Reader fileReader = readFile(request, filename)) {
+        try (Reader fileReader = new LogApi().readFile(env, filename)) {
           monitor = monitor(fileReader, anchor, lines);
           
         } catch (FileNotFoundException e) {

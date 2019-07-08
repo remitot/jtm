@@ -69,7 +69,7 @@ public class LogApiServlet extends HttpServlet {
       final List<String> fileContents;
       
       try {
-        fileContents = new LogApi().fileContents(environment, filename);
+        fileContents = new LogApi().readFileLines(environment, filename);
         
       } catch (NoSuchFileException e) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST);
