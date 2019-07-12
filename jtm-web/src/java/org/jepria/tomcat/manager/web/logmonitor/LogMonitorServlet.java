@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -30,30 +31,13 @@ public class LogMonitorServlet extends SsrServletBase  {
   protected class MonitorResultDto {
     public final List<String> contentLinesTop;
     public final List<String> contentLinesBottom;
-    /**
-     * Whether the monitor request has reached the beginning of the file (bottom-up)
-     */
     public final boolean fileBeginReached;
-    /**
-     * Whether the monitor request has reached the end of the file (top-down).
-     * Either {@link #fileEndReached} is {@code true} and {@link #lines} is not {@code null},
-     * or {@link #fileEndReached} is {@code false} and {@link #lines} is {@code null}
-     */
-    public final boolean fileEndReached;
-    /**
-     * Number of lines in the file, only in case if the monitor request has reached the end of the file.
-     * Either {@link #fileEndReached} is {@code true} and {@link #lines} is not {@code null},
-     * or {@link #fileEndReached} is {@code false} and {@link #lines} is {@code null}
-     */
-    public final Integer lines;
     
     public MonitorResultDto(List<String> contentLinesTop, List<String> contentLinesBottom,
-        boolean fileBeginReached, boolean fileEndReached, Integer lines) {
+        boolean fileBeginReached) {
       this.contentLinesTop = contentLinesTop;
       this.contentLinesBottom = contentLinesBottom;
       this.fileBeginReached = fileBeginReached;
-      this.fileEndReached = fileEndReached;
-      this.lines = lines;
     }
   }
   
@@ -239,24 +223,114 @@ public class LogMonitorServlet extends SsrServletBase  {
   /**
    * @param log file reader
    * @param anchor index of the anchor line in the file, beginning with {@code 1}. 
-   * If {@code 0} or negative, the end of the file is considered an anchor 
-   * (equivalently of the value is number of lines in the file)
+   * Must be {@code 1} of greater
+   * (equivalently of the value is number of lines in the file) 
    * @param lines > 0, total number of lines to load (counting back from the anchor, including it)
    * @return
    */
   protected MonitorResultDto monitor(Reader fileReader, int anchor, int lines) {
-    
-    MonitorView v = new MonitorView(fileReader, lines, anchor < 1 ? null : anchor);
-      
-    final MonitorResultDto ret = new MonitorResultDto(
-        v.contentLinesAboveAnchor,
-        v.contentLinesBelowAnchor,
-        v.fileBeginReached,
-        v.fileEndReached,
-        v.linesInFile);
-    
-    return ret;
 
+    if (lines < 1) {
+      throw new IllegalArgumentException();
+    }
+    if (anchor < 1) {
+      throw new IllegalArgumentException();
+    }
+    
+    try {
+
+      boolean fileBeginReached = true;
+      LinkedList<String> contentLinesTop = new LinkedList<>();
+      List<String> contentLinesBottom = new LinkedList<>();
+      
+      // total char count
+      long charCount = 0;
+      
+      int lineIndex = 0;
+      
+      try (BufferedReader reader = new BufferedReader(fileReader)) {
+        
+        String line;
+
+        // load lines above the anchor
+        while (true) {
+          
+          line = reader.readLine();
+          if (line == null) {
+            // file end reached
+            break;
+          }
+          
+          lineIndex++;
+          
+          if (lineIndex <= anchor) {
+            contentLinesTop.add(line);
+            charCount += line.length();
+            
+            if (contentLinesTop.size() > lines) {
+              String removed = contentLinesTop.removeFirst();
+              charCount -= removed.length();
+              fileBeginReached = false;
+            }
+          } else {
+            // enough lines loaded
+            break;
+          }
+        }
+        
+        
+        // count all newlines as single chars // TODO that's wrong!
+        if (contentLinesTop.size() > 0) {
+          charCount += contentLinesTop.size();
+        }
+        
+        
+        // check load limit
+        if (charCount > LOAD_LIMIT) {
+          // TODO return error of crop the load against the limit?
+          throw new RuntimeException("Load limit overflow");
+        }
+        
+        
+        // load lines below the anchor
+        while (true) {
+          
+          line = reader.readLine();
+          if (line == null) {
+            // file end reached
+            break;
+          }
+          
+          contentLinesBottom.add(line);
+          charCount += line.length();
+          
+          
+          // count newlines as single chars // TODO that's wrong!
+          charCount++;
+          
+         
+          // check load limit
+          if (charCount > LOAD_LIMIT) {
+            // TODO return error of crop the load against the limit?
+            throw new RuntimeException("Load limit overflow");
+          }
+        }
+        
+      }
+
+      
+      final MonitorResultDto ret = new MonitorResultDto(
+          contentLinesTop,
+          contentLinesBottom,
+          fileBeginReached);
+      
+      return ret;
+
+    } catch (Throwable e) {
+      e.printStackTrace();
+
+      throw new RuntimeException(e);
+    }
   }
   
 }
