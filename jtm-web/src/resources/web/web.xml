@@ -101,7 +101,6 @@
     <web-resource-collection>
       <web-resource-name>Protected resources (API)</web-resource-name>
       <url-pattern>/api/log/*</url-pattern>
-      <url-pattern>/api/restart/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>
