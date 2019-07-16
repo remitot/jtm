@@ -129,6 +129,12 @@ public class LogPageContent implements Iterable<El> {
       } else {
         double gb = (double)size / 1073741824;
         value = String.format(Locale.UK, "%.1f", gb);
+        { // trim trailing ".0", if any
+          final String decimalZero = ".0";
+          if (value.endsWith(decimalZero)) {
+            value = value.substring(0, value.length() - decimalZero.length());
+          }
+        }
         unit = "GB"; // TODO non-nls;
       }
       
