@@ -120,7 +120,7 @@ public class ApacheConfBase {
   public void saveMod_jk_conf(OutputStream mod_jk_confOutputStream) {
     try (PrintStream printStream = new PrintStream(mod_jk_confOutputStream, true, FILE_WRITE_ENCODING)) {
       if (mod_jk_confLines != null) {
-        for (TextLineReference line: mod_jk_confLines) {
+        for (TextLineReference line: getMod_jk_confLines()) { // invoke get() instead of direct access to initialize if necessary 
           printStream.println(line);
         }
       } else {
@@ -135,7 +135,7 @@ public class ApacheConfBase {
   public void saveWorkers_properties(OutputStream workers_propertiesOutputStream) {
     try (PrintStream printStream = new PrintStream(workers_propertiesOutputStream, true, FILE_WRITE_ENCODING)) {
       if (mod_jk_confLines != null) {
-        for (TextLineReference line: workers_propertiesLines) {
+        for (TextLineReference line: getWorkers_propertiesLines()) { // invoke get() instead of direct access to initialize if necessary
           printStream.println(line);
         }
       } else {
