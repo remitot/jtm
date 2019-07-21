@@ -14,12 +14,9 @@ public class JamPageHeader extends PageHeader {
    * Menu items possibly displayed as currently selected 
    */
   public static enum CurrentMenuItem {
-    JK,
-    JK_DETAILS,
-    JK_NEW_BINDING,
+    JK_MODJK,
+    JK_WORKERS,
   }
-  
-  private El itemJkDetails = null;
   
   /**
    * @param currentMenuItem the menu item to be displayed as currently active.
@@ -33,70 +30,42 @@ public class JamPageHeader extends PageHeader {
     // create and set items
     final List<El> items = new ArrayList<>();
     
-    if (currentMenuItem == CurrentMenuItem.JK) {
-      
-      {
-        El itemJk = new El("a", context);
-        itemJk.classList.add("page-header__menu-item");
-        
-        itemJk.classList.add("page-header__menu-item_regular");
-        itemJk.classList.add("page-header__menu-item_current");
-        
-        itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"), true);
-        items.add(itemJk);
+    {
+      El itemJkModjk = new El("a", context);
+      itemJkModjk.classList.add("page-header__menu-item");
+      itemJkModjk.classList.add("page-header__menu-item_regular");
+      if (currentMenuItem == CurrentMenuItem.JK_MODJK) {
+        itemJkModjk.classList.add("page-header__menu-item_current");
+      } else {
+        itemJkModjk.classList.add("page-header__menu-item_hoverable");
+        itemJkModjk.setAttribute("href", context.getContextPath() + "/jk/modjk");
       }
       
-    } else if (currentMenuItem == CurrentMenuItem.JK_DETAILS || currentMenuItem == CurrentMenuItem.JK_NEW_BINDING) {
-      
-      {
-        El itemJk = new El("a", context);
-        itemJk.classList.add("page-header__menu-item");
-        itemJk.classList.add("page-header__menu-item_regular");
-        
-        itemJk.classList.add("page-header__menu-item_hoverable");
-        itemJk.setAttribute("href", context.getContextPath() + "/jk");
-        
-        itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJk"), true);
-        items.add(itemJk);
-        
-        
-        El itemSlash = new El("span", context);
-        itemSlash.classList.add("page-header__menu-item");
-        itemSlash.setInnerHTML("&nbsp/&nbsp");
-        items.add(itemSlash);
+      itemJkModjk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkModjk"), true);
+      items.add(itemJkModjk);
+    }
+    
+    {
+      El itemJkWorkers = new El("a", context);
+      itemJkWorkers.classList.add("page-header__menu-item");
+      itemJkWorkers.classList.add("page-header__menu-item_regular");
+      if (currentMenuItem == CurrentMenuItem.JK_WORKERS) {
+        itemJkWorkers.classList.add("page-header__menu-item_current");
+      } else {
+        itemJkWorkers.classList.add("page-header__menu-item_hoverable");
+        itemJkWorkers.setAttribute("href", context.getContextPath() + "/jk/workers");
       }
       
-      {
-        El itemJk = new El("a", context);
-        itemJk.classList.add("page-header__menu-item");
-
-        itemJk.classList.add("page-header__menu-item_current");
-      
-        if (currentMenuItem == CurrentMenuItem.JK_DETAILS) {
-          itemJkDetails = itemJk;
-          
-          // initial
-          setCurrentDetailsMenuItemText(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkDetails.default"));
-        } else {
-          itemJk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkNewBinding"), true);
-        }
-        items.add(itemJk);
-      }
-      
+      itemJkWorkers.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkWorkers"), true);
+      items.add(itemJkWorkers);
+    }
+    
+    
+    // add class to the left item
+    if (items.size() > 0) {
+      items.get(0).classList.add("page-header__menu-item_left");
     }
     
     setItems(items);
-  }
-  
-  /**
-   * Sets a text for the current details menu item 
-   * (applicable for the headers created with {@link CurrentMenuItem#JK_DETAILS} only, for any other header does nothing). 
-   * @param text
-   */
-  // TODO bad architecture: the method is only JK_DETAILS-specific, senseless for any other CurrentMenuItem type
-  public void setCurrentDetailsMenuItemText(String text) {
-    if (itemJkDetails != null) {
-      itemJkDetails.setInnerHTML(text, true);
-    }
   }
 }

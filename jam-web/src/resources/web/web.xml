@@ -25,13 +25,21 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>JkApiServlet</servlet-name>
-    <servlet-class>org.jepria.httpd.apache.manager.web.jk.JkApiServlet
-    </servlet-class>
+    <servlet-name>JkModjkGui</servlet-name>
+    <servlet-class>org.jepria.httpd.apache.manager.web.jkmodjk.JkModjkSsrServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>JkApiServlet</servlet-name>
-    <url-pattern>/api/jk/*</url-pattern>
+    <servlet-name>JkModjkGui</servlet-name>
+    <url-pattern>/jk/mod_jk/*</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>JkWorkersGui</servlet-name>
+    <servlet-class>org.jepria.httpd.apache.manager.web.jkworkers.JkWorkersSsrServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>JkWorkersGui</servlet-name>
+    <url-pattern>/jk/workers/*</url-pattern>
   </servlet-mapping>
 
   <servlet>

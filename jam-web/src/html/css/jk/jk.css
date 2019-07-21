@@ -1,56 +1,34 @@
-.table {
+.text-content-wrapper {
+  position: absolute;
+  
+  top: 45px; /* equals height of the page header */
+  bottom: 77px; /* equals height of the control buttons bar plus 2 * text-content border */
+  
   width: 100%;
-}
-
-.table div.column-application {
-  width: 20%;
-}
-
-.table div.column-details {
-  width: 80%;
-}
-
-.table .row .column-details img {
-  width: 24px;
-  height: 24px;
-}
-
-.table .row .column-details .button-details {
-  width: 24px;
-  height: 24px;
   
-  display: block;
-  padding-bottom: 8px;
+  padding-left: 12px; /* equals control-buttons padding minus text-content border */
+  padding-right: 14px; /* equals control-buttons padding */
+  padding-top: 12px;
+  padding-bottom: 0;
+  box-sizing: border-box;
 }
 
-.table-details .column-label {
-  width: 200px;
-  text-align: right;
-}
-
-.table-details .column-field {
-  width: 300px;
-}
-
-.table-details .column-ajp-port, .table-details .column-http-port {
-  width: 75px;
-}
-
-.table-details .column-ajp-port-label .cell__padding, .table-details .column-http-port-label .cell__padding {
-  padding-right: 0px;
-}
-
-.table-details .column-field.field-link {
-  width: 600px;
-}
-
-.table-details .cell .hint {
-  width: 20px;
-  height: 20px;
+.text-content {
+  width: 100%;
+  height: 100%;
   
-  padding-top: 8px;
-  padding-bottom: 2px;
-  margin-bottom: 2px;
-  
-  display: block;
+  border: 2px solid;
+  border-color: white; /* TODO must be not white but same as background color, but not transparent */
 }
+
+.text-content.modified {
+  border-color: #fb8f40;
+}
+
+textarea.text-content {
+  padding: 0;
+  margin: 0;
+  resize: none;
+}
+
+

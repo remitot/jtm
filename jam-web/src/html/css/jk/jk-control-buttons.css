@@ -1,0 +1,7 @@
+/*overrides default (common) control-buttons.css*/
+.control-buttons {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
