@@ -6,10 +6,10 @@
   
   width: 100%;
   
-  padding-left: 12px; /* equals control-buttons padding minus text-content border */
-  padding-right: 14px; /* equals control-buttons padding */
-  padding-top: 12px;
-  padding-bottom: 0;
+  padding-left: 6px;
+  padding-right: 22px;
+  padding-top: 6px;
+  padding-bottom: 12px;
   box-sizing: border-box;
 }
 
@@ -26,7 +26,7 @@
 }
 
 textarea.text-content {
-  padding: 0;
+  padding: 6px;
   margin: 0;
   resize: none;
 }
