@@ -117,33 +117,33 @@ public class ApacheConfBase {
     }//TODO catch filenotfound, file not readable
   }
   
-  public void saveMod_jk_conf(OutputStream mod_jk_confOutputStream) {
-    try (PrintStream printStream = new PrintStream(mod_jk_confOutputStream, true, FILE_WRITE_ENCODING)) {
-      if (mod_jk_confLines != null) {
-        for (TextLineReference line: getMod_jk_confLines()) { // invoke get() instead of direct access to initialize if necessary 
+  public void saveMod_jk_conf(Supplier<OutputStream> mod_jk_confOutputStream) {
+    if (mod_jk_confLines != null) {
+      try (PrintStream printStream = new PrintStream(mod_jk_confOutputStream.get(), true, FILE_WRITE_ENCODING)) {
+        for (TextLineReference line: mod_jk_confLines) { // invoke get() instead of direct access to initialize if necessary 
           printStream.println(line);
         }
-      } else {
-        // if not initialized, do nothing (means that nothing changed)
-      }
-    } catch (UnsupportedEncodingException e) {
-      // impossible
-      throw new RuntimeException(e);
-    } // TODO catch filenotwritable
+      } catch (UnsupportedEncodingException e) {
+        // impossible
+        throw new RuntimeException(e);
+      } // TODO catch filenotwritable
+    } else {
+      // if not initialized, do nothing (means that nothing changed)
+    }
   }
   
-  public void saveWorkers_properties(OutputStream workers_propertiesOutputStream) {
-    try (PrintStream printStream = new PrintStream(workers_propertiesOutputStream, true, FILE_WRITE_ENCODING)) {
-      if (mod_jk_confLines != null) {
-        for (TextLineReference line: getWorkers_propertiesLines()) { // invoke get() instead of direct access to initialize if necessary
+  public void saveWorkers_properties(Supplier<OutputStream> workers_propertiesOutputStream) {
+    if (workers_propertiesLines != null) {
+      try (PrintStream printStream = new PrintStream(workers_propertiesOutputStream.get(), true, FILE_WRITE_ENCODING)) {
+        for (TextLineReference line: workers_propertiesLines) { // invoke get() instead of direct access to initialize if necessary
           printStream.println(line);
         }
-      } else {
-        // if not initialized, do nothing (means that nothing changed)
-      }
-    } catch (UnsupportedEncodingException e) {
-      // impossible
-      throw new RuntimeException(e);
-    } // TODO catch filenotwritable
+      } catch (UnsupportedEncodingException e) {
+        // impossible
+        throw new RuntimeException(e);
+      } // TODO catch filenotwritable
+    } else {
+      // if not initialized, do nothing (means that nothing changed)
+    }
   }
 }

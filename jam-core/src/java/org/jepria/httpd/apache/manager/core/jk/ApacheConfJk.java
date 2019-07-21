@@ -155,8 +155,8 @@ public class ApacheConfJk extends ApacheConfBase {
     return worker;
   }
 
-  public void save(OutputStream mod_jk_confOutputStream,
-      OutputStream workers_propertiesOutputStream) {
+  public void save(Supplier<OutputStream> mod_jk_confOutputStream,
+      Supplier<OutputStream> workers_propertiesOutputStream) {
     saveMod_jk_conf(mod_jk_confOutputStream);
     saveWorkers_properties(workers_propertiesOutputStream);
   }
