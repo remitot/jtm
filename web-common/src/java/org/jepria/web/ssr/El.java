@@ -246,6 +246,7 @@ public class El implements Node {
   /**
    * Element's own scripts (not its descendant's)
    */
+  // LinkedHashSet is important to maintain style adding order (so that the styles could be overridden)
   private final Set<String> ownScripts = new LinkedHashSet<>();
   
   /**
