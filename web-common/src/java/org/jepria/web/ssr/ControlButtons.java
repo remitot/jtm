@@ -11,7 +11,7 @@ public class ControlButtons extends El {
     addScript("js/common.js"); // for .big-black-button
   }
   
-  public void addButtonCreate() {
+  public El addButtonCreate() {
     
     final Text text = context.getText();
     
@@ -22,9 +22,11 @@ public class ControlButtons extends El {
         .setInnerHTML(text.getString("org.jepria.web.ssr.ControlButtons.buttonCreate.text"), true);
     
     appendChild(buttonCreate);
+    
+    return buttonCreate;
   }
   
-  public void addButtonSave(String saveActionUrl) {
+  public El addButtonSave(String saveActionUrl) {
     
     final Text text = context.getText();
     
@@ -47,10 +49,12 @@ public class ControlButtons extends El {
     formSave.appendChild(buttonSave);
     
     appendChild(formSave);
+    
+    return buttonSave;
   }
   
   // TODO this actually is a RELOAD button. It needs no arguments, and must just reload the current url
-  public void addButtonReset(String resetActionUrl) {
+  public El addButtonReset(String resetActionUrl) {
     
     final Text text = context.getText();
     
@@ -73,5 +77,7 @@ public class ControlButtons extends El {
     formReset.appendChild(buttonReset);
     
     appendChild(formReset);
+    
+    return buttonReset;
   }
 }
