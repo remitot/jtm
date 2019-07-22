@@ -22,9 +22,9 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class BasicEnvironment implements Environment {
   
-  private final Supplier<Path> mod_jk_conf = new Supplier<Path>() {
+  private final Supplier<Path> apacheHome = new Supplier<Path>() {
     
-    private Path path;
+    private Path path = null;
     
     @Override
     public Path get() {
@@ -35,18 +35,38 @@ public class BasicEnvironment implements Environment {
     }
     
     private void init() {
-      final String confDirEnv = getProperty("org.jepria.httpd.apache.manager.web.apacheConf");
-      if (confDirEnv == null) {
+      final String apacheHomeEnv = getProperty("org.jepria.httpd.apache.manager.web.apacheHome");
+      if (apacheHomeEnv == null) {
         throw new RuntimeException("Misconfiguration exception: "
-            + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.apacheConf\" is not defined");
+            + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.apacheHome\" is not defined");
       }
       
-      path = Paths.get(confDirEnv).resolve("jk").resolve("mod_jk.conf");
-      if (path == null) {
-        throw new IllegalStateException("The Path is not expected to be null");
+      path = Paths.get(apacheHomeEnv);
+      
+      if (path == null || !Files.isDirectory(path)) {
+        throw new RuntimeException("Misconfiguration exception: "
+            + "the configuration property \"org.jepria.httpd.apache.manager.web.apacheHome\" does not represent a directory: " 
+            + "[" + path + "]");
       }
-      if (!Files.isRegularFile(path)) {
-        throw new RuntimeException("Misconfiguration exception: [" + mod_jk_conf + "] is not a file");
+    }
+  };
+  
+  private final Supplier<Path> mod_jk_conf = new Supplier<Path>() {
+    
+    private Path path = null;
+    
+    @Override
+    public Path get() {
+      if (path == null) {
+        init();
+      }
+      return path;
+    }
+    
+    private void init() {
+      path = apacheHome.get().resolve("conf/jk/mod_jk.conf");
+      if (path == null || !Files.isRegularFile(path)) {
+        throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
       }
     }
   };
@@ -83,14 +103,17 @@ public class BasicEnvironment implements Environment {
             if (workersFile.isAbsolute()) {
               path = workersFile;
             } else {
-              throw new UnsupportedOperationException("Relative JkWorkersFile path is not supported, specify the absolute path");
+              // the path must be relative to the apache home
+              // TODO find out how exactly does Apache parse the JkWorkersFile relative path
+              path = apacheHome.get().resolve(workersFile);
+              if (path == null || !Files.isRegularFile(path)) {
+                throw new RuntimeException("Misconfiguration exception: could not initialize workers.properties file: [" + path + "] is not a file");
+              }
             }
-            if (path == null) {
-              throw new IllegalStateException("The Path is not expected to be null");
-            }
-            if (!Files.isRegularFile(path)) {
+            
+            if (path == null || !Files.isRegularFile(path)) {
               throw new RuntimeException("Misconfiguration exception: "
-                  + "the directive [" + line + "] in the file [" + mod_jk_conf.get() + "] "
+                  + "the directive [" + line + "] in the file [" + path + "] "
                       + "does not represent a file");
             }
             
