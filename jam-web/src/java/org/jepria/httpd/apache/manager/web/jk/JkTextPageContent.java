@@ -20,6 +20,8 @@ public class JkTextPageContent implements Iterable<El> {
     return elements.iterator();
   }
   
+  protected final El textContentWrapper;
+  
   public JkTextPageContent(Context context, List<String> lines, List<String> itemModRequestLines,
       CurrentMenuItem currentMenuItem) {
     
@@ -28,8 +30,9 @@ public class JkTextPageContent implements Iterable<El> {
     final List<El> elements = new ArrayList<>();
     
     {
-      El textContentWrapper = new El("div", context);
+      textContentWrapper = new El("div", context);
       textContentWrapper.classList.add("text-content-wrapper");
+      setTopPosition(TopPosition.BELOW_PAGE_HEADER);
       
       {
         El textarea = new El("textarea", context);
@@ -88,5 +91,25 @@ public class JkTextPageContent implements Iterable<El> {
     }
     
     this.elements = Collections.unmodifiableList(elements);
+  }
+  
+  public static enum TopPosition {
+    /**
+     * Default value (when no status bar displayed)
+     */
+    BELOW_PAGE_HEADER,
+    BELOW_PAGE_HEADER_AND_STATUS_BAR,
+  }
+  
+  public void setTopPosition(TopPosition topPosition) {
+    // clear all
+    textContentWrapper.classList.remove("text-content-wrapper_top-position_page-header");
+    textContentWrapper.classList.remove("text-content-wrapper_top-position_page-header-status-bar");
+    
+    if (topPosition == TopPosition.BELOW_PAGE_HEADER) {
+      textContentWrapper.classList.add("text-content-wrapper_top-position_page-header");
+    } else if (topPosition == TopPosition.BELOW_PAGE_HEADER_AND_STATUS_BAR) {
+      textContentWrapper.classList.add("text-content-wrapper_top-position_page-header-status-bar");
+    }
   }
 }

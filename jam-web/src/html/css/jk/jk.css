@@ -1,7 +1,7 @@
 .text-content-wrapper {
   position: absolute;
   
-  top: 45px; /* equals height of the page header */
+  /* top is set with another style */
   bottom: 77px; /* equals height of the control buttons bar plus 2 * text-content border */
   
   width: 100%;
@@ -11,6 +11,14 @@
   padding-top: 6px;
   padding-bottom: 12px;
   box-sizing: border-box;
+}
+
+.text-content-wrapper_top-position_page-header {
+  top: 45px; /* equals height of the page header */
+}
+
+.text-content-wrapper_top-position_page-header-status-bar {
+  top: 90px; /* equals height of the page header + height of the status bar */
 }
 
 .text-content {

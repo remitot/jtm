@@ -17,10 +17,11 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.JkApi;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent;
-import org.jepria.web.data.ItemModRequestDto;
+import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent.TopPosition;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.SsrServletBase;
+import org.jepria.web.ssr.StatusBar;
 import org.jepria.web.ssr.Text;
 
 import com.google.gson.Gson;
@@ -60,20 +61,25 @@ public class JkWorkersSsrServlet extends SsrServletBase {
       
       List<String> workersPropertiesLines = new JkApi().getWorkers_propertiesLines(env);
       
-      // retrieve modRequests from the AppState
-      List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
-      if (itemModRequests == null) {
+      // retrieve modRequest and modStatus from the AppState
+      @SuppressWarnings("unchecked")
+      List<String> modRequestLines = (List<String>)appState.modRequest;
+      Boolean modStatus = (Boolean)appState.modStatus;
+      if (modRequestLines == null) {
         @SuppressWarnings("unchecked")
-        List<ItemModRequestDto> itemModRequestsAuthPers = (List<ItemModRequestDto>)getAuthPersistentData(req); 
-        itemModRequests = itemModRequestsAuthPers;
+        List<String> modRequestLinesCast = (List<String>)getAuthPersistentData(req); 
+        modRequestLines = modRequestLinesCast;
       }
       
-      final List<String> itemModRequestLines = getLinesFromModRequests(itemModRequests);
-      
-      JkTextPageContent content = new JkTextPageContent(context, workersPropertiesLines, itemModRequestLines, CurrentMenuItem.JK_WORKERS);
+      JkTextPageContent content = new JkTextPageContent(context, workersPropertiesLines, modRequestLines, CurrentMenuItem.JK_WORKERS);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "common_onload();textContent_onload();");
 
+      if (modStatus != null) {
+        StatusBar statusBar = createModStatusBar(context, Boolean.TRUE.equals(modStatus));
+        pageBuilder.setStatusBar(statusBar);
+        content.setTopPosition(TopPosition.BELOW_PAGE_HEADER_AND_STATUS_BAR);
+      }
       // clear auth-persistent data
       setAuthPersistentData(req, null);
       
@@ -96,7 +102,7 @@ public class JkWorkersSsrServlet extends SsrServletBase {
     if ("/mod".equals(path)) {
 
       final Gson gson = new Gson();
-      final List<ItemModRequestDto> itemModRequests;
+      final List<String> modRequestLines;
         
       // read list from request parameter (as passed by form.submit)
       try {
@@ -105,14 +111,24 @@ public class JkWorkersSsrServlet extends SsrServletBase {
         // convert encoding TODO fix this using accept-charset form attribute?
         data = new String(data.getBytes("ISO-8859-1"), "UTF-8");
         
-        Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
-        itemModRequests = gson.fromJson(data, type);
+        Type type = new TypeToken<Map<String, String>>(){}.getType();
+        Map<String, String> map = gson.fromJson(data, type);
+        if (map == null) {
+          modRequestLines = null;
+        } else {
+          String modRequestText = map.get("data");
+          if (modRequestText != null) {
+            modRequestLines = Arrays.asList(modRequestText.split("\\R"));
+          } else {
+            modRequestLines = null;
+          }
+        }
       } catch (Throwable e) {
         // TODO
         throw new RuntimeException(e);
       }
 
-      if (itemModRequests != null && itemModRequests.size() > 0) {
+      if (modRequestLines != null) {
         
         if (checkAuth(req)) {
           
@@ -124,26 +140,23 @@ public class JkWorkersSsrServlet extends SsrServletBase {
           
           final JkApi api = new JkApi();
           
-          final List<String> lines = getLinesFromModRequests(itemModRequests);
+          api.updateWorkers_properties(modRequestLines, apacheConf);
           
-          if (lines != null) {
-            api.updateWorkers_properties(lines, apacheConf);
-            
-            apacheConf.save(() -> env.getMod_jk_confOutputStream(), 
-                () -> env.getWorkers_propertiesOutputStream());
-          }
+          apacheConf.save(() -> env.getMod_jk_confOutputStream(), 
+              () -> env.getWorkers_propertiesOutputStream());
           
-          // clear modRequests after the successful modification
-          final AppState appState = getAppState(req);
-          appState.itemModRequests = null;
+          // clear modRequest after the successful modification (but preserve modStatus)
+          AppState appState = getAppState(req);
+          appState.modRequest = null;
+          appState.modStatus = Boolean.TRUE;
           
         } else {
 
-          final AppState appState = getAppState(req);
-          appState.itemModRequests = itemModRequests;
+          AppState appState = getAppState(req);
+          appState.modRequest = modRequestLines;
+          appState.modStatus = null;
           
-          
-          setAuthPersistentData(req, itemModRequests);
+          setAuthPersistentData(req, modRequestLines);
         }
       }
       
@@ -156,28 +169,32 @@ public class JkWorkersSsrServlet extends SsrServletBase {
       return;
     }
   }
-  
-  protected List<String> getLinesFromModRequests(List<ItemModRequestDto> itemModRequests) {
-    if (itemModRequests == null) {
-      return null;
+
+  /**
+   * Creates a StatusBar for a modification status
+   * @param context
+   * @param success
+   * @return
+   */
+  protected StatusBar createModStatusBar(Context context, boolean success) {
+    
+    if (success) {
+      
+      Text text = context.getText();
+      
+      final String innerHTML = "<span class=\"span-bold\">"
+            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.saved") 
+            + ".</span>&ensp;<a href=\"resturd\">" 
+            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart") 
+            + "</a>,&nbsp;" 
+            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.apply");
+      
+      return new StatusBar(context, StatusBar.Type.SUCCESS, innerHTML);
+      
+    } else {
+      // either the modifications succeeded and the status bar is required,
+      // or the modifications failed and the exception had been thrown
+      throw new UnsupportedOperationException();
     }
-    
-    List<String> lines = null;
-    
-    for (ItemModRequestDto itemModRequest: itemModRequests) {
-      if ("update".equals(itemModRequest.getAction())
-          && "text-content".equals(itemModRequest.getId())) {
-        
-        Map<String, String> data = itemModRequest.getData();
-        String text = data.get("text");
-        if (text != null) {
-          lines = Arrays.asList(text.split("\\R"));
-        }
-        
-        break;
-      }
-    }
-    
-    return lines;
   }
 }

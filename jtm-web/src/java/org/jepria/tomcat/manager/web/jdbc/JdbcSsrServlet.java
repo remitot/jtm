@@ -65,10 +65,11 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
-      // retrieve modRequests and modStatuses from the AppState
-      List<ItemModRequestDto> itemModRequests = appState.itemModRequests;
+      // retrieve modRequest and modStatus from the AppState
       @SuppressWarnings("unchecked")
-      Map<String, ItemModStatus> itemModStatuses = (Map<String, ItemModStatus>)appState.itemModStatuses;
+      List<ItemModRequestDto> itemModRequests = (List<ItemModRequestDto>)appState.modRequest;
+      @SuppressWarnings("unchecked")
+      Map<String, ItemModStatus> itemModStatuses = (Map<String, ItemModStatus>)appState.modStatus;
       if (itemModRequests == null) {
         @SuppressWarnings("unchecked")
         List<ItemModRequestDto> itemModRequestsAuthPers = (List<ItemModRequestDto>)getAuthPersistentData(req); 
@@ -85,7 +86,7 @@ public class JdbcSsrServlet extends SsrServletBase {
         boolean hasInvalidFieldData = itemModStatuses.values().stream()
             .anyMatch(modStatus -> modStatus.code == Code.INVALID_FIELD_DATA);
         
-        StatusBar statusBar = createModStatusBar(context, hasInvalidFieldData);
+        StatusBar statusBar = createModStatusBar(context, !hasInvalidFieldData);
         pageBuilder.setStatusBar(statusBar);
       }
       
@@ -198,17 +199,17 @@ public class JdbcSsrServlet extends SsrServletBase {
             tomcatConf.save(env.getContextXmlOutputStream(), 
                 env.getServerXmlOutputStream());
             
-            // clear modRequests after the successful modification (but preserve modStatuses)
-            final AppState appState = getAppState(req);
-            appState.itemModRequests = null;
-            appState.itemModStatuses = itemModStatuses;
+            // clear modRequest after the successful modification (but preserve modStatus)
+            AppState appState = getAppState(req);
+            appState.modRequest = null;
+            appState.modStatus = itemModStatuses;
             
           } else {
            
             // save session attributes
             AppState appState = getAppState(req);
-            appState.itemModRequests = itemModRequests;
-            appState.itemModStatuses = itemModStatuses;
+            appState.modRequest = itemModRequests;
+            appState.modStatus = itemModStatuses;
           }
           
           // clear auth-persistent data
@@ -217,8 +218,8 @@ public class JdbcSsrServlet extends SsrServletBase {
         } else {
 
           final AppState appState = getAppState(req);
-          appState.itemModRequests = itemModRequests;
-          appState.itemModStatuses = null;
+          appState.modRequest = itemModRequests;
+          appState.modStatus = null;
           
           
           setAuthPersistentData(req, itemModRequests);
@@ -239,11 +240,17 @@ public class JdbcSsrServlet extends SsrServletBase {
   /**
    * Creates a StatusBar for a modification status
    * @param context
-   * @param hasInvalidFieldData
+   * @param success
    * @return
    */
-  protected StatusBar createModStatusBar(Context context, boolean hasInvalidFieldData) {
-    if (hasInvalidFieldData) {
+  protected StatusBar createModStatusBar(Context context, boolean success) {
+    
+    if (success) {
+      
+      Text text = context.getText();
+      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success"));
+      
+    } else {
       
       Text text = context.getText();
       
@@ -251,11 +258,6 @@ public class JdbcSsrServlet extends SsrServletBase {
           + " <span class=\"span-bold\">" + text.getString("org.jepria.tomcat.manager.web.jdbc.status.no_mod_performed") 
           + "</span>";
       return new StatusBar(context, StatusBar.Type.ERROR, statusHTML);
-      
-    } else {
-      
-      Text text = context.getText();
-      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success"));
     }
   }
 }

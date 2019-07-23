@@ -1,15 +1,11 @@
 package org.jepria.web.ssr;
 
-import java.util.List;
-import java.util.Map;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
 import org.jepria.web.auth.AuthServletBase.Auth;
 import org.jepria.web.auth.AuthState;
 import org.jepria.web.auth.RedirectBuilder;
-import org.jepria.web.data.ItemModRequestDto;
 
 public class SsrServletBase extends HttpServlet {
 
@@ -162,8 +158,8 @@ public class SsrServletBase extends HttpServlet {
    * Class stored into a session
    */
   protected class AppState {
-    public List<ItemModRequestDto> itemModRequests = null;
-    public Map<String, ?> itemModStatuses = null;
+    public Object modRequest = null;
+    public Object modStatus = null;
   }
 
   protected AppState getAppState(HttpServletRequest request) {

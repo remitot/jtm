@@ -35,21 +35,15 @@ function checkModifications() {
 
 function prepareModData() {
   
-  modRequestList = [];
+  modRequest = {};
   
   var textarea = document.getElementsByClassName("text-content")[0];
   
   if (textarea) {
-    modRequestList.push(
-        {
-          id: "text-content",
-          action: "update", 
-          data: {text: textarea.value}
-        }
-    );
+    modRequest.data = textarea.value;
   }
   
-  return modRequestList;
+  return modRequest;
 }
 
 function onTextContentInput(textarea) {
