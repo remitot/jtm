@@ -29,6 +29,8 @@ public class HtmlEscaper {
           out.append("&nbsp;");
         } else if (c == '\t') {
           out.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+        } else if (c == '\n') {
+          out.append("<br/>");
         } else {
           out.append(c);
         }
