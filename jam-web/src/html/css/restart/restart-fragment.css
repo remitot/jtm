@@ -1,0 +1,29 @@
+.restart-fragment-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  
+  background-color: #3C3C3C; /* fallback for unsupported ARGB */
+  background-color: #000000c4;
+}
+
+.restart-fragment-frame {
+  text-align: center;
+  color: white;
+  
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -30px; /* half of the restart-fragment-frame__img.height (the img is at the center of the screen) */
+  margin-left: -250px; /* half of the width */ 
+  
+  width: 500px;
+}
+
+.restart-fragment-frame__img {
+  width: 60px;
+  height: 60px;
+}
+

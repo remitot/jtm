@@ -122,7 +122,7 @@ public class BasicEnvironment implements Environment {
         }
         if (!jkWorkersFileFound) {
           throw new RuntimeException("Misconfiguration exception: "
-              + "the file [" + mod_jk_conf + "] contains no 'JkWorkersFile' directive");
+              + "the file [" + mod_jk_conf.get() + "] contains no 'JkWorkersFile' directive");
         }
       } catch (IOException e) {
         throw new RuntimeException(e);

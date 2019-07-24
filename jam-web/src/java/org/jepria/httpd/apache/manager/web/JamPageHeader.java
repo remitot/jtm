@@ -16,6 +16,7 @@ public class JamPageHeader extends PageHeader {
   public static enum CurrentMenuItem {
     JK_MODJK,
     JK_WORKERS,
+    RESTART,
   }
   
   /**
@@ -58,6 +59,21 @@ public class JamPageHeader extends PageHeader {
       
       itemJkWorkers.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkWorkers"), true);
       items.add(itemJkWorkers);
+    }
+    
+    {
+      El itemRestart = new El("a", context);
+      itemRestart.classList.add("page-header__menu-item");
+      itemRestart.classList.add("page-header__menu-item_regular");
+      if (currentMenuItem == CurrentMenuItem.RESTART) {
+        itemRestart.classList.add("page-header__menu-item_current");
+      } else {
+        itemRestart.classList.add("page-header__menu-item_hoverable");
+        itemRestart.setAttribute("href", context.getContextPath() + "/restart");
+      }
+      
+      itemRestart.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemRestart"), true);
+      items.add(itemRestart);
     }
     
     

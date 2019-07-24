@@ -71,7 +71,7 @@ public class JkWorkersSsrServlet extends SsrServletBase {
         modRequestLines = modRequestLinesCast;
       }
       
-      JkTextPageContent content = new JkTextPageContent(context, workersPropertiesLines, modRequestLines, CurrentMenuItem.JK_MODJK);
+      JkTextPageContent content = new JkTextPageContent(context, workersPropertiesLines, modRequestLines, CurrentMenuItem.JK_WORKERS);
       pageBuilder.setContent(content);
       pageBuilder.setBodyAttributes("onload", "common_onload();textContent_onload();");
 
@@ -182,11 +182,12 @@ public class JkWorkersSsrServlet extends SsrServletBase {
       Text text = context.getText();
       
       final String innerHTML = "<span class=\"span-bold\">"
-            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.saved") 
-            + ".</span>&ensp;" 
-            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart") // TODO this part must be a link to restart 
-            + ",&nbsp;" 
-            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.apply");
+          + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.saved") 
+          + ",</span>&nbsp;" 
+          + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.apply") 
+          + ".&emsp;<a href=\"" + context.getContextPath() + "/restart" + "\">" 
+          + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart")
+          + "</a>";
       
       return new StatusBar(context, StatusBar.Type.SUCCESS, innerHTML);
       
