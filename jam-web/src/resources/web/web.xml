@@ -41,17 +41,6 @@
     <servlet-name>JkWorkersGui</servlet-name>
     <url-pattern>/jk/workers/*</url-pattern>
   </servlet-mapping>
-
-  <servlet>
-    <servlet-name>RestartServlet</servlet-name>
-    <servlet-class>org.jepria.httpd.apache.manager.web.RestartServlet
-    </servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>RestartServlet</servlet-name>
-    <url-pattern>/api/restart/*</url-pattern>
-  </servlet-mapping>
-  
   
   <servlet>
     <servlet-name>ApiDocs</servlet-name>
@@ -68,9 +57,18 @@
 
   <security-constraint>
     <web-resource-collection>
-      <web-resource-name>Public resources</web-resource-name>
+      <web-resource-name>Public resources (SSR)</web-resource-name>
       <url-pattern>/*</url-pattern>
     </web-resource-collection>
+  </security-constraint>
+  
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Protected resources (API)</web-resource-name>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>manager-gui</role-name>
+    </auth-constraint>
   </security-constraint>
   
 </web-app>

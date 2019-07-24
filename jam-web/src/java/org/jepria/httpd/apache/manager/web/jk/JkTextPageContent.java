@@ -1,8 +1,6 @@
 package org.jepria.httpd.apache.manager.web.jk;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
@@ -11,14 +9,9 @@ import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 
-public class JkTextPageContent implements Iterable<El> {
+public class JkTextPageContent extends ArrayList<El> {
 
-  private final Iterable<El> elements;
-  
-  @Override
-  public Iterator<El> iterator() {
-    return elements.iterator();
-  }
+  private static final long serialVersionUID = 8806242589308004452L;
   
   protected final El textContentWrapper;
   
@@ -26,8 +19,6 @@ public class JkTextPageContent implements Iterable<El> {
       CurrentMenuItem currentMenuItem) {
     
     Text text = context.getText();
-    
-    final List<El> elements = new ArrayList<>();
     
     {
       textContentWrapper = new El("div", context);
@@ -52,7 +43,7 @@ public class JkTextPageContent implements Iterable<El> {
         textContentWrapper.appendChild(textarea);
       }
       
-      elements.add(textContentWrapper);
+      add(textContentWrapper);
     }
     
     
@@ -82,15 +73,13 @@ public class JkTextPageContent implements Iterable<El> {
       // overrides default (common) control-buttons.css
       controlButtons.addStyle("css/jk/jk-control-buttons.css");
       
-      elements.add(controlButtons);
+      add(controlButtons);
     }
     
     
-    if (elements.size() > 0) {
-      elements.iterator().next().addStyle("css/jk/jk.css");
+    if (size() > 0) {
+      iterator().next().addStyle("css/jk/jk.css");
     }
-    
-    this.elements = Collections.unmodifiableList(elements);
   }
   
   public static enum TopPosition {

@@ -161,12 +161,11 @@ public class JkModjkSsrServlet extends SsrServletBase {
       }
       
       resp.sendRedirect(req.getContextPath() + "/jk/mod_jk");
-      return;
       
     } else {
+      
       // unknown request
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
-      return;
     }
   }
 
@@ -184,9 +183,9 @@ public class JkModjkSsrServlet extends SsrServletBase {
       
       final String innerHTML = "<span class=\"span-bold\">"
             + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.saved") 
-            + ".</span>&ensp;<a href=\"resturd\">" 
-            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart") 
-            + "</a>,&nbsp;" 
+            + ".</span>&ensp;" 
+            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart") // TODO this part must be a link to restart 
+            + ",&nbsp;" 
             + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.apply");
       
       return new StatusBar(context, StatusBar.Type.SUCCESS, innerHTML);

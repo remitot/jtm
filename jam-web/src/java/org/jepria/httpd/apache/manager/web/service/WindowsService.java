@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,6 +61,7 @@ import java.util.regex.Pattern;
   private final String serviceName;
   
   public WindowsService(String serviceName) {
+    Objects.requireNonNull(serviceName);
     this.serviceName = serviceName;
   }
   
