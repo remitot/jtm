@@ -38,7 +38,7 @@ public class JtmPageHeader extends PageHeader {
         El itemManagerApache = new El("a", context);
         itemManagerApache.classList.add("page-header__menu-item");
         itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
-        itemManagerApache.setAttribute("href", context.getContextPath() + "/" + managerApacheHref);
+        itemManagerApache.setAttribute("href", managerApacheHref);
         itemManagerApache.classList.add("page-header__menu-item_hoverable");
         
         itemManagerApache.setAttribute("target", "_blank");
