@@ -183,7 +183,7 @@ public class JkWorkersSsrServlet extends SsrServletBase {
       
       final String innerHTML = "<span class=\"span-bold\">"
           + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.saved") 
-          + ",</span>&nbsp;" 
+          + ".</span>&nbsp;" 
           + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.apply") 
           + ".&emsp;<a href=\"" + context.getContextPath() + "/restart" + "\">" 
           + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart")
