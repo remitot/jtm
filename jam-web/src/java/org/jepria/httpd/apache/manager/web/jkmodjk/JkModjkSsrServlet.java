@@ -18,6 +18,7 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.JkApi;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent.TopPosition;
+import org.jepria.web.HttpDataEncoding;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.SsrServletBase;
@@ -106,10 +107,7 @@ public class JkModjkSsrServlet extends SsrServletBase {
         
       // read list from request parameter (as passed by form.submit)
       try {
-        String data = req.getParameter("data");
-        
-        // convert encoding TODO fix this using accept-charset form attribute?
-        data = new String(data.getBytes("ISO-8859-1"), "UTF-8");
+        final String data = HttpDataEncoding.getParameterUtf8(req, "data");
         
         Type type = new TypeToken<Map<String, String>>(){}.getType();
         Map<String, String> map = gson.fromJson(data, type);
