@@ -143,10 +143,8 @@ public class JkWorkersSsrServlet extends SsrServletBase {
           apacheConf.save(() -> env.getMod_jk_confOutputStream(), 
               () -> env.getWorkers_propertiesOutputStream());
           
-          // clear modRequest after the successful modification (but preserve modStatus)
-          AppState appState = getAppState(req);
-          appState.modRequest = null;
-          appState.modStatus = Boolean.TRUE;
+          // clear AppState after the successful modification
+          clearAppState(req);
           
         } else {
 
