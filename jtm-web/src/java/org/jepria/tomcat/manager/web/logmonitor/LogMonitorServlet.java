@@ -197,7 +197,6 @@ public class LogMonitorServlet extends SsrServletBase  {
             resetAnchorUrl);
         
         pageBuilder.setContent(content);
-        pageBuilder.setBodyAttributes("onload", "logmonitor_onload();");
         
       }
       

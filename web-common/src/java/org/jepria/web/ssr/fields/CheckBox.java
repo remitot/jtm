@@ -26,7 +26,7 @@ public class CheckBox extends El {
     
     
     addStyle("css/checkbox.css");
-    addScript("js/checkbox.js");
+    addScript(new Script("js/checkbox.js", "checkbox_onload"));
   }
   
   public void setEnabled(boolean enabled) {

@@ -423,7 +423,7 @@ function setButtonResetEnabled(enabled) {
   }
 }
 
-function controlButtons_onload() {
+function table__controlButtons_onload() {
   var button = document.getElementsByClassName("control-button_create")[0];
   if (button) {
     button.onclick = onButtonCreateClick;

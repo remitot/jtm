@@ -18,7 +18,7 @@ import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus;
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus.Code;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
-import org.jepria.web.HttpEncoding;
+import org.jepria.web.HttpDataEncoding;
 import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
@@ -80,7 +80,6 @@ public class JdbcSsrServlet extends SsrServletBase {
       
       JdbcPageContent content = new JdbcPageContent(context, connections, itemModRequests, itemModStatuses);
       pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();checkbox_onload();controlButtons_onload();");
       
       
       if (itemModStatuses != null) {
@@ -117,7 +116,7 @@ public class JdbcSsrServlet extends SsrServletBase {
         
       // read list from request parameter (as passed by form.submit)
       try {
-        final String data = HttpEncoding.getUtf8Param(req, "data");
+        final String data = HttpDataEncoding.getParameterUtf8(req, "data");
         
         Type type = new TypeToken<List<ItemModRequestDto>>(){}.getType();
         itemModRequests = gson.fromJson(data, type);

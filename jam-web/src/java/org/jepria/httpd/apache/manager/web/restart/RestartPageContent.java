@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HasScripts.Script;
 import org.jepria.web.ssr.Text;
 
 public class RestartPageContent extends ArrayList<El> {
@@ -40,7 +41,8 @@ public class RestartPageContent extends ArrayList<El> {
     
     add(controlButtons);
     
-    controlButtons.addScript("js/restart/restart.js");
+    // TODO add script not for the contol buttons, but for the body
+    controlButtons.addScript(new Script("js/restart/restart.js", "restart_onload"));
   }
 
 }

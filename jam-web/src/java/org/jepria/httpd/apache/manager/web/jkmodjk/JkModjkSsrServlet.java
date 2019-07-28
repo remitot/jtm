@@ -74,7 +74,6 @@ public class JkModjkSsrServlet extends SsrServletBase {
       
       JkTextPageContent content = new JkTextPageContent(context, modJkConfLines, modRequestLines, CurrentMenuItem.JK_MODJK);
       pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "common_onload();textContent_onload();");
 
       if (modStatus != null) {
         StatusBar statusBar = createModStatusBar(context, Boolean.TRUE.equals(modStatus));

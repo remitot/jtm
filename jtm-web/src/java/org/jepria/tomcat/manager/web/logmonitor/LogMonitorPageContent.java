@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HasScripts.Script;
 import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.Text;
 
@@ -154,13 +155,13 @@ public class LogMonitorPageContent implements Iterable<El> {
         
         resetAnchorButton.addStyle("css/common.css");
         resetAnchorButton.addStyle("css/control-buttons.css");
-        resetAnchorButton.addScript("js/common.js");
+        resetAnchorButton.addScript(new Script("js/common.js", "common_onload"));
         
         mainDiv.appendChild(resetAnchorButton);
       }
 
       mainDiv.addStyle("css/log-monitor/log-monitor.css");
-      mainDiv.addScript("js/log-monitor/log-monitor.js");
+      mainDiv.addScript(new Script("js/log-monitor/log-monitor.js", "logmonitor_onload"));
       
       elements.add(mainDiv);
     }

@@ -12,8 +12,8 @@ public class RestartFragment extends El {
     
     addStyle("css/restart/restart-fragment.css");
     
-    addScript("js/common.js"); // for invoking windowReload() from restart-fragment.js
-    addScript("js/restart/restart-fragment.js");
+    addScript(new Script("js/common.js")); // for invoking windowReload() from restart-fragment.js
+    addScript(new Script("js/restart/restart-fragment.js", "restart_fragment_onload"));
     
     addClass("restart-fragment");
     

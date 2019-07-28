@@ -45,7 +45,6 @@ public class RestartSsrServlet extends SsrServletBase {
         pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.restart.title"));
         
         pageBuilder.setContent(new RestartFragment(context));
-        pageBuilder.setBodyAttributes("onload", "common_onload();restart_fragment_onload();");
 
         HtmlPageExtBuilder.Page page = pageBuilder.build();
         page.respond(resp);
@@ -80,8 +79,6 @@ public class RestartSsrServlet extends SsrServletBase {
 
         RestartPageContent content = new RestartPageContent(context);
         pageBuilder.setContent(content);
-        
-        pageBuilder.setBodyAttributes("onload", "common_onload();restart_onload();");
 
       } else {
 
