@@ -1,9 +1,7 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,14 +18,9 @@ import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.Table.TabIndex;
 
-public class JdbcPageContent implements Iterable<El> {
+public class JdbcPageContent extends ArrayList<El> {
 
-  private final Iterable<El> elements;
-  
-  @Override
-  public Iterator<El> iterator() {
-    return elements.iterator();
-  }
+  private static final long serialVersionUID = 1304559345888446859L;
   
   /**
    * @param context
@@ -41,8 +34,6 @@ public class JdbcPageContent implements Iterable<El> {
       Map<String, ItemModStatus> itemModStatuses) {
     
     Text text = context.getText();
-    
-    final List<El> elements = new ArrayList<>();
     
     // table html
     final JdbcTable table = new JdbcTable(context);
@@ -140,7 +131,7 @@ public class JdbcPageContent implements Iterable<El> {
     
     table.load(items, itemsCreated, itemsDeleted);
     
-    elements.add(table);
+    add(table);
 
     // table row-create template
     final TabIndex newRowTemplateTabIndex = new TabIndex() {
@@ -158,7 +149,7 @@ public class JdbcPageContent implements Iterable<El> {
     
     final El tableNewRowTemplateContainer = new El("div", context).addClass("table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
-    elements.add(tableNewRowTemplateContainer);
+    add(tableNewRowTemplateContainer);
     
     
     // control buttons
@@ -166,9 +157,7 @@ public class JdbcPageContent implements Iterable<El> {
     controlButtons.addButtonCreate();
     controlButtons.addButtonSave(context.getContextPath() + "/jdbc/mod");// TODO such url will erase any path- or request params of the current page
     controlButtons.addButtonReset(context.getContextPath() + "/jdbc");// TODO such url will erase any path- or request params of the current page
-    elements.add(controlButtons);
-    
-    this.elements = Collections.unmodifiableList(elements);
+    add(controlButtons);
   }
   
   protected JdbcTable.Record dtoToItem(ConnectionDto dto) {

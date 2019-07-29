@@ -51,7 +51,6 @@ public class PortSsrServlet extends SsrServletBase {
       
       PortPageContent content = new PortPageContent(context, ports);
       pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
       
     } else {
       

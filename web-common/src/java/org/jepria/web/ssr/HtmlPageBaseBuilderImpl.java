@@ -103,6 +103,15 @@ import javax.servlet.http.HttpServletResponse;
       String src = context.getContextPath() + "/" + script;
       page.head.appendChild(new El("script", context).setAttribute("type", "text/javascript").setAttribute("src", src));
     }
+    // add all onload functions to the body onload attribute
+    StringBuilder onload = new StringBuilder();
+    for (String onloadFunction: page.body.getOnloadFunctions()) {
+      onload.append(onloadFunction);
+      if (!onloadFunction.trim().endsWith("();")) {
+        onload.append("();");
+      }
+    }
+    page.body.setAttribute("onload", onload.toString());
 
     isBuilt = true;
     

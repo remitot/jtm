@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jepria.web.HttpDataEncoding;
+
 /**
  * The servlet must be mapped both to {@code /login} and {@code /logout} paths
  */
@@ -74,8 +76,8 @@ public class AuthServletBase extends HttpServlet {
   
   protected boolean login(HttpServletRequest req) throws IOException {
     
-    final String username = req.getParameter("username");
-    final String password = req.getParameter("password");
+    final String username = HttpDataEncoding.getParameterUtf8(req, "username");
+    final String password = HttpDataEncoding.getParameterUtf8(req, "password");
     
     final AuthState authState = AuthState.get(req); 
     

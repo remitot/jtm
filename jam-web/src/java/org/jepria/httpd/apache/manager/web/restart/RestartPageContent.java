@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HasScripts.Script;
 import org.jepria.web.ssr.Text;
 
 public class RestartPageContent extends ArrayList<El> {
@@ -15,7 +16,8 @@ public class RestartPageContent extends ArrayList<El> {
 
     { // control buttons
       final ControlButtons controlButtons = new ControlButtons(context);
-      controlButtons.addScript("js/restart/restart.js");
+      // TODO add script not for the contol buttons, but for the body
+      controlButtons.addScript(new Script("js/restart/restart.js", "restart_onload"));
 
       final String restartActionUrl = context.getContextPath() + "/restart";
       {
@@ -49,8 +51,6 @@ public class RestartPageContent extends ArrayList<El> {
       div.setAttribute("style", "color: #808080; padding: 15px");
       add(div);
     }
-
-
   }
 
 }

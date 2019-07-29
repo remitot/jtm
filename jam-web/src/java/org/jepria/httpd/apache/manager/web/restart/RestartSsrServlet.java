@@ -9,7 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
 import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
-import org.jepria.httpd.apache.manager.web.service.ApacheServiceFactory;
+import org.jepria.httpd.apache.manager.web.service.ApacheService;
+import org.jepria.httpd.apache.manager.web.service.ApacheServiceLocator;
+import org.jepria.httpd.apache.manager.web.service.ApacheServiceLocatorFactory;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageBaseBuilder;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
@@ -45,7 +47,6 @@ public class RestartSsrServlet extends SsrServletBase {
         pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.restart.title"));
         
         pageBuilder.setContent(new RestartFragment(context));
-        pageBuilder.setBodyAttributes("onload", "common_onload();restart_fragment_onload();");
 
         HtmlPageExtBuilder.Page page = pageBuilder.build();
         page.respond(resp);
@@ -80,8 +81,6 @@ public class RestartSsrServlet extends SsrServletBase {
 
         RestartPageContent content = new RestartPageContent(context);
         pageBuilder.setContent(content);
-        
-        pageBuilder.setBodyAttributes("onload", "common_onload();restart_onload();");
 
       } else {
 
@@ -144,6 +143,12 @@ public class RestartSsrServlet extends SsrServletBase {
 
   protected void restart(HttpServletRequest req) {
 
+    final ApacheServiceLocator locator = ApacheServiceLocatorFactory.get();
+    
+    if (locator == null) {
+      throw new RuntimeException("Restart failed: Apache service locator not found");
+    }
+    
     final String apacheServiceName = EnvironmentFactory.get(req).getProperty("org.jepria.httpd.apache.manager.web.apacheServiceName");
 
     if (apacheServiceName == null) {
@@ -151,8 +156,13 @@ public class RestartSsrServlet extends SsrServletBase {
           + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.apacheServiceName\" is not defined");
     }
 
-    // restart the Apache service
-    ApacheServiceFactory.get(apacheServiceName).restart();
+    final ApacheService service = locator.get(apacheServiceName);
+    
+    if (service == null) {
+      throw new RuntimeException("Restart failed: Apache service not found");
+    }
+    
+    service.restart();
   }
   
   protected StatusBar createStatusBar(Context context, boolean success) {

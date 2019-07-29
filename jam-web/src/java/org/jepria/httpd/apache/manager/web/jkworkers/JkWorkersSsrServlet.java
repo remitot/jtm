@@ -18,6 +18,7 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.JkApi;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent.TopPosition;
+import org.jepria.web.HttpDataEncoding;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.SsrServletBase;
@@ -73,7 +74,6 @@ public class JkWorkersSsrServlet extends SsrServletBase {
       
       JkTextPageContent content = new JkTextPageContent(context, workersPropertiesLines, modRequestLines, CurrentMenuItem.JK_WORKERS);
       pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "common_onload();textContent_onload();");
 
       if (modStatus != null) {
         StatusBar statusBar = createModStatusBar(context, Boolean.TRUE.equals(modStatus));
@@ -106,10 +106,7 @@ public class JkWorkersSsrServlet extends SsrServletBase {
         
       // read list from request parameter (as passed by form.submit)
       try {
-        String data = req.getParameter("data");
-        
-        // convert encoding TODO fix this using accept-charset form attribute?
-        data = new String(data.getBytes("ISO-8859-1"), "UTF-8");
+        final String data = HttpDataEncoding.getParameterUtf8(req, "data");
         
         Type type = new TypeToken<Map<String, String>>(){}.getType();
         Map<String, String> map = gson.fromJson(data, type);
@@ -145,10 +142,8 @@ public class JkWorkersSsrServlet extends SsrServletBase {
           apacheConf.save(() -> env.getMod_jk_confOutputStream(), 
               () -> env.getWorkers_propertiesOutputStream());
           
-          // clear modRequest after the successful modification (but preserve modStatus)
-          AppState appState = getAppState(req);
-          appState.modRequest = null;
-          appState.modStatus = Boolean.TRUE;
+          // clear AppState after the successful modification
+          clearAppState(req);
           
         } else {
 

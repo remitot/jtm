@@ -107,7 +107,6 @@ public class LogSsrServlet extends SsrServletBase {
 
       LogPageContent content = new LogPageContent(context, logs, clientTimezone);
       pageBuilder.setContent(content);
-      pageBuilder.setBodyAttributes("onload", "common_onload();table_onload();");
   
     } else {
       

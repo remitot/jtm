@@ -65,8 +65,8 @@ public class LoginFragment extends AuthFragment {
     appendChild(loginForm);
     
     
-    addScript("js/auth-fragment_login.js");
-    addScript("js/common.js");
+    addScript(new Script("js/auth-fragment_login.js", "authFragmentLogin_onload"));
+    addScript(new Script("js/common.js", "common_onload"));
     addStyle("css/common.css");
   }
 }

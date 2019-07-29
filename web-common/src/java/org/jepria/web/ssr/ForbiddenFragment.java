@@ -54,7 +54,7 @@ public class ForbiddenFragment extends AuthFragment {
     
     appendChild(form);
     
-    addScript("js/common.js");
+    addScript(new Script("js/common.js", "common_onload"));
     addStyle("css/common.css");
   }
 }

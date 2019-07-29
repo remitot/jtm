@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class El implements Node {
+public class El implements Node, HasStyles, HasScripts {
   
   public String tagName;
   
@@ -246,12 +246,11 @@ public class El implements Node {
   /**
    * Element's own scripts (not its descendant's)
    */
-  // LinkedHashSet is important to maintain style adding order (so that the styles could be overridden)
+  // LinkedHashSet is important to maintain adding order
   private final Set<String> ownScripts = new LinkedHashSet<>();
   
   /**
    * Get all scripts related to this elements and its children recursively
-   * @param sb
    */
   public Set<String> getScripts() {
     final Set<String> scripts = new LinkedHashSet<>();
@@ -262,14 +261,44 @@ public class El implements Node {
   /**
    * Collect all scripts of this element and its children recursively
    * 
-   * @param scripts a collection to add a script to, not null
+   * @param collector a collection to collect elements to, not null
    */
   // private final: not for overriding or direct invocation
-  private final void collectScripts(Set<String> scripts) {
-    scripts.addAll(ownScripts);
+  private final void collectScripts(Set<String> collector) {
+    collector.addAll(ownScripts);
     for (Node child: childs) {
       if (child instanceof El) {
-        ((El)child).collectScripts(scripts);
+        ((El)child).collectScripts(collector);
+      }
+    }
+  }
+  
+  /**
+   * Element's own onload functions (not its descendant's)
+   */
+  // LinkedHashSet is important to maintain adding order
+  private final Set<String> ownOnloadFunctions = new LinkedHashSet<>();
+  
+  /**
+   * Get all onload functions related to this elements and its children recursively
+   */
+  public Set<String> getOnloadFunctions() {
+    final Set<String> onloadFunctions = new LinkedHashSet<>();
+    collectOnloadFunctions(onloadFunctions);
+    return onloadFunctions;
+  }
+  
+  /**
+   * Collect all scripts of this element and its children recursively
+   * 
+   * @param collector a collection to collect elements to, not null
+   */
+  // private final: not for overriding or direct invocation
+  private final void collectOnloadFunctions(Set<String> collector) {
+    collector.addAll(ownOnloadFunctions);
+    for (Node child: childs) {
+      if (child instanceof El) {
+        ((El)child).collectOnloadFunctions(collector);
       }
     }
   }
@@ -278,9 +307,17 @@ public class El implements Node {
    * Adds a .js script specific to this element or element class.
    * A script is added by its relative path (same as {@code src} attribute value of a {@code <script>} tag) 
    */
-  public void addScript(String script) {
+  @Override
+  public void addScript(Script script) {
     if (script != null) {
-      this.ownScripts.add(script);
+      if (script.src != null) {
+        this.ownScripts.add(script.src);
+      }
+      if (script.onloadFuntions != null) {
+        for (String onloadFunction: script.onloadFuntions) {
+          this.ownOnloadFunctions.add(onloadFunction);
+        }
+      }
     }
   }
   
@@ -318,10 +355,7 @@ public class El implements Node {
     }
   }
   
-  /**
-   * Adds a .css style specific to this element or element class.
-   * A style is added by its relative path (same as {@code href} attribute value of a {@code <link rel="stylesheet">} tag) 
-   */
+  @Override
   public void addStyle(String style) {
     if (style != null) {
       this.ownStyles.add(style);

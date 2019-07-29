@@ -8,7 +8,7 @@ public class ControlButtons extends El {
     
     addStyle("css/control-buttons.css");
     addStyle("css/common.css"); // for .big-black-button
-    addScript("js/common.js"); // for .big-black-button
+    addScript(new Script("js/common.js", "common_onload")); // for .big-black-button
   }
   
   public El addButtonCreate() {

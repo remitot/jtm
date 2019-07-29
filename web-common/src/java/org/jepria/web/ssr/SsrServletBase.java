@@ -114,7 +114,7 @@ public class SsrServletBase extends HttpServlet {
       content.appendChild(loginFragment);
 
       page.setContent(content);
-      page.setBodyAttributes("onload", "common_onload();authFragmentLogin_onload();", "class", "background_gray");
+      page.setBodyAttributes("class", "background_gray");
 
     } else {
       authState.auth = Auth.FORBIDDEN;
@@ -125,7 +125,7 @@ public class SsrServletBase extends HttpServlet {
       content.appendChild(forbiddenFragment);
 
       page.setContent(content);
-      page.setBodyAttributes("onload", "common_onload();", "class", "background_gray");
+      page.setBodyAttributes("class", "background_gray");
     }
 
     page.setStatusBar(createStatusBar(context, authState));

@@ -7,6 +7,7 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.HasScripts.Script;
 import org.jepria.web.ssr.Text;
 
 public class JkTextPageContent extends ArrayList<El> {
@@ -28,7 +29,7 @@ public class JkTextPageContent extends ArrayList<El> {
       {
         El textarea = new El("textarea", context);
         textarea.classList.add("text-content");
-        textarea.addScript("js/jk/jk.js");
+        textarea.addScript(new Script("js/jk/jk.js", "textContent_onload"));
         
         StringBuilder innerHTMLSb = new StringBuilder();
         for (String line: (itemModRequestLines != null ? itemModRequestLines : lines)) {
