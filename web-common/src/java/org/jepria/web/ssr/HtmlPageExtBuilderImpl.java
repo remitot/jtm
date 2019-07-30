@@ -2,7 +2,6 @@ package org.jepria.web.ssr;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /*package*/class HtmlPageExtBuilderImpl extends HtmlPageBaseBuilderImpl implements HtmlPageExtBuilder {
   
@@ -24,47 +23,48 @@ import java.util.List;
   @Override
   public void setHeader(PageHeader header) {
     this.header = header;
+    buildBody();
   }
 
   @Override
   public void setStatusBar(StatusBar statusBar) {
     this.statusBar = statusBar;
+    buildBody();
   }
 
   // private, getter is at most protected
-  private Iterable<? extends Node> extContent;
+  private Iterable<? extends Node> content;
   
   @Override
   public void setContent(Iterable<? extends Node> content) {
-    extContent = content;
+    this.content = content;
+    buildBody();
   }
   
   @Override
   public void setContent(Node content) {
-    extContent = new ArrayList<>(Arrays.asList(content));
+    this.content = new ArrayList<>(Arrays.asList(content));
+    buildBody();
   }
   
-  @Override
-  public Page build() {
+  private void buildBody() {
     
-    List<Node> content = new ArrayList<>();
+    El body = getBody();
+    
+    body.childs.clear();
     
     if (header != null) {
-      content.add(header);
+      body.childs.add(header);
     }
     
     if (statusBar != null) {
-      content.add(statusBar);
+      body.childs.add(statusBar);
     }
     
-    if (extContent != null) {
-      for (Node node: extContent) {
-        content.add(node);
+    if (content != null) {
+      for (Node node: content) {
+        body.childs.add(node);
       }
     }
-    
-    super.setContent(content);
-    
-    return super.build();
   }
 }

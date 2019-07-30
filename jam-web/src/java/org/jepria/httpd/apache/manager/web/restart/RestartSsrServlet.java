@@ -46,7 +46,7 @@ public class RestartSsrServlet extends SsrServletBase {
         final HtmlPageBaseBuilder pageBuilder = HtmlPageBaseBuilder.newInstance(context);
         pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.restart.title"));
         
-        pageBuilder.setContent(new RestartFragment(context));
+        pageBuilder.getBody().appendChild(new RestartFragment(context));
 
         HtmlPageExtBuilder.Page page = pageBuilder.build();
         page.respond(resp);

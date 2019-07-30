@@ -56,7 +56,7 @@ public class LogSsrServlet extends SsrServletBase {
       
       Node script = Node.fromHtml("<script type=\"text/javascript\">document.cookie=\"local-timezone-offset=\" + (-new Date().getTimezoneOffset()); window.location.reload();</script>");
       
-      pageBuilder.setContent(script);
+      pageBuilder.getBody().appendChild(script);
       
       Page page = pageBuilder.build();
       page.respond(resp);
