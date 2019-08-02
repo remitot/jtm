@@ -196,8 +196,10 @@ public class JdbcSsrServlet extends SsrServletBase {
             tomcatConf.save(env.getContextXmlOutputStream(), 
                 env.getServerXmlOutputStream());
             
-            // clear AppState after the successful modification
-            clearAppState(req);
+            // clear modRequest after the successful modification
+            AppState appState = getAppState(req);
+            appState.modRequest = null;
+            appState.modStatus = itemModStatuses;
             
           } else {
            
