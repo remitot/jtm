@@ -34,8 +34,6 @@ public class LoginFragment extends AuthFragment {
       action = sb.toString();
     }
     
-    addClass("login-frame");
-
     final Text text = context.getText();
     
     final El loginForm = new El("form", context).addClass("auth-form").addClass("auth-form_login")

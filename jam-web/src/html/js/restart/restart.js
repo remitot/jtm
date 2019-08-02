@@ -1,6 +1,9 @@
 function restart_onload() {
-  
-  // place the restart control button directly below the current menu item
+  position();
+}
+
+function position() {
+  // position the restart control button directly below the current menu item
   var currentHeaderMenuItem = document.getElementsByClassName("page-header__menu-item_current")[0];
   if (currentHeaderMenuItem) {
     

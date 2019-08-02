@@ -1,3 +1,7 @@
+.control-button_restart {
+  left: -5000px; /* initial value to measure the "invisible" (but rendered) element (does not work with display:none) */
+}
+
 .restart-fragment-mask {
   position: absolute;
   left: 0;

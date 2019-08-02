@@ -70,13 +70,17 @@ public class RestartSsrServlet extends SsrServletBase {
         pageHeader.setButtonLogout(req);
 
         
-        StatusBar statusBar = null;
         if ("status-success".equals(req.getSession().getAttribute(RESTART_STATE_SESSION_ATTR_KEY))) {
-          statusBar = createStatusBar(context, true);
+          final StatusBar statusBar = new StatusBar(context);
+          statusBar.setType(StatusBar.Type.SUCCESS);
+          statusBar.setHeaderHTML(text.getString("org.jepria.httpd.apache.manager.web.restart.status.restart_success"));
+          pageBuilder.setStatusBar(statusBar);
         } else if ("status-failure".equals(req.getSession().getAttribute(RESTART_STATE_SESSION_ATTR_KEY))) {
-          statusBar = createStatusBar(context, false);
+          final StatusBar statusBar = new StatusBar(context);
+          statusBar.setType(StatusBar.Type.ERROR);
+          statusBar.setHeaderHTML(text.getString("org.jepria.httpd.apache.manager.web.restart.status.restart_failure"));
+          pageBuilder.setStatusBar(statusBar);
         }
-        pageBuilder.setStatusBar(statusBar);
         
 
         RestartPageContent content = new RestartPageContent(context);
@@ -164,16 +168,4 @@ public class RestartSsrServlet extends SsrServletBase {
     
     service.restart();
   }
-  
-  protected StatusBar createStatusBar(Context context, boolean success) {
-
-    Text text = context.getText();
-    
-    if (success) {
-      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.httpd.apache.manager.web.restart.status.restart_success"));
-    } else {
-      return new StatusBar(context, StatusBar.Type.ERROR, text.getString("org.jepria.httpd.apache.manager.web.restart.status.restart_failure"));
-    }
-  }
-
 }

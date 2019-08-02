@@ -1,26 +1,45 @@
-.statusBar {
-  padding-left: 18px;
-  padding-right: 18px;
-  font-size: 14px;
+.status-bar {
+  position: fixed;
+  top: 22.5px; /* 0.5 of the page header height */
+  left: -5000px; /* initial value to measure the "invisible" (but rendered) element (does not work with display:none) */
+  z-index: 1000;
+}
+
+.status-bar__header {
+  margin: 25px;
+}
+
+.status-bar__header-content {
+  display: inline-block;
   
-  line-height: 45px;
+  font-size: 14px;
 }
 
-.statusBar_none {
-  display: none;
+.status-bar__header-close {
+  display: inline-block;
+  margin-left: 25px;
+  
+  height: 18px; /* magic value, corresponds to .status-bar__header-content:font-size */
+  float: right;
 }
 
-.statusBar_success {
+.status-bar_success {
   display: block;
-  background-color: #CFFFC1;
+  
+  background-color: rgb(144, 238, 144); /* fallback */
+  background-color: rgba(144, 238, 144, 0.95);
 }
 
-.statusBar_error {
+.status-bar_error {
   display: block;
-  background-color: #ffb59b;
+  
+  background-color: rgb(238, 144, 144); /* fallback */
+  background-color: rgba(238, 144, 144, 0.95);
 }
 
-.statusBar_info {
+.status-bar_info {
   display: block;
-  background-color: #F4F5CF;
+  
+  background-color: rgb(238, 238, 144); /* fallback */
+  background-color: rgba(238, 238, 144, 0.95);
 }

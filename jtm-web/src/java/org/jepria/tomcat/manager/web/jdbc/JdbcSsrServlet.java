@@ -86,7 +86,19 @@ public class JdbcSsrServlet extends SsrServletBase {
         boolean hasInvalidFieldData = itemModStatuses.values().stream()
             .anyMatch(modStatus -> modStatus.code == Code.INVALID_FIELD_DATA);
         
-        StatusBar statusBar = createModStatusBar(context, !hasInvalidFieldData);
+        final StatusBar statusBar = new StatusBar(context);
+        
+        if (!hasInvalidFieldData) {
+          statusBar.setType(StatusBar.Type.SUCCESS);
+          statusBar.setHeaderHTML(text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success"));
+        } else {
+          statusBar.setType(StatusBar.Type.ERROR);
+          String statusHTML = text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_incorrect_field_data") 
+              + " <span class=\"span-bold\">" + text.getString("org.jepria.tomcat.manager.web.jdbc.status.no_mod_performed") 
+              + "</span>";
+          statusBar.setHeaderHTML(statusHTML);
+        }
+        
         pageBuilder.setStatusBar(statusBar);
       }
       
@@ -231,30 +243,6 @@ public class JdbcSsrServlet extends SsrServletBase {
       // unknown request
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
       return;
-    }
-  }
-
-  /**
-   * Creates a StatusBar for a modification status
-   * @param context
-   * @param success
-   * @return
-   */
-  protected StatusBar createModStatusBar(Context context, boolean success) {
-    
-    if (success) {
-      
-      Text text = context.getText();
-      return new StatusBar(context, StatusBar.Type.SUCCESS, text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_success"));
-      
-    } else {
-      
-      Text text = context.getText();
-      
-      final String statusHTML = text.getString("org.jepria.tomcat.manager.web.jdbc.status.mod_incorrect_field_data") 
-          + " <span class=\"span-bold\">" + text.getString("org.jepria.tomcat.manager.web.jdbc.status.no_mod_performed") 
-          + "</span>";
-      return new StatusBar(context, StatusBar.Type.ERROR, statusHTML);
     }
   }
 }

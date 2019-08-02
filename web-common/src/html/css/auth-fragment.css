@@ -1,11 +1,11 @@
-.auth-frame {
-  position: fixed;
-  left: 50%;
-  margin-left: -150px;
-  top: 50%;
-  margin-top: -116px;
+/* overrides status-bar.css:status-bar */
+.status-bar.status-bar_auth {
+  top: 67.5px; /* 0.5 of the page header height below it (45 + 22.5) */
+}
+
+/* overrides status-bar.css:status-bar */
+.status-bar.status-bar_auth .status-bar__header {
   text-align: center;
-  background-color: white;
 }
 
 .auth-form {

@@ -76,7 +76,26 @@ public class JkWorkersSsrServlet extends SsrServletBase {
       pageBuilder.setContent(content);
 
       if (modStatus != null) {
-        StatusBar statusBar = createModStatusBar(context, Boolean.TRUE.equals(modStatus));
+        
+        // TODO bad assertion here:
+        // either the modifications succeeded and the status bar is required,
+        // or the modifications failed and the exception had already been thrown
+        if (!Boolean.TRUE.equals(modStatus)) {
+          throw new IllegalStateException();
+        }
+        
+        final StatusBar statusBar = new StatusBar(context);
+        final String innerHTML = "<span class=\"span-bold\">"
+            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.saved") 
+            + ".</span>&nbsp;" 
+            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.apply") 
+            + ".&emsp;<a href=\"" + context.getContextPath() + "/restart" + "\">" 
+            + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart")
+            + "</a>";
+        
+        statusBar.setType(StatusBar.Type.SUCCESS);
+        statusBar.setHeaderHTML(innerHTML);
+        
         pageBuilder.setStatusBar(statusBar);
         content.setTopPosition(TopPosition.BELOW_PAGE_HEADER_AND_STATUS_BAR);
       }
@@ -163,35 +182,6 @@ public class JkWorkersSsrServlet extends SsrServletBase {
       
       // unknown request
       resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
-    }
-  }
-
-  /**
-   * Creates a StatusBar for a modification status
-   * @param context
-   * @param success
-   * @return
-   */
-  protected StatusBar createModStatusBar(Context context, boolean success) {
-    
-    if (success) {
-      
-      Text text = context.getText();
-      
-      final String innerHTML = "<span class=\"span-bold\">"
-          + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.saved") 
-          + ".</span>&nbsp;" 
-          + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.apply") 
-          + ".&emsp;<a href=\"" + context.getContextPath() + "/restart" + "\">" 
-          + text.getString("org.jepria.httpd.apache.manager.web.jk.status.mod_success.restart")
-          + "</a>";
-      
-      return new StatusBar(context, StatusBar.Type.SUCCESS, innerHTML);
-      
-    } else {
-      // either the modifications succeeded and the status bar is required,
-      // or the modifications failed and the exception had been thrown
-      throw new UnsupportedOperationException();
     }
   }
 }

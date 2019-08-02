@@ -1,15 +1,14 @@
 package org.jepria.web.ssr;
 
-public class AuthFragment extends El {
+public class AuthFragment extends StatusBar {
   public AuthFragment(Context context) {
-    super("div", context);
-    addClass("auth-frame");
+    super(context);
     
-    Text text = context.getText();
+    setCloseable(false);
     
-    final El loginStatusBar = new StatusBar(context, StatusBar.Type.INFO, text.getString("org.jepria.web.ssr.AuthFragment.status.access_admin"));
-    appendChild(loginStatusBar);
-    
+    addClass("status-bar_auth");
     addStyle("css/auth-fragment.css");
   }
+  
+  // TODO unused text? "org.jepria.web.ssr.AuthFragment.status.access_admin"
 }
