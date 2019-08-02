@@ -27,6 +27,7 @@ public abstract class Table<T extends ItemData> extends El {
     addClass("table");
     
     addScript(new Script("js/table.js", "table_onload", "table__controlButtons_onload"));
+    addStyle("css/common.css");
     addStyle("css/table.css");
   }
   

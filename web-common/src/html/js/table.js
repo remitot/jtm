@@ -57,7 +57,7 @@ function table_onload() {
       }
     }
     
-    adjustBottomShadow();
+    adjustControlButtonsShadow();
   }
 }
 
@@ -365,7 +365,7 @@ function triggerFieldsInput(composite) {
   }
 }
 
-function adjustBottomShadow() {
+function adjustControlButtonsShadow() {
   var controlButtons = document.getElementsByClassName("control-buttons")[0];
   var table = document.getElementsByClassName("table")[0];
   
@@ -373,15 +373,15 @@ function adjustBottomShadow() {
     if (table) {
       if (table.getBoundingClientRect().bottom <= 
         controlButtons.getBoundingClientRect().top) {
-        controlButtons.classList.remove("bottom-shadow");
+        controlButtons.classList.remove("block-shadow");
       } else {
-        controlButtons.classList.add("bottom-shadow");
+        controlButtons.classList.add("block-shadow");
       }
     }
   }
 }
 
-window.onscroll = adjustBottomShadow;
+window.onscroll = adjustControlButtonsShadow;
 
 
 
