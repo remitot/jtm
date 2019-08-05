@@ -9,6 +9,4 @@ public class AuthFragment extends StatusBar {
     addClass("status-bar_auth");
     addStyle("css/auth-fragment.css");
   }
-  
-  // TODO unused text? "org.jepria.web.ssr.AuthFragment.status.access_admin"
 }

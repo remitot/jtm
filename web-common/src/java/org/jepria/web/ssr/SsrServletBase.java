@@ -17,11 +17,11 @@ public class SsrServletBase extends HttpServlet {
   }
 
   private final String getStatusBarModDataSavedHtmlPostfix(Text text) {
-    return ".&emsp;&emsp;&emsp;<span class=\"span-bold\">"
+    return "<br/><br/>"
         + text.getString("org.jepria.web.ssr.SsrServletBase.status.mod_saved.saved") 
-        + ",</span> " 
+        + ",<br/>" 
         + text.getString("org.jepria.web.ssr.SsrServletBase.status.mod_saved.restored") 
-        + ".&ensp;<a href=\"\">" 
+        + ".<br/><a href=\"\">" 
         + text.getString("org.jepria.web.ssr.SsrServletBase.status.mod_saved.delete")
         + "</a>";
   }
@@ -91,36 +91,46 @@ public class SsrServletBase extends HttpServlet {
   
         if (auth == Auth.LOGIN_FALIED) {
           
-          String innerHtml = "<span class=\"span-bold\">"
+          String html = 
+              "<span class=\"span-bold\">"
               + text.getString("org.jepria.web.ssr.SsrServletBase.status.login_failed.incorrect_data")
-              + ",</span> "
-              + text.getString("org.jepria.web.ssr.SsrServletBase.status.login_failed.try_again");
+              + "</span><br/>"
+              + "(" + text.getString("org.jepria.web.ssr.AuthFragment.status.access_admin") + ")";
+          
           if (authState.authPersistentData != null) {
-            innerHtml += getStatusBarModDataSavedHtmlPostfix(text);
+            html += getStatusBarModDataSavedHtmlPostfix(text);
           }
           
           authFragment.setType(Type.ERROR);
-          authFragment.setHeaderHTML(innerHtml);
+          authFragment.getHeader().setInnerHTML(html);
           
         } else if (auth == Auth.LOGOUT) {
           
           authFragment.setType(Type.SUCCESS);
-          authFragment.setHeaderHTML(text.getString("org.jepria.web.ssr.SsrServletBase.status.logouted"));
+          String html = text.getString("org.jepria.web.ssr.SsrServletBase.status.logouted");
+          authFragment.getHeader().setInnerHTML(html);
           
         } else if (auth == Auth.UNAUTHORIZED) {
         
-          String innerHtml = text.getString("org.jepria.web.ssr.SsrServletBase.status.auth_required");
+          String html =
+              "<span class=\"span-bold\">"
+              + text.getString("org.jepria.web.ssr.SsrServletBase.status.auth_required")
+              + "</span><br/>"
+              + "(" + text.getString("org.jepria.web.ssr.AuthFragment.status.access_admin") + ")";
+          
           if (authState.authPersistentData != null) {
-            innerHtml += getStatusBarModDataSavedHtmlPostfix(text);
+            html += getStatusBarModDataSavedHtmlPostfix(text);
           }
           
           authFragment.setType(Type.INFO);
-          authFragment.setHeaderHTML(innerHtml);
+          authFragment.getHeader().setInnerHTML(html);
         
         } else if (auth == Auth.FORBIDDEN) {
           
+          String html = text.getString("org.jepria.web.ssr.SsrServletBase.status.forbidden");
+          
           authFragment.setType(Type.ERROR);
-          authFragment.setHeaderHTML(text.getString("org.jepria.web.ssr.SsrServletBase.status.forbidden"));
+          authFragment.getHeader().setInnerHTML(html);
         }
       }
     }

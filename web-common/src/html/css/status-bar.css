@@ -11,8 +11,7 @@
 
 .status-bar__header-content {
   display: inline-block;
-  
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .status-bar__header-close {
@@ -20,6 +19,8 @@
   margin-left: 25px;
   
   height: 18px; /* magic value, corresponds to .status-bar__header-content:font-size */
+  width: 18px; /* magic value, corresponds to .status-bar__header-content:font-size */
+  
   float: right;
 }
 

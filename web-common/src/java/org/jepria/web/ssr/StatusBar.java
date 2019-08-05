@@ -11,6 +11,9 @@ public class StatusBar extends El {
   }
   
   protected final El header;
+  /**
+   * Content part of a header against the close button
+   */
   protected final El headerContent;
   protected final El closeButton;
   
@@ -71,6 +74,10 @@ public class StatusBar extends El {
         header.appendChild(closeButton);
       }
     }
+  }
+  
+  public El getHeader() {
+    return headerContent;
   }
   
   public void setHeaderHTML(String html) {
