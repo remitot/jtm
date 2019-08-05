@@ -17,7 +17,6 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader;
 import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.JkApi;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent;
-import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent.TopPosition;
 import org.jepria.web.HttpDataEncoding;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
@@ -97,7 +96,6 @@ public class JkModjkSsrServlet extends SsrServletBase {
         statusBar.setHeaderHTML(innerHTML);
         
         pageBuilder.setStatusBar(statusBar);
-        content.setTopPosition(TopPosition.BELOW_PAGE_HEADER_AND_STATUS_BAR);
       }
       // clear auth-persistent data
       setAuthPersistentData(req, null);
