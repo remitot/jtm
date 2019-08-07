@@ -101,7 +101,7 @@ public class LogApi {
 
 
 
-    File logsDirectory = environment.getLogsDirectory();
+    File logsDirectory = environment.getLogsDirectory().toFile();
 
     File[] logFiles = logsDirectory.listFiles();
 
@@ -152,9 +152,7 @@ public class LogApi {
 
   public List<String> readFileLines(Environment environment, String filename) throws NoSuchFileException {
 
-    File logsDirectory = environment.getLogsDirectory();
-
-    Path logFile = logsDirectory.toPath().resolve(filename);
+    Path logFile = environment.getLogsDirectory().resolve(filename);
 
     final List<String> ret;
     
@@ -171,9 +169,7 @@ public class LogApi {
   
   public BufferedReader readFile(Environment environment, String filename) throws NoSuchFileException {
 
-    File logsDirectory = environment.getLogsDirectory();
-
-    Path logFile = logsDirectory.toPath().resolve(filename);
+    Path logFile = environment.getLogsDirectory().resolve(filename);
 
     final BufferedReader ret;
     
@@ -197,9 +193,7 @@ public class LogApi {
   public void writeLogRecord(Environment environment, String filename, String logRecord) {
     if (logRecord != null) {
       
-      File logsDirectory = environment.getLogsDirectory();
-  
-      File logFile = logsDirectory.toPath().resolve(filename).toFile();
+      File logFile = environment.getLogsDirectory().resolve(filename).toFile();
       
       synchronized (LogApi.class) {
         try {

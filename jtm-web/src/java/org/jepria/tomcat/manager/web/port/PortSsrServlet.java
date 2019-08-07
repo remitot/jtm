@@ -13,6 +13,7 @@ import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
 import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
@@ -46,6 +47,9 @@ public class PortSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
+      
+      String pageInfo = HtmlEscaper.escape(env.getHomeDirectory().toString());
+      pageHeader.setPageInfo(pageInfo);
       
       final List<PortDto> ports = new PortApi().list(env);
       

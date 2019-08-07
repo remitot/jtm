@@ -19,6 +19,7 @@ import org.jepria.httpd.apache.manager.web.jk.JkApi;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent;
 import org.jepria.web.HttpDataEncoding;
 import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.SsrServletBase;
 import org.jepria.web.ssr.StatusBar;
@@ -58,6 +59,8 @@ public class JkModjkSsrServlet extends SsrServletBase {
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
 
+      String pageInfo = HtmlEscaper.escape(env.getMod_jk_confFile().toString());
+      pageHeader.setPageInfo(pageInfo);
       
       List<String> modJkConfLines = new JkApi().getMod_jk_ConfLines(env);
       

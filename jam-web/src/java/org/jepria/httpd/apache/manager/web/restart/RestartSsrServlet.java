@@ -13,6 +13,7 @@ import org.jepria.httpd.apache.manager.web.service.ApacheService;
 import org.jepria.httpd.apache.manager.web.service.ApacheServiceLocator;
 import org.jepria.httpd.apache.manager.web.service.ApacheServiceLocatorFactory;
 import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.HtmlPageBaseBuilder;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
@@ -63,12 +64,20 @@ public class RestartSsrServlet extends SsrServletBase {
       final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
       pageBuilder.setTitle(text.getString("org.jepria.httpd.apache.manager.web.restart.title"));
 
+      
       final PageHeader pageHeader = new JamPageHeader(context, CurrentMenuItem.RESTART);
       pageBuilder.setHeader(pageHeader);
 
       if (checkAuth(req)) {
         pageHeader.setButtonLogout(req);
 
+        
+        { // page info
+          final String apacheServiceName = getApacheServiceName(req);
+          if (apacheServiceName != null) {
+            pageHeader.setPageInfo("Service name: " + HtmlEscaper.escape(apacheServiceName));
+          }
+        }
         
         if ("status-success".equals(req.getSession().getAttribute(RESTART_STATE_SESSION_ATTR_KEY))) {
           final StatusBar statusBar = new StatusBar(context);
@@ -153,7 +162,7 @@ public class RestartSsrServlet extends SsrServletBase {
       throw new RuntimeException("Restart failed: Apache service locator not found");
     }
     
-    final String apacheServiceName = EnvironmentFactory.get(req).getProperty("org.jepria.httpd.apache.manager.web.apacheServiceName");
+    final String apacheServiceName = getApacheServiceName(req);
 
     if (apacheServiceName == null) {
       throw new RuntimeException("Misconfiguration exception: "
@@ -167,5 +176,9 @@ public class RestartSsrServlet extends SsrServletBase {
     }
     
     service.restart();
+  }
+  
+  protected String getApacheServiceName(HttpServletRequest req) {
+    return EnvironmentFactory.get(req).getProperty("org.jepria.httpd.apache.manager.web.apacheServiceName");
   }
 }

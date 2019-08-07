@@ -27,6 +27,8 @@ public class PageHeader extends El {
   // private field with protected getter
   private El formLogout;
   
+  private El pageInfoContainer;
+  
   /**
    * @param text
    */
@@ -37,10 +39,13 @@ public class PageHeader extends El {
 
     itemsContainer = new El("div", context).addClass("page-header__container").addClass("page-header__container_pos_left");
     formLogoutContainer = new El("div", context).addClass("page-header__container").addClass("page-header__container_pos_right");
+    pageInfoContainer = new El("div", context).addClass("page-header__container");
     
-    
-    appendChild(formLogoutContainer); // must be appended before the left container
+    // important to maintain the appending order:
+    appendChild(formLogoutContainer);
+    appendChild(pageInfoContainer);
     appendChild(itemsContainer);
+    
     
     addStyle("css/page-header.css");
   }
@@ -55,6 +60,8 @@ public class PageHeader extends El {
   }
   
   public void setItems(Iterable<? extends Node> items) {
+    this.items = items;
+    
     // remove existing
     itemsContainer.childs.clear();
     
@@ -142,6 +149,21 @@ public class PageHeader extends El {
           setAttribute("href", href);
         }
       }
+    }
+  }
+
+  /**
+   * Sets short info describing what this page refers to, to be displayed in the header.
+   * @param html if {@code null}, no info will be displayed.
+   */
+  public void setPageInfo(String html) {
+    pageInfoContainer.childs.clear();
+    if (html != null) {
+      El content = new El("div", context);
+      content.addClass("page-header__line-element");
+      content.addClass("page-header__menu-item_page-info");
+      content.setInnerHTML(html);
+      pageInfoContainer.appendChild(content);
     }
   }
 }

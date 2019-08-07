@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,38 +20,24 @@ import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
  */
 public class BasicEnvironment implements Environment {
   
+  private final Path home;
+  
   private final File contextXml;
   private final File serverXml;
   
-  private final File logsDirectory;
-  
   private final EnvironmentPropertyFactory envPropertyFactory;
   
-  /**
-   * @param request
-   * @return tomcat 'conf' directory
-   */
-  protected File getConfDirectory(HttpServletRequest request) {
-    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("conf").toFile();
-  }
-  
-  /**
-   * @param request
-   * @return tomcat 'logs' directory
-   */
-  protected File getLogsDirectory(HttpServletRequest request) {
-    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent().resolve("logs").toFile();
+  protected Path getTomcatHome(HttpServletRequest request) {
+    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent();
   }
   
   public BasicEnvironment(HttpServletRequest request) {
     envPropertyFactory = new EnvironmentPropertyFactory(new File(request.getServletContext().getRealPath("/WEB-INF/app-conf-default.properties")));
     
-    File confDir = getConfDirectory(request);
+    home = getHomeDirectory(request);
     
-    contextXml = confDir.toPath().resolve("context.xml").toFile();
-    serverXml = confDir.toPath().resolve("server.xml").toFile();
-    
-    logsDirectory = getLogsDirectory(request);
+    contextXml = getConfDirectory().resolve("context.xml").toFile();
+    serverXml = getConfDirectory().resolve("server.xml").toFile();
   }
   
   @Override
@@ -89,9 +76,13 @@ public class BasicEnvironment implements Environment {
     }
   }
   
+  public Path getHomeDirectory(HttpServletRequest request) {
+    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent();
+  }
+  
   @Override
-  public File getLogsDirectory() {
-    return logsDirectory;
+  public Path getHomeDirectory() {
+    return home;
   }
   
   @Override

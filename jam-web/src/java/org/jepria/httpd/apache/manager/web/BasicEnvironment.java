@@ -1,12 +1,7 @@
 package org.jepria.httpd.apache.manager.web;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,7 +59,7 @@ public class BasicEnvironment implements Environment {
     }
     
     private void init() {
-      path = apacheHome.get().resolve("conf/jk/mod_jk.conf");
+      path = getConfDirectory().resolve("jk/mod_jk.conf");
       if (path == null || !Files.isRegularFile(path)) {
         throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
       }
@@ -136,48 +131,23 @@ public class BasicEnvironment implements Environment {
     envPropertyFactory = new EnvironmentPropertyFactory(new File(request.getServletContext().getRealPath("/WEB-INF/app-conf-default.properties")));
   }
   
-  protected Path getMod_jk_confFile() {
+  @Override
+  public Path getMod_jk_confFile() {
     return mod_jk_conf.get();
-  }
-  
-  @Override
-  public OutputStream getMod_jk_confOutputStream() {
-    try {
-      return new FileOutputStream(mod_jk_conf.get().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
-  }
-  
-  @Override
-  public InputStream getMod_jk_confInputStream() {
-    try {
-      return new FileInputStream(mod_jk_conf.get().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
-  }
-  
-  @Override
-  public OutputStream getWorkers_propertiesOutputStream() {
-    try {
-      return new FileOutputStream(workers_properties.get().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
-  }
-  
-  @Override
-  public InputStream getWorkers_propertiesInputStream() {
-    try {
-      return new FileInputStream(workers_properties.get().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
   }
   
   @Override
   public String getProperty(String name) {
     return envPropertyFactory.getProperty(name);
+  }
+  
+  @Override
+  public Path getHomeDirectory() {
+    return apacheHome.get();
+  }
+  
+  @Override
+  public Path getWorkers_propertiesFile() {
+    return workers_properties.get();
   }
 }

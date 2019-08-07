@@ -17,6 +17,7 @@ import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
 import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.HtmlPageBaseBuilder;
 import org.jepria.web.ssr.HtmlPageBaseBuilder.Page;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
@@ -102,6 +103,10 @@ public class LogSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
+      
+      String pageInfo = HtmlEscaper.escape(env.getLogsDirectory().toString());
+      pageHeader.setPageInfo(pageInfo);
+      
       
       List<LogDto> logs = new LogApi().list(env, null);
 

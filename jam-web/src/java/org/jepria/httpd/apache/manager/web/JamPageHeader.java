@@ -50,6 +50,7 @@ public class JamPageHeader extends PageHeader {
     }
     
     
+    
     // add class to the left item
     if (items.size() > 0) {
       items.get(0).classList.add("page-header__menu-item_left");

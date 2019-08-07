@@ -1,8 +1,8 @@
 package org.jepria.tomcat.manager.web;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 
@@ -36,10 +36,25 @@ public interface Environment {
   InputStream getContextXmlInputStream();
   
   /**
-   * @return new {@link File} representing the {@code logs} directory
+   * @return new {@link Path} representing the {@code conf} directory
+   * (normally at TOMCAT_HOME/conf). Normally the file is an existing readable directory.
+   */
+  default Path getConfDirectory() {
+    return getHomeDirectory().resolve("conf");
+  }
+  
+  /**
+   * @return new {@link Path} representing the {@code logs} directory
    * (normally at TOMCAT_HOME/logs). Normally the file is an existing readable directory.
    */
-  File getLogsDirectory();
+  default Path getLogsDirectory() {
+    return getHomeDirectory().resolve("logs");
+  }
+  
+  /**
+   * @return Path known as TOMCAT_HOME. Normally the file is an existing readable directory.
+   */
+  Path getHomeDirectory();
   
   /**
    * @return initial params for the newly created resources

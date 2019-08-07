@@ -1,29 +1,57 @@
 package org.jepria.httpd.apache.manager.web;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 
 public interface Environment {
+  
   /**
-   * @return new input stream for the mod_jk.conf configuration file
+   * @return Path for the mod_jk.conf configuration file
    * (normally at APACHE_HOME/conf/jk/mod_jk.conf)
    */
-  InputStream getMod_jk_confInputStream();
+  Path getMod_jk_confFile();
+  
+  default InputStream getMod_jk_confInputStream() {
+    try {
+      return new FileInputStream(getMod_jk_confFile().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
+  }
+  
   /**
-   * @return new input stream for the workers.properties configuration file
+   * @return Path for the workers.properties configuration file
    * (normally at APACHE_HOME/conf/jk/workers.properties)
    */
-  InputStream getWorkers_propertiesInputStream();
-  /**
-   * @return new output stream for the mod_jk.conf configuration file 
-   * (normally at APACHE_HOME/conf/jk/mod_jk.conf)
-   */
-  OutputStream getMod_jk_confOutputStream();
-  /**
-   * @return new output stream for the workers.properties configuration file 
-   * (normally at APACHE_HOME/conf/jk/workers.properties)
-   */
-  OutputStream getWorkers_propertiesOutputStream();
+  Path getWorkers_propertiesFile();
+  
+  default InputStream getWorkers_propertiesInputStream() {
+    try {
+      return new FileInputStream(getWorkers_propertiesFile().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
+  }
+
+  default OutputStream getMod_jk_confOutputStream() {
+    try {
+      return new FileOutputStream(getMod_jk_confFile().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
+  }
+  
+  default OutputStream getWorkers_propertiesOutputStream() {
+    try {
+      return new FileOutputStream(getWorkers_propertiesFile().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);//TODO?
+    }
+  }
   
   /**
    * Retrieve an application configuration property.
@@ -34,4 +62,17 @@ public interface Environment {
    * 4. return {@code null}.
    */
   String getProperty(String name);
+  
+  /**
+   * @return new {@link Path} representing the {@code conf} directory
+   * (normally at APACHE_HOME/conf). Normally the file is an existing readable directory.
+   */
+  default Path getConfDirectory() {
+    return getHomeDirectory().resolve("conf");
+  }
+  
+  /**
+   * @return Path known as APACHE_HOME. Normally the file is an existing readable directory.
+   */
+  Path getHomeDirectory();
 }

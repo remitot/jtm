@@ -11,6 +11,16 @@
   color: #777;
 }
 
+.page-header__menu-item_page-info {
+  float: right;
+  margin-right: 42px;
+  
+  color: white;
+  
+  font-size: 16px;
+  font-family: monospace;  
+}
+
 .page-header__container_pos_right {
   float: right;
 }

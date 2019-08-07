@@ -46,8 +46,6 @@ public class JtmPageHeader extends PageHeader {
         itemManagerApache.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemApacheHTTPD"), true);
         
         items.add(itemManagerApache);
-        
-        addStyle("css/jtm-page-header.css");
       }
     }
     
@@ -69,7 +67,7 @@ public class JtmPageHeader extends PageHeader {
       items.add(itemPort);
     }
     
-    
+
     // add class to the left item
     if (items.size() > 0) {
       items.get(0).classList.add("page-header__menu-item_left");

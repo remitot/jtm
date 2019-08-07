@@ -21,6 +21,7 @@ import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.web.HttpDataEncoding;
 import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.SsrServletBase;
@@ -57,12 +58,17 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     String managerApacheHref = env.getProperty("org.jepria.tomcat.manager.web.managerApacheHref");
     
+
     final PageHeader pageHeader = new JtmPageHeader(context, managerApacheHref, CurrentMenuItem.JDBC);
     pageBuilder.setHeader(pageHeader);
     
     
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
+      
+      // TODO hardcoded filenames correspond to those in BasicEnvironment. Extract? 
+      String pageInfo = "context.xml, server.xml at&nbsp;" + HtmlEscaper.escape(env.getConfDirectory().toString());
+      pageHeader.setPageInfo(pageInfo);
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       
