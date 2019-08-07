@@ -11,8 +11,11 @@
   color: #777;
 }
 
-div.page-header__container {
-  display: inline;
+.page-header__container_pos_right {
+  float: right;
+}
+.page-header__container_pos_left {
+  overflow: hidden;
 }
 
 .page-header__menu-item_regular {
@@ -37,7 +40,7 @@ a.page-header__menu-item {
   color: #0089bd;
 }
 
-.page-header > * {
+.page-header__line-element {
   line-height: 45px;
 }
 
@@ -46,6 +49,12 @@ a.page-header__menu-item {
   
   padding-left: 28px;
   padding-right: 28px;
+}
+
+/* overrides default browser's button */
+button.page-header__button-logout {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .hidden {

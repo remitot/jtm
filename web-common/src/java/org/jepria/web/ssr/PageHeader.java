@@ -35,11 +35,12 @@ public class PageHeader extends El {
     
     classList.add("page-header");
 
-    itemsContainer = new El("div", context).addClass("page-header__container");
-    formLogoutContainer = new El("div", context).addClass("page-header__container");
+    itemsContainer = new El("div", context).addClass("page-header__container").addClass("page-header__container_pos_left");
+    formLogoutContainer = new El("div", context).addClass("page-header__container").addClass("page-header__container_pos_right");
     
+    
+    appendChild(formLogoutContainer); // must be appended before the left container
     appendChild(itemsContainer);
-    appendChild(formLogoutContainer);
     
     addStyle("css/page-header.css");
   }
@@ -114,6 +115,7 @@ public class PageHeader extends El {
     El buttonLogout = new El("button", context)
         .setAttribute("type", "submit")
         .addClass("page-header__button-logout")
+        .addClass("page-header__line-element")
         .addClass("big-black-button")
         .setInnerHTML(text.getString("org.jepria.web.ssr.common.buttonLogout.text"));
     
@@ -124,5 +126,22 @@ public class PageHeader extends El {
     
     // add
     formLogoutContainer.appendChild(formLogout);
+  }
+  
+  public static class MenuItem extends El {
+    public MenuItem(Context context, boolean current, String href) {
+      super("a", context);
+      addClass("page-header__menu-item");
+      addClass("page-header__line-element");
+      addClass("page-header__menu-item_regular");
+      if (current) {
+        addClass("page-header__menu-item_current");
+      } else {
+        addClass("page-header__menu-item_hoverable");
+        if (href != null) {
+          setAttribute("href", href);
+        }
+      }
+    }
   }
 }

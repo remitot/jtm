@@ -37,6 +37,7 @@ public class JtmPageHeader extends PageHeader {
       if (managerApacheHref != null) {
         El itemManagerApache = new El("a", context);
         itemManagerApache.classList.add("page-header__menu-item");
+        itemManagerApache.classList.add("page-header__line-element");
         itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
         itemManagerApache.setAttribute("href", managerApacheHref);
         itemManagerApache.classList.add("page-header__menu-item_hoverable");
@@ -51,43 +52,19 @@ public class JtmPageHeader extends PageHeader {
     }
     
     {
-      El itemJdbc = new El("a", context);
-      itemJdbc.classList.add("page-header__menu-item");
-      itemJdbc.classList.add("page-header__menu-item_regular");
-      if (currentMenuItem == CurrentMenuItem.JDBC) {
-        itemJdbc.classList.add("page-header__menu-item_current");
-      } else {
-        itemJdbc.classList.add("page-header__menu-item_hoverable");
-        itemJdbc.setAttribute("href", context.getContextPath() + "/jdbc");
-      }
+      El itemJdbc = new MenuItem(context, currentMenuItem == CurrentMenuItem.JDBC, context.getContextPath() + "/jdbc");
       itemJdbc.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemJdbc"), true);
       items.add(itemJdbc);
     }
     
     {
-      El itemLog = new El("a", context);
-      itemLog.classList.add("page-header__menu-item");
-      itemLog.classList.add("page-header__menu-item_regular");
-      if (currentMenuItem == CurrentMenuItem.LOG) {
-        itemLog.classList.add("page-header__menu-item_current");
-      } else {
-        itemLog.classList.add("page-header__menu-item_hoverable");
-        itemLog.setAttribute("href", context.getContextPath() + "/log");
-      }
+      El itemLog = new MenuItem(context, currentMenuItem == CurrentMenuItem.LOG, context.getContextPath() + "/log");
       itemLog.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemLog"), true);
       items.add(itemLog);
     }
     
     {
-      El itemPort = new El("a", context);
-      itemPort.classList.add("page-header__menu-item");
-      itemPort.classList.add("page-header__menu-item_regular");
-      if (currentMenuItem == CurrentMenuItem.PORT) {
-        itemPort.classList.add("page-header__menu-item_current");
-      } else {
-        itemPort.classList.add("page-header__menu-item_hoverable");
-        itemPort.setAttribute("href", context.getContextPath() + "/port");
-      }
+      El itemPort = new MenuItem(context, currentMenuItem == CurrentMenuItem.PORT, context.getContextPath() + "/port");
       itemPort.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemPort"), true);
       items.add(itemPort);
     }

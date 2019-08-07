@@ -32,46 +32,19 @@ public class JamPageHeader extends PageHeader {
     final List<El> items = new ArrayList<>();
     
     {
-      El itemJkModjk = new El("a", context);
-      itemJkModjk.classList.add("page-header__menu-item");
-      itemJkModjk.classList.add("page-header__menu-item_regular");
-      if (currentMenuItem == CurrentMenuItem.JK_MODJK) {
-        itemJkModjk.classList.add("page-header__menu-item_current");
-      } else {
-        itemJkModjk.classList.add("page-header__menu-item_hoverable");
-        itemJkModjk.setAttribute("href", context.getContextPath() + "/jk/modjk");
-      }
-      
+      El itemJkModjk = new MenuItem(context, currentMenuItem == CurrentMenuItem.JK_MODJK, context.getContextPath() + "/jk/modjk");
       itemJkModjk.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkModjk"), true);
       items.add(itemJkModjk);
     }
     
     {
-      El itemJkWorkers = new El("a", context);
-      itemJkWorkers.classList.add("page-header__menu-item");
-      itemJkWorkers.classList.add("page-header__menu-item_regular");
-      if (currentMenuItem == CurrentMenuItem.JK_WORKERS) {
-        itemJkWorkers.classList.add("page-header__menu-item_current");
-      } else {
-        itemJkWorkers.classList.add("page-header__menu-item_hoverable");
-        itemJkWorkers.setAttribute("href", context.getContextPath() + "/jk/workers");
-      }
-      
+      El itemJkWorkers = new MenuItem(context, currentMenuItem == CurrentMenuItem.JK_WORKERS, context.getContextPath() + "/jk/workers");
       itemJkWorkers.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemJkWorkers"), true);
       items.add(itemJkWorkers);
     }
     
     {
-      El itemRestart = new El("a", context);
-      itemRestart.classList.add("page-header__menu-item");
-      itemRestart.classList.add("page-header__menu-item_regular");
-      if (currentMenuItem == CurrentMenuItem.RESTART) {
-        itemRestart.classList.add("page-header__menu-item_current");
-      } else {
-        itemRestart.classList.add("page-header__menu-item_hoverable");
-        itemRestart.setAttribute("href", context.getContextPath() + "/restart");
-      }
-      
+      El itemRestart = new MenuItem(context, currentMenuItem == CurrentMenuItem.RESTART, context.getContextPath() + "/restart");
       itemRestart.setInnerHTML(text.getString("org.jepria.httpd.apache.manager.web.PageHeader.itemRestart"), true);
       items.add(itemRestart);
     }
