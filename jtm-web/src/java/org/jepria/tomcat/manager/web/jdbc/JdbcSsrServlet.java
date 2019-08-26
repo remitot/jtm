@@ -1,15 +1,7 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
@@ -20,16 +12,16 @@ import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus.Code;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
 import org.jepria.web.HttpDataEncoding;
 import org.jepria.web.data.ItemModRequestDto;
-import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.HtmlEscaper;
-import org.jepria.web.ssr.HtmlPageExtBuilder;
-import org.jepria.web.ssr.PageHeader;
-import org.jepria.web.ssr.SsrServletBase;
-import org.jepria.web.ssr.StatusBar;
-import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.*;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Servlet producing server-side-rendered pages
@@ -67,7 +59,7 @@ public class JdbcSsrServlet extends SsrServletBase {
       pageHeader.setButtonLogout(req);
       
       // TODO hardcoded filenames correspond to those in BasicEnvironment. Extract? 
-      String pageInfo = "context.xml, server.xml at&nbsp;" + HtmlEscaper.escape(env.getConfDirectory().toString());
+      String pageInfo = "Source: " + HtmlEscaper.escape(env.getContextXml().toString()) + ", " + HtmlEscaper.escape(env.getServerXml().toString());
       pageHeader.setPageInfo(pageInfo);
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);

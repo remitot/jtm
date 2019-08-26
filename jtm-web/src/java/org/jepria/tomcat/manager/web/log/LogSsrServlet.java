@@ -104,7 +104,7 @@ public class LogSsrServlet extends SsrServletBase {
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
       
-      String pageInfo = HtmlEscaper.escape(env.getLogsDirectory().toString());
+      String pageInfo = "Source: " + HtmlEscaper.escape(env.getLogsDirectory().toString());
       pageHeader.setPageInfo(pageInfo);
       
       

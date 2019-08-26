@@ -42,6 +42,14 @@ public interface Environment {
   default Path getConfDirectory() {
     return getHomeDirectory().resolve("conf");
   }
+
+  default Path getServerXml() {
+    return getConfDirectory().resolve("server.xml");
+  }
+
+  default Path getContextXml() {
+    return getConfDirectory().resolve("context.xml");
+  }
   
   /**
    * @return new {@link Path} representing the {@code logs} directory

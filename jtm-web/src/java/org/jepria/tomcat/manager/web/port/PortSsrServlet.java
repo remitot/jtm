@@ -48,7 +48,7 @@ public class PortSsrServlet extends SsrServletBase {
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
       
-      String pageInfo = HtmlEscaper.escape(env.getHomeDirectory().toString());
+      String pageInfo = "Source: " + HtmlEscaper.escape(env.getServerXml().toString());
       pageHeader.setPageInfo(pageInfo);
       
       final List<PortDto> ports = new PortApi().list(env);
