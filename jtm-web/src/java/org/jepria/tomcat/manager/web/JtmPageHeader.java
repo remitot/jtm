@@ -13,7 +13,7 @@ public class JtmPageHeader extends PageHeader {
   /**
    * Menu items possibly displayed as currently selected 
    */
-  public static enum CurrentMenuItem {
+  public enum CurrentMenuItem {
     JDBC,
     LOG,
     PORT,
@@ -35,13 +35,9 @@ public class JtmPageHeader extends PageHeader {
     
     {
       if (managerApacheHref != null) {
-        El itemManagerApache = new El("a", context);
-        itemManagerApache.classList.add("page-header__menu-item");
-        itemManagerApache.classList.add("page-header__line-element");
-        itemManagerApache.classList.add("page-header__menu-item_apache-httpd");
-        itemManagerApache.setAttribute("href", managerApacheHref);
-        itemManagerApache.classList.add("page-header__menu-item_hoverable");
-        
+        El itemManagerApache = new MenuItem(context, false, managerApacheHref);
+        itemManagerApache.addClass("page-header__menu-item_apache-httpd");
+
         itemManagerApache.setAttribute("target", "_blank");
         itemManagerApache.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemApacheHTTPD"), true);
         
