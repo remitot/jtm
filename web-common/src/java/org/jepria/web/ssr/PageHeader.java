@@ -43,9 +43,9 @@ public class PageHeader extends El {
     
     // important to maintain the appending order:
     appendChild(formLogoutContainer);
-    appendChild(pageInfoContainer);
     appendChild(itemsContainer);
-    
+    appendChild(pageInfoContainer);
+
     
     addStyle("css/page-header.css");
   }
