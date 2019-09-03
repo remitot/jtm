@@ -67,7 +67,10 @@ public class AuthServletBase extends HttpServlet {
       }
       
     } else {
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+      // unknown request
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported request path [" + path + "]");
+      resp.flushBuffer();
+      return;
     }
     
     resp.flushBuffer();

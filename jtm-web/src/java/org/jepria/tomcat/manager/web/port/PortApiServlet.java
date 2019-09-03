@@ -15,10 +15,10 @@ public class PortApiServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2791033129244689227L;
 
-  protected void portHttp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected void portHttp(HttpServletRequest req, HttpServletResponse response) throws IOException {
     
     // the content type is defined for the entire method
-    resp.setContentType("text/plain; charset=UTF-8");
+    response.setContentType("text/plain; charset=UTF-8");
     
     try {
       
@@ -28,33 +28,36 @@ public class PortApiServlet extends HttpServlet {
 
       if (port == null) {
         // the server is requred to have its HTTP port defined
-        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        resp.flushBuffer();
-        return;
-        
+        throw new IllegalStateException();
+
       } else {
-        
-        resp.getWriter().print(port.get("number"));
-        
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.flushBuffer();
+
+        response.getWriter().print(port.get("number"));
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.flushBuffer();
         return;
       }
 
     } catch (Throwable e) {
-      e.printStackTrace();
+      final String errorId = String.valueOf(System.currentTimeMillis());
+
+      synchronized (System.err) {
+        System.err.println("Error ID [" + errorId + "]:");
+        e.printStackTrace();
+      }
 
       // response body must either be empty or match the declared content type
-      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      resp.flushBuffer();
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error ID [" + errorId + "]");
+      response.flushBuffer();
       return;
     }
   }
   
-  protected void portAjp(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected void portAjp(HttpServletRequest req, HttpServletResponse response) throws IOException {
     
     // the content type is defined for the entire method
-    resp.setContentType("text/plain; charset=UTF-8");
+    response.setContentType("text/plain; charset=UTF-8");
     
     try {
       
@@ -63,26 +66,29 @@ public class PortApiServlet extends HttpServlet {
       final PortDto port = new PortApi().portAjp(environment);
 
       if (port == null) {
-        // the server is requred to have its AJP port defined
-        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        resp.flushBuffer();
-        return;
-        
+        // the server is required to have its AJP port defined
+        throw new IllegalStateException();
+
       } else {
-        
-        resp.getWriter().print(port.get("number"));
-        
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.flushBuffer();
+
+        response.getWriter().print(port.get("number"));
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.flushBuffer();
         return;
       }
 
     } catch (Throwable e) {
-      e.printStackTrace();
+      final String errorId = String.valueOf(System.currentTimeMillis());
+
+      synchronized (System.err) {
+        System.err.println("Error ID [" + errorId + "]:");
+        e.printStackTrace();
+      }
 
       // response body must either be empty or match the declared content type
-      resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      resp.flushBuffer();
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error ID [" + errorId + "]");
+      response.flushBuffer();
       return;
     }
   }
@@ -101,8 +107,8 @@ public class PortApiServlet extends HttpServlet {
       return;
       
     } else {
-      
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+      // unknown request
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported request path [" + path + "]");
       resp.flushBuffer();
       return;
     }

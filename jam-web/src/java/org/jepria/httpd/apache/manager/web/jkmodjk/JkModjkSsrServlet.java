@@ -180,9 +180,10 @@ public class JkModjkSsrServlet extends SsrServletBase {
       resp.sendRedirect(req.getContextPath() + "/jk/mod_jk");
       
     } else {
-      
       // unknown request
-      resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not understand the request");
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported request path [" + path + "]");
+      resp.flushBuffer();
+      return;
     }
   }
 }

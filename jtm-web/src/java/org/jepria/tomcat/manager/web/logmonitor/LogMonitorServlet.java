@@ -62,15 +62,12 @@ public class LogMonitorServlet extends SsrServletBase  {
     // 'filename' request parameter
     final String filename = request.getParameter("filename");
     if (filename == null) {
-      // no log file specified for monitoring
-      
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'filename' request parameter is mandatory");
       response.flushBuffer();
       return;
-      
-    } else if (!filename.matches("[^/\\\\]+")) {
-      // invalid 'filename' value
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'filename' parameter value");
+    }
+    if (filename.contains("/") || filename.contains("\\")) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'filename' request parameter value [" + filename + "] must not contain '/' or '\\' character");
       response.flushBuffer();
       return;
     }
@@ -103,13 +100,13 @@ public class LogMonitorServlet extends SsrServletBase  {
         try {
           lines = Integer.parseInt(linesStr);
         } catch (NumberFormatException e) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'lines' parameter value");
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid 'lines' request parameter value: could not parse as integer");
           response.flushBuffer();
           return;
         }
         
         if (lines < 1) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'lines' parameter value");
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid 'lines' request parameter value: must be a positive integer");
           response.flushBuffer();
           return;
         }
@@ -129,7 +126,7 @@ public class LogMonitorServlet extends SsrServletBase  {
           anchor = getAnchorLine(fileReader);
           
         } catch (FileNotFoundException e) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "no file found by such 'filename' parameter value");
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No such file found [" + filename + "]");
           response.flushBuffer();
           return;
         }
@@ -149,7 +146,7 @@ public class LogMonitorServlet extends SsrServletBase  {
         try {
           anchor = Integer.parseInt(anchorStr);//TODO validate anchor value (int range)
         } catch (NumberFormatException e) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid 'anchor' parameter value");
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid 'anchor' request parameter value: could not parse as integer");
           response.flushBuffer();
           return;
         }
@@ -161,7 +158,7 @@ public class LogMonitorServlet extends SsrServletBase  {
           monitor = monitor(fileReader, anchor, lines);
           
         } catch (FileNotFoundException e) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "no file found by such 'filename' parameter value");
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No such file found [" + filename + "]");
           response.flushBuffer();
           return;
         }

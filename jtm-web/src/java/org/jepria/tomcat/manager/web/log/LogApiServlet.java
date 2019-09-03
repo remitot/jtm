@@ -25,8 +25,8 @@ public class LogApiServlet extends HttpServlet {
       return;
       
     } else {
-      
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+      // unknown request
+      resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported request path [" + path + "]");
       resp.flushBuffer();
       return;
     }
@@ -47,8 +47,13 @@ public class LogApiServlet extends HttpServlet {
     
     // 'filename' request parameter
     final String filename = request.getParameter("filename");
-    if (filename == null || !filename.matches("[^/\\\\]+")) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+    if (filename == null) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'filename' request parameter is mandatory");
+      response.flushBuffer();
+      return;
+    }
+    if (filename.contains("/") || filename.contains("\\")) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The 'filename' request parameter value [" + filename + "] must not contain '/' or '\\' character");
       response.flushBuffer();
       return;
     }
@@ -72,7 +77,7 @@ public class LogApiServlet extends HttpServlet {
         fileContents = new LogApi().readFileLines(environment, filename);
         
       } catch (NoSuchFileException e) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No such file found [" + filename + "]");
         response.flushBuffer();
         return;
       }
@@ -88,10 +93,15 @@ public class LogApiServlet extends HttpServlet {
       return;
       
     } catch (Throwable e) {
-      e.printStackTrace();
+      final String errorId = String.valueOf(System.currentTimeMillis());
+
+      synchronized (System.err) {
+        System.err.println("Error ID [" + errorId + "]:");
+        e.printStackTrace();
+      }
 
       // response body must either be empty or match the declared content type
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error ID [" + errorId + "]");
       response.flushBuffer();
       return;
     }
