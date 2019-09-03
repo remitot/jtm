@@ -85,14 +85,23 @@ public class LogTable extends Table<Record> {
     cell.classList.add("cell-field");
     field = new FieldTextLabel(cell.context, item.lastmod().value); 
     addField(cell, field);
-    
+
+    String largeFileHintTitle = null;
+    {
+      if (item.largeFile) {
+        largeFileHintTitle = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
+      }
+    }
+
     cell = createCell(div, "column-size");
     cell.classList.add("cell-field");
     final String html;
     {
       String valueEsc = HtmlEscaper.escape(item.size_().value, true);
       if (item.largeFile) {
-        html = "<b class=\"b_large-file\">" + valueEsc + "</b>"; 
+        html = "<b class=\"b_large-file\""
+                + (item.largeFile && largeFileHintTitle != null ? (" title=\"" + largeFileHintTitle + "\"") : "")
+                + ">" + valueEsc + "</b>";
       } else {
         html = valueEsc;
       }
@@ -110,10 +119,11 @@ public class LogTable extends Table<Record> {
       field.appendChild(a);
       
       if (item.largeFile) {
-        String hintTitle = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
         El img = new El("img", field.context).addClass("field-text__hint_large-file")
-            .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
-            .setAttribute("title", hintTitle);
+            .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png");
+        if (largeFileHintTitle != null) {
+          img.setAttribute("title", largeFileHintTitle);
+        }
         field.appendChild(img);
       }
     }
