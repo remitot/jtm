@@ -159,6 +159,7 @@ public class LogApi {
     try {
       ret = Files.lines(logFile, LOG_FILE_ENCODING).collect(Collectors.toList());
     } catch (NoSuchFileException e) {
+      // TODO dangerous catch clause because the exception is not specified in method signature
       throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -176,6 +177,7 @@ public class LogApi {
     try {
       ret = Files.newBufferedReader(logFile, LOG_FILE_ENCODING);
     } catch (NoSuchFileException e) {
+      // TODO dangerous catch clause because the exception is not specified in method signature
       throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);

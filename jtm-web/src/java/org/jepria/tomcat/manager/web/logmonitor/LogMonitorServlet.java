@@ -1,10 +1,10 @@
 package org.jepria.tomcat.manager.web.logmonitor;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
+import java.nio.file.NoSuchFileException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,6 +16,7 @@ import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.log.LogApi;
 import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.HtmlEscaper;
 import org.jepria.web.ssr.HtmlPageExtBuilder;
 import org.jepria.web.ssr.SsrServletBase;
 
@@ -82,7 +83,7 @@ public class LogMonitorServlet extends SsrServletBase  {
     Context context = Context.get(request, "text/org_jepria_tomcat_manager_web_Text");
     
     final HtmlPageExtBuilder pageBuilder = HtmlPageExtBuilder.newInstance(context);
-    pageBuilder.setTitle(filename + " — " + host);
+    pageBuilder.setTitle(HtmlEscaper.escape(filename) + " — " + host);
     
     
     
@@ -125,7 +126,7 @@ public class LogMonitorServlet extends SsrServletBase  {
         try (Reader fileReader = new LogApi().readFile(env, filename)){
           anchor = getAnchorLine(fileReader);
           
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException e) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No such file found [" + filename + "]");
           response.flushBuffer();
           return;
@@ -157,7 +158,7 @@ public class LogMonitorServlet extends SsrServletBase  {
         try (Reader fileReader = new LogApi().readFile(env, filename)) {
           monitor = monitor(fileReader, anchor, lines);
           
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException e) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No such file found [" + filename + "]");
           response.flushBuffer();
           return;

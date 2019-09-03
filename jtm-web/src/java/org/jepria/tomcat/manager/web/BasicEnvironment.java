@@ -4,7 +4,6 @@ import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -32,7 +31,7 @@ public class BasicEnvironment implements Environment {
   @Override
   public OutputStream getServerXmlOutputStream() {
     try {
-      return Files.newOutputStream(getServerXml());
+      return new FileOutputStream(getServerXml().toFile());
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
     } catch (IOException e) {
@@ -43,10 +42,8 @@ public class BasicEnvironment implements Environment {
   @Override
   public InputStream getServerXmlInputStream() {
     try {
-      return Files.newInputStream(getServerXml());
+      return new FileInputStream(getServerXml().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    } catch (IOException e) {
       throw new RuntimeException(e);//TODO?
     }
   }
@@ -54,10 +51,8 @@ public class BasicEnvironment implements Environment {
   @Override
   public OutputStream getContextXmlOutputStream() {
     try {
-      return Files.newOutputStream(getContextXml());
+      return new FileOutputStream(getContextXml().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    } catch (IOException e) {
       throw new RuntimeException(e);//TODO?
     }
   }
@@ -65,10 +60,8 @@ public class BasicEnvironment implements Environment {
   @Override
   public InputStream getContextXmlInputStream() {
     try {
-      return Files.newInputStream(getContextXml());
+      return new FileInputStream(getContextXml().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    } catch (IOException e) {
       throw new RuntimeException(e);//TODO?
     }
   }
