@@ -102,7 +102,7 @@
 }
 
 
-.cell input.button-delete {
+.cell .img-button {
   width: 24px;
   height: 24px;
   

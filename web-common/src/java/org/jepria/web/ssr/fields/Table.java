@@ -1,13 +1,13 @@
 package org.jepria.web.ssr.fields;
 
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlEscaper;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 public abstract class Table<T extends ItemData> extends El {
   
@@ -191,6 +191,7 @@ public abstract class Table<T extends ItemData> extends El {
     
     {// button delete
       El button = new El("input", context);
+      button.classList.add("img-button");
       button.classList.add("button-delete");
       button.classList.add("button-delete_delete");
       button.setAttribute("type", "image");
@@ -207,6 +208,7 @@ public abstract class Table<T extends ItemData> extends El {
     
     {// button undelete
       El button = new El("input", context);
+      button.classList.add("img-button");
       button.classList.add("button-delete");
       button.classList.add("button-delete_undelete");
       button.setAttribute("type", "image");
