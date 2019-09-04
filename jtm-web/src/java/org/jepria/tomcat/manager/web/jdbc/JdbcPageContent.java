@@ -1,12 +1,5 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus;
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus.Code;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
@@ -17,6 +10,9 @@ import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
 import org.jepria.web.ssr.fields.Field;
 import org.jepria.web.ssr.fields.Table.TabIndex;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class JdbcPageContent extends ArrayList<El> {
 
@@ -87,23 +83,27 @@ public class JdbcPageContent extends ArrayList<El> {
           
           final ItemModStatus modStatus = modRequestIdAndModStatus.getValue();
           
-          // lookup items
-          JdbcTable.Record item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
-              .findAny().orElse(null);
-          if (item == null) {
-            // lookup items created
-            item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
-            .findAny().orElse(null);
-          }
-          if (item == null) {
-            // TODO
-            throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
-          }
-          
           if (modStatus.code == Code.INVALID_FIELD_DATA) {
             if (modStatus.invalidFieldDataMap != null) {
               for (Map.Entry<String, ItemModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
                   modStatus.invalidFieldDataMap.entrySet()) {
+
+                JdbcTable.Record item;
+                {
+                  // lookup item
+                  item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                          .findAny().orElse(null);
+                  if (item == null) {
+                    // lookup items created
+                    item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                            .findAny().orElse(null);
+                  }
+                  if (item == null) {
+                    // TODO
+                    throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
+                  }
+                }
+
                 Field field = item.get(idAndInvalidFieldDataCode.getKey());
                 if (field != null) {
                   field.invalid = true;
