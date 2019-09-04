@@ -25,6 +25,15 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>JdbcTestGui</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.jdbctest.JdbcTestSsrServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>JdbcTestGui</servlet-name>
+    <url-pattern>/jdbc-test/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>PortApiServlet</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.port.PortApiServlet
     </servlet-class>

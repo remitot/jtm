@@ -1,0 +1,31 @@
+body {
+  margin: 0;
+}
+
+.block {
+  margin-top: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.block-status {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.query {
+  width: 300px;
+  font-family: monospace;
+}
+
+.block-status_success {
+  /* same as styles of status-bar */
+  background-color: rgb(144, 238, 144); /* fallback */
+  background-color: rgba(144, 238, 144, 0.95);
+}
+
+.block-status_failure {
+  /* same as styles of status-bar */
+  background-color: rgb(238, 144, 144); /* fallback */
+  background-color: rgba(238, 144, 144, 0.95);
+}

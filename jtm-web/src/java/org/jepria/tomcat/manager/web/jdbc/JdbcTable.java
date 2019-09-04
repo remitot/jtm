@@ -4,10 +4,7 @@ import org.jepria.tomcat.manager.web.jdbc.JdbcTable.Record;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.fields.CheckBox;
-import org.jepria.web.ssr.fields.Field;
-import org.jepria.web.ssr.fields.ItemData;
-import org.jepria.web.ssr.fields.Table;
+import org.jepria.web.ssr.fields.*;
 
 public class JdbcTable extends Table<Record> {
   
@@ -64,7 +61,9 @@ public class JdbcTable extends Table<Record> {
     cell.classList.add("column-left");
     
     cell = createCell(row, "column-delete");// empty cell
-    
+
+    cell = createCell(row, "column-test");// empty cell
+
     div = new El("div", context);
     div.classList.add("flexColumns");
     
@@ -125,7 +124,9 @@ public class JdbcTable extends Table<Record> {
     }
     
     El cellDelete = createCell(row, "column-delete");
-    
+    El cellTest = createCell(row, "column-test");
+
+
     El div = new El("div", row.context);
     div.classList.add("flexColumns");
     
@@ -179,7 +180,10 @@ public class JdbcTable extends Table<Record> {
         addFieldUnmodifiableTitle(field);
       }
     }
-    
+
+    final String sampleQuery = "select * from dual"; // TODO sample query may depend on connection type
+    addFieldTest(cellTest, tabIndex, item.name().valueOriginal, sampleQuery);
+
     if (item.dataModifiable) {
       String titleDelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete");
       String titleUndelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.undelete");
@@ -214,6 +218,7 @@ public class JdbcTable extends Table<Record> {
     addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
     
     El cellDelete = createCell(row, "column-delete");
+    El cellTest = createCell(row, "column-test"); // empty cell because testing new connections is unsupported
     
     El flexColumns = new El("div", row.context);
     flexColumns.classList.add("flexColumns");
@@ -252,5 +257,38 @@ public class JdbcTable extends Table<Record> {
     row.appendChild(flexColumns);
     
     return row;
+  }
+
+  /**
+   *
+   * @param cell
+   * @param tabIndex
+   * @param connectionName if null, no link
+   */
+  protected void addFieldTest(El cell, TabIndex tabIndex, String connectionName, String sampleQuery) {
+    El a = new El("a", context);
+    a.setAttribute("target", "_blank");
+
+    String href = context.getContextPath() + "/jdbc-test/" + connectionName;
+    if (sampleQuery != null) {
+      href += "?sample-query=" + sampleQuery;
+    }
+    a.setAttribute("href", href);
+
+    El img = new El("img", context);
+    img.addClass("img-button");
+    img.setAttribute("src", context.getContextPath() + "/img/jdbc/test.png");
+    String title = context.getText().getString("org.jepria.tomcat.manager.web.jdbc.Table.buttonTest.title");
+    a.setAttribute("title", title);
+    a.appendChild(img);
+
+    if (tabIndex != null) {
+      tabIndex.setNext(a);
+    }
+
+    El wrapper = Fields.wrapCellPad(a);
+    cell.appendChild(wrapper);
+
+    addStrike(cell);
   }
 }

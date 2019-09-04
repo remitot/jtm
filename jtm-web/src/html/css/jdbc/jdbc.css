@@ -17,3 +17,18 @@
 .table div.cell.column-password {
   width: 20%;
 }
+
+.table div.cell.column-test {
+  width: 36px;
+  float: right;
+}
+
+.table div.cell.column-test a img {
+  display: block;
+}
+
+/* for modified or deleted rows */
+.table .row.deleted .cell.column-test a, .table .row.modified .cell.column-test a {
+  display: none;
+}
+
