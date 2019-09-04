@@ -170,6 +170,7 @@ public class JdbcPageContent extends ArrayList<El> {
     }
     item.setId(dto.get("id"));
     item.dataModifiable = dto.isDataModifiable();
+    item.validationQuery = dto.get("validationQuery");
     
     if (!item.dataModifiable) {
       item.active().readonly = true;

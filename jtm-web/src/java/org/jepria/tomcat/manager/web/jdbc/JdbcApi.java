@@ -74,6 +74,8 @@ public class JdbcApi {
     dto.put("user", connection.getUser());
     dto.put("password", connection.getPassword());
     
+    dto.put("validationQuery", connection.getValidationQuery());
+    
     return dto;
   }
   

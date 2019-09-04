@@ -106,4 +106,10 @@ import org.w3c.dom.Node;
     initialParams.getContextResourceAttrs().forEach(
         (name, value) -> contextResourceNode.setAttribute(name, value));
   }
+  
+  @Override
+  public String getValidationQuery() {
+    // TODO does Context/Resource node support validationQuery attribute like Server/Resource does? 
+    return null;
+  }
 }
