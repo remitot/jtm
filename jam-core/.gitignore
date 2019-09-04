@@ -89,3 +89,6 @@ hs_err_pid*
 target/
 
 # End of https://www.gitignore.io/api/java,eclipse,java-web
+
+# Idea Projects
+*.iml
