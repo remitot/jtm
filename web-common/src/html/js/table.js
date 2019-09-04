@@ -66,7 +66,7 @@ function onFieldInput(field) {
 }
 
 function onFieldValueChanged(field, newValue) {
-  valueOriginal = field.getAttribute("value-original");
+  var valueOriginal = field.getAttribute("value-original");
   if (typeof valueOriginal === 'undefined') {
     // treat as modified
     field.classList.add("modified");
@@ -78,7 +78,7 @@ function onFieldValueChanged(field, newValue) {
     }
   }
   
-  checkModifications();
+  onModification();
 }
 
 function onCheckboxInput(checkbox) {
@@ -125,22 +125,45 @@ function onCheckboxInput(checkbox) {
     }
   }
   
-  checkModifications();
+  onModification();
 }
 
 
 
 /**
- * Checks for any user modifications throughout the table
+ * Marks rows modified depending on its fields modified
  */
-function checkModifications() {
-  //TODO check modifications not through the document, but through the particular table
-  totalModifications = 
-      document.getElementsByClassName("modified").length
-      - document.querySelectorAll(".row.created.deleted .modified").length
-      + document.querySelectorAll(".row.deleted").length;
-  
-  var buttonEnabled = totalModifications > 0;
+function onModification() {
+  var rowsModifiedCount = 0;
+  var rowsCreatedCount = 0;
+  var rowsDeletedCount = 0;
+
+  var rows = document.querySelectorAll(".table .row"); // select rows within the table only, this excludes new row template container
+  for (var i = 0; i < rows.length; i++) {
+
+    var row = rows[i];
+    if (row.classList.contains("created") && row.classList.contains("deleted")) {
+      // ignore created and deleted rows
+    } else if (row.classList.contains("created")) {
+      rowsCreatedCount++;
+    } else if (row.classList.contains("deleted")) {
+      rowsDeletedCount++;
+    } else {
+      var modifiedEls = row.getElementsByClassName("modified");
+      if (modifiedEls.length > 0) {
+        if (!row.classList.contains("modified")) {
+          row.classList.add("modified");
+        }
+        rowsModifiedCount++;
+      } else {
+        if (row.classList.contains("modified")) {
+          row.classList.remove("modified");
+        }
+      }
+    }
+  }
+
+  var buttonEnabled = (rowsModifiedCount + rowsDeletedCount + rowsCreatedCount) > 0;
   setButtonSaveEnabled(buttonEnabled);
   setButtonResetEnabled(buttonEnabled);
 }
@@ -196,7 +219,7 @@ function onDeleteButtonClick(button) {
     setDisabled(row, false);
   }
   
-  checkModifications();
+  onModification();
 }
 
 function onButtonCreateClick() {
@@ -239,7 +262,7 @@ function onButtonCreateClick() {
     window.scrollTo(0, document.body.scrollHeight);
     
     
-    checkModifications();
+    onModification();
   }
 }
 
@@ -249,7 +272,7 @@ function prepareModData() {
   var rowsDeleted = getRowsDeleted();
   var rowsCreated = getRowsCreated();
   
-  modRequestList = [];
+  var modRequestList = [];
   
   if (rowsModified.length > 0) {
     for (var i = 0; i < rowsModified.length; i++) {
@@ -293,8 +316,8 @@ function getRowsModified() {
   var rows = document.querySelectorAll(".table div.row");
   var data = [];
   for (var i = 0; i < rows.length; i++) {
-    row = rows[i];
-    if (!row.classList.contains("deleted") && !row.classList.contains("created") && row.getElementsByClassName("modified").length > 0) {
+    var row = rows[i];
+    if (row.classList.contains("modified")) {
       var rowData = collectRowData(row);
       data.push({itemId: row.getAttribute("item-id"), itemData: rowData});
     }
@@ -304,9 +327,9 @@ function getRowsModified() {
 
 function getRowsDeleted() {
   var rows = document.querySelectorAll(".table div.row");
-  rowsDeletedIds = [];
+  var rowsDeletedIds = [];
   for (var i = 0; i < rows.length; i++) {
-    row = rows[i];
+    var row = rows[i];
     if (row.classList.contains("deleted") && !row.classList.contains("created")) {
       rowsDeletedIds.push(row.getAttribute("item-id"));
     }

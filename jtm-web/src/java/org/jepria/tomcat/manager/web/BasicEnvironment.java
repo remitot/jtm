@@ -34,8 +34,6 @@ public class BasicEnvironment implements Environment {
       return new FileOutputStream(getServerXml().toFile());
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);//TODO?
-    } catch (IOException e) {
-      throw new RuntimeException(e);//TODO?
     }
   }
   
