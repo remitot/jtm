@@ -12,27 +12,21 @@ public interface Environment {
   
   /**
    * @return Path for the mod_jk.conf configuration file
-   * (normally at APACHE_HOME/conf/jk/mod_jk.conf)
+   * (normally at APACHE_HOME/conf/jk/mod_jk.conf).
+   * Must fail with some misconfiguration exception if the file could not be found or read, etc.
    */
   default Path getMod_jk_confFile() {
-    return getConfDirectory().resolve("jk").resolve("mod_jk.conf");
-    // TODO?
-//    if (path == null || !Files.isRegularFile(path)) {
-//      throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
-//    }
-  }
-  
-  default InputStream getMod_jk_confInputStream() {
-    try {
-      return new FileInputStream(getMod_jk_confFile().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+    Path path = getConfDirectory().resolve("jk").resolve("mod_jk.conf");
+    if (!Files.isRegularFile(path)) {
+      throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
     }
+    return path;
   }
   
   /**
    * @return Path for the workers.properties configuration file
-   * (normally parsed from the JkWorkersFile directive in the mod_jk.conf file)
+   * (normally parsed from the JkWorkersFile directive in the mod_jk.conf file).
+   * Must fail with some misconfiguration exception if the file could not be found or read, etc.
    */
   default Path getWorkers_propertiesFile() {
 
@@ -59,12 +53,12 @@ public interface Environment {
             // the path must be relative to the apache home
             // TODO find out how exactly does Apache parse the JkWorkersFile relative path
             path = getHomeDirectory().resolve(workersFile);
-            if (path == null || !Files.isRegularFile(path)) {
+            if (!Files.isRegularFile(path)) {
               throw new RuntimeException("Misconfiguration exception: could not initialize workers.properties file: [" + path + "] is not a file");
             }
           }
 
-          if (path == null || !Files.isRegularFile(path)) {
+          if (!Files.isRegularFile(path)) {
             throw new RuntimeException("Misconfiguration exception: "
                     + "the directive [" + line + "] in the file [" + path + "] "
                     + "does not represent a file");
@@ -78,17 +72,32 @@ public interface Environment {
                 + "the file [" + getMod_jk_confFile() + "] contains no 'JkWorkersFile' directive");
       }
     } catch (IOException e) {
+      // impossible
       throw new RuntimeException(e);
+    }
+
+    if (!Files.isRegularFile(path)) {
+      throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
     }
 
     return path;
   }
-  
+
+  default InputStream getMod_jk_confInputStream() {
+    try {
+      return new FileInputStream(getMod_jk_confFile().toFile());
+    } catch (FileNotFoundException e) {
+      // impossible: the file existence must be checked in getMod_jk_confFile() by contract
+      throw new RuntimeException(e);
+    }
+  }
+
   default InputStream getWorkers_propertiesInputStream() {
     try {
       return new FileInputStream(getWorkers_propertiesFile().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+      // impossible: the file existence must be checked in getWorkers_propertiesFile() by contract
+      throw new RuntimeException(e);
     }
   }
 
@@ -96,7 +105,8 @@ public interface Environment {
     try {
       return new FileOutputStream(getMod_jk_confFile().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+      // impossible: the file existence must be checked in getMod_jk_confFile() by contract
+      throw new RuntimeException(e);
     }
   }
   
@@ -104,7 +114,8 @@ public interface Environment {
     try {
       return new FileOutputStream(getWorkers_propertiesFile().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+      // impossible: the file existence must be checked in getWorkers_propertiesFile() by contract
+      throw new RuntimeException(e);
     }
   }
   

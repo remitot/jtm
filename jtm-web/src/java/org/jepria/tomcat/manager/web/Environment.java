@@ -1,6 +1,7 @@
 package org.jepria.tomcat.manager.web;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
@@ -12,48 +13,48 @@ public interface Environment {
   
   /**
    * @return new output stream for the server.xml configuration file 
-   * (normally at TOMCAT_HOME/conf/server.xml)
    */
   default OutputStream getServerXmlOutputStream() {
     try {
       return new FileOutputStream(getServerXml().toFile());
     } catch (FileNotFoundException e) {
+      // impossible: the file existence must be checked in getServerXml() by contract
       throw new RuntimeException(e);
     }
   }
   
   /**
    * @return new input stream for the server.xml configuration file
-   * (normally at TOMCAT_HOME/conf/server.xml)
    */
   default InputStream getServerXmlInputStream() {
     try {
       return new FileInputStream(getServerXml().toFile());
     } catch (FileNotFoundException e) {
+      // impossible: the file existence must be checked in getServerXml() by contract
       throw new RuntimeException(e);
     }
   }
   
   /**
    * @return new output stream for the context.xml configuration file
-   * (normally at TOMCAT_HOME/conf/context.xml)
    */
   default OutputStream getContextXmlOutputStream() {
     try {
       return new FileOutputStream(getContextXml().toFile());
     } catch (FileNotFoundException e) {
+      // impossible: the file existence must be checked in getContextXml() by contract
       throw new RuntimeException(e);
     }
   }
   
   /**
    * @return new input stream for the context.xml configuration file
-   * (normally at TOMCAT_HOME/conf/context.xml)
    */
   default InputStream getContextXmlInputStream() {
     try {
       return new FileInputStream(getContextXml().toFile());
     } catch (FileNotFoundException e) {
+      // impossible: the file existence must be checked in getContextXml() by contract
       throw new RuntimeException(e);
     }
   }
@@ -66,12 +67,28 @@ public interface Environment {
     return getHomeDirectory().resolve("conf");
   }
 
+  /**
+   * Normally at TOMCAT_HOME/conf/server.xml.
+   * Must fail with some misconfiguration exception if the file could not be found or read, etc.
+   */
   default Path getServerXml() {
-    return getConfDirectory().resolve("server.xml");
+    Path path = getConfDirectory().resolve("server.xml");
+    if (!Files.isRegularFile(path)) {
+      throw new RuntimeException("Misconfiguration exception: could not initialize server.xml file: [" + path + "] is not a file");
+    }
+    return path;
   }
 
+  /**
+   * Normally at TOMCAT_HOME/conf/context.xml.
+   * Must fail with some misconfiguration exception if the file could not be found or read, etc.
+   */
   default Path getContextXml() {
-    return getConfDirectory().resolve("context.xml");
+    Path path = getConfDirectory().resolve("context.xml");
+    if (!Files.isRegularFile(path)) {
+      throw new RuntimeException("Misconfiguration exception: could not initialize context.xml file: [" + path + "] is not a file");
+    }
+    return path;
   }
   
   /**

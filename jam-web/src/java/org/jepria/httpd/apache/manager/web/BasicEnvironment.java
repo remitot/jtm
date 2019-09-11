@@ -27,17 +27,19 @@ public class BasicEnvironment implements Environment {
 
     Path path;
 
-    final String apacheHomeEnv = getProperty("org.jepria.httpd.apache.manager.web.apacheHome");
+    final String propertyName = "org.jepria.httpd.apache.manager.web.apacheHome";
+
+    final String apacheHomeEnv = getProperty(propertyName);
     if (apacheHomeEnv == null) {
       throw new RuntimeException("Misconfiguration exception: "
-              + "mandatory configuration property \"org.jepria.httpd.apache.manager.web.apacheHome\" is not defined");
+              + "mandatory configuration property \"" + propertyName + "\" is not defined");
     }
 
     path = Paths.get(apacheHomeEnv);
 
-    if (path == null || !Files.isDirectory(path)) {
+    if (!Files.isDirectory(path)) {
       throw new RuntimeException("Misconfiguration exception: "
-              + "the configuration property \"org.jepria.httpd.apache.manager.web.apacheHome\" does not represent a directory: "
+              + "the configuration property \"" + propertyName + "\" does not represent a directory: "
               + "[" + path + "]");
     }
 
