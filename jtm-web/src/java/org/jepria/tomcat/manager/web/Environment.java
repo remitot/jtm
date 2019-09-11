@@ -1,7 +1,6 @@
 package org.jepria.tomcat.manager.web;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Path;
 
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
@@ -15,25 +14,49 @@ public interface Environment {
    * @return new output stream for the server.xml configuration file 
    * (normally at TOMCAT_HOME/conf/server.xml)
    */
-  OutputStream getServerXmlOutputStream();
+  default OutputStream getServerXmlOutputStream() {
+    try {
+      return new FileOutputStream(getServerXml().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   /**
    * @return new input stream for the server.xml configuration file
    * (normally at TOMCAT_HOME/conf/server.xml)
    */
-  InputStream getServerXmlInputStream();
+  default InputStream getServerXmlInputStream() {
+    try {
+      return new FileInputStream(getServerXml().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   /**
    * @return new output stream for the context.xml configuration file
    * (normally at TOMCAT_HOME/conf/context.xml)
    */
-  OutputStream getContextXmlOutputStream();
+  default OutputStream getContextXmlOutputStream() {
+    try {
+      return new FileOutputStream(getContextXml().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   /**
    * @return new input stream for the context.xml configuration file
    * (normally at TOMCAT_HOME/conf/context.xml)
    */
-  InputStream getContextXmlInputStream();
+  default InputStream getContextXmlInputStream() {
+    try {
+      return new FileInputStream(getContextXml().toFile());
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   /**
    * @return new {@link Path} representing the {@code conf} directory

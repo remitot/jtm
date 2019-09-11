@@ -1,11 +1,12 @@
 package org.jepria.httpd.apache.manager.web;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public interface Environment {
   
@@ -13,7 +14,13 @@ public interface Environment {
    * @return Path for the mod_jk.conf configuration file
    * (normally at APACHE_HOME/conf/jk/mod_jk.conf)
    */
-  Path getMod_jk_confFile();
+  default Path getMod_jk_confFile() {
+    return getConfDirectory().resolve("jk").resolve("mod_jk.conf");
+    // TODO?
+//    if (path == null || !Files.isRegularFile(path)) {
+//      throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
+//    }
+  }
   
   default InputStream getMod_jk_confInputStream() {
     try {
@@ -25,9 +32,57 @@ public interface Environment {
   
   /**
    * @return Path for the workers.properties configuration file
-   * (normally at APACHE_HOME/conf/jk/workers.properties)
+   * (normally parsed from the JkWorkersFile directive in the mod_jk.conf file)
    */
-  Path getWorkers_propertiesFile();
+  default Path getWorkers_propertiesFile() {
+
+    Path path = null;
+
+    try (Scanner sc = new Scanner(getMod_jk_confFile())) {
+
+      // JkWorkersFile directive syntax: the value may be quoted or non-quoted, absolute or relative
+      final Pattern p = Pattern.compile("\\s*JkWorkersFile\\s+\"?(.+?)\"?\\s*");
+
+      boolean jkWorkersFileFound = false;
+      while (sc.hasNextLine()) {
+
+        String line = sc.nextLine();
+        Matcher m = p.matcher(line);
+        if (m.matches()) {
+          jkWorkersFileFound = true;
+
+          Path workersFile = Paths.get(m.group(1));
+
+          if (workersFile.isAbsolute()) {
+            path = workersFile;
+          } else {
+            // the path must be relative to the apache home
+            // TODO find out how exactly does Apache parse the JkWorkersFile relative path
+            path = getHomeDirectory().resolve(workersFile);
+            if (path == null || !Files.isRegularFile(path)) {
+              throw new RuntimeException("Misconfiguration exception: could not initialize workers.properties file: [" + path + "] is not a file");
+            }
+          }
+
+          if (path == null || !Files.isRegularFile(path)) {
+            throw new RuntimeException("Misconfiguration exception: "
+                    + "the directive [" + line + "] in the file [" + path + "] "
+                    + "does not represent a file");
+          }
+
+          break;
+        }
+      }
+      if (!jkWorkersFileFound) {
+        throw new RuntimeException("Misconfiguration exception: "
+                + "the file [" + getMod_jk_confFile() + "] contains no 'JkWorkersFile' directive");
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    return path;
+  }
   
   default InputStream getWorkers_propertiesInputStream() {
     try {
