@@ -52,6 +52,15 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>SourcesServlet</servlet-name>
+    <servlet-class>org.jepria.httpd.apache.manager.web.sources.SourcesServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SourcesServlet</servlet-name>
+    <url-pattern>/sources/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>ApiDocs</servlet-name>
     <jsp-file>/api-docs.html</jsp-file>
   </servlet>
@@ -74,6 +83,7 @@
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Protected resources (API)</web-resource-name>
+      <url-pattern>/sources/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>

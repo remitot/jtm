@@ -1,5 +1,5 @@
 <web-app>
-   
+
   <session-config>
     <session-timeout>10</session-timeout>
   </session-config>
@@ -42,7 +42,7 @@
     <servlet-name>PortApiServlet</servlet-name>
     <url-pattern>/api/port/*</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <servlet-name>PortGui</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.port.PortSsrServlet
@@ -52,7 +52,7 @@
     <servlet-name>PortGui</servlet-name>
     <url-pattern>/port/*</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <servlet-name>LogApiServlet</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.log.LogApiServlet
@@ -62,7 +62,7 @@
     <servlet-name>LogApiServlet</servlet-name>
     <url-pattern>/api/log/*</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <servlet-name>LogGui</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.log.LogSsrServlet</servlet-class>
@@ -71,7 +71,7 @@
     <servlet-name>LogGui</servlet-name>
     <url-pattern>/log/*</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <servlet-name>LogMonitorServlet</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.logmonitor.LogMonitorServlet
@@ -81,7 +81,16 @@
     <servlet-name>LogMonitorServlet</servlet-name>
     <url-pattern>/log-monitor/*</url-pattern>
   </servlet-mapping>
-  
+
+  <servlet>
+    <servlet-name>SourcesServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.sources.SourcesServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SourcesServlet</servlet-name>
+    <url-pattern>/sources/*</url-pattern>
+  </servlet-mapping>
+
   <servlet>
     <servlet-name>ApiDocs</servlet-name>
     <jsp-file>/api-docs.html</jsp-file>
@@ -98,22 +107,23 @@
   <security-role>
     <role-name>manager-gui</role-name>
   </security-role>
-  
+
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Public resources (SSR)</web-resource-name>
       <url-pattern>/*</url-pattern>
     </web-resource-collection>
   </security-constraint>
-  
+
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Protected resources (API)</web-resource-name>
       <url-pattern>/api/log/*</url-pattern>
+      <url-pattern>/sources/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>manager-gui</role-name>
     </auth-constraint>
   </security-constraint>
-  
+
 </web-app>

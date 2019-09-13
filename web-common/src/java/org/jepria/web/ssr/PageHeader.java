@@ -1,11 +1,10 @@
 package org.jepria.web.ssr;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import org.jepria.web.auth.RedirectBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-
-import org.jepria.web.auth.RedirectBuilder;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 public class PageHeader extends El {
   
@@ -26,8 +25,11 @@ public class PageHeader extends El {
   
   // private field with protected getter
   private El formLogout;
-  
-  private El pageInfoContainer;
+
+  /**
+   * Container for source info link (even if the link is not set)
+   */
+  private El sourceInfoContainer;
   
   /**
    * @param text
@@ -39,12 +41,12 @@ public class PageHeader extends El {
 
     itemsContainer = new El("div", context).addClass("page-header__container").addClass("page-header__container_pos_left");
     formLogoutContainer = new El("div", context).addClass("page-header__container").addClass("page-header__container_pos_right");
-    pageInfoContainer = new El("div", context).addClass("page-header__container");
+    sourceInfoContainer = new El("div", context).addClass("page-header__container");
     
     // important to maintain the appending order:
     appendChild(formLogoutContainer);
     appendChild(itemsContainer);
-    appendChild(pageInfoContainer);
+    appendChild(sourceInfoContainer);
 
     
     addStyle("css/page-header.css");
@@ -153,17 +155,22 @@ public class PageHeader extends El {
   }
 
   /**
-   * Sets short info describing what this page refers to, to be displayed in the header.
-   * @param html if {@code null}, no info will be displayed.
+   * Sets source info link
    */
-  public void setPageInfo(String html) {
-    pageInfoContainer.childs.clear();
-    if (html != null) {
-      El content = new El("div", context);
-      content.addClass("page-header__line-element");
-      content.addClass("page-header__menu-item_page-info");
-      content.setInnerHTML(html);
-      pageInfoContainer.appendChild(content);
+  public void setSources() {
+    sourceInfoContainer.childs.clear();
+
+    {
+      El a = new El("a", context);
+      a.addClass("page-header__line-element");
+      a.addClass("page-header__menu-item_source-info");
+
+      a.setAttribute("href", context.getContextPath() + "/sources");
+      a.setAttribute("target", "_blank");
+
+      a.setInnerHTML(context.getText().getString("org.jepria.web.ssr.common.sources.text"));
+      a.setAttribute("title", context.getText().getString("org.jepria.web.ssr.common.sources.title"));
+      sourceInfoContainer.appendChild(a);
     }
   }
 }

@@ -57,10 +57,7 @@ public class JdbcSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
-      
-      // TODO hardcoded filenames correspond to those in BasicEnvironment. Extract? 
-      String pageInfo = "Source: " + HtmlEscaper.escape(env.getContextXml().toString()) + ", " + HtmlEscaper.escape(env.getServerXml().toString());
-      pageHeader.setPageInfo(pageInfo);
+      pageHeader.setSources();
       
       final List<ConnectionDto> connections = new JdbcApi().list(env);
       

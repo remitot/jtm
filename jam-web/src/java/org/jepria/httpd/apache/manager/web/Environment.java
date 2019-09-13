@@ -141,4 +141,8 @@ public interface Environment {
    * @return Path known as APACHE_HOME. Normally the file is an existing readable directory.
    */
   Path getHomeDirectory();
+
+  default String getApacheServiceName() {
+    return getProperty("org.jepria.httpd.apache.manager.web.apacheServiceName");
+  }
 }

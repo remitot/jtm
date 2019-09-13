@@ -1,30 +1,22 @@
 package org.jepria.tomcat.manager.web.log;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.TimeZone;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
-import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.HtmlEscaper;
-import org.jepria.web.ssr.HtmlPageBaseBuilder;
+import org.jepria.web.ssr.*;
 import org.jepria.web.ssr.HtmlPageBaseBuilder.Page;
-import org.jepria.web.ssr.HtmlPageExtBuilder;
-import org.jepria.web.ssr.Node;
-import org.jepria.web.ssr.PageHeader;
-import org.jepria.web.ssr.SsrServletBase;
-import org.jepria.web.ssr.Text;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.TimeZone;
 
 public class LogSsrServlet extends SsrServletBase {
   
@@ -103,9 +95,7 @@ public class LogSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
-      
-      String pageInfo = "Source: " + HtmlEscaper.escape(env.getLogsDirectory().toString());
-      pageHeader.setPageInfo(pageInfo);
+      pageHeader.setSources();
       
       
       List<LogDto> logs = new LogApi().list(env, null);
