@@ -1,6 +1,6 @@
 function statusBar_onload() {
   addCloseScript();
-  position();
+  statusBar_position();
 }
 
 function addCloseScript() {
@@ -15,7 +15,7 @@ function addCloseScript() {
   }
 }
 
-function position() {
+function statusBar_position() {
   //center the status bar horizontally within the window
   var statusBar = document.getElementsByClassName("status-bar")[0];
   if (statusBar) {
