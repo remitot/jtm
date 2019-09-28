@@ -1,39 +1,103 @@
 package org.jepria.httpd.apache.manager.web;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public interface Environment {
   
   /**
    * @return Path for the mod_jk.conf configuration file
-   * (normally at APACHE_HOME/conf/jk/mod_jk.conf)
+   * (normally at APACHE_HOME/conf/jk/mod_jk.conf).
+   * Must fail with some misconfiguration exception if the file could not be found or read, etc.
    */
-  Path getMod_jk_confFile();
-  
-  default InputStream getMod_jk_confInputStream() {
-    try {
-      return new FileInputStream(getMod_jk_confFile().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+  default Path getMod_jk_confFile() {
+    Path path = getConfDirectory().resolve("jk").resolve("mod_jk.conf");
+    if (!Files.isRegularFile(path)) {
+      throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
     }
+    return path;
   }
   
   /**
    * @return Path for the workers.properties configuration file
-   * (normally at APACHE_HOME/conf/jk/workers.properties)
+   * (normally parsed from the JkWorkersFile directive in the mod_jk.conf file).
+   * Must fail with some misconfiguration exception if the file could not be found or read, etc.
    */
-  Path getWorkers_propertiesFile();
-  
+  default Path getWorkers_propertiesFile() {
+
+    Path path = null;
+
+    try (Scanner sc = new Scanner(getMod_jk_confFile())) {
+
+      // JkWorkersFile directive syntax: the value may be quoted or non-quoted, absolute or relative
+      final Pattern p = Pattern.compile("\\s*JkWorkersFile\\s+\"?(.+?)\"?\\s*");
+
+      boolean jkWorkersFileFound = false;
+      while (sc.hasNextLine()) {
+
+        String line = sc.nextLine();
+        Matcher m = p.matcher(line);
+        if (m.matches()) {
+          jkWorkersFileFound = true;
+
+          Path workersFile = Paths.get(m.group(1));
+
+          if (workersFile.isAbsolute()) {
+            path = workersFile;
+          } else {
+            // the path must be relative to the apache home
+            // TODO find out how exactly does Apache parse the JkWorkersFile relative path
+            path = getHomeDirectory().resolve(workersFile);
+            if (!Files.isRegularFile(path)) {
+              throw new RuntimeException("Misconfiguration exception: could not initialize workers.properties file: [" + path + "] is not a file");
+            }
+          }
+
+          if (!Files.isRegularFile(path)) {
+            throw new RuntimeException("Misconfiguration exception: "
+                    + "the directive [" + line + "] in the file [" + path + "] "
+                    + "does not represent a file");
+          }
+
+          break;
+        }
+      }
+      if (!jkWorkersFileFound) {
+        throw new RuntimeException("Misconfiguration exception: "
+                + "the file [" + getMod_jk_confFile() + "] contains no 'JkWorkersFile' directive");
+      }
+    } catch (IOException e) {
+      // impossible
+      throw new RuntimeException(e);
+    }
+
+    if (!Files.isRegularFile(path)) {
+      throw new RuntimeException("Misconfiguration exception: could not initialize mod_jk.conf file: [" + path + "] is not a file");
+    }
+
+    return path;
+  }
+
+  default InputStream getMod_jk_confInputStream() {
+    try {
+      return new FileInputStream(getMod_jk_confFile().toFile());
+    } catch (FileNotFoundException e) {
+      // impossible: the file existence must be checked in getMod_jk_confFile() by contract
+      throw new RuntimeException(e);
+    }
+  }
+
   default InputStream getWorkers_propertiesInputStream() {
     try {
       return new FileInputStream(getWorkers_propertiesFile().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+      // impossible: the file existence must be checked in getWorkers_propertiesFile() by contract
+      throw new RuntimeException(e);
     }
   }
 
@@ -41,7 +105,8 @@ public interface Environment {
     try {
       return new FileOutputStream(getMod_jk_confFile().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+      // impossible: the file existence must be checked in getMod_jk_confFile() by contract
+      throw new RuntimeException(e);
     }
   }
   
@@ -49,7 +114,8 @@ public interface Environment {
     try {
       return new FileOutputStream(getWorkers_propertiesFile().toFile());
     } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
+      // impossible: the file existence must be checked in getWorkers_propertiesFile() by contract
+      throw new RuntimeException(e);
     }
   }
   
@@ -75,4 +141,8 @@ public interface Environment {
    * @return Path known as APACHE_HOME. Normally the file is an existing readable directory.
    */
   Path getHomeDirectory();
+
+  default String getApacheServiceName() {
+    return getProperty("org.jepria.httpd.apache.manager.web.apacheServiceName");
+  }
 }

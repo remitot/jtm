@@ -3,7 +3,7 @@ package org.jepria.tomcat.manager.web;
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -26,42 +26,6 @@ public class BasicEnvironment implements Environment {
     envPropertyFactory = new EnvironmentPropertyFactory(new File(request.getServletContext().getRealPath("/WEB-INF/app-conf-default.properties")));
     
     home = getHomeDirectory(request);
-  }
-  
-  @Override
-  public OutputStream getServerXmlOutputStream() {
-    try {
-      return new FileOutputStream(getServerXml().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
-  }
-  
-  @Override
-  public InputStream getServerXmlInputStream() {
-    try {
-      return new FileInputStream(getServerXml().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
-  }
-  
-  @Override
-  public OutputStream getContextXmlOutputStream() {
-    try {
-      return new FileOutputStream(getContextXml().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
-  }
-  
-  @Override
-  public InputStream getContextXmlInputStream() {
-    try {
-      return new FileInputStream(getContextXml().toFile());
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);//TODO?
-    }
   }
   
   public Path getHomeDirectory(HttpServletRequest request) {

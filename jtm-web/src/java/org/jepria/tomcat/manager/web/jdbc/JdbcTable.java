@@ -12,7 +12,6 @@ public class JdbcTable extends Table<Record> {
     private static final long serialVersionUID = 1L;
     
     public boolean dataModifiable = true;
-    public String validationQuery = null;
     
     public Record() {
       put("active", new Field("active"));
@@ -98,8 +97,6 @@ public class JdbcTable extends Table<Record> {
     return row;
   }
   
-  private static final String SAMPLE_QUERY_DEFAULT = "select * from dual"; // TODO sample query may depend on connection type
-  
   @Override
   public El createRow(Record item, TabIndex tabIndex) {
     
@@ -184,11 +181,8 @@ public class JdbcTable extends Table<Record> {
       }
     }
 
-    
-    if ("true".equals(item.active().value)) {
-      // only active connection can be tested
-      addFieldTest(cellTest, tabIndex, item.name().valueOriginal, item.validationQuery);
-    }
+    final String sampleQuery = "select * from dual"; // TODO sample query may depend on connection type
+    addFieldTest(cellTest, tabIndex, item.name().valueOriginal, sampleQuery);
 
     if (item.dataModifiable) {
       String titleDelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete");
@@ -224,7 +218,7 @@ public class JdbcTable extends Table<Record> {
     addCheckbox(cell, item.active(), titleCheckboxActive, titleCheckboxInactive);
     
     El cellDelete = createCell(row, "column-delete");
-    El cellTest = createCell(row, "column-test"); // empty cell because only existing connection can be tested
+    El cellTest = createCell(row, "column-test"); // empty cell because testing new connections is unsupported
     
     El flexColumns = new El("div", row.context);
     flexColumns.classList.add("flexColumns");

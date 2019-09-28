@@ -13,7 +13,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -52,24 +51,6 @@ public class NodeUtils {
       }
     } catch (TransformerException | IOException e) {
       throw new RuntimeException(e);
-    }
-  }
-  
-  /**
-   * Returns the value of the node's attribute, if such attribute exists, or {@code null} if the attribute is missing.
-   * <br/>
-   * This is because the new w3c specification says to return an empty string for the missing attribute (instead of null),
-   * but sometimes it is semantically correct to return {@code null} for missing attribute
-   * @param el
-   * @param attributeName
-   * @return
-   */
-  public static String getAttributeOrNull(Element el, String attributeName) {
-    String value = el.getAttribute(attributeName);
-    if ("".equals(value)) {
-      return el.hasAttribute(attributeName) ? value : null;
-    } else {
-      return value;
     }
   }
 }

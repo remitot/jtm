@@ -1,7 +1,6 @@
 package org.jepria.tomcat.manager.core.jdbc;
 
 import org.jepria.tomcat.manager.core.NodeFoldHelper;
-import org.jepria.tomcat.manager.core.NodeUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -117,10 +116,5 @@ import org.w3c.dom.Node;
         (name, value) -> contextResourceLinkNode.setAttribute(name, value));
     initialParams.getServerResourceAttrs().forEach(
         (name, value) -> serverResourceNode.setAttribute(name, value));
-  }
-  
-  @Override
-  public String getValidationQuery() {
-    return NodeUtils.getAttributeOrNull(serverResourceNode, "validationQuery");
   }
 }

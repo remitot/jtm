@@ -28,6 +28,4 @@ public interface Connection {
 
   String getPassword();
   void setPassword(String password);
-  
-  String getValidationQuery();
 }

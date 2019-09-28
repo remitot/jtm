@@ -1,23 +1,17 @@
 package org.jepria.tomcat.manager.web.port;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.port.dto.PortDto;
-import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.HtmlEscaper;
-import org.jepria.web.ssr.HtmlPageExtBuilder;
-import org.jepria.web.ssr.PageHeader;
-import org.jepria.web.ssr.SsrServletBase;
-import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.*;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
 public class PortSsrServlet extends SsrServletBase {
   private static final long serialVersionUID = -5897408312837631833L;
@@ -47,9 +41,7 @@ public class PortSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
-      
-      String pageInfo = "Source: " + HtmlEscaper.escape(env.getServerXml().toString());
-      pageHeader.setPageInfo(pageInfo);
+      pageHeader.setSources();
       
       final List<PortDto> ports = new PortApi().list(env);
       

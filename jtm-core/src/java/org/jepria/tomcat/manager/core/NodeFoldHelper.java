@@ -21,7 +21,7 @@ public class NodeFoldHelper {
    * e.g. from <pre>&lt;UnfoldedComment&gt;&lt;Node&gt;node-contents&lt;/Node&gt;&lt;/UnfoldedComment&gt;</pre>
    * to <pre>&lt;!-- &lt;Node&gt;node-contents&lt;/Node&gt; --&gt;</pre>
    * 
-   * @param node the node <b>which itself</b> is an <code>&lt;UnfoldedComment&gt;</code>
+   * @param the node <b>which itself</b> is an <code>&lt;UnfoldedComment&gt;</code>
    * @return comment or null if the comment is empty or if the given node is not an UnfoldedComment
    */
   public static Comment foldComment(Node node) {

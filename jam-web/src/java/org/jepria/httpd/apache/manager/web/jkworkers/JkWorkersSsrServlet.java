@@ -1,15 +1,7 @@
 package org.jepria.httpd.apache.manager.web.jkworkers;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.jepria.httpd.apache.manager.core.jk.ApacheConfJk;
 import org.jepria.httpd.apache.manager.web.Environment;
 import org.jepria.httpd.apache.manager.web.EnvironmentFactory;
@@ -18,15 +10,16 @@ import org.jepria.httpd.apache.manager.web.JamPageHeader.CurrentMenuItem;
 import org.jepria.httpd.apache.manager.web.jk.JkApi;
 import org.jepria.httpd.apache.manager.web.jk.JkTextPageContent;
 import org.jepria.web.HttpDataEncoding;
-import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.HtmlEscaper;
-import org.jepria.web.ssr.HtmlPageExtBuilder;
-import org.jepria.web.ssr.SsrServletBase;
-import org.jepria.web.ssr.StatusBar;
-import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.*;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class JkWorkersSsrServlet extends SsrServletBase {
 
@@ -58,9 +51,7 @@ public class JkWorkersSsrServlet extends SsrServletBase {
     
     if (checkAuth(req)) {
       pageHeader.setButtonLogout(req);
-      
-      String pageInfo = HtmlEscaper.escape(env.getWorkers_propertiesFile().toString());
-      pageHeader.setPageInfo(pageInfo);
+      pageHeader.setSources();
       
       List<String> workersPropertiesLines = new JkApi().getWorkers_propertiesLines(env);
       

@@ -23,12 +23,29 @@
   float: right;
 }
 
-.table div.cell.column-test a img {
+.table div.cell.column-test .img-button {
   display: block;
 }
 
-/* for modified or deleted rows */
-.table .row.deleted .cell.column-test a, .table .row.modified .cell.column-test a {
+img.button-test_inactive {
+  opacity: 0.3;
+}
+
+
+.table div.cell.column-test .button-test_active {
+  display: block;
+}
+.table .row.deleted .cell.column-test .button-test_active,
+.table .row.modified .cell.column-test .button-test_active,
+.table .row.created .cell.column-test .button-test_active {
   display: none;
 }
 
+.table div.cell.column-test .button-test_inactive {
+  display: none;
+}
+.table .row.deleted .cell.column-test .button-test_inactive,
+.table .row.modified .cell.column-test .button-test_inactive,
+.table .row.created .cell.column-test .button-test_inactive {
+  display: block;
+}
