@@ -1,13 +1,14 @@
 package org.jepria.tomcat.manager.web;
 
-import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
-
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 
 /**
  * Basic production environment
@@ -18,18 +19,11 @@ public class BasicEnvironment implements Environment {
   
   private final EnvironmentPropertyFactory envPropertyFactory;
   
-  protected Path getTomcatHome(HttpServletRequest request) {
-    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent();
-  }
-  
   public BasicEnvironment(HttpServletRequest request) {
+    // TODO avoid using getRealPath 
     envPropertyFactory = new EnvironmentPropertyFactory(new File(request.getServletContext().getRealPath("/WEB-INF/app-conf-default.properties")));
     
-    home = getHomeDirectory(request);
-  }
-  
-  public Path getHomeDirectory(HttpServletRequest request) {
-    return Paths.get(request.getServletContext().getRealPath("")).getParent().getParent();
+    home = Paths.get(System.getProperty("catalina.home"));
   }
   
   @Override
