@@ -271,33 +271,50 @@ public class JdbcTable extends Table<Record> {
    * @param tabIndex
    * @param connectionName if null, no link
    */
-  protected void addFieldTest(El cell, TabIndex tabIndex, String connectionName, String validationQuery) {
-    El a = new El("a", context);
-    a.setAttribute("target", "_blank");
+  protected El addFieldTest(El cell, TabIndex tabIndex, String connectionName, String sampleQuery) {
+    El field = new El("div", context);
 
-    String href = context.getContextPath() + "/jdbc-test/" + connectionName;
-    String sampleQuery = validationQuery;
-    if (sampleQuery == null) {
-      sampleQuery = SAMPLE_QUERY_DEFAULT;
+    {// active link with image
+      El a = new El("a", context);
+      a.setAttribute("target", "_blank");
+      a.addClass("button-test_active");
+
+      String href = context.getContextPath() + "/jdbc-test/" + connectionName;
+      if (sampleQuery != null) {
+        href += "?sample-query=" + sampleQuery;
+      }
+      a.setAttribute("href", href);
+
+      El img = new El("img", context);
+      img.classList.add("img-button");
+      img.setAttribute("src", context.getContextPath() + "/img/jdbc/test.png");
+      String title = context.getText().getString("org.jepria.tomcat.manager.web.jdbc.Table.buttonTest.title");
+      a.setAttribute("title", title);
+      a.appendChild(img);
+      if (tabIndex != null) {
+        tabIndex.setNext(a);
+      }
+
+      field.appendChild(a);
     }
-    href += "?sample-query=" + sampleQuery;
-    
-    a.setAttribute("href", href);
 
-    El img = new El("img", context);
-    img.addClass("img-button");
-    img.setAttribute("src", context.getContextPath() + "/img/jdbc/test.png");
-    String title = context.getText().getString("org.jepria.tomcat.manager.web.jdbc.Table.buttonTest.title");
-    a.setAttribute("title", title);
-    a.appendChild(img);
+    {// inactive (grayed out) image
+      El img = new El("img", context);
+      img.classList.add("img-button");
+      img.addClass("button-test_inactive");
 
-    if (tabIndex != null) {
-      tabIndex.setNext(a);
+      img.setAttribute("src", context.getContextPath() + "/img/jdbc/test.png");
+      String title = context.getText().getString("org.jepria.tomcat.manager.web.jdbc.Table.buttonTest_inactive.title");
+      img.setAttribute("title", title);
+
+      field.appendChild(img);
     }
 
-    El wrapper = Fields.wrapCellPad(a);
+    El wrapper = Fields.wrapCellPad(field);
     cell.appendChild(wrapper);
 
     addStrike(cell);
+
+    return field;
   }
 }
