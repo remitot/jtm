@@ -64,12 +64,24 @@ function logmonitor_onload() {
 
 
 function scrollVerticalTo(y) {
+
   if (document.body.scrollHeight <= window.innerHeight + y) {
     // adjust body height to the requested scroll
     document.body.style.height = (window.innerHeight + y) + "px";
   }
-  window.scrollTo(0, y); 
-} 
+  doScrollVerticalTo(y);
+}
+
+/**
+ * Fix for Chrome:
+ * Chrome is so fast that your scrollTo() action fires before Chrome's default scroll to html anchor event.
+ * @see https://stackoverflow.com/questions/15691569/javascript-issue-with-scrollto-in-chrome
+ */
+function doScrollVerticalTo(y) {
+  setTimeout(function() {
+    window.scrollTo(0, y);
+  }, 1);
+}
 
 function getScrolled() {
   return window.pageYOffset || document.documentElement.scrollTop;
