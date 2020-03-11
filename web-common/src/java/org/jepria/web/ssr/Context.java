@@ -10,6 +10,8 @@ public interface Context {
    */
   String getContextPath();
   
+  String getRequestURL();
+  
   public static Context get(HttpServletRequest request, Text text) {
     return new ContextImpl(request, text);
   }
