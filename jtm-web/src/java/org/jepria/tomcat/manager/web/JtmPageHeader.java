@@ -1,12 +1,14 @@
 package org.jepria.tomcat.manager.web;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.PageHeader;
 import org.jepria.web.ssr.Text;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JtmPageHeader extends PageHeader {
   
@@ -27,6 +29,8 @@ public class JtmPageHeader extends PageHeader {
    */
   public JtmPageHeader(Context context, String managerApacheHref, CurrentMenuItem currentMenuItem) {
     super(context);
+  
+    this.addStyle("css/jtm-page-header.css");
     
     Text text = context.getText();
     
@@ -62,8 +66,28 @@ public class JtmPageHeader extends PageHeader {
       itemPort.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemPort"), true);
       items.add(itemPort);
     }
-    
-
+  
+    {
+      // add warning if the application is accessed without port
+      String url = context.getRequestURL();
+      Matcher m = Pattern.compile("([a-z][a-z0-9+\\-.]*://[^/]+).*").matcher(url);// regex to determine whether or not the port number is specified in URL
+      if (m.matches()) {
+        String fullDomain = m.group(1);
+        if (!fullDomain.matches(".+:\\d+")) {
+          
+          String fullDomainWithPortExample = fullDomain + ":8080";
+          
+          El itemNoPortAccessWarning = new El("img", context);
+          itemNoPortAccessWarning.setAttribute("src", context.getContextPath() + "/img/header__no-port-access-warning.png");
+          itemNoPortAccessWarning.setAttribute("title", String.format(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemNoPortAccessWarning"), fullDomainWithPortExample));
+          itemNoPortAccessWarning.addClass("page-header__menu-item_no-port-access-warning");
+          items.add(itemNoPortAccessWarning);
+        }
+      } else {
+        // TODO do nothing or fail if the URL is incorrect?
+      }
+    }
+  
     // add class to the left item
     if (items.size() > 0) {
       items.get(0).classList.add("page-header__menu-item_left");

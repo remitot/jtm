@@ -2,3 +2,11 @@
   padding-right: 28px;
   margin-right: 14px;
 }
+
+.page-header__menu-item_no-port-access-warning {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  margin-left: 50px;
+  margin-bottom: 3px;
+}
