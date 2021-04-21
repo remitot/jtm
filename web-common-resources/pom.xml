@@ -1,0 +1,19 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+ 
+  <groupId>org.jepria</groupId>
+  <artifactId>web-common-resources</artifactId>
+  <version>1.0.0</version>
+  
+  <description>Common web resources</description>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>
