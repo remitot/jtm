@@ -1,12 +1,10 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
  
-  <groupId>org.jepria</groupId>
-  <artifactId>web-common</artifactId>
+  <groupId>org.jepria.tomcat.manager</groupId>
+  <artifactId>tomcat-manager-core</artifactId>
   <version>1.0.0</version>
 
-  <description>Common web code</description>
-  
   <dependencies>
     <dependency>
       <groupId>org.apache.tomcat</groupId>
