@@ -50,19 +50,19 @@ public class JtmPageHeader extends PageHeader {
     }
     
     {
-      El itemJdbc = new MenuItem(context, currentMenuItem == CurrentMenuItem.JDBC, context.getContextPath() + "/jdbc");
+      El itemJdbc = new MenuItem(context, currentMenuItem == CurrentMenuItem.JDBC, context.getAppContextPath() + "/jdbc");
       itemJdbc.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemJdbc"), true);
       items.add(itemJdbc);
     }
     
     {
-      El itemLog = new MenuItem(context, currentMenuItem == CurrentMenuItem.LOG, context.getContextPath() + "/log");
+      El itemLog = new MenuItem(context, currentMenuItem == CurrentMenuItem.LOG, context.getAppContextPath() + "/log");
       itemLog.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemLog"), true);
       items.add(itemLog);
     }
     
     {
-      El itemPort = new MenuItem(context, currentMenuItem == CurrentMenuItem.PORT, context.getContextPath() + "/port");
+      El itemPort = new MenuItem(context, currentMenuItem == CurrentMenuItem.PORT, context.getAppContextPath() + "/port");
       itemPort.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemPort"), true);
       items.add(itemPort);
     }
@@ -78,7 +78,7 @@ public class JtmPageHeader extends PageHeader {
           String fullDomainWithPortExample = fullDomain + ":8080";
           
           El itemNoPortAccessWarning = new El("img", context);
-          itemNoPortAccessWarning.setAttribute("src", context.getContextPath() + "/img/header__no-port-access-warning.png");
+          itemNoPortAccessWarning.setAttribute("src", context.getAppContextPath() + "/img/header__no-port-access-warning.png");
           itemNoPortAccessWarning.setAttribute("title", String.format(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemNoPortAccessWarning"), fullDomainWithPortExample));
           itemNoPortAccessWarning.addClass("page-header__menu-item_no-port-access-warning");
           items.add(itemNoPortAccessWarning);

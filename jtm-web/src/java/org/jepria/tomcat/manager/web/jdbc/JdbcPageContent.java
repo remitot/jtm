@@ -155,8 +155,8 @@ public class JdbcPageContent extends ArrayList<El> {
     // control buttons
     final ControlButtons controlButtons = new ControlButtons(context);
     controlButtons.addButtonCreate();
-    controlButtons.addButtonSave(context.getContextPath() + "/jdbc/mod");// TODO such url will erase any path- or request params of the current page
-    controlButtons.addButtonReset(context.getContextPath() + "/jdbc");// TODO such url will erase any path- or request params of the current page
+    controlButtons.addButtonSave(context.getAppContextPath() + "/jdbc/mod");// TODO such url will erase any path- or request params of the current page
+    controlButtons.addButtonReset(context.getAppContextPath() + "/jdbc");// TODO such url will erase any path- or request params of the current page
     add(controlButtons);
   }
   

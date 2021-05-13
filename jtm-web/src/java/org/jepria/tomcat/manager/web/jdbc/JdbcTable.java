@@ -273,7 +273,7 @@ public class JdbcTable extends Table<Record> {
       a.setAttribute("target", "_blank");
       a.addClass("button-test_active");
 
-      String href = context.getContextPath() + "/jdbc-test/" + connectionName;
+      String href = context.getAppContextPath() + "/jdbc-test/" + connectionName;
       if (sampleQuery != null) {
         href += "?sample-query=" + sampleQuery;
       }
@@ -281,7 +281,7 @@ public class JdbcTable extends Table<Record> {
 
       El img = new El("img", context);
       img.classList.add("img-button");
-      img.setAttribute("src", context.getContextPath() + "/img/jdbc/test.png");
+      img.setAttribute("src", context.getAppContextPath() + "/img/jdbc/test.png");
       String title = context.getText().getString("org.jepria.tomcat.manager.web.jdbc.Table.buttonTest.title");
       a.setAttribute("title", title);
       a.appendChild(img);
@@ -297,7 +297,7 @@ public class JdbcTable extends Table<Record> {
       img.classList.add("img-button");
       img.addClass("button-test_inactive");
 
-      img.setAttribute("src", context.getContextPath() + "/img/jdbc/test.png");
+      img.setAttribute("src", context.getAppContextPath() + "/img/jdbc/test.png");
       String title = context.getText().getString("org.jepria.tomcat.manager.web.jdbc.Table.buttonTest_inactive.title");
       img.setAttribute("title", title);
 

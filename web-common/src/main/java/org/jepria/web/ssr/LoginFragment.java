@@ -20,7 +20,7 @@ public class LoginFragment extends AuthFragment {
     final String action;
     {
       StringBuilder sb = new StringBuilder();
-      sb.append(context.getContextPath()).append('/');
+      sb.append(context.getAppContextPath()).append('/');
       sb.append("login");
       if (loginRedirectPath != null) {
         sb.append("?redirect=");

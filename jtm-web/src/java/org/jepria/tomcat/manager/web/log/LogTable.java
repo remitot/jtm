@@ -113,14 +113,14 @@ public class LogTable extends Table<Record> {
     cell.classList.add("cell-field");
     field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a", field.context).setAttribute("href", context.getContextPath() + "/" + item.download().value)
+      El a = new El("a", field.context).setAttribute("href", context.getAppContextPath() + "/" + item.download().value)
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
       field.appendChild(a);
       
       if (item.largeFile) {
         El img = new El("img", field.context).addClass("field-text__hint_large-file")
-            .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png");
+            .setAttribute("src", field.context.getAppContextPath() + "/img/log/hint.png");
         if (largeFileHintTitle != null) {
           img.setAttribute("title", largeFileHintTitle);
         }
@@ -133,7 +133,7 @@ public class LogTable extends Table<Record> {
     cell.classList.add("cell-field");
     field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a", field.context).setAttribute("href", context.getContextPath() + "/" + item.open().value)
+      El a = new El("a", field.context).setAttribute("href", context.getAppContextPath() + "/" + item.open().value)
           .setAttribute("target", "_blank")
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
@@ -142,7 +142,7 @@ public class LogTable extends Table<Record> {
       if (item.largeFile) {
         String hintTitle = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + item.sizeHint + ")";
         El img = new El("img", field.context).addClass("field-text__hint_large-file")
-            .setAttribute("src", field.context.getContextPath() + "/img/log/hint.png")
+            .setAttribute("src", field.context.getAppContextPath() + "/img/log/hint.png")
             .setAttribute("title", hintTitle);
         field.appendChild(img);
       }
@@ -153,7 +153,7 @@ public class LogTable extends Table<Record> {
     cell.classList.add("cell-monitor");
     field = new FieldTextLabel(cell.context);
     {
-      El a = new El("a", field.context).setAttribute("href", context.getContextPath() + "/" + item.monitor().value)
+      El a = new El("a", field.context).setAttribute("href", context.getAppContextPath() + "/" + item.monitor().value)
           .setAttribute("target", "_blank")
           .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title"))
           .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));

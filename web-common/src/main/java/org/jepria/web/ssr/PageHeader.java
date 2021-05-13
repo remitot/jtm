@@ -102,7 +102,7 @@ public class PageHeader extends El {
     final String action;
     {
       StringBuilder sb = new StringBuilder();
-      sb.append(context.getContextPath()).append('/');
+      sb.append(context.getAppContextPath()).append('/');
       sb.append("logout");
       if (logoutRedirectPath != null) {
         sb.append("?redirect=");
@@ -165,7 +165,7 @@ public class PageHeader extends El {
       a.addClass("page-header__line-element");
       a.addClass("page-header__menu-item_source-info");
 
-      a.setAttribute("href", context.getContextPath() + "/sources");
+      a.setAttribute("href", context.getAppContextPath() + "/sources");
       a.setAttribute("target", "_blank");
 
       a.setInnerHTML(context.getText().getString("org.jepria.web.ssr.common.sources.text"));

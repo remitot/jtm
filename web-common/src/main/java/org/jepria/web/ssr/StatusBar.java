@@ -40,7 +40,7 @@ public class StatusBar extends El {
       closeButton = new El("input", context);
       closeButton.setAttribute("type", "image");
       closeButton.addClass("status-bar__header-close");
-      closeButton.setAttribute("src", context.getContextPath() + "/img/close.png");
+      closeButton.setAttribute("src", context.getAppContextPath() + "/img/close.png");
     }
     
     addScript(new Script("js/status-bar.js", "statusBar_onload"));

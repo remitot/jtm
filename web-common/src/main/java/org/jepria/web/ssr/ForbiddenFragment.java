@@ -15,7 +15,7 @@ public class ForbiddenFragment extends AuthFragment {
     final String action;
     {
       StringBuilder sb = new StringBuilder();
-      sb.append(context.getContextPath()).append('/');
+      sb.append(context.getAppContextPath()).append('/');
       sb.append("logout");
       if (logoutRedirectPath != null) {
         sb.append("?redirect=");

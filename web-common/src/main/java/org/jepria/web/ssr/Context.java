@@ -5,11 +5,21 @@ import javax.servlet.http.HttpServletRequest;
 public interface Context {
   Text getText();
   /**
-   * 
+   * Application context path relative to the domain, e.g. {@code /manager-ext}
    * @return default value must be an empty string
    */
-  String getContextPath();
-  
+  String getAppContextPath();
+
+  /**
+   * Servlet context path relative to the application context path, e.g. {@code /jdbc}
+   * @return
+   */
+  String getServletContextPath();
+
+  /**
+   * Full URL, does not include query string 
+   * @return
+   */
   String getRequestURL();
   
   public static Context get(HttpServletRequest request, Text text) {

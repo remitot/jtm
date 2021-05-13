@@ -79,11 +79,11 @@ import javax.servlet.http.HttpServletResponse;
      
     // add all scripts and styles to the head
     for (String style: body.getStyles()) {
-      String href = context.getContextPath() + "/" + style;
+      String href = context.getAppContextPath() + "/" + style;
       head.appendChild(new El("link", context).setAttribute("rel", "stylesheet").setAttribute("href", href));
     }
     for (String script: body.getScripts()) {
-      String src = context.getContextPath() + "/" + script;
+      String src = context.getAppContextPath() + "/" + script;
       head.appendChild(new El("script", context).setAttribute("type", "text/javascript").setAttribute("src", src));
     }
     // add all onload functions to the body onload attribute

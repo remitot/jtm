@@ -195,7 +195,7 @@ public abstract class Table<T extends ItemData> extends El {
       button.classList.add("button-delete");
       button.classList.add("button-delete_delete");
       button.setAttribute("type", "image");
-      button.setAttribute("src", context.getContextPath() + "/img/delete.png");
+      button.setAttribute("src", context.getAppContextPath() + "/img/delete.png");
       if (titleDelete != null) {
         button.setAttribute("title", titleDelete);
       }
@@ -212,7 +212,7 @@ public abstract class Table<T extends ItemData> extends El {
       button.classList.add("button-delete");
       button.classList.add("button-delete_undelete");
       button.setAttribute("type", "image");
-      button.setAttribute("src", context.getContextPath() + "/img/undelete.png");
+      button.setAttribute("src", context.getAppContextPath() + "/img/undelete.png");
       if (titleUndelete != null) {
         button.setAttribute("title", titleUndelete);
       }
