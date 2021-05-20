@@ -181,8 +181,7 @@ public class JdbcTable extends Table<Record> {
       }
     }
 
-    final String sampleQuery = "select * from dual"; // TODO sample query may depend on connection type
-    addFieldTest(cellTest, tabIndex, item.name().valueOriginal, sampleQuery);
+    addFieldTest(cellTest, tabIndex, item.name().valueOriginal);
 
     if (item.dataModifiable) {
       String titleDelete = text.getString("org.jepria.web.ssr.table.buttonDelete.title.delete");
@@ -265,7 +264,7 @@ public class JdbcTable extends Table<Record> {
    * @param tabIndex
    * @param connectionName if null, no link
    */
-  protected El addFieldTest(El cell, TabIndex tabIndex, String connectionName, String sampleQuery) {
+  protected El addFieldTest(El cell, TabIndex tabIndex, String connectionName) {
     El field = new El("div", context);
 
     {// active link with image
@@ -273,10 +272,8 @@ public class JdbcTable extends Table<Record> {
       a.setAttribute("target", "_blank");
       a.addClass("button-test_active");
 
-      String href = context.getAppContextPath() + "/jdbc-test/" + connectionName;
-      if (sampleQuery != null) {
-        href += "?sample-query=" + sampleQuery;
-      }
+      String href = context.getAppContextPath() + "/oracle/" + connectionName + "/query" +
+          "?q=select * from dual";// TODO sample query may depend on connection type
       a.setAttribute("href", href);
 
       El img = new El("img", context);

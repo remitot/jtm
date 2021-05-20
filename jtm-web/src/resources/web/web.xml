@@ -25,15 +25,6 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>JdbcTestGui</servlet-name>
-    <servlet-class>org.jepria.tomcat.manager.web.jdbctest.JdbcTestSsrServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>JdbcTestGui</servlet-name>
-    <url-pattern>/jdbc-test/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
     <servlet-name>PortApiServlet</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.port.PortApiServlet
     </servlet-class>
@@ -80,6 +71,16 @@
   <servlet-mapping>
     <servlet-name>LogMonitorServlet</servlet-name>
     <url-pattern>/log-monitor/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>OracleThinClientServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.oracle.OracleThinClientSsrServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OracleThinClientServlet</servlet-name>
+    <url-pattern>/oracle/*</url-pattern>
   </servlet-mapping>
 
   <servlet>

@@ -19,6 +19,7 @@ public class JtmPageHeader extends PageHeader {
     JDBC,
     LOG,
     PORT,
+    ORACLE
   }
   
   /**
@@ -66,6 +67,12 @@ public class JtmPageHeader extends PageHeader {
       itemPort.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemPort"), true);
       items.add(itemPort);
     }
+
+//    {
+//      El itemOracle = new MenuItem(context, currentMenuItem == CurrentMenuItem.ORACLE, context.getAppContextPath() + "/oracle");
+//      itemOracle.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemOracle"), true);
+//      items.add(itemOracle);
+//    }
   
     {
       // add warning if the application is accessed without port

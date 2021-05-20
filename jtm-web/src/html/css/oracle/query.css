@@ -14,8 +14,15 @@ body {
 }
 
 .query {
-  width: 300px;
+  width: 600px;
+  height: 150px;
   font-family: monospace;
+  display: block;
+}
+
+.submit {
+  margin-top: 16px;
+  display: block;
 }
 
 .block-status_success {
@@ -28,4 +35,33 @@ body {
   /* same as styles of status-bar */
   background-color: rgb(238, 144, 144); /* fallback */
   background-color: rgba(238, 144, 144, 0.95);
+}
+
+.tableDataWrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  white-space: nowrap;
+  
+  height: 300px;
+}
+
+.tableDataWrapper .table {
+  margin-top: 0;
+}
+
+.tableHeaderWrapper {
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+.tableHeaderWrapper .table {
+  margin-top: 0;
+}
+
+.table.table_header .field-text {
+  font-weight: bold;
+}
+
+.table.table_header .row.even-odd-gray {
+  background-color: #d2d2d2;
 }
