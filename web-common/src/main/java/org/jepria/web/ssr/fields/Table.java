@@ -159,7 +159,7 @@ public abstract class Table<T extends ItemData> extends El {
         
       } else {
         
-        fieldEl = new FieldTextLabel(cell.context, HtmlEscaper.escape(field.value));
+        fieldEl = new FieldTextLabel(cell.context, HtmlEscaper.escape(field.value, true));
       }      
       
       
