@@ -65,14 +65,11 @@ public class QueryPageContent extends ArrayList<El>  {
         if (queryResult.isSuccessful()) {
           status.addClass("block-status_success");
           
-          Integer mrcrt = queryResult.getMaxRowCountReachType();
-          if (Integer.valueOf(1).equals(mrcrt) || Integer.valueOf(2).equals(mrcrt)) {
-            status.setInnerHTML("queryResult_success.records_all");
-          } else if (Integer.valueOf(3).equals(mrcrt)) {
-            int mrc = queryResult.getMaxRowCount() != null ? queryResult.getMaxRowCount() : 0;
-            String htmlText = String.format("queryResult_success.records_mrc: %d", mrc);
-            status.setInnerHTML(htmlText);
-          } else { 
+          if (Boolean.TRUE.equals(queryResult.hasMoreResults())) {
+            status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success") + ", has more.");
+          } else if (Boolean.FALSE.equals(queryResult.hasMoreResults())) {
+            status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success") + ", no more.");
+          } else {
             status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success"));
           }
 

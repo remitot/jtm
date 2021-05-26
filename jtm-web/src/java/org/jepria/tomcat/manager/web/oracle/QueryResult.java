@@ -7,13 +7,11 @@ public class QueryResult {
   
   private final List<String> columnNames;
   private final List<List<String>> values;
-  private final Integer maxRowCount;
   /**
-   * 1: maxRowCount not reached and no more rows; 
-   * 2: maxRowCount reached and there are no more rows; 
-   * 3: maxRowCount reached but there are more rows; 
+   * If paging is used, true if there are any more result records behind the last record of this page, 
+   * false if the last record of this page is the last record of the entire result set of the query.   
    */
-  private final Integer maxRowCountReachType;
+  private final Boolean hasMoreResults;
   
   private final Throwable exception;
 
@@ -21,14 +19,13 @@ public class QueryResult {
    * 
    * @param columnNames
    * @param values
-   * @param maxRowCountReachType 
+   * @param hasMoreResults
    */
-  public QueryResult(List<String> columnNames, List<List<String>> values, Integer maxRowCount, Integer maxRowCountReachType) {
+  public QueryResult(List<String> columnNames, List<List<String>> values, boolean hasMoreResults) {
     this.successful = true;
     this.columnNames = columnNames;
     this.values = values;
-    this.maxRowCount = maxRowCount;
-    this.maxRowCountReachType = maxRowCountReachType; 
+    this.hasMoreResults = hasMoreResults;
     this.exception = null;
   }
 
@@ -36,8 +33,7 @@ public class QueryResult {
     this.successful = false;
     this.columnNames = null;
     this.values = null;
-    this.maxRowCount = null;
-    this.maxRowCountReachType = null;
+    this.hasMoreResults = null;
     this.exception = exception;
   }
 
@@ -49,18 +45,14 @@ public class QueryResult {
     return values;
   }
 
-  public Integer getMaxRowCountReachType() {
-    return maxRowCountReachType;
+  public Boolean hasMoreResults() {
+    return hasMoreResults;
   }
-
-  public Integer getMaxRowCount() {
-    return maxRowCount;
-  }
-
+  
   public Throwable getException() {
     return exception;
   }
-  
+
   public boolean isSuccessful() {
     return successful;
   }

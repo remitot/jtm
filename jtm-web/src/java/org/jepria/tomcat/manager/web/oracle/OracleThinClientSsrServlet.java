@@ -324,13 +324,18 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
     
   }
 
+  protected QueryResult executeQuery(String connectionName, String queryText) {
+    return executeQuery(connectionName, queryText, 0, 25);
+  }
   /**
    *
    * @param connectionName non null
    * @param queryText non null
+   * @param page from 0
+   * @param pageSize 
    * @return table
    */
-  protected QueryResult executeQuery(String connectionName, String queryText) {
+  protected QueryResult executeQuery(String connectionName, String queryText, int page, int pageSize) {
 
     try {
 
@@ -348,38 +353,47 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
         for (int i = 1; i <= n; i++) {
           columnNames.add(rsmeta.getColumnName(i));
         }
-        
-        int maxRowCountReachType = 1;
-        
-        int maxRowCount = 25;
-        
+
         final List<List<String>> values = new ArrayList<>();
-        while (values.size() < maxRowCount && rs.next()) {
-          List<String> row = new ArrayList<>();
-          for (int i = 1; i <= n; i++) {
-            if (rsmeta.getColumnType(i) == 2005) {
-              row.add("<CLOB>");
-              // TODO CLOB
-            } else if (rsmeta.getColumnType(i) == 2004) {
-              row.add("<BLOB>");
-              // TODO BLOB
-            } else {
-              row.add(rs.getString(i));
+        
+        boolean loop = true;
+        
+        // skip pages before
+        for (int p = 0; p < page && loop; p++) {
+          for (int i = 0; i < pageSize && loop; i++) {
+            if (!rs.next()) {
+              loop = false;
             }
-          }
-          values.add(row);
-          
-          if (values.size() == maxRowCount) {
-            if (rs.next()) {
-              maxRowCountReachType = 3;
-            } else {
-              maxRowCountReachType = 2;
-            }
-            break;
           }
         }
         
-        return new QueryResult(columnNames, values, maxRowCount, maxRowCountReachType);
+        boolean hasMoreResults = false;
+        
+        while (loop) {
+          if (hasMoreResults = rs.next()) {
+            if (values.size() < pageSize) {
+              List<String> row = new ArrayList<>();
+              for (int i = 1; i <= n; i++) {
+                if (rsmeta.getColumnType(i) == 2005) {
+                  row.add("<CLOB>");
+                  // TODO CLOB
+                } else if (rsmeta.getColumnType(i) == 2004) {
+                  row.add("<BLOB>");
+                  // TODO BLOB
+                } else {
+                  row.add(rs.getString(i));
+                }
+              }
+              values.add(row);
+            } else {
+              loop = false;
+            }
+          } else {
+            loop = false;
+          }
+        }
+        
+        return new QueryResult(columnNames, values, hasMoreResults);
       }
 
     } catch (Throwable e) {
