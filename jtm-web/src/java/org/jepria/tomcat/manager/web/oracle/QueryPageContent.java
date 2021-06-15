@@ -66,9 +66,9 @@ public class QueryPageContent extends ArrayList<El>  {
           status.addClass("block-status_success");
           
           if (Boolean.TRUE.equals(queryResult.hasMoreResults())) {
-            status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success") + ", has more.");
+            status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success_hasMore"));
           } else if (Boolean.FALSE.equals(queryResult.hasMoreResults())) {
-            status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success") + ", no more.");
+            status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success_noMore"));
           } else {
             status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success"));
           }
