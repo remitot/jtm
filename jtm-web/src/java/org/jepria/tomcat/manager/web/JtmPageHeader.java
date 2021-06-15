@@ -68,11 +68,11 @@ public class JtmPageHeader extends PageHeader {
       items.add(itemPort);
     }
 
-//    {
-//      El itemOracle = new MenuItem(context, currentMenuItem == CurrentMenuItem.ORACLE, context.getAppContextPath() + "/oracle");
-//      itemOracle.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemOracle"), true);
-//      items.add(itemOracle);
-//    }
+    {
+      El itemOracle = new MenuItem(context, currentMenuItem == CurrentMenuItem.ORACLE, context.getAppContextPath() + "/oracle");
+      itemOracle.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.PageHeader.itemOracle"), true);
+      items.add(itemOracle);
+    }
   
     {
       // add warning if the application is accessed without port
