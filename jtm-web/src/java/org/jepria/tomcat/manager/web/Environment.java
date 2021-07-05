@@ -60,19 +60,11 @@ public interface Environment {
   }
   
   /**
-   * @return new {@link Path} representing the {@code conf} directory
-   * (normally at TOMCAT_HOME/conf). Normally the file is an existing readable directory.
-   */
-  default Path getConfDirectory() {
-    return getHomeDirectory().resolve("conf");
-  }
-
-  /**
    * Normally at TOMCAT_HOME/conf/server.xml.
    * Must fail with some misconfiguration exception if the file could not be found or read, etc.
    */
   default Path getServerXml() {
-    Path path = getConfDirectory().resolve("server.xml");
+    Path path = getHomeDirectory().resolve(getProperty("org.jepria.tomcat.manager.web.jdbc.server_xml_path"));
     if (!Files.isRegularFile(path)) {
       throw new RuntimeException("Misconfiguration exception: could not initialize server.xml file: [" + path + "] is not a file");
     }
@@ -84,7 +76,7 @@ public interface Environment {
    * Must fail with some misconfiguration exception if the file could not be found or read, etc.
    */
   default Path getContextXml() {
-    Path path = getConfDirectory().resolve("context.xml");
+    Path path = getHomeDirectory().resolve(getProperty("org.jepria.tomcat.manager.web.jdbc.context_xml_path"));
     if (!Files.isRegularFile(path)) {
       throw new RuntimeException("Misconfiguration exception: could not initialize context.xml file: [" + path + "] is not a file");
     }
