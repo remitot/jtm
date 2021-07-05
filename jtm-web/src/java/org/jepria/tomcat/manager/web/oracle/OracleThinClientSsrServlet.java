@@ -309,11 +309,18 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
         }
       }
       
-      final String query = HttpDataEncoding.getParameterUtf8(request, "query-text");
+      String query = HttpDataEncoding.getParameterUtf8(request, "query-text");
       
       request.getSession().setAttribute(QUERY_SESSION_ATTR_KEY, query);
 
       if (query != null && !"".equals(query)) {
+        
+        // trim trailing ' ; '
+        Matcher m = Pattern.compile("(.+)\\s*;\\s*").matcher(query);  
+        if (m.matches()) {
+          query = m.group(1);
+        }
+        
         QueryResult queryResult = executeQuery(connectionName, query);
         request.getSession().setAttribute(QUERY_EXEC_STATUS_SESSION_ATTR_KEY, true);
         request.getSession().setAttribute(QUERY_RESULT_SESSION_ATTR_KEY, queryResult);
