@@ -10,8 +10,8 @@ import org.jepria.tomcat.manager.web.JtmPageHeader.CurrentMenuItem;
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus;
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus.Code;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.HttpDataEncoding;
-import org.jepria.web.data.ItemModRequestDto;
 import org.jepria.web.ssr.*;
 
 import javax.servlet.ServletException;

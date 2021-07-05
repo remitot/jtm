@@ -46,8 +46,8 @@ public class PortApi {
     Integer.parseInt(numberStr);
     
     PortDto port = new PortDto();
-    port.put("type", type);
-    port.put("number", numberStr);
+    port.setType(type);
+    port.setNumber(numberStr);
     
     return port;
   }

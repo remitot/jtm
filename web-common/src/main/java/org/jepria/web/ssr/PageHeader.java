@@ -31,9 +31,6 @@ public class PageHeader extends El {
    */
   private El sourceInfoContainer;
   
-  /**
-   * @param text
-   */
   public PageHeader(Context context) {
     super("div", context);
     

@@ -1,19 +1,12 @@
 package org.jepria.tomcat.manager.web.log;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
-
 import org.jepria.tomcat.manager.web.log.dto.LogDto;
-import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.*;
+import org.jepria.web.ssr.fields.Table;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class LogPageContent implements Iterable<El> {
 
@@ -43,16 +36,33 @@ public class LogPageContent implements Iterable<El> {
     final List<El> elements = new ArrayList<>();
     
     // table html
-    final LogTable table = new LogTable(context);
+    final List<Table.CellHeader> header = createTableHeader();
+    final Table<Table.Row> table = new Table<>(context, header);
+    table.addStyle("css/log/log.css");
     
-    final List<LogTable.Record> items = logs.stream()
-        .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
+    final List<Table.Row> rows = logs.stream()
+        .map(dto -> dtoToRow(dto)).collect(Collectors.toList());
     
-    table.load(items, null, null);
+    table.load(rows, null, null);
     
     elements.add(table);
 
     this.elements = Collections.unmodifiableList(elements);
+  }
+  
+  protected List<Table.CellHeader> createTableHeader() {
+    final List<Table.CellHeader> header = new ArrayList<>();
+    
+    Text text = context.getText();
+
+    header.add(Table.Cells.header(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_name"), "name"));
+    header.add(Table.Cells.header(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_lastmod"), "lastmod"));
+    header.add(Table.Cells.header(text.getString("org.jepria.tomcat.manager.web.log.Table.header.column_size"), "size"));
+    header.add(Table.Cells.header(null, "download"));
+    header.add(Table.Cells.header(null, "open"));
+    header.add(Table.Cells.header(null, "monitor"));
+
+    return header;
   }
   
   /**
@@ -60,32 +70,131 @@ public class LogPageContent implements Iterable<El> {
    */
   public static final long FILE_SIZE_THRESHOLD_LARGE = 10485760; // 10 MB
   
-  protected LogTable.Record dtoToItem(LogDto dto) {
-    final LogTable.Record item = new LogTable.Record();
+  protected Table.Row dtoToRow(LogDto dto) {
+    final Table.Row row = new Table.Row();
     
-    item.name().value = dto.getName();
+    Text text = context.getText();
     
-    if (dto.getLastModified() != null) {
-      item.lastmod().value = getItemLastModifiedValue(dto.getLastModified());
+    {
+      String value = dto.getName();
+      Table.Cell cell = Table.Cells.withStaticValue(value, "name");
+      row.add(cell);
     }
     
+    {
+      final Node node;
+      {
+        if (dto.getLastModified() != null) {
+          ItemLastModifiedInfo itemLastModifiedInfo = getItemLastModifiedInfo(dto.getLastModified());
+          Node nodeDate = Node.fromHtml(HtmlEscaper.escape(itemLastModifiedInfo.lastModifiedDateTime, true));
+          
+          if (itemLastModifiedInfo.lastModifiedAgoVerb != null) {
+            Node nodeComma = Node.fromHtml(", ");
+            Node nodeHint = new El("b", context).setInnerHTML(itemLastModifiedInfo.lastModifiedAgoVerb);
+            node = Node.fromNodes(nodeDate, nodeComma, nodeHint);
+          } else {
+            node = nodeDate;
+          }
+        } else {
+          node = null;
+        }
+      }
+      Table.Cell cell = Table.Cells.withNode(node, "lastmod");
+      row.add(cell);
+    }
+
     ItemSizeInfo itemSizeInfo = getItemSizeInfo(dto);
-    item.largeFile = itemSizeInfo.largeFile;
-    item.size_().value = itemSizeInfo.sizeFieldValue;
-    item.sizeHint = itemSizeInfo.sizeHint;
+    String largeFileHintTitle = null;
+    if (itemSizeInfo.largeFile) {
+      largeFileHintTitle = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + itemSizeInfo.sizeHint + ")";
+    }
     
-    item.download().value = "api/log?filename=" + dto.getName();
+    {
+      final Node node;
+      {
+        String valueEsc = HtmlEscaper.escape(itemSizeInfo.sizeFieldValue, true);
+        if (itemSizeInfo.largeFile) {
+          node = new El("b", context)
+              .addClass("b_large-file")
+              .setAttribute("title", largeFileHintTitle)
+              .setInnerHTML(valueEsc);
+        } else {
+          node = Node.fromHtml(valueEsc);
+        }
+      }
+      
+      Table.Cell cell = Table.Cells.withNode(node, "size");
+      row.add(cell);
+    }
+
+    {
+      final Node node;
+      {
+        El a = new El("a", context)
+            .setAttribute("href", context.getAppContextPath() + "/api/log?filename=" + dto.getName()) // TODO escape or not?
+            .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_download.title"))
+            .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_download.text"));
+  
+        if (itemSizeInfo.largeFile) {
+          El img = new El("img", context)
+              .addClass("field-text__hint_large-file")
+              .setAttribute("src", context.getAppContextPath() + "/img/log/hint.png")
+              .setAttribute("title", largeFileHintTitle);
+          node = Node.fromNodes(a, img);
+        } else {
+          node = a;
+        }
+      }
+
+      Table.Cell cell = Table.Cells.withNode(node, "download");
+      row.add(cell);
+    }
+
+
+    {
+      final Node node;
+      {
+        El a = new El("a", context)
+            .setAttribute("href", context.getAppContextPath() + "/api/log?filename=" + dto.getName() + "&inline") // TODO escape or not?
+            .setAttribute("target", "_blank")
+            .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_open.title"))
+            .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_open.text"));
+
+        if (itemSizeInfo.largeFile) {
+          String hintTitle = text.getString("org.jepria.tomcat.manager.web.log.item.largeFile") + " (" + itemSizeInfo.sizeHint + ")";
+          El img = new El("img", context).addClass("field-text__hint_large-file")
+              .setAttribute("src", context.getAppContextPath() + "/img/log/hint.png")
+              .setAttribute("title", hintTitle);
+          node = Node.fromNodes(a, img);
+        } else {
+          node = a;
+        }
+      }
+
+      Table.Cell cell = Table.Cells.withNode(node, "open");
+      row.add(cell);
+    }
+
+    {
+      final Node node;
+      {
+        node = new El("a", context)
+            .setAttribute("href", context.getAppContextPath() + "/log-monitor?filename=" + dto.getName()) // TODO escape or not?
+            .setAttribute("target", "_blank")
+            .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.log.item_monitor.title"))
+            .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.log.item_monitor.text"));
+      }
+
+      Table.Cell cell = Table.Cells.withNode(node, "monitor");
+      row.add(cell);
+    }
     
-    item.open().value = "api/log?filename=" + dto.getName() + "&inline";
-    
-    item.monitor().value = "log-monitor?filename=" + dto.getName();
-    
-    return item;
+    return row;
   }
   
-  protected class ItemSizeInfo {
+  protected static class ItemSizeInfo {
     /**
-     * Whether or not the fiel is large
+     * Whether or not the field is large
      */
     public boolean largeFile;
     /**
@@ -144,8 +253,13 @@ public class LogPageContent implements Iterable<El> {
     
     return ret;
   }
+
+  protected static class ItemLastModifiedInfo {
+    public String lastModifiedDateTime;
+    public String lastModifiedAgoVerb;
+  }
   
-  protected String getItemLastModifiedValue(long lastModifiedTimestamp) {
+  protected ItemLastModifiedInfo getItemLastModifiedInfo(long lastModifiedTimestamp) {
     
     Text text = context.getText();
     
@@ -215,8 +329,12 @@ public class LogPageContent implements Iterable<El> {
         
       }
     }
+
+    ItemLastModifiedInfo info = new ItemLastModifiedInfo();
+    info.lastModifiedDateTime = lastModifiedDateTime;
+    info.lastModifiedAgoVerb = lastModifiedAgoVerb;
     
-    return lastModifiedDateTime + (lastModifiedAgoVerb == null ? "" : (", <b>" + lastModifiedAgoVerb + "</b>"));
+    return info;
   }
   
   private static class DateTimeFormat {

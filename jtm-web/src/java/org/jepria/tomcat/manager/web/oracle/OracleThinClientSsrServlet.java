@@ -74,7 +74,7 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
     if (m.matches()) {
       // oracle root
       final List<ConnectionDto> connections = new JdbcApi().list(env)
-          .stream().filter(connection -> "true".equals(connection.get("active"))).collect(Collectors.toList());
+          .stream().filter(connection -> "true".equals(connection.getActive())).collect(Collectors.toList());
       return new OracleRootPageContent(context, connections);
     }
 
@@ -144,7 +144,7 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
         add(new El("div", context).setInnerHTML("No datasources available."));
       } else {
         for (ConnectionDto conn: connections) {
-          String datasourceName = conn.get("name");
+          String datasourceName = conn.getName();
           add(new El("div", context).setInnerHTML("<a href=\"" + context.getAppContextPath() + context.getServletContextPath() + "/" + datasourceName + "\">" + datasourceName + "</a>", false));
         }
       }

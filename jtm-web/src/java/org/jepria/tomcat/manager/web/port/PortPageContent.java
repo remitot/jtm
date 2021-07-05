@@ -1,19 +1,22 @@
 package org.jepria.tomcat.manager.web.port;
 
+import org.jepria.tomcat.manager.web.port.dto.PortDto;
+import org.jepria.web.ssr.Context;
+import org.jepria.web.ssr.El;
+import org.jepria.web.ssr.Text;
+import org.jepria.web.ssr.fields.Table;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jepria.tomcat.manager.web.port.dto.PortDto;
-import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.fields.Field;
-
 public class PortPageContent implements Iterable<El> {
 
   private final Iterable<El> elements;
+  
+  protected final Context context;
   
   @Override
   public Iterator<El> iterator() {
@@ -21,31 +24,52 @@ public class PortPageContent implements Iterable<El> {
   }
   
   public PortPageContent(Context context, List<PortDto> ports) {
+    this.context = context;
     
     final List<El> elements = new ArrayList<>();
     
     // table html
-    final PortTable table = new PortTable(context);
+    final List<Table.CellHeader> header = createTableHeader();
+    final Table<Table.Row> table = new Table<>(context, header);
+    table.addStyle("css/port/port.css");
     
-    final List<PortTable.Record> items = ports.stream()
-        .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
+    final List<Table.Row> rows = ports.stream()
+        .map(dto -> dtoToRow(dto)).collect(Collectors.toList());
     
-    table.load(items, null, null);
+    table.load(rows, null, null);
     
     elements.add(table);
 
     this.elements = Collections.unmodifiableList(elements);
   }
+
+  protected List<Table.CellHeader> createTableHeader() {
+    final List<Table.CellHeader> header = new ArrayList<>();
+
+    Text text = context.getText();
+
+    header.add(Table.Cells.header(text.getString("org.jepria.tomcat.manager.web.port.Table.header.column_type"), "type"));
+    header.add(Table.Cells.header(text.getString("org.jepria.tomcat.manager.web.port.Table.header.column_port"), "port"));
+
+    return header;
+  }
   
-  protected PortTable.Record dtoToItem(PortDto dto) {
-    PortTable.Record item = new PortTable.Record();
-    for (String name: dto.keySet()) {
-      Field field = item.get(name);
-      if (field != null) {
-        field.value = field.valueOriginal = dto.get(name);
-      }
+  protected Table.Row dtoToRow(PortDto dto) {
+    Table.Row row = new Table.Row();
+
+    {
+      String value = dto.getType();
+      Table.Cell cell = Table.Cells.withStaticValue(value, "type");
+      row.add(cell);
     }
-    return item;
+
+    {
+      String value = dto.getNumber();
+      Table.Cell cell = Table.Cells.withStaticValue(value, "number");
+      row.add(cell);
+    }
+    
+    return row;
   }
   
 }

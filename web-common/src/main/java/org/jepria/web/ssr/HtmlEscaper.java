@@ -58,6 +58,7 @@ public class HtmlEscaper {
       return "&nbsp;";
     }
     
+    
     final StringBuilder sb = new StringBuilder();
     try {
       escape(unescaped, sb, escapeSpaces);

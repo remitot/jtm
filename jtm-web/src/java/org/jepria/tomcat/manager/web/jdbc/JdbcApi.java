@@ -1,18 +1,13 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.jepria.tomcat.manager.core.jdbc.Connection;
 import org.jepria.tomcat.manager.core.jdbc.ResourceInitialParams;
 import org.jepria.tomcat.manager.core.jdbc.TomcatConfJdbc;
 import org.jepria.tomcat.manager.web.Environment;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class JdbcApi {
   
@@ -39,16 +34,16 @@ public class JdbcApi {
         .sorted(connectionSorter()).collect(Collectors.toList());
   }
   
-  protected Comparator<Map<String, String>> connectionSorter() {
-    return new Comparator<Map<String, String>>() {
+  protected Comparator<ConnectionDto> connectionSorter() {
+    return new Comparator<ConnectionDto>() {
       @Override
-      public int compare(Map<String, String> o1, Map<String, String> o2) {
-        int nameCmp = o1.get("name").toLowerCase().compareTo(o2.get("name").toLowerCase());
+      public int compare(ConnectionDto o1, ConnectionDto o2) {
+        int nameCmp = o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
         if (nameCmp == 0) {
           // the active is the first
-          if ("true".equals(o1.get("active")) && "false".equals(o2.get("active"))) {
+          if ("true".equals(o1.getActive()) && "false".equals(o2.getActive())) {
             return -1;
-          } else if ("true".equals(o2.get("active")) && "false".equals(o1.get("active"))) {
+          } else if ("true".equals(o2.getActive()) && "false".equals(o1.getActive())) {
             return 1;
           } else {
             return 0;
@@ -66,27 +61,15 @@ public class JdbcApi {
     ConnectionDto dto = new ConnectionDto();
     
     dto.setDataModifiable(connection.isDataModifiable());
-    dto.put("active", Boolean.FALSE.equals(connection.isActive()) ? "false" : "true");
-    dto.put("id", id);
-    dto.put("name", connection.getName());
-    dto.put("server", connection.getServer());
-    dto.put("db", connection.getDb());
-    dto.put("user", connection.getUser());
-    dto.put("password", connection.getPassword());
+    dto.setActive(Boolean.FALSE.equals(connection.isActive()) ? "false" : "true");
+    dto.setId(id);
+    dto.setName(connection.getName());
+    dto.setServer(connection.getServer());
+    dto.setDb(connection.getDb());
+    dto.setUser(connection.getUser());
+    dto.setPassword(connection.getPassword());
     
     return dto;
-  }
-  
-  public static class ModResponse {
-    /**
-     * {@code Map<modRequestId, modStatus>}
-     */
-    public Map<String, ItemModStatus> itemModStatusMap;
-    
-    /**
-     * all modRequests succeeded
-     */
-    public boolean allModSuccess;
   }
   
   /**
@@ -94,7 +77,7 @@ public class JdbcApi {
    */
   public static class ItemModStatus {
     
-    public static enum Code {
+    public enum Code {
       /**
        * Modification succeeded
        */
@@ -108,7 +91,7 @@ public class JdbcApi {
     public final Code code;
     
     /**
-     * Only in case of {@link #code} == {@link InvalidFieldDataCode#INVALID_FIELD_DATA}: invalid field names mapped to error codes
+     * Only in case of {@link #code} == {@link Code#INVALID_FIELD_DATA}: invalid field names mapped to error codes
      */
     public final Map<String, InvalidFieldDataCode> invalidFieldDataMap;
     
@@ -138,16 +121,23 @@ public class JdbcApi {
       return new ItemModStatus(Code.INVALID_FIELD_DATA, invalidFieldDataMap);
     }
   }
-  
+
+  /**
+   * 
+   * @param id
+   * @param updatedFields contains updated field values only; null for non-updated fields; "" for deleted values
+   * @param tomcatConf
+   * @return
+   */
   public ItemModStatus updateConnection(String id,
-      Map<String, String> fields, TomcatConfJdbc tomcatConf) {
+      ConnectionDto updatedFields, TomcatConfJdbc tomcatConf) {
     
     Objects.requireNonNull(id, "id must not be null");
     
     final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
     
     // validate empty but non-null fields
-    List<String> emptyFields = validateEmptyFieldsForUpdate(fields);
+    List<String> emptyFields = validateEmptyFieldsForUpdate(updatedFields);
     if (!emptyFields.isEmpty()) {
       for (String fieldName: emptyFields) {
         invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
@@ -155,9 +145,9 @@ public class JdbcApi {
     }
     
     // validate name
-    final String name = fields.get("name");
+    final String name = updatedFields.getName();
     if (name != null) {
-      switch (tomcatConf.validateNewResourceName(fields.get("name"))) {
+      switch (tomcatConf.validateNewResourceName(updatedFields.getName())) {
       case DUPLICATE_NAME: {
         // putIfAbsent: do not overwrite previous invalid state
         invalidFieldDataMap.putIfAbsent("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
@@ -185,19 +175,25 @@ public class JdbcApi {
       throw new IllegalStateException("No resource found by such id=[" + id + "]");
     }
     
-    if (!validateDataModifiable(fields, connection)) {
+    if (!validateDataModifiable(updatedFields, connection)) {
       throw new IllegalStateException("Cannot modify the unmodifiable fields of the resource by id=[" + id + "]");
     }
     
-    return updateFields(fields, connection);
+    return updateFields(updatedFields, connection);
   }
-  
-  protected boolean validateDataModifiable(Map<String, String> fields, Connection target) {
+
+  /**
+   * 
+   * @param updatedFields contains updated field values only; null for non-updated fields; "" for deleted values
+   * @param target
+   * @return
+   */
+  protected boolean validateDataModifiable(ConnectionDto updatedFields, Connection target) {
     // validate illegal action due to dataModifiable field
     if (!target.isDataModifiable() && (
-        fields.get("active") != null || fields.get("server") != null 
-        || fields.get("db") != null || fields.get("user") != null
-        || fields.get("password") != null)) {
+        updatedFields.getActive() != null || updatedFields.getServer() != null 
+        || updatedFields.getDb() != null || updatedFields.getUser() != null
+        || updatedFields.getPassword() != null)) {
       return false;
     }
     return true;
@@ -206,29 +202,29 @@ public class JdbcApi {
   
   /**
    * Updates target's fields with source's values
-   * @param fields
+   * @param updatedFields contains updated field values only; null for non-updated fields; "" for deleted values
    * @param target non null
    * @return
    */
-  protected ItemModStatus updateFields(Map<String, String> fields, Connection target) {
+  protected ItemModStatus updateFields(ConnectionDto updatedFields, Connection target) {
     
-    if (fields.get("active") != null) {
-      target.setActive(!"false".equals(fields.get("active")));
+    if (updatedFields.getActive() != null) {
+      target.setActive(!"false".equals(updatedFields.getActive()));
     }
-    if (fields.get("db") != null) {
-      target.setDb(fields.get("db"));
+    if (updatedFields.getDb() != null) {
+      target.setDb(updatedFields.getDb());
     }
-    if (fields.get("name") != null) {
-      target.setName(fields.get("name"));
+    if (updatedFields.getName() != null) {
+      target.setName(updatedFields.getName());
     }
-    if (fields.get("password") != null) {
-      target.setPassword(fields.get("password"));
+    if (updatedFields.getPassword() != null) {
+      target.setPassword(updatedFields.getPassword());
     }
-    if (fields.get("server") != null) {
-      target.setServer(fields.get("server"));
+    if (updatedFields.getServer() != null) {
+      target.setServer(updatedFields.getServer());
     }
-    if (fields.get("user") != null) {
-      target.setUser(fields.get("user"));
+    if (updatedFields.getUser() != null) {
+      target.setUser(updatedFields.getUser());
     }
     
     return ItemModStatus.success();
@@ -259,15 +255,22 @@ public class JdbcApi {
 
     return ItemModStatus.success();
   }
-  
+
+  /**
+   * 
+   * @param createdFields contains created field values only; null for fields which are not about to be created
+   * @param tomcatConf
+   * @param initialParams
+   * @return
+   */
   public ItemModStatus createConnection(
-      Map<String, String> fields, TomcatConfJdbc tomcatConf,
+      ConnectionDto createdFields, TomcatConfJdbc tomcatConf,
       ResourceInitialParams initialParams) {
 
     final Map<String, ItemModStatus.InvalidFieldDataCode> invalidFieldDataMap = new HashMap<>();
     
     // validate mandatory empty fields
-    List<String> emptyMandatoryFields = validateEmptyFieldForCreate(fields);
+    List<String> emptyMandatoryFields = validateEmptyFieldForCreate(createdFields);
     if (!emptyMandatoryFields.isEmpty()) {
       for (String fieldName: emptyMandatoryFields) {
         invalidFieldDataMap.put(fieldName, ItemModStatus.InvalidFieldDataCode.MANDATORY_EMPTY);
@@ -276,7 +279,7 @@ public class JdbcApi {
     
         
     // validate name
-    switch(tomcatConf.validateNewResourceName(fields.get("name"))) {
+    switch(tomcatConf.validateNewResourceName(createdFields.getName())) {
     case DUPLICATE_NAME: {
       // putIfAbsent: do not overwrite previous invalid state
       invalidFieldDataMap.putIfAbsent("name", ItemModStatus.InvalidFieldDataCode.DUPLICATE_NAME);
@@ -294,42 +297,42 @@ public class JdbcApi {
       return ItemModStatus.errInvalidFieldData(invalidFieldDataMap);
     }
     
-    final Connection newConnection = tomcatConf.create(fields.get("name"), initialParams);
+    final Connection newConnection = tomcatConf.create(createdFields.getName(), initialParams);
 
     
-    if (!validateDataModifiable(fields, newConnection)) {
+    if (!validateDataModifiable(createdFields, newConnection)) {
       throw new IllegalStateException("Cannot set values for unmodifiable fields of the new resource");
     }
     
-    return updateFields(fields, newConnection);
+    return updateFields(createdFields, newConnection);
   }
   
   /**
    * Validate empty fields for create
-   * @param dto
+   * @param createdFields contains created field values only; null for fields which are not about to be created
    * @return list of invalidly empty or missing mandatory fields, or else empty list, not null
    */
-  protected List<String> validateEmptyFieldForCreate(Map<String, String> fields) {
+  protected List<String> validateEmptyFieldForCreate(ConnectionDto createdFields) {
     List<String> emptyFields = new ArrayList<>();
 
     // the fields must be neither null, nor empty
-    String db = fields.get("db");
+    String db = createdFields.getDb();
     if (db == null || "".equals(db)) {
       emptyFields.add("db");
     }
-    String name = fields.get("name"); 
+    String name = createdFields.getName(); 
     if (name == null || "".equals(name)) {
       emptyFields.add("name");
     }
-    String password = fields.get("password");
+    String password = createdFields.getPassword();
     if (password == null || "".equals(password)) {
       emptyFields.add("password");
     }
-    String server = fields.get("server");
+    String server = createdFields.getServer();
     if (server == null || "".equals(server)) {
       emptyFields.add("server");
     }
-    String user = fields.get("user");
+    String user = createdFields.getUser();
     if (user == null || "".equals(user)) {
       emptyFields.add("user");
     }
@@ -339,26 +342,26 @@ public class JdbcApi {
   
   /**
    * Validate empty fields for update
-   * @param fields
+   * @param updatedFields contains updated field values only; null for non-updated fields; "" for deleted values
    * @return list of invalidly empty fields, or else empty list, not null
    */
-  protected List<String> validateEmptyFieldsForUpdate(Map<String, String> fields) {
+  protected List<String> validateEmptyFieldsForUpdate(ConnectionDto updatedFields) {
     List<String> emptyFields = new ArrayList<>();
 
     // the fields may be null, but if not null then not empty
-    if ("".equals(fields.get("db"))) {
+    if ("".equals(updatedFields.getDb())) {
       emptyFields.add("db");
     }
-    if ("".equals(fields.get("name"))) {
+    if ("".equals(updatedFields.getName())) {
       emptyFields.add("name");
     }
-    if ("".equals(fields.get("password"))) {
+    if ("".equals(updatedFields.getPassword())) {
       emptyFields.add("password");
     }
-    if ("".equals(fields.get("server"))) {
+    if ("".equals(updatedFields.getServer())) {
       emptyFields.add("server");
     }
-    if ("".equals(fields.get("user"))) {
+    if ("".equals(updatedFields.getUser())) {
       emptyFields.add("user");
     }
     

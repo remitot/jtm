@@ -1,16 +1,12 @@
 package org.jepria.tomcat.manager.web.oracle;
 
-import org.jepria.web.ssr.Context;
-import org.jepria.web.ssr.El;
-import org.jepria.web.ssr.HasScripts;
-import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.fields.Field;
-import org.jepria.web.ssr.fields.ItemData;
+import org.jepria.web.ssr.*;
 import org.jepria.web.ssr.fields.Table;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,7 +60,7 @@ public class QueryPageContent extends ArrayList<El>  {
             .addClass("block-status");
         if (queryResult.isSuccessful()) {
           status.addClass("block-status_success");
-          
+
           if (Boolean.TRUE.equals(queryResult.hasMoreResults())) {
             status.setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryResult_success_hasMore"));
           } else if (Boolean.FALSE.equals(queryResult.hasMoreResults())) {
@@ -83,25 +79,25 @@ public class QueryPageContent extends ArrayList<El>  {
       { // query results
         if (!queryResult.isSuccessful()) {
           Throwable e = queryResult.getException();
-          
+
           if (e == null) {
             El unknownExceptionEl = new El("div", context)
                 .addClass("block")
                 .setInnerHTML("<i>Unknown exception</i>", false);
             add(unknownExceptionEl);
-            
+
           } else {
             // print exception to string
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             queryResult.getException().printStackTrace(new PrintStream(baos));
             String s = baos.toString();
-            
+
             El exceptionStackTraceEl = new El("pre", context)
                 .addClass("block")
                 .setInnerHTML(s);
             add(exceptionStackTraceEl);
           }
-          
+
         } else {
           // table html
 
@@ -115,33 +111,38 @@ public class QueryPageContent extends ArrayList<El>  {
               }
             }
           }
+          
+          // calculate width for each column across header and all data rows
           List<String> columnWidths = calculateColumnWidths(columnHeaders, values);
-          
+
           final El tableWrapper = new El("div", context).addClass("block");
-          
-          final QueryResultTable tableHeader = new QueryResultTable(context, columnWidths);
-          tableHeader.addClass("table_header");
-          final List<QueryResultTable.Record> itemsHeader = new ArrayList<>();
-          itemsHeader.add(rowToItem(columnHeaders));
-          tableHeader.load(itemsHeader, null, null);
 
-          El tableHeaderWrapper = new El("div", context).addClass("tableHeaderWrapper");
-          tableHeaderWrapper.appendChild(tableHeader);
-          tableWrapper.appendChild(tableHeaderWrapper);
-          
-          if (values != null && values.size() > 0) {
-            final QueryResultTable tableData = new QueryResultTable(context, columnWidths);
-            tableData.addClass("table_data");
-            final List<QueryResultTable.Record> items = values.stream()
-                .map(row -> rowToItem(row)).collect(Collectors.toList());
-            tableData.load(items, null, null);
+          { // two separate tables: first for the column headers 
+            final QueryResultTable tableHeader = new QueryResultTable(context, columnWidths);
+            tableHeader.addClass("table_header");
+            final List<Table.Row> rows = Collections.singletonList(dbrowToRow(columnHeaders));
+            tableHeader.load(rows, null, null);
 
-            El tableDataWrapper = new El("div", context).addClass("tableDataWrapper");
-            tableDataWrapper.setAttribute("onscroll", "onTableDataWrapperScroll();").addScript(new HasScripts.Script("js/oracle/query.js"));
-            tableDataWrapper.appendChild(tableData);
-            tableWrapper.appendChild(tableDataWrapper);
+            El tableHeaderWrapper = new El("div", context).addClass("tableHeaderWrapper");
+            tableHeaderWrapper.appendChild(tableHeader);
+            tableWrapper.appendChild(tableHeaderWrapper);
           }
-          
+
+          { // two separate tables: second for the data rows
+            if (values != null && values.size() > 0) {
+              final QueryResultTable tableData = new QueryResultTable(context, columnWidths);
+              tableData.addClass("table_data");
+              final List<Table.Row> rows = values.stream()
+                  .map(row -> dbrowToRow(row)).collect(Collectors.toList());
+              tableData.load(rows, null, null);
+
+              El tableDataWrapper = new El("div", context).addClass("tableDataWrapper");
+              tableDataWrapper.setAttribute("onscroll", "onTableDataWrapperScroll();").addScript(new HasScripts.Script("js/oracle/query.js"));
+              tableDataWrapper.appendChild(tableData);
+              tableWrapper.appendChild(tableDataWrapper);
+            }
+          }
+
           add(tableWrapper);
         }
       }
@@ -152,14 +153,8 @@ public class QueryPageContent extends ArrayList<El>  {
     }
   }
   
-  protected static class QueryResultTable extends Table<QueryResultTable.Record> {
+  protected static class QueryResultTable extends Table<Table.Row> {
 
-    public static class Record extends ItemData {
-      private static final long serialVersionUID = 1L;
-      public Record() {
-      }
-    }
-    
     protected final List<String> columnWidthValues;
 
     /**
@@ -168,57 +163,49 @@ public class QueryPageContent extends ArrayList<El>  {
      * @param columnWidthValues css values of the {@code width} attributes in pixels, e.g. '100' or '123.4'
      */
     public QueryResultTable(Context context, List<String> columnWidthValues) {
-      super(context);
+      super(context, null);
       this.columnWidthValues = columnWidthValues;
     }
 
     @Override
-    protected El createHeader() {
-      // no header
-      return null;
-    }
-
-    @Override
-    public El createRow(QueryResultTable.Record item, TabIndex tabIndex) {
-      El row = new El("div", context);
-      row.classList.add("row");
-
-      El cell, div;
-
-      div = new El("div", row.context);// empty cell
-      div.classList.add("flexColumns");
-      div.classList.add("column-left");
-
-      for (int i = 0; i < item.size(); i++) {
-        cell = createCell(div, "column-dynamic");
-        
-        { // add dynamic width style value
-          if (cell.attributes.containsKey("style")) {
-            throw new IllegalStateException("Cannot set own 'style' attribute because the element already has it");
+    protected El createRow(Row row, TabIndex tabIndex) {
+      El rowEl = super.createRow(row, tabIndex);
+      
+      // apply dynamic column widths to the cells
+      if (rowEl.childs != null) {
+        if (rowEl.childs.size() > 0) {
+          Node divNode = rowEl.childs.get(0);
+          if (divNode instanceof El) {
+            El divEl = (El) divNode;
+            if (divEl.childs != null) {
+              for (int i = 0; i < divEl.childs.size(); i++) {
+                Node cellNode = divEl.childs.get(i);
+                if (cellNode instanceof El) {
+                  El cellEl = (El) cellNode;
+                  
+                  if (cellEl.attributes.containsKey("style")) {
+                    throw new IllegalStateException("Cannot set own 'style' attribute because the element already has it");
+                  }
+                  cellEl.setAttribute("style", "width: " + columnWidthValues.get(i) + "px;");
+                } else {
+                  throw new IllegalStateException();
+                }
+              }
+            } else {
+              throw new IllegalStateException();
+            }
+          } else {
+            throw new IllegalStateException("" + divNode);
           }
-          cell.setAttribute("style", "width: " + columnWidthValues.get(i) + "px;");
+        } else {
+          throw new IllegalStateException();
         }
-        
-        cell.classList.add("cell-field");
-        addField(cell, item.get("index_" + i), null);
+      } else {
+        throw new IllegalStateException();
       }
-
-      row.appendChild(div);
-
-      return row;
+      
+      return rowEl;
     }
-
-    @Override
-    public El createRowCreated(QueryResultTable.Record item, TabIndex tabIndex) {
-      // the table is unmodifiable and must not allow creating rows
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected boolean isEditable() {
-      return false;
-    }
-    
   }
 
   /**
@@ -234,9 +221,9 @@ public class QueryPageContent extends ArrayList<El>  {
         maxRowLen = value.size();
       }
     }
-    
+
     final List<Integer> contentMaxLengths = new ArrayList<>();
-    
+
     for (int i = 0; i < maxRowLen; i++) {
       int maxChars = 0;
       if (i < headerNames.size()) {
@@ -261,25 +248,22 @@ public class QueryPageContent extends ArrayList<El>  {
       }
       contentMaxLengths.add(maxChars);
     }
-    
+
     List<String> columnWidths = new ArrayList<>();
     for (int maxLen: contentMaxLengths) {
       double cssFontSize = 13.5; // from .field-text css
       columnWidths.add(Integer.toString((int)(maxLen * cssFontSize * 0.6 + 20)));
     }
-    
+
     return columnWidths;
   }
-  
-  protected static QueryResultTable.Record rowToItem(List<String> row) {
-    QueryResultTable.Record item = new QueryResultTable.Record();
-    for (int i = 0; i < row.size(); i++) {
-      String name = "index_" + i;
-      String value = row.get(i);
-      Field field = new Field(name);
-      item.put(name, field);
-      field.value = field.valueOriginal = value;
+
+  protected static Table.Row dbrowToRow(List<String> dbrow) {
+    Table.Row row = new Table.Row();
+    for (int i = 0; i < dbrow.size(); i++) {
+      Table.Cell cell = Table.Cells.withStaticValue(dbrow.get(i),null);
+      row.add(cell);
     }
-    return item;
+    return row;
   }
 }

@@ -32,7 +32,7 @@ public class PortApiServlet extends HttpServlet {
 
       } else {
 
-        response.getWriter().print(port.get("number"));
+        response.getWriter().print(port.getNumber());
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.flushBuffer();
@@ -71,7 +71,7 @@ public class PortApiServlet extends HttpServlet {
 
       } else {
 
-        response.getWriter().print(port.get("number"));
+        response.getWriter().print(port.getNumber());
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.flushBuffer();

@@ -1,23 +1,19 @@
 package org.jepria.tomcat.manager.web.jdbc;
 
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus;
-import org.jepria.tomcat.manager.web.jdbc.JdbcApi.ItemModStatus.Code;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
-import org.jepria.web.data.ItemModRequestDto;
+import org.jepria.tomcat.manager.web.jdbc.dto.ItemModRequestDto;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.ControlButtons;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.Text;
-import org.jepria.web.ssr.fields.Field;
-import org.jepria.web.ssr.fields.Table.TabIndex;
+import org.jepria.web.ssr.fields.Table;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class JdbcPageContent extends ArrayList<El> {
 
-  private static final long serialVersionUID = 1304559345888446859L;
-  
   /**
    * @param context
    * @param connections
@@ -30,94 +26,104 @@ public class JdbcPageContent extends ArrayList<El> {
       Map<String, ItemModStatus> itemModStatuses) {
     
     Text text = context.getText();
-    
+
     // table html
     final JdbcTable table = new JdbcTable(context);
-    
-    final List<JdbcTable.Record> items = connections.stream()
-        .map(dto -> dtoToItem(dto)).collect(Collectors.toList());
-    
-    final List<JdbcTable.Record> itemsCreated = new ArrayList<>();
-    final Set<String> itemsDeleted = new HashSet<>();
-    
-    // obtain created and deleted items, apply modifications
+
+    final List<JdbcTable.JdbcRow> rows = connections.stream()
+        .map(dto -> dtoToRow(dto)).collect(Collectors.toList());
+
+    final List<JdbcTable.JdbcRow> rowsCreated = new ArrayList<>();
+    final Set<JdbcTable.JdbcRow> rowsDeleted = new HashSet<>();
+
+    // obtain created and deleted rows, apply modifications
     if (itemModRequests != null) {
       for (ItemModRequestDto modRequest: itemModRequests) {
         final String action = modRequest.getAction();
-        
+
         if ("create".equals(action)) {
-          JdbcTable.Record item = dtoToItemCreated(modRequest.getData());
-          item.setId(modRequest.getId());
-          itemsCreated.add(item);
-          
+          JdbcTable.JdbcRow row = dtoToRowCreated(modRequest.getData());
+          row.id = modRequest.getId();
+          rowsCreated.add(row);
+
         } else if ("update".equals(action)) {
-          
+
           // merge modifications into the existing item
           final String id = modRequest.getId();
-          JdbcTable.Record target = items.stream().filter(
-              item0 -> item0.getId().equals(id)).findAny().orElse(null);
-          if (target == null) {
+          JdbcTable.JdbcRow targetRow = rows.stream().filter(
+              item0 -> item0.id.equals(id)).findAny().orElse(null);
+          if (targetRow == null) {
             // TODO cannot even treat as a new (because it can be filled only partially)
             throw new IllegalStateException("The item requested to modification not found: " + id);
           }
-          Map<String, String> source = modRequest.getData();
-          for (String sourceName: source.keySet()) {
-            Field targetField = target.get(sourceName);
-            if (targetField != null) {
-              targetField.value = source.get(sourceName);
-            }
-          }
-          
+          ConnectionDto sourceDto = modRequest.getData();
+          mergeValues(sourceDto, targetRow);
+
         } else if ("delete".equals(action)) {
-          itemsDeleted.add(modRequest.getId());
+          JdbcTable.JdbcRow rowDeleted = rows.stream().filter(row -> row.id.equals(modRequest.getId())).findFirst().orElse(null);
+          if (rowDeleted == null) {
+            throw new IllegalStateException("No row found by deleted ID");
+          } else {
+            rowsDeleted.add(rowDeleted);
+          }
         }
       }
     }
-      
+
     // process invalid field data
     if (itemModStatuses != null) {
       for (Map.Entry<String, ItemModStatus> modRequestIdAndModStatus: itemModStatuses.entrySet()) {
         String modRequestId = modRequestIdAndModStatus.getKey();
-        
-        if (!itemsDeleted.contains(modRequestId)) { //ignore deleted items
-          
+
+        if (!rowsDeleted.contains(modRequestId)) { //ignore deleted items
+
           final ItemModStatus modStatus = modRequestIdAndModStatus.getValue();
-          
-          if (modStatus.code == Code.INVALID_FIELD_DATA) {
+
+          if (modStatus.code == ItemModStatus.Code.INVALID_FIELD_DATA) {
             if (modStatus.invalidFieldDataMap != null) {
               for (Map.Entry<String, ItemModStatus.InvalidFieldDataCode> idAndInvalidFieldDataCode:
                   modStatus.invalidFieldDataMap.entrySet()) {
 
-                JdbcTable.Record item;
+                JdbcTable.JdbcRow row;
                 {
                   // lookup item
-                  item = items.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                  row = rows.stream().filter(item0 -> item0.id.equals(modRequestId))
                           .findAny().orElse(null);
-                  if (item == null) {
+                  if (row == null) {
                     // lookup items created
-                    item = itemsCreated.stream().filter(item0 -> item0.getId().equals(modRequestId))
+                    row = rowsCreated.stream().filter(item0 -> item0.id.equals(modRequestId))
                             .findAny().orElse(null);
                   }
-                  if (item == null) {
+                  if (row == null) {
                     // TODO
                     throw new IllegalStateException("No target item found by modRequestId [" + modRequestId + "]");
                   }
                 }
 
-                Field field = item.get(idAndInvalidFieldDataCode.getKey());
-                if (field != null) {
-                  field.invalid = true;
+                Table.CellField cell;
+                switch (idAndInvalidFieldDataCode.getKey()) {
+                  case "active": cell = row.active(); break; 
+                  case "name": cell = row.name(); break; 
+                  case "db": cell = row.db(); break; 
+                  case "server": cell = row.server(); break; 
+                  case "user": cell = row.user(); break; 
+                  case "password": cell = row.password(); break;
+                  default: cell = null;
+                }
+                
+                if (cell != null) {
+                  cell.invalid = true;
                   switch (idAndInvalidFieldDataCode.getValue()) {
                   case MANDATORY_EMPTY: {
-                    field.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.empty");
+                    cell.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.empty");
                     break;
                   }
                   case DUPLICATE_NAME: {
-                    field.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.duplicate_name");
+                    cell.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.duplicate_name");
                     break;
                   }
                   case DUPLICATE_GLOBAL: {
-                    field.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.duplicate_global");
+                    cell.invalidMessage = text.getString("org.jepria.tomcat.manager.web.jdbc.field.invalid.duplicate_global");
                     break;
                   }
                   }
@@ -128,13 +134,13 @@ public class JdbcPageContent extends ArrayList<El> {
         }
       }
     }
-    
-    table.load(items, itemsCreated, itemsDeleted);
-    
+
+    table.load(rows, rowsCreated, rowsDeleted);
+
     add(table);
 
     // table row-create template
-    final TabIndex newRowTemplateTabIndex = new TabIndex() {
+    final Table.TabIndex newRowTemplateTabIndex = new Table.TabIndex() {
       private int i = 0;
       @Override
       public void setNext(El el) {
@@ -142,16 +148,14 @@ public class JdbcPageContent extends ArrayList<El> {
         el.setAttribute("tabindex-rel", i++);
       }
     };
-    final JdbcTable.Record emptyItem = new JdbcTable.Record();
-    emptyItem.active().readonly = true;
-    emptyItem.active().value = "true";
+    final JdbcTable.JdbcRow emptyItem = dtoToRowCreated(new ConnectionDto());
     final El tableNewRowTemplate = table.createRowCreated(emptyItem, newRowTemplateTabIndex);
-    
+
     final El tableNewRowTemplateContainer = new El("div", context).addClass("table-new-row-template-container")
         .appendChild(tableNewRowTemplate);
     add(tableNewRowTemplateContainer);
-    
-    
+
+
     // control buttons
     final ControlButtons controlButtons = new ControlButtons(context);
     controlButtons.addButtonCreate();
@@ -160,38 +164,180 @@ public class JdbcPageContent extends ArrayList<El> {
     add(controlButtons);
   }
   
-  protected JdbcTable.Record dtoToItem(ConnectionDto dto) {
-    JdbcTable.Record item = new JdbcTable.Record();
-    for (String name: dto.keySet()) {
-      Field field = item.get(name);
-      if (field != null) {
-        field.value = field.valueOriginal = dto.get(name);
+  protected JdbcTable.JdbcRow dtoToRow(ConnectionDto dto) {
+    JdbcTable.JdbcRow row = new JdbcTable.JdbcRow();
+    row.id = dto.getId();
+    row.dataModifiable = dto.isDataModifiable();
+    
+    {
+      if (row.dataModifiable) {
+        Table.CellField cell = new Table.CellField();
+        cell.name = "active";
+        cell.value = cell.valueOriginal = dto.getActive();
+        cell.invalid = false;
+        cell.invalidMessage = null;
+        row.add(cell);
+      } else {
+        Table.CellStaticCheckbox cell = Table.Cells.withStaticCheckbox(dto.getActive(), "active");
+        row.add(cell);
       }
     }
-    item.setId(dto.get("id"));
-    item.dataModifiable = dto.isDataModifiable();
     
-    if (!item.dataModifiable) {
-      item.active().readonly = true;
-      item.server().readonly = true;
-      item.db().readonly = true;
-      item.user().readonly = true;
-      item.password().readonly = true;
+    {
+      Table.CellField cell = new Table.CellField();
+      cell.name = "name";
+      cell.value = cell.valueOriginal = dto.getName();
+      cell.invalid = false;
+      cell.invalidMessage = null;
+      row.add(cell);
     }
-    return item;
+
+    {
+      if (row.dataModifiable) {
+        Table.CellField cell = new Table.CellField();
+        cell.name = "server";
+        cell.value = cell.valueOriginal = dto.getServer();
+        cell.invalid = false;
+        cell.invalidMessage = null;
+        row.add(cell);
+      } else {
+        Table.CellStatic cell = Table.Cells.withStaticValue(dto.getServer(), "server");
+        row.add(cell);
+      }
+    }
+
+    {
+      if (row.dataModifiable) {
+        Table.CellField cell = new Table.CellField();
+        cell.name = "db";
+        cell.value = cell.valueOriginal = dto.getDb();
+        cell.invalid = false;
+        cell.invalidMessage = null;
+        row.add(cell);
+      } else {
+        Table.CellStatic cell = Table.Cells.withStaticValue(dto.getDb(), "db");
+        row.add(cell);
+      }
+    }
+
+    {
+      if (row.dataModifiable) {
+        Table.CellField cell = new Table.CellField();
+        cell.name = "user";
+        cell.value = cell.valueOriginal = dto.getUser();
+        cell.invalid = false;
+        cell.invalidMessage = null;
+        row.add(cell);
+      } else {
+        Table.CellStatic cell = Table.Cells.withStaticValue(dto.getUser(), "user");
+        row.add(cell);
+      }
+    }
+
+    {
+      if (row.dataModifiable) {
+        Table.CellField cell = new Table.CellField();
+        cell.name = "password";
+        cell.value = cell.valueOriginal = dto.getPassword();
+        cell.invalid = false;
+        cell.invalidMessage = null;
+        row.add(cell);
+      } else {
+        Table.CellStatic cell = Table.Cells.withStaticValue(dto.getPassword(), "password");
+        row.add(cell);
+      }
+    }
+    
+    return row;
+  }
+
+  /**
+   * 
+   * @param createdFields contains created field values only; null for fields which are not about to be created
+   * @return
+   */
+  protected JdbcTable.JdbcRow dtoToRowCreated(ConnectionDto createdFields) {
+    JdbcTable.JdbcRow row = new JdbcTable.JdbcRow();
+    row.dataModifiable = true;
+
+    {
+      Table.CellStaticCheckbox cell = Table.Cells.withStaticCheckbox(false, "active"); 
+      row.add(cell);
+    }
+
+    {
+      Table.CellField cell = new Table.CellField();
+      cell.name = "name";
+      cell.value = createdFields.getName();
+      cell.valueOriginal = null;
+      cell.invalid = false;
+      cell.invalidMessage = null;
+      row.add(cell);
+    }
+
+    {
+      Table.CellField cell = new Table.CellField();
+      cell.name = "server";
+      cell.value = createdFields.getServer();
+      cell.valueOriginal = null;
+      cell.invalid = false;
+      cell.invalidMessage = null;
+      row.add(cell);
+    }
+
+    {
+      Table.CellField cell = new Table.CellField();
+      cell.name = "db";
+      cell.value = createdFields.getDb();
+      cell.valueOriginal = null;
+      cell.invalid = false;
+      cell.invalidMessage = null;
+      row.add(cell);
+    }
+
+    {
+      Table.CellField cell = new Table.CellField();
+      cell.name = "user";
+      cell.value = createdFields.getUser();
+      cell.valueOriginal = null;
+      cell.invalid = false;
+      cell.invalidMessage = null;
+      row.add(cell);
+    }
+
+    {
+      Table.CellField cell = new Table.CellField();
+      cell.name = "password";
+      cell.value = createdFields.getPassword();
+      cell.valueOriginal = null;
+      cell.invalid = false;
+      cell.invalidMessage = null;
+      row.add(cell);
+    }
+
+    return row;
   }
   
-  protected JdbcTable.Record dtoToItemCreated(Map<String, String> dto) {
-    JdbcTable.Record item = new JdbcTable.Record();
-    for (String name: dto.keySet()) {
-      Field field = item.get(name);
-      if (field != null) {
-        field.value = dto.get(name);
+  protected static void mergeValues(ConnectionDto source, JdbcTable.JdbcRow target) {
+    if (source != null && target != null) {
+      if (source.getActive() != null) {
+        target.active().value = source.getActive();
+      }
+      if (source.getName() != null) {
+        target.name().value = source.getName();
+      }
+      if (source.getServer() != null) {
+        target.server().value = source.getServer();
+      }
+      if (source.getDb() != null) {
+        target.db().value = source.getDb();
+      }
+      if (source.getUser() != null) {
+        target.user().value = source.getUser();
+      }
+      if (source.getPassword() != null) {
+        target.password().value = source.getPassword();
       }
     }
-    item.dataModifiable = true;
-    item.active().value = "true";
-    item.active().readonly = true;
-    return item;
   }
 }

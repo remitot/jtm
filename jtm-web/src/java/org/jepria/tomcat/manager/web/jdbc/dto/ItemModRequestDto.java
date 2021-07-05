@@ -1,19 +1,17 @@
-package org.jepria.web.data;
-
-import java.util.Map;
+package org.jepria.tomcat.manager.web.jdbc.dto;
 
 /**
  * Class representing a single record modification request
  */
 public class ItemModRequestDto {
-  
+
   private String id;
   private String action;
   /**
-   * {@code Map<fieldName, fieldValue>}, contains modified fields only
+   * Contains modified fields only
    */
-  private Map<String, String> data;
-  
+  private ConnectionDto data;
+
   public ItemModRequestDto() {}
 
   public String getId() {
@@ -32,17 +30,11 @@ public class ItemModRequestDto {
     this.action = action;
   }
 
-  public Map<String, String> getData() {
+  public ConnectionDto getData() {
     return data;
   }
 
-  public void setData(Map<String, String> data) {
+  public void setData(ConnectionDto data) {
     this.data = data;
   }
-
-  @Override
-  public String toString() {
-    return "ItemModRequestDto [id=" + id + ", action=" + action + ", data=" + data + "]";
-  }
-  
 }

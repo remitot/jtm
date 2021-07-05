@@ -4,16 +4,107 @@ package org.jepria.web.ssr.fields;
 import org.jepria.web.ssr.Context;
 import org.jepria.web.ssr.El;
 import org.jepria.web.ssr.HtmlEscaper;
+import org.jepria.web.ssr.Node;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class Table<T extends ItemData> extends El {
+public class Table<R extends Table.Row> extends El {
+
+  /**
+   * Basic class for all types of cell content 
+   */
+  public static class Cell {
+    /**
+     * The cell will have {@code column-<name>} CSS class
+     * and in case of editable cell its {@code input} will have such {@code name} attribute value
+     * @return
+     */
+    public String name;
+  }
+  
+  /**
+   * Non-editable checkbox (boolean) cell.
+   */
+  public static class CellStaticCheckbox extends Cell {
+    public boolean value;
+  }
+  
+  /**
+   * Non-editable cell, containing arbitrary html.
+   */
+  public static class CellStatic extends Cell {
+    public Node content;
+  }
+
+  /**
+   * Header cell
+   */
+  public static class CellHeader extends Cell {
+    public String text;
+  }
+
+  /**
+   * Editable cell, operating string values only.
+   * Able to modify data and mark value invalid 
+   */
+  public static class CellField extends Cell {
+    public String value;
+    public String valueOriginal;
+    public boolean invalid;
+    public String invalidMessage;
+  }
+
+  /**
+   * Helper methods for creating various cells
+   */
+  public static class Cells {
+    private Cells() {}
+
+    public static CellStatic withStaticValue(String value, String name) {
+      return withNode(Node.fromHtml(HtmlEscaper.escape(value, true)), name);
+    }
+
+    public static CellStaticCheckbox withStaticCheckbox(boolean value, String name) {
+      CellStaticCheckbox cell = new CellStaticCheckbox();
+      cell.name = name;
+      cell.value = value;
+      return cell;
+    }
+
+    /**
+     * 
+     * @param value "true" or not "true"
+     * @param name
+     * @return
+     */
+    public static CellStaticCheckbox withStaticCheckbox(String value, String name) {
+      return withStaticCheckbox("true".equals(value), name);
+    }
+
+    public static CellStatic withNode(Node node, String name) {
+      CellStatic cell = new CellStatic();
+      cell.name = name;
+      cell.content = node;
+      return cell;
+    }
+
+    public static CellHeader header(String text, String name) {
+      CellHeader cell = new CellHeader();
+      cell.name = name;
+      cell.text = text;
+      return cell;
+    }
+  }
+
+  public static class Row extends ArrayList<Cell> {}
+  
   
   private int tabIndexValue;
   
-  public static interface TabIndex {
+  public interface TabIndex {
     /**
      * Assigns the next {@code tabindex} to the element
      * @param el
@@ -21,8 +112,14 @@ public abstract class Table<T extends ItemData> extends El {
     void setNext(El el);
   }
   
-  public Table(Context context) {
+  protected final List<CellHeader> header;
+  protected El headerEl;
+  
+  public Table(Context context, List<CellHeader> header) {
     super("div", context);
+    
+    this.header = header;
+    this.headerEl = createHeader();
     
     addClass("table");
     
@@ -31,18 +128,22 @@ public abstract class Table<T extends ItemData> extends El {
     addStyle("css/table.css");
   }
   
-  protected boolean isEditable() {
-    return true;
-  }
-  
   /**
-   * Clear the table and load new items 
+   * Clear the table and load new data.
    * 
-   * @param items basic table items, possibly modified
-   * @param itemsCreated optional items to render {@code .created} table rows, may be null
-   * @param itemsDeleted optional item (set of {@link Dto#id}) to render {@code .deleted} table rows, may be null
+   * The table supports the following kinds of cells: 
+   * - static (display-only, non-editable) cells 
+   *    represented by {@link CellStatic} objects
+   * - regular fields (whose values are currently original, non-modified) 
+   *    represended by {@link CellField} objects with {@link CellField#value} equals to {@link CellField#valueOriginal}
+   * - fields modified (whose values are currently modified)
+   *    represended by {@link CellField} objects with {@link CellField#value} not equals to {@link CellField#valueOriginal}
+   * 
+   * @param rows rows of cells to fill the table with. Contains all of static cells, modified and non-modified fields.
+   * @param rowsCreated optional rows to render as {@code .created}, may be null
+   * @param rowsDeleted optional rows from {@code items} to render as {@code .deleted}, may be null. Matching by equals method, so both references and duplicated objects will match 
    */
-  public void load(List<T> items, List<T> itemsCreated, Set<String> itemsDeleted) {
+  public void load(List<R> rows, List<R> rowsCreated, Set<R> rowsDeleted) {
     
     // reset
     childs.clear();
@@ -57,47 +158,51 @@ public abstract class Table<T extends ItemData> extends El {
     };
     
     
-    El header = createHeader();
-    if (header != null) {
-      appendChild(header);
+    if (headerEl != null) {
+      appendChild(headerEl);
     }
     
-    if (items != null) {
+    if (rows != null) {
+
+      final boolean isEditable =
+          rows.stream().anyMatch(row ->
+              row.stream().anyMatch(cell -> cell instanceof CellField));
       
       boolean evenOddGray = true; // for unmodifiable table
       
-      for (T item: items) {
-        final String itemId = item.getId();
+      for (R row: rows) {
         
-        final El row = createRow(item, tabIndex);
+        final El rowEl = createRow(row, tabIndex);
         
-        if (!isEditable()) {
+        if (!isEditable) {
           if (evenOddGray) {
-            row.addClass("even-odd-gray");
+            rowEl.addClass("even-odd-gray");
           }
           evenOddGray = !evenOddGray;
         }
         
-        if (itemsDeleted != null && itemsDeleted.contains(itemId)) {
-          row.classList.add("deleted");
+        if (rowsDeleted != null && rowsDeleted.contains(row)) {
+          rowEl.classList.add("deleted");
         } else {
           // check any field modified
-          if (item.values().stream().anyMatch(
-              field -> !field.readonly && !Objects.equals(field.value, field.valueOriginal))) {
-            row.classList.add("modified");
+          if (row.stream().anyMatch(cell -> {
+            if (cell instanceof CellField) {
+              CellField cellField = (CellField) cell;
+              return !Objects.equals(cellField.value, cellField.valueOriginal);
+            }
+            return false;
+          })) {
+            rowEl.classList.add("modified");
           }
         }
         
-        row.setAttribute("item-id", item.getId());
-        
-        appendChild(row);
+        appendChild(rowEl);
       }
     }
-    if (itemsCreated != null) {
-      for (T item: itemsCreated) {
-        El rowCreated = createRowCreated(item, tabIndex);
+    if (rowsCreated != null) {
+      for (R row: rowsCreated) {
+        El rowCreated = createRowCreated(row, tabIndex);
         if (rowCreated != null) {
-          rowCreated.setAttribute("item-id", item.getId());
           appendChild(rowCreated);
         }
       }
@@ -107,73 +212,109 @@ public abstract class Table<T extends ItemData> extends El {
   }
   
   /**
-   * Create a basic table row (possibly modified) representing a single item. 
-   * <br/>Implementors should not manually add the element to the table, just return it.
-   * @param item data from the server, non-null
+   * Creates and returns a table row without adding it to the table. 
+   * @param row
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return
    */
-  protected abstract El createRow(T item, TabIndex tabIndex);
+  protected El createRow(R row, TabIndex tabIndex) {
+    final El rowEl = new El("div", context);
+    rowEl.classList.add("row");
+
+    El div = new El("div", rowEl.context);
+    div.classList.add("flexColumns");
+    div.classList.add("column-left");
+    
+    for (Cell cell: row) {
+      String columnClassName;
+      {
+        String cellName = cell.name;
+        if (cellName != null) {
+          columnClassName = "column-" + cellName;
+        } else {
+          columnClassName = "column";
+        }
+      }
+      
+      El cellEl = createCell(div, columnClassName);
+      cellEl.classList.add("cell-field");
+      
+      fillCell(cellEl, cell, tabIndex);
+    }
+    
+    rowEl.appendChild(div);
+    return rowEl;
+  }
   
   /**
    * Creates a table row (in created state) representing a single item, that has not been saved to the server yet,
    * but having a UI table row created for saving.
    * <br/>Implementors should not manually add the element to the table, just return it.
-   * @param item optional data from the UI to fill the created table row with, may be null
+   * @param row optional data from the UI to fill the created table row with, may be null
    * @param tabIndex table-wide counter for assigning {@code tabindex} attributes to {@code input} elements
    * @return {@code null} if no rowCreated required for the table (e.g. the table does not support creation of new items)
    */
-  protected abstract El createRowCreated(T item, TabIndex tabIndex);
+  protected  El createRowCreated(R row, TabIndex tabIndex) {return null;}
   
-  protected El addField(El cell, Field field, String placeholder) {
-    return addField(cell, field, placeholder, isEditable());
-  }
-  
-  protected El addField(El cell, El field) {
-    
-    
+  protected static void addField(El cell, El field) {
     El wrapper = Fields.wrapCellPad(field);
     cell.appendChild(wrapper);
     
-    
     field.classList.add("table__field-text_inactivatible");
     field.classList.add("table__field_disableable");
-    
-    return field;
   }
   
-  protected void addStrike(El cell) {
-    El cellStrike = new El("div", context);
+  protected static void addStrike(El cell) {
+    El cellStrike = new El("div", cell.context);
     cellStrike.classList.add("cell__strike");
     cell.appendChild(cellStrike);
   }
 
-  protected El addField(El cell, Field field, String placeholder, boolean fieldEditable) {
-    
+  /**
+   * Creates a field and adds it into the cell 
+   * @param cellEl
+   * @param cell
+   * @param tabIndex
+   * @return the created field
+   */
+  protected El fillCell(El cellEl, Cell cell, TabIndex tabIndex) {
+
     El fieldEl;
-    {
-      if (fieldEditable && !field.readonly) {
-        fieldEl = new FieldTextInput(cell.context, field.name, 
-            field.value, field.valueOriginal, placeholder,
-            field.invalid, field.invalidMessage);
-        
+    
+    if (cell instanceof CellField) {
+      CellField cellField = (CellField) cell;
+      fieldEl = new FieldTextInput(cellEl.context, cell.name,
+          cellField.value, cellField.valueOriginal,
+          cellField.invalid, cellField.invalidMessage);
+
+      if (tabIndex != null) {
+        tabIndex.setNext(fieldEl);
+      }
+
+    } else if (cell instanceof CellStatic) {
+
+      CellStatic cellStatic = (CellStatic) cell;
+      Node content = cellStatic.content;
+
+      if (content == null) {
+        fieldEl = new FieldTextLabel(cellEl.context);
+
       } else {
-        
-        fieldEl = new FieldTextLabel(cell.context, HtmlEscaper.escape(field.value, true));
-      }      
-      
-      
-      El wrapper = Fields.wrapCellPad(fieldEl);
-      cell.appendChild(wrapper);
+        String html = content.printHtml();
+        fieldEl = new FieldTextLabel(cellEl.context, html);
+      }
+
+    } else if (cell == null) {
+      // TODO allow null cells
+      throw new UnsupportedOperationException("Not implemented yet");
+
+    } else {
+      throw new IllegalArgumentException(cell.getClass().getCanonicalName());
     }
-    
-    
-    fieldEl.classList.add("table__field-text_inactivatible");
-    fieldEl.classList.add("table__field_disableable");
-    
-    if (isEditable()) {
-      addStrike(cell);
-    }
+
+    addField(cellEl, fieldEl);
+
+    addStrike(cellEl);
     
     return fieldEl;
   }
@@ -253,61 +394,119 @@ public abstract class Table<T extends ItemData> extends El {
    * @param titleInactive text to display as a title of inactive checkbox. If {@code null} then empty title
    * @return
    */
-  protected FieldCheckBox addCheckbox(El cell, Field field, String titleActive, String titleInactive) {
-    return addCheckbox(cell, field, titleActive, titleInactive, isEditable());
-  }
-      
-  /**
-   * 
-   * @param cell
-   * @param field
-   * @param titleActive text to display as a title of active checkbox. If {@code null} then empty title
-   * @param titleInactive text to display as a title of inactive checkbox. If {@code null} then empty title
-   * @return
-   */
-  protected FieldCheckBox addCheckbox(El cell, Field field, String titleActive, String titleInactive, boolean fieldEditable) {
-    
+  protected FieldCheckBox addCheckbox(El cell, CellField field, String titleActive, String titleInactive) {
+
     FieldCheckBox checkbox;
-    
+
     {
       boolean active = !"false".equals(field.value);
       Boolean valueOriginal;
-      if (!field.readonly && field.valueOriginal != null) {
+      if (field.valueOriginal != null) {
         valueOriginal = !"false".equals(field.valueOriginal);
       } else {
         valueOriginal = null;
       }
-      
+
       checkbox = new FieldCheckBox(cell.context, field.name, active, valueOriginal, field.invalid, field.invalidMessage);
-      
-      checkbox.setEnabled(fieldEditable && !field.readonly);
-  
-      
+
+      checkbox.setEnabled(true);
+
       // add text attributes
       checkbox.setTitleActive(titleActive);
       checkbox.setTitleInactive(titleInactive);
-      
-      
+
+
       El wrapper = Fields.wrapCellPad(checkbox);
       cell.appendChild(wrapper);
     }
-    
-    
+
+
     checkbox.classList.add("table__checkbox");
     checkbox.classList.add("table__field_disableable");
 
     
-    if (isEditable()) {
-      addStrike(cell);
+    addStrike(cell);
+
+    return checkbox;
+  }
+
+  /**
+   *
+   * @param cellEl
+   * @param cell
+   * @param titleActive text to display as a title of active checkbox. If {@code null} then empty title
+   * @param titleInactive text to display as a title of inactive checkbox. If {@code null} then empty title
+   * @return
+   */
+  protected FieldCheckBox addCheckbox(El cellEl, CellStaticCheckbox cell, String titleActive, String titleInactive) {
+
+    FieldCheckBox checkbox;
+
+    {
+      boolean active = !Boolean.FALSE.equals(cell.value);
+
+      checkbox = new FieldCheckBox(cellEl.context, cell.name, active, null, false, null);
+
+      checkbox.setEnabled(false);
+
+      // add text attributes
+      checkbox.setTitleActive(titleActive);
+      checkbox.setTitleInactive(titleInactive);
+
+
+      El wrapper = Fields.wrapCellPad(checkbox);
+      cellEl.appendChild(wrapper);
     }
-    
+
+
+    checkbox.classList.add("table__checkbox");
+    checkbox.classList.add("table__field_disableable");
+
+
+    addStrike(cellEl);
+
     return checkbox;
   }
   
   /**
-   * Create a table header.
-   * <br/>Implementors should not manually add the element to the table, just return it.
+   * Creates and returns a table header without adding it to the table. 
    * @return {@code null} if no header required for the table
    */
-  protected abstract El createHeader();
+  protected El createHeader() {
+    if (header == null) {
+      return null;
+    } else {
+
+      final El headerEl = new El("div", context);
+      headerEl.classList.add("header");
+
+      El flexColumns = new El("div", headerEl.context);
+      flexColumns.classList.add("flexColumns");
+      flexColumns.classList.add("column-left");
+
+      for (CellHeader cell : header) {
+        String columnClassName;
+        {
+          String cellName = cell.name;
+          if (cellName != null) {
+            columnClassName = "column-" + cellName;
+          } else {
+            columnClassName = "column";
+          }
+        }
+
+        El cellEl = createCell(flexColumns, columnClassName);
+        String cellText = cell.text;
+        if (cellText != null) {
+          El label = new El("label", cellEl.context);
+          label.setInnerHTML(cell.text, true);
+          cellEl.appendChild(label);
+        }
+
+      }
+
+      headerEl.appendChild(flexColumns);
+      return headerEl;
+    }
+  }
 }

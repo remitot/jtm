@@ -2,14 +2,7 @@ package org.jepria.web.ssr;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class El implements Node, HasStyles, HasScripts {
   
@@ -225,25 +218,6 @@ public class El implements Node, HasStyles, HasScripts {
   }
   
   /**
-   * Prints the HTML of this node
-   * @return
-   * @throws IOException
-   */
-  public String printHtml() throws IOException {
-    StringBuilder sb = new StringBuilder();
-    render(sb);
-    
-    if (sb.length() > 0) {
-      return sb.toString();
-    } else {
-      return null;
-    }
-  }
-  
-  
-  
-  
-  /**
    * Element's own scripts (not its descendant's)
    */
   // LinkedHashSet is important to maintain adding order
@@ -360,5 +334,10 @@ public class El implements Node, HasStyles, HasScripts {
     if (style != null) {
       this.ownStyles.add(style);
     }
+  }
+  
+  @Override
+  public String toString() {
+    return printHtml();
   }
 }

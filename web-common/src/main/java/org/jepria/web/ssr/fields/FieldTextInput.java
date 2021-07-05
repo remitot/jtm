@@ -10,7 +10,6 @@ public class FieldTextInput extends El {
       String name, 
       String value,
       String valueOriginal,
-      String placeholder,
       boolean invalid, 
       String invalidMessage) {
     
@@ -24,9 +23,6 @@ public class FieldTextInput extends El {
     }
     setAttribute("value", value);
     setAttribute("value-original", valueOriginal);
-    if (placeholder != null) {
-      setAttribute("placeholder", placeholder);
-    }
     if (invalid) {
       addClass("invalid");
       if (invalidMessage != null) {
