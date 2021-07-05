@@ -395,7 +395,9 @@ function adjustControlButtonsShadow() {
   if (controlButtons) {
     if (table) {
       if (table.getBoundingClientRect().bottom <= 
-        controlButtons.getBoundingClientRect().top) {
+        controlButtons.getBoundingClientRect().top
+        + 0.5 // precision, analogue of Math.round(x) <= Math.round(y)
+      ) {
         controlButtons.classList.remove("block-shadow");
       } else {
         controlButtons.classList.add("block-shadow");
