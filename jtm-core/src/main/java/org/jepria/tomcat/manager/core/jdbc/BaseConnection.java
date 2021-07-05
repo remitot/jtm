@@ -45,18 +45,18 @@ import java.util.regex.Pattern;
       final String url = getUrl();
       
       if (url != null && !"".equals(url)) {
-        Matcher m = Pattern.compile("(.+?//)([^/]+?)/(.+)").matcher(url);
+        Matcher m = Pattern.compile("(?<protocol>.+)@(//)?(?<server>.+(:\\d+)?)[:/](?<dbOrSid>.+)").matcher(url);
         if (m.matches()) {
           if (!protocolHasBeenSet) {
-            protocol = m.group(1);
+            protocol = m.group("protocol");
             protocolHasBeenSet = true;
           }
           if (!serverHasBeenSet) {
-            server = m.group(2);
+            server = m.group("server");
             serverHasBeenSet = true;
           }
           if (!dbHasBeenSet) {
-            db = m.group(3);
+            db = m.group("dbOrSid");
             dbHasBeenSet = true;
           }
         } else {
@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
   }
   
   protected void setUrl() {
-    setUrl(getProtocol() + getServer() + "/" + getDb());
+    setUrl(getProtocol() + "@//" + getServer() + "/" + getDb());
   }
   
   /*package*/void setProtocol(String protocol) {
