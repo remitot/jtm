@@ -114,7 +114,12 @@ public class Table<R extends Table.Row> extends El {
   
   protected final List<CellHeader> header;
   protected El headerEl;
-  
+
+  /**
+   * 
+   * @param context
+   * @param header null for no header
+   */
   public Table(Context context, List<CellHeader> header) {
     super("div", context);
     

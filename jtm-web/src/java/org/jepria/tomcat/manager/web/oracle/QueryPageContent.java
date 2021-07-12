@@ -11,38 +11,49 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class QueryPageContent extends ArrayList<El>  {
+
+  protected final Context context;
   
   /**
    *
    * @param context
    * @param formAction {@code form action} attribute value to post the query for execution to
    * @param connectionName must not be {@code null}
-   * @param queryText
+   * @param queryInput text to display in the query input field
    * @param queryResult
    */
-  public QueryPageContent(Context context, String formAction, String connectionName, String queryText, QueryResult queryResult) {
+  public QueryPageContent(Context context, String formAction, String connectionName, String queryInput, QueryResult queryResult) {
+    this.context = context;
+    
     Text text = context.getText();
 
+    El packagesA = new El("a", context)
+        .setAttribute("href", context.getAppContextPath() + context.getServletContextPath() + "/" + connectionName + "/packages")
+        .setInnerHTML(text.getString("org.jepria.tomcat.manager.web.oracle.queryLabel_packages"));
+        
     El label = new El("div", context)
         .addClass("block")
-        .setInnerHTML(String.format(text.getString("org.jepria.tomcat.manager.web.oracle.queryLabel"), "<b>" + connectionName + "</b>"));
+        .appendChild(Node.fromHtml(String.format(text.getString("org.jepria.tomcat.manager.web.oracle.queryLabel"), "<b>" + HtmlEscaper.escape(connectionName) + "</b>")))
+        .appendChild(Node.fromHtml(HtmlEscaper.escape("      ", true)))
+        .appendChild(packagesA)
+        ;
     add(label);
 
     El form = new El("form", context)
         .addClass("block")
         .setAttribute("action", formAction)
-        .setAttribute("method", "post");
+        .setAttribute("method", "get");
 
     {
-      El queryInput = new El("textarea", context)
+      El queryInputEl = new El("textarea", context)
           .addClass("query")
           .setAttribute("type", "text")
-          .setAttribute("name", "query-text");
-      if (queryText != null && !"".equals(queryText)) {
-        queryInput.setInnerHTML(queryText);
+          .setAttribute("name", "query");
+      if (queryInputEl != null && !"".equals(queryInputEl)) {
+        queryInputEl.setInnerHTML(queryInput);
       }
 
-      form.appendChild(queryInput);
+      form.appendChild(queryInputEl);
 
       El submit = new El("input", context)
           .addClass("submit")
@@ -102,7 +113,7 @@ public class QueryPageContent extends ArrayList<El>  {
           // table html
 
           List<String> columnHeaders = queryResult.getColumnNames();
-          List<List<String>> values = queryResult.getValues();
+          List<List<QueryResult.Value>> values = queryResult.getValues();
           { // test headers and each row of values to be of the same length 
             int len = columnHeaders.size();
             for (int i = 0; i < values.size(); i++) {
@@ -120,7 +131,7 @@ public class QueryPageContent extends ArrayList<El>  {
           { // two separate tables: first for the column headers 
             final QueryResultTable tableHeader = new QueryResultTable(context, columnWidths);
             tableHeader.addClass("table_header");
-            final List<Table.Row> rows = Collections.singletonList(dbrowToRow(columnHeaders));
+            final List<Table.Row> rows = Collections.singletonList(headerRowToRow(columnHeaders));
             tableHeader.load(rows, null, null);
 
             El tableHeaderWrapper = new El("div", context).addClass("tableHeaderWrapper");
@@ -133,7 +144,7 @@ public class QueryPageContent extends ArrayList<El>  {
               final QueryResultTable tableData = new QueryResultTable(context, columnWidths);
               tableData.addClass("table_data");
               final List<Table.Row> rows = values.stream()
-                  .map(row -> dbrowToRow(row)).collect(Collectors.toList());
+                  .map(row -> dataRowToRow(row)).collect(Collectors.toList());
               tableData.load(rows, null, null);
 
               El tableDataWrapper = new El("div", context).addClass("tableDataWrapper");
@@ -214,9 +225,9 @@ public class QueryPageContent extends ArrayList<El>  {
    * @param values
    * @return
    */
-  protected static List<String> calculateColumnWidths(List<String> headerNames, List<List<String>> values) {
+  protected static List<String> calculateColumnWidths(List<String> headerNames, List<List<QueryResult.Value>> values) {
     int maxRowLen = headerNames.size();
-    for (List<String> value : values) {
+    for (List<QueryResult.Value> value : values) {
       if (value.size() > maxRowLen) {
         maxRowLen = value.size();
       }
@@ -225,28 +236,38 @@ public class QueryPageContent extends ArrayList<El>  {
     final List<Integer> contentMaxLengths = new ArrayList<>();
 
     for (int i = 0; i < maxRowLen; i++) {
-      int maxChars = 0;
+      int maxLen = 0;
       if (i < headerNames.size()) {
         String s = headerNames.get(i);
         if (s != null) {
-          int chars = s.length();
-          if (chars > maxChars) {
-            maxChars = chars;
+          int len = s.length();
+          if (len > maxLen) {
+            maxLen = len;
           }
         }
       }
-      for (List<String> row : values) {
+      for (List<QueryResult.Value> row : values) {
         if (i < row.size()) {
-          String s = row.get(i);
-          if (s != null) {
-            int chars = s.length();
-            if (chars > maxChars) {
-              maxChars = chars;
+          QueryResult.Value v = row.get(i);
+          if (v != null) {
+            
+            int len;
+            if (v instanceof QueryResult.StringValue) {
+              QueryResult.StringValue strValue = (QueryResult.StringValue) v;
+              len = strValue.value != null ? strValue.value.length() : 0;
+            } else if (v instanceof QueryResult.ClobValue || v instanceof QueryResult.BlobValue) {
+              len = 6; // length of rendered "[CLOB]" or "[BLOB]" cell value
+            } else {
+              throw new IllegalArgumentException(v.getClass().getCanonicalName());
+            }
+            
+            if (len > maxLen) {
+              maxLen = len;
             }
           }
         }
       }
-      contentMaxLengths.add(maxChars);
+      contentMaxLengths.add(maxLen);
     }
 
     List<String> columnWidths = new ArrayList<>();
@@ -258,10 +279,68 @@ public class QueryPageContent extends ArrayList<El>  {
     return columnWidths;
   }
 
-  protected static Table.Row dbrowToRow(List<String> dbrow) {
+  protected static Table.Row headerRowToRow(List<String> headerRow) {
+    Table.Row row = new Table.Row();
+    for (int i = 0; i < headerRow.size(); i++) {
+      String s = headerRow.get(i);
+      Table.Cell cell = Table.Cells.withStaticValue(s, null);
+      row.add(cell);
+    }
+    return row;
+  }
+
+  protected Table.Row dataRowToRow(List<QueryResult.Value> dbrow) {
+    Text text = context.getText();
+    
     Table.Row row = new Table.Row();
     for (int i = 0; i < dbrow.size(); i++) {
-      Table.Cell cell = Table.Cells.withStaticValue(dbrow.get(i),null);
+      Table.Cell cell;
+
+      QueryResult.Value v = dbrow.get(i);
+      if (v != null) {
+        if (v instanceof QueryResult.StringValue) {
+          QueryResult.StringValue strValue = (QueryResult.StringValue) v;
+          cell = Table.Cells.withStaticValue(strValue.value, null);
+        } else if (v instanceof QueryResult.ClobValue) {
+          QueryResult.ClobValue clobValue = (QueryResult.ClobValue) v;
+
+          final Node node;
+          if (clobValue.isStubbed) {
+            node = new El("span", context)
+                .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.oracle.clob_cell.title_stub"))
+                .setInnerHTML("[CLOB]");
+          } else {
+            node = new El("a", context)
+                .setAttribute("href", context.getAppContextPath() + "/api/oracle/lob/clob/" + clobValue.downloadId)
+                .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.oracle.clob_cell.title"))
+                .setInnerHTML("[CLOB]");
+          }
+
+          cell = Table.Cells.withNode(node, null);
+
+        } else if (v instanceof QueryResult.BlobValue) {
+          QueryResult.BlobValue blobValue = (QueryResult.BlobValue) v;
+
+          final Node node;
+          if (blobValue.isStubbed) {
+            node = new El("span", context)
+                .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.oracle.blob_cell.title_stub"))
+                .setInnerHTML("[BLOB]");
+          } else {
+            node = new El("a", context)
+                .setAttribute("href", context.getAppContextPath() + "/api/oracle/lob/blob/" + blobValue.downloadId)
+                .setAttribute("title", text.getString("org.jepria.tomcat.manager.web.oracle.blob_cell.title"))
+                .setInnerHTML("[BLOB]");
+          }
+
+          cell = Table.Cells.withNode(node, null);
+        } else {
+          throw new IllegalArgumentException(v.getClass().getCanonicalName());
+        }
+      } else {
+        cell = Table.Cells.withStaticValue(null, null);
+      }
+
       row.add(cell);
     }
     return row;

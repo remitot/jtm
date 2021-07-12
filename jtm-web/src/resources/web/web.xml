@@ -84,6 +84,16 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>OracleApiServlet</servlet-name>
+    <servlet-class>org.jepria.tomcat.manager.web.oracle.OracleApiServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OracleApiServlet</servlet-name>
+    <url-pattern>/api/oracle/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>SourcesServlet</servlet-name>
     <servlet-class>org.jepria.tomcat.manager.web.sources.SourcesServlet</servlet-class>
   </servlet>
@@ -120,6 +130,7 @@
     <web-resource-collection>
       <web-resource-name>Protected resources (API)</web-resource-name>
       <url-pattern>/api/log/*</url-pattern>
+      <url-pattern>/api/oracle/*</url-pattern>
       <url-pattern>/sources/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>

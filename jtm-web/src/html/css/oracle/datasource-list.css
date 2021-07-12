@@ -1,0 +1,12 @@
+.table {
+    width: 100%;
+}
+
+.table div.cell.column {
+    width: 20%;
+}
+
+/* left margin for the leftmost column */
+.table .column-left {
+    margin-left: 44px;
+}

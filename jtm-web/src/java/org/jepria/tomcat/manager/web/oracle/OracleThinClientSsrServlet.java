@@ -5,25 +5,17 @@ import org.jepria.tomcat.manager.web.EnvironmentFactory;
 import org.jepria.tomcat.manager.web.JtmPageHeader;
 import org.jepria.tomcat.manager.web.jdbc.JdbcApi;
 import org.jepria.tomcat.manager.web.jdbc.dto.ConnectionDto;
-import org.jepria.web.HttpDataEncoding;
-import org.jepria.web.auth.RedirectBuilder;
 import org.jepria.web.ssr.*;
 
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -61,6 +53,9 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
     pageBuilder.build().respond(response);
   }
 
+  public static final String SESSION_ATTR_KEY__CLOB_PREFIX = "org.jepria.tomcat.manager.web.oracle.QueryResult.CLOB_";
+  public static final String SESSION_ATTR_KEY__BLOB_PREFIX = "org.jepria.tomcat.manager.web.oracle.QueryResult.BLOB_";
+  
   protected List<El> getPageContent(HttpServletRequest request, Context context, Environment env) {
     String path = request.getPathInfo();
     
@@ -78,19 +73,16 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
       return new OracleRootPageContent(context, connections);
     }
 
-    m = Pattern.compile("/(jdbc/[^/]+)/?").matcher(path);
-    if (m.matches()) {
-      // datasource info
-      final String datasourceName = m.group(1);
-      // TODO this is a stub El
-      return new DataSourceInfoPageContent(context, datasourceName);
-    }
-
     m = Pattern.compile("/(jdbc/[^/]+)/packages/?").matcher(path);
     if (m.matches()) {
       final String dataSourceName = m.group(1);
-      // TODO this is a stub El
-      return Arrays.asList(new El("div", context).setInnerHTML(createPackageListInnerHtml(dataSourceName)));
+      List<String> packageNames;
+      try {
+        packageNames = getPackageNames(dataSourceName);
+      } catch (NamingException | SQLException e) {
+        throw new RuntimeException(e);
+      }
+      return new PackageListPageContent(context, packageNames);
     }
 
     m = Pattern.compile("/(jdbc/[^/]+)/packages/([^/]+)/?").matcher(path);
@@ -108,120 +100,132 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
       return Arrays.asList(new El("div", context).setInnerHTML(createProcedureListInnerHtml(dataSourceName, packageName)));
     }
 
-    m = Pattern.compile("/(jdbc/[^/]+)/query/?").matcher(path);
+    m = Pattern.compile("/(jdbc/[^/]+)/?").matcher(path);
     if (m.matches()) {
       // query
       final String datasourceName = m.group(1);
-
-      final String queryText;
-      final QueryResult queryResult;
-          
-      if (request.getSession().getAttribute(QUERY_EXEC_STATUS_SESSION_ATTR_KEY) != null) {
-        queryText = (String) request.getSession().getAttribute(QUERY_SESSION_ATTR_KEY);
-        queryResult = (QueryResult) request.getSession().getAttribute(QUERY_RESULT_SESSION_ATTR_KEY);
-      } else {
-        // if the query has not been executed, show query from parameter
-        queryText = request.getParameter("q");
-        queryResult = null;
-      }
-
-      request.getSession().removeAttribute(QUERY_SESSION_ATTR_KEY);
-      request.getSession().removeAttribute(QUERY_RESULT_SESSION_ATTR_KEY);
-      request.getSession().removeAttribute(QUERY_EXEC_STATUS_SESSION_ATTR_KEY);
-      
-      String formAction = context.getAppContextPath() + context.getServletContextPath() + "/" + datasourceName + "/query";
-      return new QueryPageContent(context, formAction, datasourceName, queryText, queryResult);
+      return getQueryPageContent(context, datasourceName, request);
     }
     
-    return null;
+    return null; // TODO
   }
   
-  protected static class OracleRootPageContent extends ArrayList<El> {
-    public OracleRootPageContent(Context context, List<ConnectionDto> connections) {
-      add(new El("div", context).setInnerHTML("Welcome to the Oracle thin client! Select a datasource from the list below.", false));
+  protected static QueryPageContent getQueryPageContent(Context context, String datasourceName, HttpServletRequest request) {
 
-      if (connections == null || connections.isEmpty()) {
-        add(new El("div", context).setInnerHTML("No datasources available."));
-      } else {
-        for (ConnectionDto conn: connections) {
-          String datasourceName = conn.getName();
-          add(new El("div", context).setInnerHTML("<a href=\"" + context.getAppContextPath() + context.getServletContextPath() + "/" + datasourceName + "\">" + datasourceName + "</a>", false));
+    final String formAction = context.getAppContextPath() + context.getServletContextPath() + "/" + datasourceName;
+
+    // query to execute immediately to show results for
+    final String query = request.getParameter("query");
+    if (query != null && !"".equals(query)) {
+      // set the query as an input into the field and execute
+
+      String queryRefined;
+      {
+        // trim trailing ' ; '
+        Matcher m1 = Pattern.compile("(.+)\\s*;\\s*").matcher(query);
+        if (m1.matches()) {
+          queryRefined = m1.group(1);
+        } else {
+          queryRefined = query;
+        }
+        
+        // refine whitespaces
+        queryRefined = queryRefined.replaceAll("\\s", " ");
+        queryRefined = queryRefined.replaceAll("\\u00A0", " "); // non-break space
+      }
+
+
+      QueryResult queryResult = executeQuery(datasourceName, queryRefined);
+
+      { // clear existing lob values stored in the session
+        Set<String> sessionAttrNamesToRemove = new HashSet<>();
+        Enumeration<String> sessionAttrNames = request.getSession().getAttributeNames();
+        while (sessionAttrNames.hasMoreElements()) {
+          String sessionAttrName = sessionAttrNames.nextElement();
+          if (sessionAttrName.startsWith(SESSION_ATTR_KEY__CLOB_PREFIX)
+              || sessionAttrName.startsWith(SESSION_ATTR_KEY__BLOB_PREFIX)) {
+            sessionAttrNamesToRemove.add(sessionAttrName);
+          }
+        }
+        for (String sessionAttrNameToRemove: sessionAttrNamesToRemove) {
+          request.getSession().removeAttribute(sessionAttrNameToRemove);
         }
       }
-    }
-  }
-  
-  protected static class DataSourceInfoPageContent extends ArrayList<El> {
-    public DataSourceInfoPageContent(Context context, String datasourceName) {
-      add(new El("div", context).setInnerHTML("This is datasource " + datasourceName  + "." +
-          " Execute a <a href=\"" + context.getAppContextPath() + context.getServletContextPath() + "/" + datasourceName + "/query" + "\">query</a>" +
-          " or select a <a href=\"" + context.getAppContextPath() + context.getServletContextPath() + "/" + datasourceName + "/packages" + "\">package</a> to work with.", false));
+
+
+      { // store new unstubbed lob values into the session
+        Set<QueryResult.LobValue> unstubbedLobValues = queryResult.getUnstubbedLobValues();
+        if (unstubbedLobValues != null) {
+          for (QueryResult.LobValue lobValue : unstubbedLobValues) {
+            String downloadId = String.valueOf((int) (Math.random() * 1000000));
+            if (lobValue instanceof QueryResult.ClobValue) {
+              QueryResult.ClobValue clobValue = (QueryResult.ClobValue) lobValue;
+              clobValue.downloadId = downloadId;
+              String sessionAttrKey = SESSION_ATTR_KEY__CLOB_PREFIX + clobValue.downloadId;
+              request.getSession().setAttribute(sessionAttrKey, (Reader) clobValue.content);
+            } else if (lobValue instanceof QueryResult.BlobValue) {
+              QueryResult.BlobValue blobValue = (QueryResult.BlobValue) lobValue;
+              blobValue.downloadId = downloadId;
+              String sessionAttrKey = SESSION_ATTR_KEY__BLOB_PREFIX + blobValue.downloadId;
+              request.getSession().setAttribute(sessionAttrKey, (InputStream) blobValue.content);
+            } else {
+              throw new IllegalArgumentException(lobValue.getClass().getCanonicalName());
+            }
+          }
+        }
+      }
+
+      return new QueryPageContent(context, formAction, datasourceName, query, queryResult);
+
+    } else {
+
+      final String queryInput = request.getParameter("query-input");
+      return new QueryPageContent(context, formAction, datasourceName, queryInput, null);
+
     }
   }
   
   // TODO remove this method (refactor)
-  protected String createPackageListInnerHtml(String dataSourceName) {
+  protected static List<String> getPackageNames(String dataSourceName) throws NamingException, SQLException {
     
-    try {
+    final List<String> ret = new ArrayList<>();
+    
+    InitialContext ic = new InitialContext();
+    DataSource dataSource = (DataSource) ic.lookup("java:/comp/env/" + dataSourceName);
+    try (Connection con = dataSource.getConnection()) {
+      con.setAutoCommit(false);
+      Statement stm = con.createStatement();
 
-      InitialContext ic = new InitialContext();
-      DataSource dataSource = (DataSource) ic.lookup("java:/comp/env/" + dataSourceName);
-      try (Connection con = dataSource.getConnection()) {
-        con.setAutoCommit(false);
-        Statement stm = con.createStatement();
+      {
+        String queryText =
+            "SELECT OBJECT_NAME, OWNER FROM ALL_OBJECTS WHERE OBJECT_TYPE = 'PACKAGE'" +
+                " AND OBJECT_NAME LIKE 'PKG_%'" +
+                " ORDER BY OBJECT_NAME ASC";
 
-        String ret = "";
-        
-        {
-          String queryText =
-              "SELECT OBJECT_NAME, OWNER FROM ALL_OBJECTS WHERE OBJECT_TYPE = 'PACKAGE'" +
-                  " AND OBJECT_NAME LIKE 'PKG_%'" +
-                  " ORDER BY OBJECT_NAME ASC";
-  
-          stm.execute(queryText);
-  
-          ResultSet rs = stm.getResultSet();
-          if (rs == null) {
-            ret = "<div>rs=null</div>";
-          } else {
-            while (rs.next()) {
-              ret += "<div>" + rs.getString("OBJECT_NAME") + "</div>"
-                  + "\n";
-            }
+        stm.execute(queryText);
+
+        ResultSet rs = stm.getResultSet();
+        if (rs != null) {
+          while (rs.next()) {
+            ret.add(rs.getString("OBJECT_NAME"));
           }
         }
-
-        {
-          String queryText =
-              "SELECT OBJECT_NAME, OWNER FROM ALL_OBJECTS WHERE OBJECT_TYPE = 'PACKAGE'" +
-                  " AND OBJECT_NAME NOT LIKE 'PKG_%'" +
-                  " ORDER BY OBJECT_NAME ASC";
-
-          stm.execute(queryText);
-
-          ResultSet rs = stm.getResultSet();
-          if (rs == null) {
-            ret = "<div>rs=null</div>";
-          } else {
-            while (rs.next()) {
-              ret += "<div>" + rs.getString("OBJECT_NAME") + "</div>"
-                  + "\n";
-            }
-          }
-        }
-        
-        return ret;
       }
 
-    } catch (Throwable e) {
-      e.printStackTrace();
-
-      final String ret;
       {
-        // print exception to string
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        e.printStackTrace(new PrintStream(baos));
-        ret = "<div>" + baos.toString() + "</div>";
+        String queryText =
+            "SELECT OBJECT_NAME, OWNER FROM ALL_OBJECTS WHERE OBJECT_TYPE = 'PACKAGE'" +
+                " AND OBJECT_NAME NOT LIKE 'PKG_%'" +
+                " ORDER BY OBJECT_NAME ASC";
+
+        stm.execute(queryText);
+
+        ResultSet rs = stm.getResultSet();
+        if (rs != null) {
+          while (rs.next()) {
+            ret.add(rs.getString("OBJECT_NAME"));
+          }
+        }
       }
 
       return ret;
@@ -277,61 +281,7 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
     }
   }
 
-  /**
-   * Query text
-   */
-  private static final String QUERY_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.oracle.SessionAttributes.query";
-  /**
-   * Query result
-   */
-  private static final String QUERY_RESULT_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.oracle.SessionAttributes.queryResult";
-  /**
-   * Whether or not the query has been executed at all
-   */
-  private static final String QUERY_EXEC_STATUS_SESSION_ATTR_KEY = "org.jepria.tomcat.manager.web.oracle.SessionAttributes.queryExecStatus";
-  
-  @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-    if (checkAuth(request)) {
-
-      // extract connection name from path
-      final String connectionName;
-      {
-        final String path = request.getPathInfo();
-        Matcher m = Pattern.compile("/(.+)/query/?").matcher(path);
-        if (m.matches()) {
-          connectionName = m.group(1);
-        } else {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Expected request path: '/jdbc/DataSourceName/query', actual: '" + path + "'");
-          response.flushBuffer();
-          return;
-        }
-      }
-      
-      String query = HttpDataEncoding.getParameterUtf8(request, "query-text");
-      
-      request.getSession().setAttribute(QUERY_SESSION_ATTR_KEY, query);
-
-      if (query != null && !"".equals(query)) {
-        
-        // trim trailing ' ; '
-        Matcher m = Pattern.compile("(.+)\\s*;\\s*").matcher(query);  
-        if (m.matches()) {
-          query = m.group(1);
-        }
-        
-        QueryResult queryResult = executeQuery(connectionName, query);
-        request.getSession().setAttribute(QUERY_EXEC_STATUS_SESSION_ATTR_KEY, true);
-        request.getSession().setAttribute(QUERY_RESULT_SESSION_ATTR_KEY, queryResult);
-      }
-    }
-
-    response.sendRedirect(RedirectBuilder.self(request));
-    
-  }
-
-  protected QueryResult executeQuery(String connectionName, String queryText) {
+  protected static QueryResult executeQuery(String connectionName, String queryText) {
     return executeQuery(connectionName, queryText, 0, 25);
   }
   /**
@@ -342,7 +292,7 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
    * @param pageSize 
    * @return table
    */
-  protected QueryResult executeQuery(String connectionName, String queryText, int page, int pageSize) {
+  protected static QueryResult executeQuery(String connectionName, String queryText, int page, int pageSize) {
 
     try {
 
@@ -361,8 +311,6 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
           columnNames.add(rsmeta.getColumnName(i));
         }
 
-        final List<List<String>> values = new ArrayList<>();
-        
         boolean loop = true;
         
         // skip pages before
@@ -373,34 +321,99 @@ public class OracleThinClientSsrServlet extends SsrServletBase {
             }
           }
         }
+
+        final List<List<QueryResult.Value>> values = new ArrayList<>();
         
         boolean hasMoreResults = false;
+
+        boolean firstRow = true;
+        
+        // any Clob or Blob values (regardless rows or columns) which are unstubbed and may further have to be stubbed
+        Set<QueryResult.LobValue> unstubbedLobValues = new HashSet<>();
+        // whether or not all unstubbedLobValues have to be stubbed at the end of the result fetching loop
+        boolean stubUnstubbedLobValues = false;
         
         while (loop) {
           if (hasMoreResults = rs.next()) {
             if (values.size() < pageSize) {
-              List<String> row = new ArrayList<>();
+              
+              List<QueryResult.Value> row = new ArrayList<>();
               for (int i = 1; i <= n; i++) {
+                
                 if (rsmeta.getColumnType(i) == 2005) {
-                  row.add("<CLOB>");
-                  // TODO CLOB
+                  // CLOB
+                  Reader reader = rs.getCharacterStream(i);
+                  if (reader == null) {
+                    QueryResult.StringValue nullValue = new QueryResult.StringValue(null);
+                    row.add(nullValue);
+                  } else {
+                    QueryResult.ClobValue clobValue = new QueryResult.ClobValue();
+                    if (firstRow) {
+                      clobValue.content = reader;
+                      clobValue.isStubbed = false;
+                      unstubbedLobValues.add(clobValue);
+                    } else {
+                      stubUnstubbedLobValues = true;
+                      clobValue.isStubbed = true;
+                    }
+                    row.add(clobValue);
+                  }
+                  
                 } else if (rsmeta.getColumnType(i) == 2004) {
-                  row.add("<BLOB>");
-                  // TODO BLOB
+                  // BLOB
+                  InputStream in = rs.getBinaryStream(i);
+                  if (in == null) {
+                    QueryResult.StringValue nullValue = new QueryResult.StringValue(null);
+                    row.add(nullValue);
+                  } else {
+                    QueryResult.BlobValue blobValue = new QueryResult.BlobValue();
+                    if (firstRow) {
+                      blobValue.content = in;
+                      blobValue.isStubbed = false;
+                      unstubbedLobValues.add(blobValue);
+                    } else {
+                      stubUnstubbedLobValues = true;
+                      blobValue.isStubbed = true;
+                    }
+                    row.add(blobValue);
+                  }
+                  
                 } else {
-                  row.add(rs.getString(i));
+                  QueryResult.StringValue stringValue = new QueryResult.StringValue(rs.getString(i));
+                  row.add(stringValue);
                 }
               }
               values.add(row);
             } else {
               loop = false;
             }
+            
+            firstRow = false;
           } else {
             loop = false;
           }
         }
         
-        return new QueryResult(columnNames, values, hasMoreResults);
+        if (stubUnstubbedLobValues) {
+          for (QueryResult.Value lobValue: unstubbedLobValues) {
+            if (lobValue instanceof QueryResult.ClobValue) {
+              QueryResult.ClobValue clobValue = (QueryResult.ClobValue) lobValue;
+              if (!clobValue.isStubbed) {
+                clobValue.isStubbed = true;
+                clobValue.content = null;
+              }
+            } else if (lobValue instanceof QueryResult.BlobValue) {
+              QueryResult.BlobValue blobValue = (QueryResult.BlobValue) lobValue;
+              if (!blobValue.isStubbed) {
+                blobValue.isStubbed = true;
+                blobValue.content = null;
+              }
+            }
+          }
+          unstubbedLobValues.clear();
+        }
+        
+        return new QueryResult(columnNames, values, unstubbedLobValues, hasMoreResults);
       }
 
     } catch (Throwable e) {

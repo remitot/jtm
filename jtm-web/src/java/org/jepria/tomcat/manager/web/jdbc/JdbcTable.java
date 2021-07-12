@@ -277,8 +277,8 @@ public class JdbcTable extends Table<JdbcRow> {
       a.setAttribute("target", "_blank");
       a.addClass("button-test_active");
 
-      String href = context.getAppContextPath() + "/oracle/" + connectionName + "/query" +
-          "?q=select * from dual";// TODO sample query may depend on connection type
+      String href = context.getAppContextPath() + "/oracle/" + connectionName +
+          "?query-input=select * from dual";// TODO sample query may depend on connection type
       a.setAttribute("href", href);
 
       El img = new El("img", context);
